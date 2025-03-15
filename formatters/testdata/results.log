@@ -1,0 +1,8 @@
+Provider      |Run         |Task      |Status |Duration |Answer                               |
+provider-name |run-success |task-name |Passed |1m35s    |Quos aut rerum quaerat qui ad culpa. |
+provider-name |run-failure |task-name |Failed |10s      |@@ -1,67 +1,36 @@
+-Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui
++Ipsam ea et optio explicabo eius et
+ .
+              |
+provider-name |run-error |task-name |Error |0s |error message |

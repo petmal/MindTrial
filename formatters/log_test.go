@@ -1,0 +1,44 @@
+// Copyright (C) 2025 Petr Malik
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at <https://mozilla.org/MPL/2.0/>.
+
+package formatters
+
+import (
+	"testing"
+
+	"github.com/petmal/mindtrial/runners"
+	"github.com/stretchr/testify/assert"
+)
+
+func TestLogFormatterWrite(t *testing.T) {
+	tests := []struct {
+		name    string
+		results runners.Results
+		want    string
+	}{
+		{
+			name:    "format no results",
+			results: runners.Results{},
+			want:    "testdata/empty.log",
+		},
+		{
+			name:    "format some results",
+			results: mockResults,
+			want:    "testdata/results.log",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			formatter := NewLogFormatter()
+			assertFormatterOutputFromFile(t, formatter, tt.results, tt.want)
+		})
+	}
+}
+
+func TestLogFormatterFileExt(t *testing.T) {
+	formatter := NewLogFormatter()
+	assert.Equal(t, "log", formatter.FileExt())
+}

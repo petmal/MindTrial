@@ -1,0 +1,14 @@
+Provider,Run,Task,Status,Duration,Answer,Details
+provider-name,run-success,task-name,Passed,1m35s,Quos aut rerum quaerat qui ad culpa.,"Quis ea voluptatem non.
+Aperiam dolor est alias odit enim fugiat vitae aliquam dolor."
+provider-name,run-failure,task-name,Failed,10s,"@@ -1,67 +1,36 @@
+-Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui
++Ipsam ea et optio explicabo eius et
+ .
+","Ut eos eius modi nihil voluptatem error.
+
+Veniam omnis at possimus aliquid.
+Ut voluptatem ullam et ea non beatae eos adipisci incidunt. Saepe atque occaecati. Tempore animi magni sequi modi omnis.
+Consequatur hic sint laboriosam maiores unde vero ipsum.
+"
+provider-name,run-error,task-name,Error,0s,error message,Pariatur rem dolores corporis voluptas aut eum repellat pariatur.

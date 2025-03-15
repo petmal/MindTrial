@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{.VersionData.Name}} - Run Results</title>
+    <style>
+        /* Base Styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+            margin: 0;
+            padding: 1em;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #444;
+        }
+        h1 {
+            margin-bottom: 0.2em;
+        }
+        h2 {
+            margin-top: 1.5em;
+        }
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2em;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+        thead th {
+            background-color: #4a90e2;
+            color: #fff;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        tbody tr {
+            transition: background-color 0.3s ease;
+        }
+        tbody tr:hover {
+            background-color: #f1f9ff;
+        }
+        /* Alternating row colors */
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+        /* Status classes */
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            font-weight: bold;
+        }
+        .failure {
+            background-color: #fff3cd;
+            color: #856404;
+            font-weight: bold;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            font-weight: bold;
+        }
+        /* Details toggle button styles */
+        .details {
+            cursor: pointer;
+            color: #4a90e2;
+            font-weight: 600;
+            text-decoration: underline;
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: 1em;
+        }
+        .details:focus {
+            outline: 2px solid #4a90e2;
+        }
+        .details-content {
+            display: none;
+            background-color: #fafafa;
+            border: 1px solid #e0e0e0;
+            margin-top: 8px;
+            padding: 8px;
+            font-size: 0.95em;
+        }
+        /* Responsive enhancements */
+        @media (max-width: 768px) {
+            th, td { padding: 10px; }
+        }
+        /* Footer Styles */
+        footer {
+            text-align: center;
+            font-size: 0.85em;
+            color: #777;
+            margin-top: 2em;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 1em;
+        }
+    </style>
+    <script>
+        function toggleDetails(id) {
+            var element = document.getElementById(id);
+            element.style.display = (element.style.display === "none" || element.style.display === "") ? "block" : "none";
+        }
+    </script>
+</head>
+<body itemscope itemtype="https://schema.org/WebPage">
+    <header>
+        <h1 itemprop="headline">{{.VersionData.Name}} Run Results</h1>
+    </header>
+    <main itemprop="mainContentOfPage">
+        <section aria-labelledby="runsummary" itemscope itemtype="https://schema.org/Table" itemprop="hasPart">
+            <h2 id="runsummary" itemprop="headline">Summary</h2>
+            <meta itemprop="alternativeHeadline" content="AI Model Evaluation Run Summary">
+            <meta itemprop="description" content="Summary of success, failure, and error counts, along with total duration for each AI provider and run configuration.">
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Provider</th>
+                        <th scope="col">Run</th>
+                        <th scope="col">Passed</th>
+                        <th scope="col">Failed</th>
+                        <th scope="col">Error</th>
+                        <th scope="col">Total Duration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{- $results := .ResultsData -}}
+                    {{- range $provider := SortResultsByProvider $results -}}
+                        {{- $summary := $results.ProviderResultsByRunAndKind $provider -}}
+                        {{- range $run := SortResultsByRunAndKind $summary -}}
+                            {{- $group := index $summary $run -}}
+                    <tr itemscope itemtype="https://schema.org/Observation">
+                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization">
+                            <span itemprop="name">{{$provider}}</span>
+                        </td>
+                        <td itemprop="identifier">{{$run}}</td>
+                        <td itemprop="measuredProperty" content="Passed">{{CountByKind $group 0}}</td>
+                        <td itemprop="measuredProperty" content="Failed">{{CountByKind $group 1}}</td>
+                        <td itemprop="measuredProperty" content="Error">{{CountByKind $group 2}}</td>
+                        <td itemprop="observationPeriod">{{TotalDuration $group 0 1 2 | RoundToMS}}</td>
+                    </tr>
+                        {{- end}}
+                    {{- end}}
+                </tbody>
+            </table>
+        </section>
+        <section aria-labelledby="detailedresults" itemscope itemtype="https://schema.org/Table" itemprop="hasPart">
+            <h2 id="detailedresults" itemprop="headline">Task Results</h2>
+            <meta itemprop="alternativeHeadline" content="AI Model Evaluation Task Results">
+            <meta itemprop="description" content="Detailed results for each task, including provider, run configuration, task name, status, duration, answer, and details.">
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Provider</th>
+                        <th scope="col">Run</th>
+                        <th scope="col">Task</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Duration</th>
+                        <th scope="col">Answer</th>
+                        <th scope="col">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{- $results := .ResultsData -}}
+                    {{- range $provider := SortResultsByProvider $results -}}
+                        {{- range index $results $provider -}}
+                    <tr itemscope itemtype="https://schema.org/Question">
+                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+                            <span itemprop="name">{{.Provider}}</span>
+                        </td>
+                        <td itemprop="identifier">{{.Run}}</td>
+                        <td itemprop="name">{{.Task}}</td>
+                        <td class="{{if eq .Kind 0}}success{{else if eq .Kind 1}}failure{{else}}error{{end}}" itemprop="additionalProperty">
+                            {{ToStatus .Kind}}
+                        </td>
+                        <td itemprop="timeRequired">{{.Duration | RoundToMS}}</td>
+                        <td>
+                            <div itemprop="suggestedAnswer" itemscope itemtype="https://schema.org/Answer" itemref="details-{{.GetID}}">
+                                <span itemprop="text">{{FormatAnswer . true | SafeHTML}}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <button type="button" class="details" aria-expanded="false"
+                                aria-controls="details-{{.GetID}}"
+                                        onclick="toggleDetails('details-{{.GetID}}'); this.setAttribute('aria-expanded', (this.getAttribute('aria-expanded')==='true' ? 'false' : 'true'));">
+                                        Show Details
+                            </button>
+                            <div id="details-{{.GetID}}" itemprop="answerExplanation" itemscope itemtype="https://schema.org/WebContent" class="details-content">
+                                <span itemprop="text">{{TextToHTML .Details | SafeHTML}}</span>
+                            </div>
+                        </td>
+                    </tr>
+                        {{- end}}
+                    {{- end}}
+                </tbody>
+            </table>
+        </section>
+    </main>
+    <footer>
+        Generated by <span itemprop="creator" itemscope itemtype="https://schema.org/SoftwareApplication">
+        	<a href="https://{{.VersionData.Source}}" target="_blank"
+            title="Visit {{.VersionData.Name}} source repository" itemprop="downloadUrl releaseNotes discussionUrl url"><span itemprop="name">{{.VersionData.Name}}</span></a>
+            <span itemprop="softwareVersion">{{.VersionData.Version}}</span></span> on <span itemprop="dateCreated">{{Timestamp}}</span>.
+    </footer>
+</body>
+</html>

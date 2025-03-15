@@ -1,0 +1,4 @@
+Provider      |Run         |Passed |Failed |Error |Total Duration |
+provider-name |run-error   |0      |0      |1     |0s             |
+provider-name |run-failure |0      |1      |0     |10s            |
+provider-name |run-success |1      |0      |0     |1m35s          |

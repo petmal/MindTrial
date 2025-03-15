@@ -1,0 +1,164 @@
+# Copyright (C) 2025 Petr Malik
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at <https://mozilla.org/MPL/2.0/>.
+
+task-config:
+  tasks:
+    - name: "reasoning - section, color and number - v1"
+      prompt: |-
+        Solve this riddle. Assign color and number to each of the sections (E, F and G) such that all clues are satisfied.
+        
+        Clue 1: The number in the red section is twice as much as the number in the F section.
+        Clue 2: The number in the yellow section is five.
+        Clue 3: The smallest number is in the blue section.
+        Clue 4: The sum of the numbers in E and G section is thirteen.
+        Clue 5: The only prime number is in E section.
+      response-result-format: |-
+        E, <color>, <number>
+        F, <color>, <number>
+        G, <color>, <number>
+      expected-result: |-
+        E, Yellow, 5
+        F, Blue, 4
+        G, Red, 8
+    - name: "reasoning - section, color and number - v2"
+      prompt: |-
+        Assign number and color to each section (F, E, G) so that it satisfies all rules:
+
+        Rule: The blue section contains the smallest number.
+        Rule: Numbers in E and G sum up to 13.
+        Rule: Only the E section contains a prime number.
+        Rule: Yellow section contains number 5.
+        Rule: The Red section number is double of the number in the F section.
+      response-result-format: |-
+        E, <color>, <number>
+        F, <color>, <number>
+        G, <color>, <number>
+      expected-result: |-
+        E, Yellow, 5
+        F, Blue, 4
+        G, Red, 8
+    - name: "reasoning - rickety bridge"
+      prompt: |-
+        Solve this riddle. Read the text carefully and do not make unwarranted assumptions:
+
+        Four people come to a rickety bridge.
+        A flashlight is required to cross safely.
+        They have one flashlight for the entire group.
+        All people do not take the same time to cross the bridge.
+        Time for each person to cross is: 1min, 2min, 7min and 10min.
+        What is the shortest time needed for all of them to cross?
+      response-result-format: |-
+        <n>min (where n is the number of minutes)
+      expected-result: |-
+        10min
+    - name: "quiz - multiple choice questions - v1"
+      prompt: |-
+        Provide answers to the following multiple choice questions:
+
+        1. Which number comes next in the following series? 905, 576, 329, 247, ...
+        a) 142
+        b) 82
+        c) 184
+        d) 36
+
+        2. Two stores are selling inline skates. Store A has a price of $149.95 with a 20% discount. Store B offers a 10% discount on a price of $139.95. Which store offers you the lowest price?
+        a) None of the stores
+        b) Store A
+        c) Both are the same
+        d) Store B
+
+        3. In a family, the father took 1/4 of the cake and he had 3 times as much as each of the other members had. The total number of family members is:
+        a) 12
+        b) 13
+        c) 10
+        d) 3
+
+        4. Which number comes next in the following series? 10, 15, 19, 22, 24, ...
+        a) 27
+        b) 32
+        c) 25
+        d) 28
+
+        5. Find the number which when added to itself 13 times, gives 112.
+        a) 8
+        b) 11
+        c) 9
+        d) 7
+      response-result-format: |-
+        1. <answer letter>
+        2. <answer letter>
+        etc.
+      expected-result: |-
+        1. b
+        2. b
+        3. c
+        4. c
+        5. a
+    - name: "quiz - analogies"
+      prompt: |-
+        Complete the analogy by replacing [???] with a word that is not yet present in the sentence:
+
+        Hat is to head as shoe is to [???].
+        Bird is to nest as [???] is to hive.
+        Rug is to [???] as curtain is to window.
+        [???] is to road as boat is to lake.
+        Boy is to man as [???] is to woman.
+        [???] is to room as gate is to yard.
+        Sleep is to tired as [???] is to hungry.
+        Zoo is to animals as library is to [???].
+        Floor is to [???] as ceiling is to top.
+        [???] is to grass as blue is to sky.
+        Belt is to [???] as bracelet is to wrist.
+        Car is to driver as airplane is to [???].
+        Book is to [???] as television is to watch.
+        Grape is to vine as peach is to [???].
+        Ear is to hearing as [???] is to sight.
+        [???] is to day as dusk is to dawn.
+        Thanksgiving is to November as Christmas is to [???].
+        Calf is to cow as [???] is to lion.
+        [???] is to uncle as niece is to aunt.
+      response-result-format: |-
+        list of words in the order of appearance separated by ", "
+      expected-result: |-
+        foot, bee, floor, Car, girl, Door, eat, books, bottom, Green, waist, pilot, read, tree, eye, Night, December, cub, Nephew
+    - name: "riddle - anagram - v1"
+      prompt: |-
+        Two words (each individual word is a mode of transport) have been combined and their letters arranged in alphabetical order forming a single group.
+        Find the original words for each of these 4 groups:
+
+        1. ACGKNORTUW
+        2. AAAEIILNNPRRT
+        3. CEEEHIILLNOPRRT
+        4. ABBCCEEIILMNRSUY
+      response-result-format: |-
+        1. <word>, <word>
+        2. <word>, <word>
+        etc. (words in each group must be alphabetically ordered)
+      expected-result: |-
+        1. TRUCK, WAGON
+        2. AIRPLANE, TRAIN
+        3. HELICOPTER, LINER
+        4. BICYCLE, SUBMARINE
+    - name: "riddle - split words - v1"
+      prompt: |-
+        There are four 8-letter words (animals) that have been split into 2-letter pieces.
+        Find these four words by putting appropriate pieces back together:
+
+        RR TE KA DG EH AN SQ EL UI OO HE LO AR PE NG OG
+      response-result-format: |-
+        list of words in alphabetical order separated by ", "
+      expected-result: |-
+        ANTELOPE, HEDGEHOG, KANGAROO, SQUIRREL
+    - name: "riddle - missing alphabet - v1"
+      prompt: |-
+        All 26 letters of the alphabet have been removed from this passage and replaced by "_".
+        Find the missing letters and put them in the correct places:
+
+        The man was ama_ed at he_ e_trem_ rea_tion. "_arlin_, I'_ sorr_" _e s_id __ietly. "As _t's so im_ortant to you, I'd li_e to of_er to _uy a _axi bet_een us a_d _oin the _ocal Taxi Lo_ers' As_ociati_n."
+      response-result-format: |-
+        the original passage with blank spaces ("_") replaced by the correct letters, without any additional style or formatting changes
+      expected-result: |-
+        The man was amazed at her extreme reaction. "Darling, I'm sorry" he said quietly. "As it's so important to you, I'd like to offer to buy a taxi between us and join the local Taxi Lovers' Association."

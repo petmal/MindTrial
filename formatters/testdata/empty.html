@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MindTrial - Run Results</title>
+    <style>
+         
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+            margin: 0;
+            padding: 1em;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #444;
+        }
+        h1 {
+            margin-bottom: 0.2em;
+        }
+        h2 {
+            margin-top: 1.5em;
+        }
+         
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2em;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+        thead th {
+            background-color: #4a90e2;
+            color: #fff;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        tbody tr {
+            transition: background-color 0.3s ease;
+        }
+        tbody tr:hover {
+            background-color: #f1f9ff;
+        }
+         
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+         
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            font-weight: bold;
+        }
+        .failure {
+            background-color: #fff3cd;
+            color: #856404;
+            font-weight: bold;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            font-weight: bold;
+        }
+         
+        .details {
+            cursor: pointer;
+            color: #4a90e2;
+            font-weight: 600;
+            text-decoration: underline;
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: 1em;
+        }
+        .details:focus {
+            outline: 2px solid #4a90e2;
+        }
+        .details-content {
+            display: none;
+            background-color: #fafafa;
+            border: 1px solid #e0e0e0;
+            margin-top: 8px;
+            padding: 8px;
+            font-size: 0.95em;
+        }
+         
+        @media (max-width: 768px) {
+            th, td { padding: 10px; }
+        }
+         
+        footer {
+            text-align: center;
+            font-size: 0.85em;
+            color: #777;
+            margin-top: 2em;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 1em;
+        }
+    </style>
+    <script>
+        function toggleDetails(id) {
+            var element = document.getElementById(id);
+            element.style.display = (element.style.display === "none" || element.style.display === "") ? "block" : "none";
+        }
+    </script>
+</head>
+<body itemscope itemtype="https://schema.org/WebPage">
+    <header>
+        <h1 itemprop="headline">MindTrial Run Results</h1>
+    </header>
+    <main itemprop="mainContentOfPage">
+        <section aria-labelledby="runsummary" itemscope itemtype="https://schema.org/Table" itemprop="hasPart">
+            <h2 id="runsummary" itemprop="headline">Summary</h2>
+            <meta itemprop="alternativeHeadline" content="AI Model Evaluation Run Summary">
+            <meta itemprop="description" content="Summary of success, failure, and error counts, along with total duration for each AI provider and run configuration.">
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Provider</th>
+                        <th scope="col">Run</th>
+                        <th scope="col">Passed</th>
+                        <th scope="col">Failed</th>
+                        <th scope="col">Error</th>
+                        <th scope="col">Total Duration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </section>
+        <section aria-labelledby="detailedresults" itemscope itemtype="https://schema.org/Table" itemprop="hasPart">
+            <h2 id="detailedresults" itemprop="headline">Task Results</h2>
+            <meta itemprop="alternativeHeadline" content="AI Model Evaluation Task Results">
+            <meta itemprop="description" content="Detailed results for each task, including provider, run configuration, task name, status, duration, answer, and details.">
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Provider</th>
+                        <th scope="col">Run</th>
+                        <th scope="col">Task</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Duration</th>
+                        <th scope="col">Answer</th>
+                        <th scope="col">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </section>
+    </main>
+    <footer>
+        Generated by <span itemprop="creator" itemscope itemtype="https://schema.org/SoftwareApplication">
+        	<a href="https://github.com/petmal/mindtrial" target="_blank"
+            title="Visit MindTrial source repository" itemprop="downloadUrl releaseNotes discussionUrl url"><span itemprop="name">MindTrial</span></a>
+            <span itemprop="softwareVersion">(testing)</span></span> on <span itemprop="dateCreated">1985-03-04T22:10:00</span>.
+    </footer>
+</body>
+</html>

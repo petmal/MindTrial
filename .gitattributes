@@ -1,0 +1,3 @@
+# Disable automatic line-ending conversion for golden files that use LF endings.
+formatters/testdata/*.csv -text
+formatters/testdata/*.log -text
