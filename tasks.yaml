@@ -40,20 +40,22 @@ task-config:
         E, Yellow, 5
         F, Blue, 4
         G, Red, 8
-    - name: "reasoning - rickety bridge"
+    - name: "reasoning - bridge crossing - v1"
       prompt: |-
         Solve this riddle. Read the text carefully and do not make unwarranted assumptions:
 
-        Four people come to a rickety bridge.
-        A flashlight is required to cross safely.
-        They have one flashlight for the entire group.
+        Four people come to a bridge.
+        A flashlight is required to cross safely, but they have only one flashlight for the entire group.
         All people do not take the same time to cross the bridge.
         Time for each person to cross is: 1min, 2min, 7min and 10min.
-        What is the shortest time needed for all of them to cross?
+        You may assume that all members of the group have equal weight.
+        What is the shortest time needed for all of them to safely get to the other side?
+        Provide answers in minutes for two scenarios: one (n) assuming the bridge is rickety,
+        and another (m) assuming the bridge is sturdy enough to hold the entire group.
       response-result-format: |-
-        <n>min (where n is the number of minutes)
+        <n>min, <m>min
       expected-result: |-
-        10min
+        17min, 10min
     - name: "quiz - multiple choice questions - v1"
       prompt: |-
         Provide answers to the following multiple choice questions:
@@ -155,7 +157,7 @@ task-config:
     - name: "riddle - missing alphabet - v1"
       prompt: |-
         All 26 letters of the alphabet have been removed from this passage and replaced by "_".
-        Find the missing letters and put them in the correct places:
+        Find the missing letters and put them in the correct places, each letter is missing only once:
 
         The man was ama_ed at he_ e_trem_ rea_tion. "_arlin_, I'_ sorr_" _e s_id __ietly. "As _t's so im_ortant to you, I'd li_e to of_er to _uy a _axi bet_een us a_d _oin the _ocal Taxi Lo_ers' As_ociati_n."
       response-result-format: |-
