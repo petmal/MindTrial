@@ -54,20 +54,25 @@ func (o *GoogleAI) Run(ctx context.Context, cfg config.RunConfig, task config.Ta
 			"final_answer": {Type: genai.TypeString},
 		},
 	}
-	model.SystemInstruction = genai.NewUserContent(genai.Text(DefaultAnswerFormatInstruction(task)))
+	model.SystemInstruction = genai.NewUserContent(genai.Text(result.recordPrompt(DefaultAnswerFormatInstruction(task))))
 	resp, err := timed(func() (*genai.GenerateContentResponse, error) {
-		return model.GenerateContent(ctx, genai.Text(task.Prompt))
+		return model.GenerateContent(ctx, genai.Text(result.recordPrompt(task.Prompt)))
 	}, &result.duration)
 	if err != nil {
 		return result, fmt.Errorf("%w: %v", ErrGenerateResponse, err)
 	}
 
-	for _, candidate := range resp.Candidates {
-		if candidate.Content != nil {
-			for _, part := range candidate.Content.Parts {
-				if value, ok := part.(genai.Text); ok {
-					if err := json.Unmarshal([]byte(value), &result); err != nil {
-						return result, NewErrUnmarshalResponse(err, []byte(value), []byte(candidate.FinishReason.String()))
+	if resp != nil {
+		if resp.UsageMetadata != nil {
+			recordUsage(&resp.UsageMetadata.PromptTokenCount, &resp.UsageMetadata.CandidatesTokenCount, &result.usage)
+		}
+		for _, candidate := range resp.Candidates {
+			if candidate.Content != nil {
+				for _, part := range candidate.Content.Parts {
+					if value, ok := part.(genai.Text); ok {
+						if err := json.Unmarshal([]byte(value), &result); err != nil {
+							return result, NewErrUnmarshalResponse(err, []byte(value), []byte(candidate.FinishReason.String()))
+						}
 					}
 				}
 			}

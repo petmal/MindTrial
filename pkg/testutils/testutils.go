@@ -151,12 +151,7 @@ func AssertNotBlank(t *testing.T, value string) {
 	assert.NotEmpty(t, strings.TrimSpace(value))
 }
 
-// BoolPtr returns a pointer to the given boolean value.
-func BoolPtr(v bool) *bool {
-	return &v
-}
-
-// StrPtr returns a pointer to the given string value.
-func StrPtr(v string) *string {
-	return &v
+// Ptr returns a pointer to the given value.
+func Ptr[T any](value T) *T {
+	return &value
 }

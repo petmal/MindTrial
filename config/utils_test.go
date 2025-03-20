@@ -284,9 +284,9 @@ func TestLoadConfigFromFile(t *testing.T) {
 									Name:                 "Sports",
 									Model:                "directional",
 									MaxRequestsPerMinute: 3,
-									Disabled:             testutils.BoolPtr(true),
+									Disabled:             testutils.Ptr(true),
 									ModelParams: OpenAIModelParams{
-										ReasoningEffort:    testutils.StrPtr("high"),
+										ReasoningEffort:    testutils.Ptr("high"),
 										TextResponseFormat: true,
 									},
 								},
@@ -422,7 +422,7 @@ func TestLoadTasksFromFile(t *testing.T) {
 							Prompt:               "Commodi enim magni.\nEos modi id omnis exercitationem debitis doloremque.\n\nEt atque eius ut.",
 							ResponseResultFormat: "Sed unde non.\nVoluptatem quia voluptate id ipsum est rerum quisquam modi pariatur.",
 							ExpectedResult:       "Ut quibusdam inventore dolorum velit.\nUllam et dolor laudantium placeat totam dolorem quia.\nEx voluptates et ipsam sunt nulla eos alias sint ad.\n\nDeleniti ducimus natus et omnis expedita.",
-							Disabled:             testutils.BoolPtr(false),
+							Disabled:             testutils.Ptr(false),
 						},
 					},
 				},
@@ -605,12 +605,12 @@ func TestGetEnabledTasks(t *testing.T) {
 					{
 						Name:     "management",
 						Prompt:   "Ball",
-						Disabled: testutils.BoolPtr(true),
+						Disabled: testutils.Ptr(true),
 					},
 					{
 						Name:     "Security",
 						Prompt:   "Liaison",
-						Disabled: testutils.BoolPtr(true),
+						Disabled: testutils.Ptr(true),
 					},
 				},
 			},
@@ -628,12 +628,12 @@ func TestGetEnabledTasks(t *testing.T) {
 					{
 						Name:     "Rapid",
 						Prompt:   "enable",
-						Disabled: testutils.BoolPtr(false),
+						Disabled: testutils.Ptr(false),
 					},
 					{
 						Name:     "payment",
 						Prompt:   "archive",
-						Disabled: testutils.BoolPtr(true),
+						Disabled: testutils.Ptr(true),
 					},
 				},
 			},
@@ -641,7 +641,7 @@ func TestGetEnabledTasks(t *testing.T) {
 				{
 					Name:     "Rapid",
 					Prompt:   "enable",
-					Disabled: testutils.BoolPtr(false),
+					Disabled: testutils.Ptr(false),
 				},
 			},
 		},
@@ -687,7 +687,7 @@ func TestGetProvidersWithEnabledRuns(t *testing.T) {
 							{
 								Name:     "cross-platform",
 								Model:    "invoice",
-								Disabled: testutils.BoolPtr(true),
+								Disabled: testutils.Ptr(true),
 							},
 						},
 					},
@@ -698,12 +698,12 @@ func TestGetProvidersWithEnabledRuns(t *testing.T) {
 							{
 								Name:     "Danish",
 								Model:    "Soft",
-								Disabled: testutils.BoolPtr(true),
+								Disabled: testutils.Ptr(true),
 							},
 							{
 								Name:     "Human",
 								Model:    "back-end",
-								Disabled: testutils.BoolPtr(false),
+								Disabled: testutils.Ptr(false),
 							},
 							{
 								Name:  "Colorado",
@@ -718,7 +718,7 @@ func TestGetProvidersWithEnabledRuns(t *testing.T) {
 							{
 								Name:     "Executive",
 								Model:    "Garden",
-								Disabled: testutils.BoolPtr(false),
+								Disabled: testutils.Ptr(false),
 							},
 							{
 								Name:  "Pants",
@@ -736,7 +736,7 @@ func TestGetProvidersWithEnabledRuns(t *testing.T) {
 						{
 							Name:     "Human",
 							Model:    "back-end",
-							Disabled: testutils.BoolPtr(false),
+							Disabled: testutils.Ptr(false),
 						},
 					},
 				},
@@ -747,7 +747,7 @@ func TestGetProvidersWithEnabledRuns(t *testing.T) {
 						{
 							Name:     "Executive",
 							Model:    "Garden",
-							Disabled: testutils.BoolPtr(false),
+							Disabled: testutils.Ptr(false),
 						},
 						{
 							Name:  "Pants",
@@ -793,7 +793,7 @@ func TestResolveFlagOverride(t *testing.T) {
 		{
 			name: "override false, parent value false",
 			args: args{
-				override:    testutils.BoolPtr(false),
+				override:    testutils.Ptr(false),
 				parentValue: false,
 			},
 			want: false,
@@ -801,7 +801,7 @@ func TestResolveFlagOverride(t *testing.T) {
 		{
 			name: "override true, parent value false",
 			args: args{
-				override:    testutils.BoolPtr(true),
+				override:    testutils.Ptr(true),
 				parentValue: false,
 			},
 			want: true,
@@ -809,7 +809,7 @@ func TestResolveFlagOverride(t *testing.T) {
 		{
 			name: "override false, parent value true",
 			args: args{
-				override:    testutils.BoolPtr(false),
+				override:    testutils.Ptr(false),
 				parentValue: true,
 			},
 			want: false,
@@ -817,7 +817,7 @@ func TestResolveFlagOverride(t *testing.T) {
 		{
 			name: "override true, parent value true",
 			args: args{
-				override:    testutils.BoolPtr(true),
+				override:    testutils.Ptr(true),
 				parentValue: true,
 			},
 			want: true,

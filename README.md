@@ -211,18 +211,20 @@ task-config:
 mindtrial [options] [command]
 
 Commands:
-  run                Start the trials
-  help               Show help
-  version            Show version
+  run                       Start the trials
+  help                      Show help
+  version                   Show version
 
 Options:
-  --config string    Configuration file path (default: config.yaml)
-  --tasks string     Task definitions file path
-  --output-dir       Results output directory
-  --output-basename  Base filename for results; replace if exists; blank = stdout
-  --html             Generate HTML output (default: true)
-  --csv              Generate CSV output (default: false)
-  --log string       Log file path; append if exists; blank = stdout
+  --config string           Configuration file path (default: config.yaml)
+  --tasks string            Task definitions file path
+  --output-dir string       Results output directory
+  --output-basename string  Base filename for results; replace if exists; blank = stdout
+  --html                    Generate HTML output (default: true)
+  --csv                     Generate CSV output (default: false)
+  --log string              Log file path; append if exists; blank = stdout
+  --verbose                 Enable detailed logging
+  --debug                   Enable low-level debug logging (implies --verbose)
 ```
 
 ## Contributing

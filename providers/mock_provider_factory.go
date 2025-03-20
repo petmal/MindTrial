@@ -11,8 +11,10 @@ package providers
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/petmal/mindtrial/config"
+	"github.com/petmal/mindtrial/pkg/testutils"
 )
 
 type MockProvider struct {
@@ -30,6 +32,16 @@ func (m MockProvider) Validator(expected string) Validator {
 func (m *MockProvider) Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error) {
 	result = Result{
 		Title: task.Name,
+		prompts: []string{
+			"Porro laudantium quam voluptas.",
+			"Et magnam velit unde.",
+			"Dolore odio esse et esse.",
+		},
+		usage: Usage{
+			InputTokens:  testutils.Ptr(int64(8200209999917998)),
+			OutputTokens: nil,
+		},
+		duration: 7211609999927884 * time.Nanosecond,
 	}
 
 	if cfg.Name == "pass" {

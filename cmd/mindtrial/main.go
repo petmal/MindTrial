@@ -12,11 +12,12 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/rs/zerolog"
 
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/formatters"
@@ -31,7 +32,6 @@ const (
 	unsetFlagValue             = "\x00"
 	exitCodeBadCommand         = 2
 	exitCodeFinishedWithErrors = 3
-	loggerPrefix               = version.Name + ": "
 	defaultConfigFile          = "config.yaml"
 )
 
@@ -58,12 +58,22 @@ var (
 	formatHTML         = formatFlag(htmlFormatter, true)
 	formatCSV          = formatFlag(csvFormatter, false)
 	logFilePath        = flag.String("log", unsetFlagValue, "log file path; append if exists; blank = stdout")
+	verbose            = flag.Bool("verbose", false, "enable detailed logging")
+	debug              = flag.Bool("debug", false, "enable low-level debug logging")
 )
 
 func formatFlag(formatter formatters.Formatter, defaultValue bool) *bool {
 	fileExt := formatter.FileExt()
 	return flag.Bool(strings.ToLower(fileExt), defaultValue, fmt.Sprintf("generate %s output", strings.ToUpper(fileExt)))
 }
+
+var stderr = zerolog.New(zerolog.NewConsoleWriter(
+	func(w *zerolog.ConsoleWriter) {
+		w.Out = os.Stderr
+		w.TimeFormat = time.DateTime
+		w.NoColor = true
+	},
+)).Level(zerolog.TraceLevel).With().Timestamp().Logger()
 
 func init() {
 	flag.Usage = func() {
@@ -90,33 +100,29 @@ func formatCommandHelp(out io.Writer, name string, usage string) {
 }
 
 func main() {
-	if len(os.Args) > 1 {
-		for _, arg := range os.Args[1:] {
-			switch arg {
-			case helpCommandName:
-				printHelp(os.Stdout)
-				return
-			case versionCommandName:
-				printVersion(os.Stdout)
-				return
-			case runCommandName:
-				if ok, err := run(); err != nil {
-					log.Fatal(err)
-				} else if !ok {
-					os.Exit(exitCodeFinishedWithErrors)
-				}
-				return
+	flag.Parse()
+	for _, arg := range flag.Args() {
+		switch arg {
+		case helpCommandName:
+			printHelp(os.Stdout)
+			return
+		case versionCommandName:
+			printVersion(os.Stdout)
+			return
+		case runCommandName:
+			if ok, err := run(context.Background()); err != nil {
+				stderr.Fatal().Err(err).Send()
+			} else if !ok {
+				os.Exit(exitCodeFinishedWithErrors)
 			}
+			return
 		}
 	}
 	printHelp(nil) // os.Stderr
 	os.Exit(exitCodeBadCommand)
 }
 
-func run() (ok bool, err error) {
-	ctx := context.Background()
-	flag.Parse()
-
+func run(ctx context.Context) (ok bool, err error) {
 	configPath := filepath.Clean(*configFilePath)
 	workingDir, configDir, err := getWorkingDirectories(configPath)
 	if err != nil {
@@ -158,15 +164,30 @@ func run() (ok bool, err error) {
 	timeRef := time.Now()
 
 	// Configure logger.
-	logFile := os.Stdout // default
+	consoleLogWriter := zerolog.NewConsoleWriter(
+		func(w *zerolog.ConsoleWriter) {
+			w.Out = os.Stdout
+			w.TimeFormat = time.DateTime
+			w.NoColor = false
+		},
+	)
+	logWriters := []io.Writer{consoleLogWriter}
+	logFile := os.Stdout
 	if fp, logPath, err := createOutputFile(getFlagValueIfSet(logFilePath, config.MakeAbs(configDir, cfg.Config.LogFile)), timeRef, true); err != nil {
 		return ok, err
 	} else if fp != nil {
 		fmt.Printf("Log messages will be saved to: %s\n", logPath)
 		defer fp.Close()
 		logFile = fp
+		logWriters = append(logWriters, zerolog.NewConsoleWriter(
+			func(w *zerolog.ConsoleWriter) {
+				w.Out = logFile
+				w.TimeFormat = time.DateTime
+				w.NoColor = true
+			},
+		)) // format the file output as plain-text without color codes
 	}
-	logger := log.New(logFile, loggerPrefix, log.LstdFlags|log.Lmsgprefix)
+	logger := zerolog.New(zerolog.MultiLevelWriter(logWriters...)).Level(getEnabledLogLevel()).With().Timestamp().Logger()
 
 	// Create output files.
 	outputWriters := make(map[formatters.Formatter]io.Writer)
@@ -197,7 +218,7 @@ func run() (ok bool, err error) {
 
 	// Print and save the results.
 	results := exec.GetResults()
-	ok = !logResults(results, logger)
+	ok = !logResults(results, logFile)
 	ok = ok && !saveResults(results, outputWriters)
 
 	return
@@ -233,6 +254,15 @@ func getWorkingDirectories(configFilePath string) (workingDir string, configDir 
 	return
 }
 
+func getEnabledLogLevel() zerolog.Level {
+	if isEnabled(debug) {
+		return zerolog.TraceLevel
+	} else if isEnabled(verbose) {
+		return zerolog.DebugLevel
+	}
+	return zerolog.InfoLevel
+}
+
 func getFlagValueIfSet(value *string, defaultValue string) string {
 	if (value != nil) && *value != unsetFlagValue {
 		return *value
@@ -263,18 +293,15 @@ func createOutputFile(outputFilePath string, timeRef time.Time, append bool) (ou
 	return
 }
 
-func logResults(results runners.Results, logger *log.Logger) (finishedWithErrors bool) {
-	logger.SetFlags(0)
-	logger.SetPrefix("")
-	out := logger.Writer()
+func logResults(results runners.Results, out io.Writer) (finishedWithErrors bool) {
 	fmt.Fprintln(out)
 	if err := summaryLogFormatter.Write(results, out); err != nil {
-		log.Println(err)
+		stderr.Warn().Err(err).Msg("failed to log summary")
 		finishedWithErrors = true
 	}
 	fmt.Fprintln(out)
 	if err := logFormatter.Write(results, out); err != nil {
-		log.Println(err)
+		stderr.Warn().Err(err).Msg("failed to log results")
 		finishedWithErrors = true
 	}
 	fmt.Fprintln(out)
@@ -284,7 +311,7 @@ func logResults(results runners.Results, logger *log.Logger) (finishedWithErrors
 func saveResults(results runners.Results, outputWriters map[formatters.Formatter]io.Writer) (finishedWithErrors bool) {
 	for formatter, out := range outputWriters {
 		if err := formatter.Write(results, out); err != nil {
-			log.Println(err)
+			stderr.Warn().Err(err).Msgf("failed to write %s output", strings.ToUpper(formatter.FileExt()))
 			finishedWithErrors = true
 		}
 	}

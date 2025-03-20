@@ -501,7 +501,7 @@ func TestTimestamp(t *testing.T) {
 	want := time.Now()
 	got := Timestamp()
 
-	parsedTime, err := time.Parse("2006-01-02T15:04:05Z07:00", got)
+	parsedTime, err := time.Parse(time.RFC1123Z, got)
 
 	require.NoError(t, err)
 	assert.WithinDuration(t, want, parsedTime, time.Second)

@@ -38,9 +38,9 @@ func (o *Deepseek) Run(ctx context.Context, cfg config.RunConfig, task config.Ta
 	request := &deepseek.ChatCompletionRequest{
 		Model: cfg.Model,
 		Messages: []deepseek.ChatCompletionMessage{
-			{Role: deepseek.ChatMessageRoleSystem, Content: DefaultResponseFormatInstruction()}, // NOTE: required with JSONMode
-			{Role: deepseek.ChatMessageRoleSystem, Content: DefaultAnswerFormatInstruction(task)},
-			{Role: deepseek.ChatMessageRoleUser, Content: task.Prompt},
+			{Role: deepseek.ChatMessageRoleSystem, Content: result.recordPrompt(DefaultResponseFormatInstruction())}, // NOTE: required with JSONMode
+			{Role: deepseek.ChatMessageRoleSystem, Content: result.recordPrompt(DefaultAnswerFormatInstruction(task))},
+			{Role: deepseek.ChatMessageRoleUser, Content: result.recordPrompt(task.Prompt)},
 		},
 		JSONMode: true,
 	}
@@ -52,9 +52,12 @@ func (o *Deepseek) Run(ctx context.Context, cfg config.RunConfig, task config.Ta
 		return result, fmt.Errorf("%w: %v", ErrGenerateResponse, err)
 	}
 
-	if resp != nil && len(resp.Choices) > 0 {
-		if err := deepseek.NewJSONExtractor(nil).ExtractJSON(resp, &result); err != nil {
-			return result, NewErrUnmarshalResponse(err, []byte(resp.Choices[0].Message.Content), []byte(resp.Choices[0].FinishReason))
+	if resp != nil {
+		recordUsage(&resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, &result.usage)
+		if len(resp.Choices) > 0 {
+			if err := deepseek.NewJSONExtractor(nil).ExtractJSON(resp, &result); err != nil {
+				return result, NewErrUnmarshalResponse(err, []byte(resp.Choices[0].Message.Content), []byte(resp.Choices[0].FinishReason))
+			}
 		}
 	}
 

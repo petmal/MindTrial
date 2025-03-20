@@ -17,6 +17,7 @@
                 "${userHome}${/}.${workspaceFolderBasename}${/}config.yaml",
                 "--html=true",
                 "--csv=true",
+                "--verbose=true",
                 "run",
             ]
         },

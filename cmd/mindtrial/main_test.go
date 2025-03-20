@@ -98,9 +98,13 @@ const (
 )
 
 var (
-	testOutputFormats = map[string]bool{
+	allOutputFormatsEnabled = map[string]bool{
 		"csv":  true,
 		"html": true,
+	}
+	noOutputFormatsEnabled = map[string]bool{
+		"csv":  false,
+		"html": false,
 	}
 	expectedStdoutMessages = []string{
 		"Current working directory:",
@@ -143,11 +147,15 @@ func TestRun(t *testing.T) {
 		logFilePath           string
 		outputFileBasename    string
 		outputFormats         map[string]bool
+		verbose               bool
+		debug                 bool
 		initOutputContent     []byte
 		wantStdoutContains    []string
+		wantStdoutNotContains []string
 		wantOutputContains    []string
 		wantOutputNotContains []string
 		wantLogContains       []string
+		wantLogNotContains    []string
 	}{
 		{
 			name: "fail on no enabled targets",
@@ -173,8 +181,14 @@ func TestRun(t *testing.T) {
                             model: "capacitor"`),
 			tasks:              []byte(mockTasks),
 			outputFileBasename: testOutputFileBasename,
-			outputFormats:      testOutputFormats,
-			wantStdoutContains: append([]string{"Nothing to run: all providers are disabled or have no enabled run configurations."}, expectedStdoutMessages...),
+			outputFormats:      allOutputFormatsEnabled,
+			wantStdoutContains: append([]string{
+				"Nothing to run: all providers are disabled or have no enabled run configurations.",
+			}, expectedStdoutMessages...),
+			wantStdoutNotContains: []string{
+				"Log messages will be saved to:",
+				"Results will be saved to:",
+			},
 			wantOutputContains: nil,
 			wantLogContains:    nil,
 		},
@@ -213,8 +227,14 @@ func TestRun(t *testing.T) {
               expected-result: |-
                 Quia error officia et aliquid voluptas fugiat nihil.`),
 			outputFileBasename: testOutputFileBasename,
-			outputFormats:      testOutputFormats,
-			wantStdoutContains: append([]string{"Nothing to run: all tasks are disabled."}, expectedStdoutMessages...),
+			outputFormats:      allOutputFormatsEnabled,
+			wantStdoutContains: append([]string{
+				"Nothing to run: all tasks are disabled.",
+			}, expectedStdoutMessages...),
+			wantStdoutNotContains: []string{
+				"Log messages will be saved to:",
+				"Results will be saved to:",
+			},
 			wantOutputContains: nil,
 			wantLogContains:    nil,
 		},
@@ -224,16 +244,30 @@ func TestRun(t *testing.T) {
 			tasks:              []byte(mockTasks),
 			logFilePath:        testutils.CreateMockFile(t, "*.messages.log", []byte("e8787ca3-12e4-47b9-a06f-4b81ad15c304")),
 			outputFileBasename: testOutputFileBasename,
-			outputFormats:      testOutputFormats,
+			outputFormats:      allOutputFormatsEnabled,
 			initOutputContent:  []byte("95db2195-5a95-4e4b-9a0d-61f38e639491"),
 			wantStdoutContains: append([]string{
 				"Log messages will be saved to:",
-				"Results will be saved to:"}, expectedStdoutMessages...),
-			wantOutputContains:    []string{"unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37"},
-			wantOutputNotContains: []string{"95db2195-5a95-4e4b-9a0d-61f38e639491"}, // output file should get overwritten
+				"Results will be saved to:",
+			}, expectedStdoutMessages...),
+			wantOutputContains: []string{
+				"unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37",
+			},
+			wantOutputNotContains: []string{
+				"95db2195-5a95-4e4b-9a0d-61f38e639491",
+			}, // output file should get overwritten
 			wantLogContains: []string{
 				"e8787ca3-12e4-47b9-a06f-4b81ad15c304", // log file should get appended to
-				"MindTrial: all tasks in all configurations have finished on all providers",
+				"all tasks in all configurations have finished on all providers",
+			},
+			wantLogNotContains: []string{
+				"google:",
+				"openai: p1 run1: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: token usage: [in:8200209999917998, out:<unknown>]",
+				"openai: p1 run2: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: token usage: [in:8200209999917998, out:<unknown>]",
+				"openai: p2 run1: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: token usage: [in:8200209999917998, out:<unknown>]",
+				"openai: p1 run1: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: prompts:\nPorro laudantium quam voluptas.\n\nEt magnam velit unde.\n\nDolore odio esse et esse.",
+				"openai: p1 run2: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: prompts:\nPorro laudantium quam voluptas.\n\nEt magnam velit unde.\n\nDolore odio esse et esse.",
+				"openai: p2 run1: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: prompts:\nPorro laudantium quam voluptas.\n\nEt magnam velit unde.\n\nDolore odio esse et esse.",
 			},
 		},
 		{
@@ -241,24 +275,109 @@ func TestRun(t *testing.T) {
 			config:             []byte(mockConfig),
 			tasks:              []byte(mockTasks),
 			outputFileBasename: testOutputFileBasename,
-			outputFormats:      testOutputFormats,
+			outputFormats:      allOutputFormatsEnabled,
 			wantStdoutContains: append([]string{
 				"Log messages will be saved to:",
-				"Results will be saved to:"}, expectedStdoutMessages...),
-			wantOutputContains: []string{"unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37"},
-			wantLogContains:    []string{"MindTrial: all tasks in all configurations have finished on all providers"},
+				"Results will be saved to:",
+			}, expectedStdoutMessages...),
+			wantOutputContains: []string{
+				"unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37",
+			},
+			wantLogContains: []string{
+				"all tasks in all configurations have finished on all providers",
+			},
+			wantLogNotContains: []string{
+				"google:",
+				"openai: p1 run1: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: token usage: [in:8200209999917998, out:<unknown>]",
+				"openai: p1 run2: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: token usage: [in:8200209999917998, out:<unknown>]",
+				"openai: p2 run1: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: token usage: [in:8200209999917998, out:<unknown>]",
+				"openai: p1 run1: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: prompts:\nPorro laudantium quam voluptas.\n\nEt magnam velit unde.\n\nDolore odio esse et esse.",
+				"openai: p1 run2: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: prompts:\nPorro laudantium quam voluptas.\n\nEt magnam velit unde.\n\nDolore odio esse et esse.",
+				"openai: p2 run1: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: prompts:\nPorro laudantium quam voluptas.\n\nEt magnam velit unde.\n\nDolore odio esse et esse.",
+			},
 		},
 		{
 			name:               "output to stdout",
 			config:             []byte(mockConfig),
 			tasks:              []byte(mockTasks),
 			outputFileBasename: "",
-			outputFormats:      testOutputFormats,
+			outputFormats:      allOutputFormatsEnabled,
 			wantStdoutContains: append([]string{
 				"Log messages will be saved to:",
-				"unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37"}, expectedStdoutMessages...),
+				"unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37",
+			}, expectedStdoutMessages...),
+			wantStdoutNotContains: []string{
+				"Results will be saved to:",
+			},
 			wantOutputContains: []string{},
-			wantLogContains:    []string{"MindTrial: all tasks in all configurations have finished on all providers"},
+			wantLogContains: []string{
+				"all tasks in all configurations have finished on all providers",
+			},
+			wantLogNotContains: []string{
+				"google:",
+				"openai: p1 run1: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: token usage: [in:8200209999917998, out:<unknown>]",
+				"openai: p1 run2: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: token usage: [in:8200209999917998, out:<unknown>]",
+				"openai: p2 run1: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: token usage: [in:8200209999917998, out:<unknown>]",
+				"openai: p1 run1: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: prompts:\nPorro laudantium quam voluptas.\n\nEt magnam velit unde.\n\nDolore odio esse et esse.",
+				"openai: p1 run2: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: prompts:\nPorro laudantium quam voluptas.\n\nEt magnam velit unde.\n\nDolore odio esse et esse.",
+				"openai: p2 run1: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: prompts:\nPorro laudantium quam voluptas.\n\nEt magnam velit unde.\n\nDolore odio esse et esse.",
+			},
+		},
+		{
+			name:               "verbose logging",
+			config:             []byte(mockConfig),
+			tasks:              []byte(mockTasks),
+			outputFileBasename: "",
+			outputFormats:      noOutputFormatsEnabled, // no output will be generated
+			verbose:            true,
+			wantStdoutContains: append([]string{
+				"Log messages will be saved to:",
+				"unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37",
+			}, expectedStdoutMessages...),
+			wantStdoutNotContains: []string{
+				"Results will be saved to:",
+			},
+			wantOutputContains: []string{},
+			wantLogContains: []string{
+				"openai: p1 run1: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: token usage: [in:8200209999917998, out:<unknown>]",
+				"openai: p1 run2: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: token usage: [in:8200209999917998, out:<unknown>]",
+				"openai: p2 run1: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: token usage: [in:8200209999917998, out:<unknown>]",
+				"all tasks in all configurations have finished on all providers",
+			},
+			wantLogNotContains: []string{
+				"google:",
+				"openai: p1 run1: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: prompts:\n\tPorro laudantium quam voluptas.\n\n\tEt magnam velit unde.\n\n\tDolore odio esse et esse.",
+				"openai: p1 run2: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: prompts:\n\tPorro laudantium quam voluptas.\n\n\tEt magnam velit unde.\n\n\tDolore odio esse et esse.",
+				"openai: p2 run1: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: prompts:\n\tPorro laudantium quam voluptas.\n\n\tEt magnam velit unde.\n\n\tDolore odio esse et esse.",
+			},
+		},
+		{
+			name:               "debug logging",
+			config:             []byte(mockConfig),
+			tasks:              []byte(mockTasks),
+			outputFileBasename: "",
+			outputFormats:      noOutputFormatsEnabled, // no output will be generated
+			debug:              true,
+			wantStdoutContains: append([]string{
+				"Log messages will be saved to:",
+				"unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37",
+			}, expectedStdoutMessages...),
+			wantStdoutNotContains: []string{
+				"Results will be saved to:",
+			},
+			wantOutputContains: []string{},
+			wantLogContains: []string{
+				"openai: p1 run1: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: token usage: [in:8200209999917998, out:<unknown>]",
+				"openai: p1 run2: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: token usage: [in:8200209999917998, out:<unknown>]",
+				"openai: p2 run1: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: token usage: [in:8200209999917998, out:<unknown>]",
+				"openai: p1 run1: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: prompts:\n\tPorro laudantium quam voluptas.\n\n\tEt magnam velit unde.\n\n\tDolore odio esse et esse.",
+				"openai: p1 run2: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: prompts:\n\tPorro laudantium quam voluptas.\n\n\tEt magnam velit unde.\n\n\tDolore odio esse et esse.",
+				"openai: p2 run1: unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37: prompts:\n\tPorro laudantium quam voluptas.\n\n\tEt magnam velit unde.\n\n\tDolore odio esse et esse.",
+				"all tasks in all configurations have finished on all providers",
+			},
+			wantLogNotContains: []string{
+				"google:",
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -274,9 +393,9 @@ func TestRun(t *testing.T) {
 			outBasePath := filepath.Join(os.TempDir(), uuid.NewString())
 
 			outputFiles := make(map[string]bool)
-			if tt.outputFileBasename != "" {
-				for name, enabled := range tt.outputFormats {
-					require.NoError(t, flag.Set(name, strconv.FormatBool(enabled)))
+			for name, enabled := range tt.outputFormats {
+				require.NoError(t, flag.Set(name, strconv.FormatBool(enabled)))
+				if tt.outputFileBasename != "" {
 					outputFilePath := filepath.Join(outBasePath, fmt.Sprintf("%s.%s", tt.outputFileBasename, name))
 					outputFiles[outputFilePath] = enabled
 					if enabled && tt.initOutputContent != nil {
@@ -290,11 +409,14 @@ func TestRun(t *testing.T) {
 			require.NoError(t, flag.Set("output-dir", outBasePath))
 			require.NoError(t, flag.Set("output-basename", tt.outputFileBasename))
 			require.NoError(t, flag.Set("log", logFilePath))
+			require.NoError(t, flag.Set("verbose", strconv.FormatBool(tt.verbose)))
+			require.NoError(t, flag.Set("debug", strconv.FormatBool(tt.debug)))
 
 			sout := testutils.CaptureStdout(t, func() { testutils.WithArgs(t, main, "run") })
 
 			testutils.AssertContainsAll(t, sout, tt.wantStdoutContains)
-			assertTestArtifact(t, logFilePath, tt.wantLogContains, nil)
+			testutils.AssertContainsNone(t, sout, tt.wantStdoutNotContains)
+			assertTestArtifact(t, logFilePath, tt.wantLogContains, tt.wantLogNotContains)
 			for filePath, isWant := range outputFiles {
 				if isWant {
 					assertTestArtifact(t, filePath, tt.wantOutputContains, tt.wantOutputNotContains)

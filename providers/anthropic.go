@@ -43,10 +43,10 @@ func (o *Anthropic) Run(ctx context.Context, cfg config.RunConfig, task config.T
 		MaxTokens: anthropic.Int(2048),
 		Model:     anthropic.F(cfg.Model),
 		System: anthropic.F([]anthropic.TextBlockParam{
-			anthropic.NewTextBlock(DefaultAnswerFormatInstruction(task)),
+			anthropic.NewTextBlock(result.recordPrompt(DefaultAnswerFormatInstruction(task))),
 		}),
 		Messages: anthropic.F([]anthropic.MessageParam{
-			anthropic.NewUserMessage(anthropic.NewTextBlock(task.Prompt)),
+			anthropic.NewUserMessage(anthropic.NewTextBlock(result.recordPrompt(task.Prompt))),
 		}),
 		Tools: anthropic.F([]anthropic.ToolUnionUnionParam{
 			anthropic.ToolParam{
@@ -67,13 +67,16 @@ func (o *Anthropic) Run(ctx context.Context, cfg config.RunConfig, task config.T
 		return result, fmt.Errorf("%w: %v", ErrGenerateResponse, err)
 	}
 
-	for _, block := range resp.Content {
-		if block.Type == anthropic.ContentBlockTypeToolUse {
-			if block.Name == responseFormatterToolName {
-				if err = json.Unmarshal(block.Input, &result); err != nil {
-					return result, NewErrUnmarshalResponse(err, block.Input, []byte(resp.StopReason))
+	if resp != nil {
+		recordUsage(&resp.Usage.InputTokens, &resp.Usage.OutputTokens, &result.usage)
+		for _, block := range resp.Content {
+			if block.Type == anthropic.ContentBlockTypeToolUse {
+				if block.Name == responseFormatterToolName {
+					if err = json.Unmarshal(block.Input, &result); err != nil {
+						return result, NewErrUnmarshalResponse(err, block.Input, []byte(resp.StopReason))
+					}
+					break
 				}
-				break
 			}
 		}
 	}

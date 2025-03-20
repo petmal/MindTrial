@@ -8,8 +8,10 @@ package runners
 
 import (
 	"context"
-	"log"
 	"testing"
+	"time"
+
+	"github.com/rs/zerolog"
 
 	"github.com/petmal/mindtrial/config"
 	"github.com/stretchr/testify/assert"
@@ -66,6 +68,7 @@ func TestRunnerRun(t *testing.T) {
 						Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
 						Want:     "provident quas tenetur repellat deserunt ut neque culpa.",
 						Details:  "success\n\nmock success",
+						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
 						Kind:     Failure,
@@ -75,6 +78,7 @@ func TestRunnerRun(t *testing.T) {
 						Got:      "facere aperiam recusandae totam magnam nulla corrupti.",
 						Want:     "aperiam assumenda id provident ratione eos molestiae.",
 						Details:  "failure\n\nmock failure",
+						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
 						Kind:     Error,
@@ -84,6 +88,7 @@ func TestRunnerRun(t *testing.T) {
 						Want:     "doloribus quis incidunt velit quia.",
 						Got:      "mock error",
 						Details:  "",
+						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
 						Kind:     Failure,
@@ -93,6 +98,7 @@ func TestRunnerRun(t *testing.T) {
 						Got:      "facere aperiam recusandae totam magnam nulla corrupti.",
 						Want:     "veritatis aliquid accusantium dolore voluptate optio dolor.",
 						Details:  "failure\n\nmock failure",
+						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
 						Kind:     Success,
@@ -102,6 +108,7 @@ func TestRunnerRun(t *testing.T) {
 						Got:      "omnis omnis ea quia et ut est.",
 						Want:     "omnis omnis ea quia et ut est.",
 						Details:  "success\n\nmock success",
+						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
 						Kind:     Success,
@@ -111,6 +118,7 @@ func TestRunnerRun(t *testing.T) {
 						Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
 						Want:     "provident quas tenetur repellat deserunt ut neque culpa.",
 						Details:  "success\n\nmock pass",
+						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
 						Kind:     Success,
@@ -120,6 +128,7 @@ func TestRunnerRun(t *testing.T) {
 						Got:      "aperiam assumenda id provident ratione eos molestiae.",
 						Want:     "aperiam assumenda id provident ratione eos molestiae.",
 						Details:  "failure\n\nmock pass",
+						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
 						Kind:     Success,
@@ -129,6 +138,7 @@ func TestRunnerRun(t *testing.T) {
 						Got:      "doloribus quis incidunt velit quia.",
 						Want:     "doloribus quis incidunt velit quia.",
 						Details:  "error\n\nmock pass",
+						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
 						Kind:     Success,
@@ -138,6 +148,7 @@ func TestRunnerRun(t *testing.T) {
 						Got:      "veritatis aliquid accusantium dolore voluptate optio dolor.",
 						Want:     "veritatis aliquid accusantium dolore voluptate optio dolor.",
 						Details:  "failure\n\nmock pass",
+						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
 						Kind:     Success,
@@ -147,6 +158,7 @@ func TestRunnerRun(t *testing.T) {
 						Got:      "omnis omnis ea quia et ut est.",
 						Want:     "omnis omnis ea quia et ut est.",
 						Details:  "success\n\nmock pass",
+						Duration: 7211609999927884 * time.Nanosecond,
 					},
 				},
 				"mock provider 2": []RunResult{
@@ -158,6 +170,7 @@ func TestRunnerRun(t *testing.T) {
 						Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
 						Want:     "provident quas tenetur repellat deserunt ut neque culpa.",
 						Details:  "success\n\nmock pass",
+						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
 						Kind:     Success,
@@ -167,6 +180,7 @@ func TestRunnerRun(t *testing.T) {
 						Got:      "aperiam assumenda id provident ratione eos molestiae.",
 						Want:     "aperiam assumenda id provident ratione eos molestiae.",
 						Details:  "failure\n\nmock pass",
+						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
 						Kind:     Success,
@@ -176,6 +190,7 @@ func TestRunnerRun(t *testing.T) {
 						Got:      "doloribus quis incidunt velit quia.",
 						Want:     "doloribus quis incidunt velit quia.",
 						Details:  "error\n\nmock pass",
+						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
 						Kind:     Success,
@@ -185,6 +200,7 @@ func TestRunnerRun(t *testing.T) {
 						Got:      "veritatis aliquid accusantium dolore voluptate optio dolor.",
 						Want:     "veritatis aliquid accusantium dolore voluptate optio dolor.",
 						Details:  "failure\n\nmock pass",
+						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
 						Kind:     Success,
@@ -194,6 +210,7 @@ func TestRunnerRun(t *testing.T) {
 						Got:      "omnis omnis ea quia et ut est.",
 						Want:     "omnis omnis ea quia et ut est.",
 						Details:  "success\n\nmock pass",
+						Duration: 7211609999927884 * time.Nanosecond,
 					},
 				},
 			},
@@ -242,7 +259,7 @@ func createMockRunner(t *testing.T) Runner {
 }
 
 func createMockRunnerFromConfig(t *testing.T, cfg []config.ProviderConfig) Runner {
-	runner, err := NewDefaultRunner(context.Background(), cfg, log.Default())
+	runner, err := NewDefaultRunner(context.Background(), cfg, zerolog.Nop())
 	if err != nil {
 		t.Fatalf("failed to create runner: %v", err)
 	}

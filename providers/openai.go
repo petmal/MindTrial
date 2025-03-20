@@ -66,7 +66,7 @@ func (o *OpenAI) Run(ctx context.Context, cfg config.RunConfig, task config.Task
 				}
 				request.Messages = append(request.Messages, openai.ChatCompletionMessage{
 					Role:    openai.ChatMessageRoleUser, // NOTE: system role not supported by all models
-					Content: DefaultResponseFormatInstruction(),
+					Content: result.recordPrompt(DefaultResponseFormatInstruction()),
 				})
 			}
 		} else {
@@ -77,11 +77,11 @@ func (o *OpenAI) Run(ctx context.Context, cfg config.RunConfig, task config.Task
 	request.Messages = append(request.Messages,
 		openai.ChatCompletionMessage{
 			Role:    openai.ChatMessageRoleUser, // NOTE: system role not supported by all models
-			Content: DefaultAnswerFormatInstruction(task),
+			Content: result.recordPrompt(DefaultAnswerFormatInstruction(task)),
 		},
 		openai.ChatCompletionMessage{
 			Role:    openai.ChatMessageRoleUser,
-			Content: task.Prompt,
+			Content: result.recordPrompt(task.Prompt),
 		})
 
 	resp, err := timed(func() (openai.ChatCompletionResponse, error) {
@@ -91,6 +91,7 @@ func (o *OpenAI) Run(ctx context.Context, cfg config.RunConfig, task config.Task
 		return result, fmt.Errorf("%w: %v", ErrGenerateResponse, err)
 	}
 
+	recordUsage(&resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, &result.usage)
 	for _, candidate := range resp.Choices {
 		content := candidate.Message.Content
 		if request.ResponseFormat.Type == openai.ChatCompletionResponseFormatTypeText {
