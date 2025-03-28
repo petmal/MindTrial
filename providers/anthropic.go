@@ -27,7 +27,7 @@ func NewAnthropic(cfg config.AnthropicClientConfig) *Anthropic {
 
 // Anthropic implements the Provider interface for Anthropic generative models.
 type Anthropic struct {
-	client *anthropic.Client
+	client anthropic.Client
 }
 
 func (o Anthropic) Name() string {
@@ -40,25 +40,32 @@ func (o Anthropic) Validator(expected string) Validator {
 
 func (o *Anthropic) Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error) {
 	request := anthropic.MessageNewParams{
-		MaxTokens: anthropic.Int(2048),
-		Model:     anthropic.F(cfg.Model),
-		System: anthropic.F([]anthropic.TextBlockParam{
-			anthropic.NewTextBlock(result.recordPrompt(DefaultAnswerFormatInstruction(task))),
-		}),
-		Messages: anthropic.F([]anthropic.MessageParam{
-			anthropic.NewUserMessage(anthropic.NewTextBlock(result.recordPrompt(task.Prompt))),
-		}),
-		Tools: anthropic.F([]anthropic.ToolUnionUnionParam{
-			anthropic.ToolParam{
-				Name:        anthropic.F(responseFormatterToolName),
-				Description: anthropic.F("Record the response using well-structured JSON."),
-				InputSchema: anthropic.F(ResultJSONSchema()),
+		MaxTokens: 2048,
+		Model:     cfg.Model,
+		System: []anthropic.TextBlockParam{
+			{
+				Text: result.recordPrompt(DefaultAnswerFormatInstruction(task)),
 			},
-		}),
-		ToolChoice: anthropic.F(anthropic.ToolChoiceUnionParam(anthropic.ToolChoiceToolParam{
-			Name: anthropic.F(responseFormatterToolName),
-			Type: anthropic.F(anthropic.ToolChoiceToolTypeTool),
-		})),
+		},
+		Messages: []anthropic.MessageParam{
+			anthropic.NewUserMessage(anthropic.NewTextBlock(result.recordPrompt(task.Prompt))),
+		},
+		Tools: []anthropic.ToolUnionParam{
+			{
+				OfTool: &anthropic.ToolParam{
+					Name:        responseFormatterToolName,
+					Description: anthropic.String("Record the response using well-structured JSON."),
+					InputSchema: anthropic.ToolInputSchemaParam{
+						Properties: ResultJSONSchema().Properties,
+					},
+				},
+			},
+		},
+		ToolChoice: anthropic.ToolChoiceUnionParam{
+			OfToolChoiceTool: &anthropic.ToolChoiceToolParam{
+				Name: responseFormatterToolName,
+			},
+		},
 	}
 	resp, err := timed(func() (*anthropic.Message, error) {
 		return o.client.Messages.New(ctx, request)
@@ -70,7 +77,8 @@ func (o *Anthropic) Run(ctx context.Context, cfg config.RunConfig, task config.T
 	if resp != nil {
 		recordUsage(&resp.Usage.InputTokens, &resp.Usage.OutputTokens, &result.usage)
 		for _, block := range resp.Content {
-			if block.Type == anthropic.ContentBlockTypeToolUse {
+			switch block := block.AsAny().(type) {
+			case anthropic.ToolUseBlock:
 				if block.Name == responseFormatterToolName {
 					if err = json.Unmarshal(block.Input, &result); err != nil {
 						return result, NewErrUnmarshalResponse(err, block.Input, []byte(resp.StopReason))
