@@ -202,7 +202,7 @@ func run(ctx context.Context) (ok bool, err error) {
 				return ok, err
 			} else if fp != nil {
 				defer fp.Close()
-				fmt.Printf("Results will be saved to: %s\n", outputPath)
+				fmt.Printf("Results in %s format will be saved to: %s\n", strings.ToUpper(formatter.FileExt()), outputPath)
 				outputWriters[formatter] = fp
 			}
 		}

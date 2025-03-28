@@ -187,7 +187,8 @@ func TestRun(t *testing.T) {
 			}, expectedStdoutMessages...),
 			wantStdoutNotContains: []string{
 				"Log messages will be saved to:",
-				"Results will be saved to:",
+				"Results in HTML format will be saved to:",
+				"Results in CSV format will be saved to:",
 			},
 			wantOutputContains: nil,
 			wantLogContains:    nil,
@@ -233,7 +234,8 @@ func TestRun(t *testing.T) {
 			}, expectedStdoutMessages...),
 			wantStdoutNotContains: []string{
 				"Log messages will be saved to:",
-				"Results will be saved to:",
+				"Results in HTML format will be saved to:",
+				"Results in CSV format will be saved to:",
 			},
 			wantOutputContains: nil,
 			wantLogContains:    nil,
@@ -248,7 +250,8 @@ func TestRun(t *testing.T) {
 			initOutputContent:  []byte("95db2195-5a95-4e4b-9a0d-61f38e639491"),
 			wantStdoutContains: append([]string{
 				"Log messages will be saved to:",
-				"Results will be saved to:",
+				"Results in HTML format will be saved to:",
+				"Results in CSV format will be saved to:",
 			}, expectedStdoutMessages...),
 			wantOutputContains: []string{
 				"unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37",
@@ -278,7 +281,8 @@ func TestRun(t *testing.T) {
 			outputFormats:      allOutputFormatsEnabled,
 			wantStdoutContains: append([]string{
 				"Log messages will be saved to:",
-				"Results will be saved to:",
+				"Results in HTML format will be saved to:",
+				"Results in CSV format will be saved to:",
 			}, expectedStdoutMessages...),
 			wantOutputContains: []string{
 				"unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37",
@@ -307,7 +311,8 @@ func TestRun(t *testing.T) {
 				"unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37",
 			}, expectedStdoutMessages...),
 			wantStdoutNotContains: []string{
-				"Results will be saved to:",
+				"Results in HTML format will be saved to:",
+				"Results in CSV format will be saved to:",
 			},
 			wantOutputContains: []string{},
 			wantLogContains: []string{
@@ -335,7 +340,8 @@ func TestRun(t *testing.T) {
 				"unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37",
 			}, expectedStdoutMessages...),
 			wantStdoutNotContains: []string{
-				"Results will be saved to:",
+				"Results in HTML format will be saved to:",
+				"Results in CSV format will be saved to:",
 			},
 			wantOutputContains: []string{},
 			wantLogContains: []string{
@@ -363,7 +369,8 @@ func TestRun(t *testing.T) {
 				"unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37",
 			}, expectedStdoutMessages...),
 			wantStdoutNotContains: []string{
-				"Results will be saved to:",
+				"Results in HTML format will be saved to:",
+				"Results in CSV format will be saved to:",
 			},
 			wantOutputContains: []string{},
 			wantLogContains: []string{
