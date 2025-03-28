@@ -33,6 +33,7 @@
 - Get results in HTML and CSV formats
 - Easy to extend with new AI models
 - Smart rate limiting to prevent API overload
+- Interactive mode with terminal-based UI
 
 ## Basic Usage
 
@@ -52,6 +53,12 @@
 
    ```bash
    mindtrial --csv=true --html=false run
+   ```
+
+4. Run in interactive mode to select models and tasks before starting:
+
+   ```bash
+   mindtrial --interactive run
    ```
 
 ## Configuration Guide
@@ -76,6 +83,9 @@ Defines what you want to test, including:
 
 > [!TIP]
 > **New to MindTrial?** Start with the example files provided and modify them for your needs.
+
+> [!TIP]
+> Use **interactive mode** with the `--interactive` flag to select model configurations and tasks before running, without having to edit configuration files.
 
 ### config.yaml
 
@@ -225,6 +235,7 @@ Options:
   --log string              Log file path; append if exists; blank = stdout
   --verbose                 Enable detailed logging
   --debug                   Enable low-level debug logging (implies --verbose)
+  --interactive             Enable interactive interface for run configuration, and real-time progress monitoring (default: false)
 ```
 
 ## Contributing
@@ -254,13 +265,14 @@ go test -tags=test -race -v ./...
 ```text
 /
 ├── cmd/
-│   └── mindtrial/    # Command-line interface and main entry point
-├── config/           # Data models and management for configuration and task definitions
-├── formatters/       # Output formatting for results
-├── pkg/              # Shared packages and utilities
-├── providers/        # AI model service provider connectors
-├── runners/          # Task execution and result aggregation
-└── version/          # Application metadata
+│   └── mindtrial/       # Command-line interface and main entry point
+│       └── tui/         # Terminal-based UI and interactive mode functionality
+├── config/              # Data models and management for configuration and task definitions
+├── formatters/          # Output formatting for results
+├── pkg/                 # Shared packages and utilities
+├── providers/           # AI model service provider connectors
+├── runners/             # Task execution and result aggregation
+└── version/             # Application metadata
 ```
 
 ### License

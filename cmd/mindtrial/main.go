@@ -19,6 +19,7 @@ import (
 
 	"github.com/rs/zerolog"
 
+	"github.com/petmal/mindtrial/cmd/mindtrial/tui"
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/formatters"
 	"github.com/petmal/mindtrial/runners"
@@ -33,6 +34,7 @@ const (
 	exitCodeBadCommand         = 2
 	exitCodeFinishedWithErrors = 3
 	defaultConfigFile          = "config.yaml"
+	msgInteractiveExited       = "Interactive session exited by user."
 )
 
 var (
@@ -60,6 +62,7 @@ var (
 	logFilePath        = flag.String("log", unsetFlagValue, "log file path; append if exists; blank = stdout")
 	verbose            = flag.Bool("verbose", false, "enable detailed logging")
 	debug              = flag.Bool("debug", false, "enable low-level debug logging")
+	interactive        = flag.Bool("interactive", false, "enable interactive interface for run configuration, and real-time progress monitoring")
 )
 
 func formatFlag(formatter formatters.Formatter, defaultValue bool) *bool {
@@ -146,6 +149,31 @@ func run(ctx context.Context) (ok bool, err error) {
 		return
 	}
 
+	// Interactive configuration if enabled.
+	if isEnabled(interactive) {
+		if userAction, err := tui.DisplayRunConfigurationPicker(cfg.Config.Providers); err != nil { // blocking call
+			return ok, err
+		} else if userAction == tui.Exit { //nolint:gocritic
+			fmt.Println(msgInteractiveExited)
+			return true, nil
+		} else if userAction == tui.Quit {
+			fmt.Println("No changes applied: provider configuration selection was cancelled.")
+		} else {
+			fmt.Println("Changes applied: selected provider configurations have been enabled.")
+		}
+
+		if userAction, err := tui.DisplayTaskPicker(&tasks.TaskConfig); err != nil { // blocking call
+			return ok, err
+		} else if userAction == tui.Exit { //nolint:gocritic
+			fmt.Println(msgInteractiveExited)
+			return true, nil
+		} else if userAction == tui.Quit {
+			fmt.Println("No changes applied: task selection was cancelled.")
+		} else {
+			fmt.Println("Changes applied: selected tasks have been enabled.")
+		}
+	}
+
 	// Filter out disabled providers and runs.
 	targetProviders := cfg.Config.GetProvidersWithEnabledRuns()
 	if len(targetProviders) < 1 {
@@ -162,32 +190,6 @@ func run(ctx context.Context) (ok bool, err error) {
 
 	// Time to be used to resolve name patterns.
 	timeRef := time.Now()
-
-	// Configure logger.
-	consoleLogWriter := zerolog.NewConsoleWriter(
-		func(w *zerolog.ConsoleWriter) {
-			w.Out = os.Stdout
-			w.TimeFormat = time.DateTime
-			w.NoColor = false
-		},
-	)
-	logWriters := []io.Writer{consoleLogWriter}
-	logFile := os.Stdout
-	if fp, logPath, err := createOutputFile(getFlagValueIfSet(logFilePath, config.MakeAbs(configDir, cfg.Config.LogFile)), timeRef, true); err != nil {
-		return ok, err
-	} else if fp != nil {
-		fmt.Printf("Log messages will be saved to: %s\n", logPath)
-		defer fp.Close()
-		logFile = fp
-		logWriters = append(logWriters, zerolog.NewConsoleWriter(
-			func(w *zerolog.ConsoleWriter) {
-				w.Out = logFile
-				w.TimeFormat = time.DateTime
-				w.NoColor = true
-			},
-		)) // format the file output as plain-text without color codes
-	}
-	logger := zerolog.New(zerolog.MultiLevelWriter(logWriters...)).Level(getEnabledLogLevel()).With().Timestamp().Logger()
 
 	// Create output files.
 	outputWriters := make(map[formatters.Formatter]io.Writer)
@@ -206,18 +208,63 @@ func run(ctx context.Context) (ok bool, err error) {
 		}
 	}
 
+	// Configure logger.
+	var consoleBuffer io.Writer = os.Stdout
+	if isEnabled(interactive) {
+		consoleBuffer = &tui.ConsoleBuffer{}
+	}
+	logWriters := []io.Writer{zerolog.NewConsoleWriter(
+		func(w *zerolog.ConsoleWriter) {
+			w.Out = consoleBuffer
+			w.TimeFormat = time.DateTime
+			w.NoColor = false
+		},
+	)}
+	logFile := os.Stdout
+	if fp, logPath, err := createOutputFile(getFlagValueIfSet(logFilePath, config.MakeAbs(configDir, cfg.Config.LogFile)), timeRef, true); err != nil {
+		return ok, err
+	} else if fp != nil {
+		fmt.Printf("Log messages will be saved to: %s\n", logPath)
+		defer fp.Close()
+		logFile = fp
+		logWriters = append(logWriters, zerolog.NewConsoleWriter(
+			func(w *zerolog.ConsoleWriter) {
+				w.Out = logFile
+				w.TimeFormat = time.DateTime
+				w.NoColor = true
+			},
+		)) // format the file output as plain-text without color codes
+	}
+	logger := zerolog.New(zerolog.MultiLevelWriter(logWriters...)).Level(getEnabledLogLevel()).With().Timestamp().Logger()
+
 	// Run tasks.
 	exec, err := runners.NewDefaultRunner(ctx, targetProviders, logger)
 	if err != nil {
 		return
 	}
 	defer exec.Close(ctx)
-	if err = exec.Run(ctx, targetTasks); err != nil { // blocking call
-		return
+
+	var runResult runners.ResultSet
+	if isEnabled(interactive) {
+		var userAction tui.UserInputEvent
+		if userAction, runResult, err = tui.NewTaskMonitor(exec, consoleBuffer.(*tui.ConsoleBuffer)).Run(ctx, targetTasks); err != nil { // blocking call
+			return ok, err
+		} else if userAction == tui.Exit {
+			fmt.Println(msgInteractiveExited)
+			return true, nil
+		} else if userAction == tui.Quit {
+			fmt.Println("Interactive UI closed: tasks will continue running in the background.")
+		}
+	} else {
+		if runResult, err = exec.Run(ctx, targetTasks); err != nil { // blocking call
+			return
+		}
 	}
 
+	// If this was an async run that is still in progress, the call will block until it is finished.
+	results := runResult.GetResults()
+
 	// Print and save the results.
-	results := exec.GetResults()
 	ok = !logResults(results, logFile)
 	ok = ok && !saveResults(results, outputWriters)
 
