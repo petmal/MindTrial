@@ -65,7 +65,7 @@ func NewErrUnmarshalResponse(cause error, rawMessage []byte, stopReason []byte) 
 }
 
 // ResultJSONSchema is a lazily initialized JSON schema for the Result type.
-var ResultJSONSchema = sync.OnceValue(func() interface{} {
+var ResultJSONSchema = sync.OnceValue(func() *jsonschema.Schema {
 	reflector := jsonschema.Reflector{
 		AllowAdditionalProperties: false,
 		DoNotReference:            true,
