@@ -4,6 +4,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/petmal/mindtrial)](https://goreportcard.com/report/github.com/petmal/mindtrial)
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL_2.0-brightgreen.svg)](https://mozilla.org/MPL/2.0/)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/petmal/mindtrial)](https://go.dev/)
+[![Go Reference](https://pkg.go.dev/badge/github.com/petmal/mindtrial.svg)](https://pkg.go.dev/github.com/petmal/mindtrial)
 
 **MindTrial** helps you assess and compare the performance of AI language models (LLMs) on text-based tasks. Use it to evaluate a single model or test multiple models from OpenAI, Google, Anthropic, and DeepSeek side by side, and get easy-to-read results in HTML and CSV formats.
 
