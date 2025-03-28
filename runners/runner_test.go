@@ -219,12 +219,12 @@ func TestRunnerRun(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.r.Run(tt.args.ctx, tt.args.tasks)
+			got, err := tt.r.Run(tt.args.ctx, tt.args.tasks)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				assert.Equal(t, tt.want, tt.r.GetResults())
+				assert.Equal(t, tt.want, got.GetResults())
 			}
 		})
 	}

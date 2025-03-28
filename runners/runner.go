@@ -36,11 +36,36 @@ type ResultKind int
 // Runner executes tasks on configured AI providers.
 type Runner interface {
 	// Run executes all given tasks against all run configurations and returns when done.
-	Run(ctx context.Context, tasks []config.Task) error
-	// GetResults returns the results from the last Run call.
-	GetResults() Results
+	Run(ctx context.Context, tasks []config.Task) (ResultSet, error)
+	// Start executes all given tasks against all run configurations asynchronously.
+	// It returns immediately and the execution continues in the background,
+	// offering progress updates and messages through the returned result set.
+	Start(ctx context.Context, tasks []config.Task) (AsyncResultSet, error)
 	// Close releases resources when the runner is no longer needed.
 	Close(ctx context.Context)
+}
+
+// ResultSet represents the outcome of executing a set of tasks.
+type ResultSet interface {
+	// GetResults returns the task results for each provider.
+	GetResults() Results
+}
+
+// AsyncResultSet extends the basic ResultSet interface to provide asynchronous operation capabilities.
+// It offers channels for monitoring progress and receiving messages during execution,
+// as well as the ability to cancel the ongoing run.
+type AsyncResultSet interface {
+	// GetResults returns the task results for each provider.
+	// The call will block until the run is finished.
+	GetResults() Results
+	// ProgressEvents returns a channel that emits run progress as a value between 0 and 1.
+	// The channel will be closed when the run is finished.
+	ProgressEvents() <-chan float32
+	// MessageEvents returns a channel that emits run log messages.
+	// The channel will be closed when the run is finished.
+	MessageEvents() <-chan string
+	// Cancel stops the ongoing run execution.
+	Cancel()
 }
 
 // Results stores task results for each provider.
