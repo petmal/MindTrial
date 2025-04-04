@@ -15,10 +15,18 @@ import (
 )
 
 // NewDeepseek creates a new Deepseek provider instance with the given configuration.
-func NewDeepseek(cfg config.DeepseekClientConfig) *Deepseek {
-	return &Deepseek{
-		client: deepseek.NewClient(cfg.APIKey),
+func NewDeepseek(cfg config.DeepseekClientConfig) (*Deepseek, error) {
+	opts := make([]deepseek.Option, 0)
+	if cfg.RequestTimeout != nil {
+		opts = append(opts, deepseek.WithTimeout(*cfg.RequestTimeout))
 	}
+	client, err := deepseek.NewClientWithOptions(cfg.APIKey, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrCreateClient, err)
+	}
+	return &Deepseek{
+		client: client,
+	}, nil
 }
 
 // Deepseek implements the Provider interface for Deepseek generative models.

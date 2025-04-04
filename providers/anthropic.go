@@ -17,11 +17,16 @@ import (
 )
 
 const responseFormatterToolName = "record_summary"
+const defaultMaxTokens = 2048
 
 // NewAnthropic creates a new Anthropic provider instance with the given configuration.
 func NewAnthropic(cfg config.AnthropicClientConfig) *Anthropic {
+	opts := []anthropicoption.RequestOption{anthropicoption.WithAPIKey(cfg.APIKey)}
+	if cfg.RequestTimeout != nil {
+		opts = append(opts, anthropicoption.WithRequestTimeout(*cfg.RequestTimeout))
+	}
 	return &Anthropic{
-		client: anthropic.NewClient(anthropicoption.WithAPIKey(cfg.APIKey)),
+		client: anthropic.NewClient(opts...),
 	}
 }
 
@@ -40,7 +45,7 @@ func (o Anthropic) Validator(expected string) Validator {
 
 func (o *Anthropic) Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error) {
 	request := anthropic.MessageNewParams{
-		MaxTokens: 2048,
+		MaxTokens: defaultMaxTokens,
 		Model:     cfg.Model,
 		System: []anthropic.TextBlockParam{
 			{
@@ -61,12 +66,27 @@ func (o *Anthropic) Run(ctx context.Context, cfg config.RunConfig, task config.T
 				},
 			},
 		},
-		ToolChoice: anthropic.ToolChoiceUnionParam{
-			OfToolChoiceTool: &anthropic.ToolChoiceToolParam{
-				Name: responseFormatterToolName,
-			},
-		},
+		ToolChoice: anthropic.ToolChoiceParamOfToolChoiceTool(responseFormatterToolName),
 	}
+
+	if cfg.ModelParams != nil {
+		if modelParams, ok := cfg.ModelParams.(config.AnthropicModelParams); ok {
+			if modelParams.MaxTokens != nil {
+				request.MaxTokens = *modelParams.MaxTokens
+			}
+			if modelParams.ThinkingBudgetTokens != nil {
+				request.Thinking = anthropic.ThinkingConfigParamOfThinkingConfigEnabled(*modelParams.ThinkingBudgetTokens)
+				// Thinking may not be enabled when tool_choice forces tool use.
+				// Use Auto instead.
+				request.ToolChoice = anthropic.ToolChoiceUnionParam{
+					OfToolChoiceAuto: &anthropic.ToolChoiceAutoParam{},
+				}
+			}
+		} else {
+			return result, fmt.Errorf("%w: %s", ErrInvalidModelParams, cfg.Name)
+		}
+	}
+
 	resp, err := timed(func() (*anthropic.Message, error) {
 		return o.client.Messages.New(ctx, request)
 	}, &result.duration)

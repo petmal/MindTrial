@@ -26,7 +26,7 @@ func NewProvider(ctx context.Context, cfg config.ProviderConfig) (Provider, erro
 	case config.ANTHROPIC:
 		return NewAnthropic(cfg.ClientConfig.(config.AnthropicClientConfig)), nil
 	case config.DEEPSEEK:
-		return NewDeepseek(cfg.ClientConfig.(config.DeepseekClientConfig)), nil
+		return NewDeepseek(cfg.ClientConfig.(config.DeepseekClientConfig))
 	}
 	return nil, fmt.Errorf("%w: %s", ErrUnknownProviderName, cfg.Name)
 }

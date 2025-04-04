@@ -13,6 +13,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -115,12 +116,16 @@ type GoogleAIClientConfig struct {
 type AnthropicClientConfig struct {
 	// APIKey is the API key for the Anthropic generative models provider.
 	APIKey string `yaml:"api-key" validate:"required"`
+	// RequestTimeout specifies the timeout for API requests.
+	RequestTimeout *time.Duration `yaml:"request-timeout" validate:"omitempty"`
 }
 
 // DeepseekClientConfig represents Deepseek provider settings.
 type DeepseekClientConfig struct {
 	// APIKey is the API key for the Deepseek generative models provider.
 	APIKey string `yaml:"api-key" validate:"required"`
+	// RequestTimeout specifies the timeout for API requests.
+	RequestTimeout *time.Duration `yaml:"request-timeout" validate:"omitempty"`
 }
 
 // RunConfig defines settings for a single test configuration.
@@ -155,6 +160,18 @@ type OpenAIModelParams struct {
 	// TextResponseFormat indicates whether to use plain-text response format
 	// for compatibility with models that do not support JSON.
 	TextResponseFormat bool `yaml:"text-response-format" validate:"omitempty"`
+}
+
+// AnthropicModelParams represents Anthropic model-specific settings.
+type AnthropicModelParams struct {
+	// MaxTokens controls the maximum number of tokens available to the model for generating a response.
+	// This includes the thinking budget for reasoning models.
+	MaxTokens *int64 `yaml:"max-tokens" validate:"omitempty,min=0"`
+
+	// ThinkingBudgetTokens specifies the number of tokens the model can use for its internal reasoning process.
+	// It must be at least 1024 and less than `MaxTokens`.
+	// If set, this enables enhanced reasoning capabilities for the model.
+	ThinkingBudgetTokens *int64 `yaml:"thinking-budget-tokens" validate:"omitempty,min=1024,ltfield=MaxTokens"`
 }
 
 // UnmarshalYAML implements custom YAML unmarshaling for ProviderConfig.
@@ -234,6 +251,12 @@ func decodeRuns(provider string, value *yaml.Node, out *[]RunConfig) error {
 			switch provider {
 			case OPENAI:
 				params := OpenAIModelParams{}
+				if err := temp[i].ModelParams.Decode(&params); err != nil {
+					return err
+				}
+				(*out)[i].ModelParams = params
+			case ANTHROPIC:
+				params := AnthropicModelParams{}
 				if err := temp[i].ModelParams.Decode(&params); err != nil {
 					return err
 				}

@@ -110,12 +110,23 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **deepseek**: DeepSeek open-source models
 
 > [!NOTE]
-> Some models (**openai**) support additional model-specific runtime configuration.
+> **Anthropic** and **DeepSeek** providers support configurable request timeout in the `client-config` section:
+>
+> - **request-timeout**: Sets the timeout duration for API requests (i.e. thinking).
+
+> [!NOTE]
+> Some models support additional model-specific runtime configuration parameters.
 > These can be provided in the `model-parameters` section of the run configuration.
-> Currently supported parameters for OpenAI models include:
+>
+> Currently supported parameters for **OpenAI** models include:
 >
 > - **text-response-format**: If `true`, use plain-text response format (less reliable) for compatibility with models that do not support `JSON`.
 > - **reasoning-effort**: Controls effort on reasoning for reasoning models (i.e. *low*, *medium*, *high*).
+>
+> Currently supported parameters for **Anthropic** models include:
+>
+> - **max-tokens**: Controls the maximum number of tokens available to the model for generating a response.
+> - **thinking-budget-tokens**: Enables enhanced reasoning capabilities when set. Specifies the number of tokens the model can use for its internal reasoning process. Must be at least 1024 and less than `max-tokens`.
 
 > [!NOTE]
 > The results will be saved to `<output-dir>/<output-basename>.<format>`. If the result output file already exists, it will be replaced. If the log file already exists, it will be appended to.
@@ -179,6 +190,22 @@ config:
         - name: "Claude 3.7 Sonnet - latest"
           model: "claude-3-7-sonnet-latest"
           max-requests-per-minute: 5
+          model-parameters:
+            max-tokens: 4096
+        - name: "Claude 3.7 Sonnet - latest (extended thinking)"
+          model: "claude-3-7-sonnet-latest"
+          max-requests-per-minute: 5
+          model-parameters:
+            max-tokens: 8192
+            thinking-budget-tokens: 2048
+    - name: deepseek
+      client-config:
+        api-key: "<your-api-key>"
+        request-timeout: 10m
+      runs:
+        - name: "DeepSeek-R1 - latest"
+          model: "deepseek-reasoner"
+          max-requests-per-minute: 15
 ```
 
 ### tasks.yaml

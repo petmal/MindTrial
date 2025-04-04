@@ -267,6 +267,23 @@ func TestLoadConfigFromFile(t *testing.T) {
                 model-parameters:
                     reasoning-effort: high
                     text-response-format: true
+        - name: anthropic
+          client-config:
+              api-key: "c86be894-ad2e-4c7f-b0bd-4397df9f234f"
+              request-timeout: 30s
+          runs:
+              - name: "Claude"
+                model: "claude-3"
+                model-parameters:
+                    max-tokens: 4096
+                    thinking-budget-tokens: 2048
+        - name: deepseek
+          client-config:
+              api-key: "b8d40c7c-b169-49a9-9a5c-291741e86daa"
+              request-timeout: 45s
+          runs:
+              - name: "DeepSeek"
+                model: "deepseek-coder"
 `)),
 			},
 			want: &Config{
@@ -292,6 +309,40 @@ func TestLoadConfigFromFile(t *testing.T) {
 								},
 							},
 							Disabled: true,
+						},
+						{
+							Name: "anthropic",
+							ClientConfig: AnthropicClientConfig{
+								APIKey:         "c86be894-ad2e-4c7f-b0bd-4397df9f234f",
+								RequestTimeout: testutils.Ptr(30 * time.Second),
+							},
+							Runs: []RunConfig{
+								{
+									Name:                 "Claude",
+									Model:                "claude-3",
+									MaxRequestsPerMinute: 0,
+									ModelParams: AnthropicModelParams{
+										MaxTokens:            testutils.Ptr(int64(4096)),
+										ThinkingBudgetTokens: testutils.Ptr(int64(2048)),
+									},
+								},
+							},
+							Disabled: false,
+						},
+						{
+							Name: "deepseek",
+							ClientConfig: DeepseekClientConfig{
+								APIKey:         "b8d40c7c-b169-49a9-9a5c-291741e86daa",
+								RequestTimeout: testutils.Ptr(45 * time.Second),
+							},
+							Runs: []RunConfig{
+								{
+									Name:                 "DeepSeek",
+									Model:                "deepseek-coder",
+									MaxRequestsPerMinute: 0,
+								},
+							},
+							Disabled: false,
 						},
 					},
 				},
