@@ -17,6 +17,7 @@ import (
 
 const (
 	childIndentation = "    "
+	selectAllText    = "Select All"
 )
 
 // checkItem represents an item in a checklist.
@@ -66,29 +67,53 @@ func (m checklistModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// toggle the selected item
 			m.items[m.cursor].checked = !m.items[m.cursor].checked
 
-			// if this is a parent, toggle all children
+			// if this is a parent, toggle all descendants recursively
 			if m.items[m.cursor].isParent {
-				for _, childIdx := range m.items[m.cursor].children {
-					m.items[childIdx].checked = m.items[m.cursor].checked
-				}
-			} else if m.items[m.cursor].parentIdx >= 0 {
-				// if this is a child, update parent based on siblings
-				parentIdx := m.items[m.cursor].parentIdx
-				allChecked := true
-				for _, childIdx := range m.items[parentIdx].children {
-					if !m.items[childIdx].checked {
-						allChecked = false
-						break
-					}
-				}
-				m.items[parentIdx].checked = allChecked
+				m.toggleDescendants(m.cursor, m.items[m.cursor].checked)
 			}
+
+			// update all ancestors
+			m.updateAncestors(m.cursor)
 		}
 
 	case tea.WindowSizeMsg:
 		m.uiIsReady = true
 	}
 	return m, nil
+}
+
+// toggleDescendants recursively sets all descendants to the given state.
+func (m *checklistModel) toggleDescendants(itemIdx int, state bool) {
+	for _, childIdx := range m.items[itemIdx].children {
+		m.items[childIdx].checked = state
+		if m.items[childIdx].isParent {
+			m.toggleDescendants(childIdx, state)
+		}
+	}
+}
+
+// updateAncestors updates a parent's state based on children and propagates up the hierarchy.
+func (m *checklistModel) updateAncestors(itemIdx int) {
+	// if this is a root item, nothing to update
+	if m.items[itemIdx].parentIdx < 0 {
+		return
+	}
+
+	parentIdx := m.items[itemIdx].parentIdx
+
+	// check the parent item if all children are checked
+	// uncheck the parent item if any child is unchecked
+	allChecked := true
+	for _, childIdx := range m.items[parentIdx].children {
+		if !m.items[childIdx].checked {
+			allChecked = false
+			break
+		}
+	}
+	m.items[parentIdx].checked = allChecked
+
+	// continue updating ancestors up the hierarchy
+	m.updateAncestors(parentIdx)
 }
 
 func (m checklistModel) View() string {
@@ -117,9 +142,7 @@ func (m checklistModel) View() string {
 		line := fmt.Sprintf("%s %s %s", cursor, checked, item.label)
 
 		// indent child items
-		if !item.isParent {
-			line = childIndentation + line
-		}
+		line = m.getIndentation(i) + line
 
 		// highlight the selected line
 		if i == m.cursor {
@@ -138,6 +161,19 @@ func (m checklistModel) View() string {
 	return s.String()
 }
 
+// getIndentation returns the indentation string for an item.
+func (m checklistModel) getIndentation(itemIdx int) string {
+	var indentation strings.Builder
+	currentIdx := itemIdx
+
+	for m.items[currentIdx].parentIdx >= 0 {
+		indentation.WriteString(childIndentation)
+		currentIdx = m.items[currentIdx].parentIdx
+	}
+
+	return indentation.String()
+}
+
 // DisplayRunConfigurationPicker displays a terminal UI for enabling or disabling run configurations.
 // It returns the selected user action and an error if the selection fails.
 // This function modifies the providers slice directly.
@@ -147,35 +183,56 @@ func DisplayRunConfigurationPicker(providers []config.ProviderConfig) (UserInput
 	}
 
 	items := []checkItem{}
-	providerToItemIdx := map[int]int{} // Maps provider index to item index
-	runToItemIdx := map[string]int{}   // Maps "provider-run" index to item index
+	providerToItemIdx := map[int]int{} // maps provider index to item index
+	runToItemIdx := map[string]int{}   // maps "provider-run" index to item index
+
+	// add parent item for all providers
+	providerRootIdx := 0
+	allChecked := true
+
+	items = append(items, checkItem{
+		label:     selectAllText,
+		checked:   allChecked,
+		isParent:  true,
+		children:  []int{},
+		parentIdx: -1,
+	})
+
+	childIndices := []int{}
 
 	// build checklist
 	for i, provider := range providers {
 		// add provider item
 		providerIdx := len(items)
 		providerToItemIdx[i] = providerIdx
+		childIndices = append(childIndices, providerIdx)
 
 		items = append(items, checkItem{
 			label:     provider.Name,
 			checked:   !provider.Disabled,
 			isParent:  true,
 			children:  []int{},
-			parentIdx: -1,
+			parentIdx: providerRootIdx,
 		})
 
-		childIndices := []int{}
+		providerChildIndices := []int{}
 
 		// add run configuration items
 		for j, run := range provider.Runs {
 			childIdx := len(items)
 			runKey := makeRunLookupKey(i, j)
 			runToItemIdx[runKey] = childIdx
-			childIndices = append(childIndices, childIdx)
+			providerChildIndices = append(providerChildIndices, childIdx)
+
+			isRunDisabled := config.ResolveFlagOverride(run.Disabled, provider.Disabled)
+			// if any run is disabled the root item should be unchecked
+			if isRunDisabled {
+				allChecked = false
+			}
 
 			items = append(items, checkItem{
 				label:     run.Name,
-				checked:   !config.ResolveFlagOverride(run.Disabled, provider.Disabled),
+				checked:   !isRunDisabled,
 				isParent:  false,
 				children:  []int{},
 				parentIdx: providerIdx,
@@ -183,8 +240,14 @@ func DisplayRunConfigurationPicker(providers []config.ProviderConfig) (UserInput
 		}
 
 		// set children for provider
-		items[providerIdx].children = childIndices
+		items[providerIdx].children = providerChildIndices
 	}
+
+	// update the root item's checked state
+	items[providerRootIdx].checked = allChecked
+
+	// set children for the root item
+	items[providerRootIdx].children = childIndices
 
 	// create and run the model
 	model := checklistModel{
@@ -239,12 +302,12 @@ func DisplayTaskPicker(taskConfig *config.TaskConfig) (UserInputEvent, error) {
 	}
 
 	items := []checkItem{}
-	taskToItemIdx := map[int]int{} // Maps task index to item index
+	taskToItemIdx := map[int]int{} // maps task index to item index
 
 	// add parent item for all tasks
-	parentIdx := 0
+	taskRootIdx := 0
 	items = append(items, checkItem{
-		label:     "All Tasks",
+		label:     selectAllText,
 		checked:   !taskConfig.Disabled,
 		isParent:  true,
 		children:  []int{},
@@ -264,12 +327,12 @@ func DisplayTaskPicker(taskConfig *config.TaskConfig) (UserInputEvent, error) {
 			checked:   !config.ResolveFlagOverride(task.Disabled, taskConfig.Disabled),
 			isParent:  false,
 			children:  []int{},
-			parentIdx: parentIdx,
+			parentIdx: taskRootIdx,
 		})
 	}
 
 	// set children for parent item
-	items[parentIdx].children = childIndices
+	items[taskRootIdx].children = childIndices
 
 	// create and run the model
 	model := checklistModel{
@@ -290,7 +353,7 @@ func DisplayTaskPicker(taskConfig *config.TaskConfig) (UserInputEvent, error) {
 	checklist := finalModel.(checklistModel)
 	if checklist.action == Continue {
 		// update global disabled flag
-		taskConfig.Disabled = !checklist.items[parentIdx].checked
+		taskConfig.Disabled = !checklist.items[taskRootIdx].checked
 
 		// update individual tasks
 		for i := range taskConfig.Tasks {
