@@ -122,11 +122,31 @@ This file defines the tool's settings and target model configurations evaluated 
 >
 > - **text-response-format**: If `true`, use plain-text response format (less reliable) for compatibility with models that do not support `JSON`.
 > - **reasoning-effort**: Controls effort on reasoning for reasoning models (i.e. *low*, *medium*, *high*).
+> - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 2.0, default: 1.0). Lower values produce more focused and deterministic outputs.
+> - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0, default: 1.0). Lower values produce more focused outputs.
+> - **presence-penalty**: Penalizes new tokens based on their presence in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use new tokens.
+> - **frequency-penalty**: Penalizes new tokens based on their frequency in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use less frequent tokens.
 >
 > Currently supported parameters for **Anthropic** models include:
 >
 > - **max-tokens**: Controls the maximum number of tokens available to the model for generating a response.
 > - **thinking-budget-tokens**: Enables enhanced reasoning capabilities when set. Specifies the number of tokens the model can use for its internal reasoning process. Must be at least 1024 and less than `max-tokens`.
+> - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 1.0, default: 1.0). Lower values produce more focused and deterministic outputs.
+> - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0). Lower values produce more focused outputs.
+> - **top-k**: Limits tokens considered for each position to top K options. Higher values allow more diverse outputs.
+>
+> Currently supported parameters for **Google** models include:
+>
+> - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 2.0, default: 1.0). Lower values produce more focused and deterministic outputs.
+> - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0). Lower values produce more focused outputs.
+> - **top-k**: Limits tokens considered for each position to top K options. Higher values allow more diverse outputs.
+>
+> Currently supported parameters for **DeepSeek** models include:
+>
+> - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 2.0, default: 1.0). Lower values produce more focused and deterministic outputs.
+> - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0). Lower values produce more focused outputs.
+> - **presence-penalty**: Penalizes new tokens based on their presence in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use new tokens.
+> - **frequency-penalty**: Penalizes new tokens based on their frequency in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use less frequent tokens.
 
 > [!NOTE]
 > The results will be saved to `<output-dir>/<output-basename>.<format>`. If the result output file already exists, it will be replaced. If the log file already exists, it will be appended to.

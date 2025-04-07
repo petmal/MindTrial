@@ -54,6 +54,23 @@ func (o *GoogleAI) Run(ctx context.Context, cfg config.RunConfig, task config.Ta
 			"final_answer": {Type: genai.TypeString},
 		},
 	}
+
+	if cfg.ModelParams != nil {
+		if modelParams, ok := cfg.ModelParams.(config.GoogleAIModelParams); ok {
+			if modelParams.Temperature != nil {
+				model.Temperature = modelParams.Temperature
+			}
+			if modelParams.TopP != nil {
+				model.TopP = modelParams.TopP
+			}
+			if modelParams.TopK != nil {
+				model.TopK = modelParams.TopK
+			}
+		} else {
+			return result, fmt.Errorf("%w: %s", ErrInvalidModelParams, cfg.Name)
+		}
+	}
+
 	model.SystemInstruction = genai.NewUserContent(genai.Text(result.recordPrompt(DefaultAnswerFormatInstruction(task))))
 	resp, err := timed(func() (*genai.GenerateContentResponse, error) {
 		return model.GenerateContent(ctx, genai.Text(result.recordPrompt(task.Prompt)))

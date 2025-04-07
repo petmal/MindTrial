@@ -160,6 +160,47 @@ type OpenAIModelParams struct {
 	// TextResponseFormat indicates whether to use plain-text response format
 	// for compatibility with models that do not support JSON.
 	TextResponseFormat bool `yaml:"text-response-format" validate:"omitempty"`
+
+	// Temperature controls the randomness or "creativity" of the model's outputs.
+	// Values range from 0.0 to 2.0, with lower values making the output more focused and deterministic.
+	// The default value is 1.0.
+	// It is generally recommended to alter this or `TopP` but not both.
+	Temperature *float32 `yaml:"temperature" validate:"omitempty,min=0,max=2"`
+
+	// TopP controls diversity via nucleus sampling.
+	// Values range from 0.0 to 1.0, with lower values making the output more focused.
+	// The default value is 1.0.
+	// It is generally recommended to alter this or `Temperature` but not both.
+	TopP *float32 `yaml:"top-p" validate:"omitempty,min=0,max=1"`
+
+	// PresencePenalty penalizes new tokens based on whether they appear in the text so far.
+	// Values range from -2.0 to 2.0, with positive values encouraging the model to use new tokens,
+	// increasing the model's likelihood to talk about new topics.
+	// The default value is 0.0.
+	PresencePenalty *float32 `yaml:"presence-penalty" validate:"omitempty,min=-2,max=2"`
+
+	// FrequencyPenalty penalizes new tokens based on their frequency in the text so far.
+	// Values range from -2.0 to 2.0, with positive values encouraging the model to use less frequent tokens,
+	// decreasing the model's likelihood to repeat the same line verbatim.
+	// The default value is 0.0.
+	FrequencyPenalty *float32 `yaml:"frequency-penalty" validate:"omitempty,min=-2,max=2"`
+}
+
+// GoogleAIModelParams represents Google AI model-specific settings.
+type GoogleAIModelParams struct {
+	// Temperature controls the randomness or "creativity" of the model's outputs.
+	// Values range from 0.0 to 2.0, with lower values making the output more focused and deterministic.
+	// The default value is typically around 1.0.
+	Temperature *float32 `yaml:"temperature" validate:"omitempty,min=0,max=2"`
+
+	// TopP controls diversity via nucleus sampling.
+	// Values range from 0.0 to 1.0, with lower values making the output more focused.
+	// The default value is typically around 1.0.
+	TopP *float32 `yaml:"top-p" validate:"omitempty,min=0,max=1"`
+
+	// TopK limits response tokens to top K options for each token position.
+	// Higher values allow more diverse outputs by considering more token options.
+	TopK *int32 `yaml:"top-k" validate:"omitempty,min=0"`
 }
 
 // AnthropicModelParams represents Anthropic model-specific settings.
@@ -172,6 +213,52 @@ type AnthropicModelParams struct {
 	// It must be at least 1024 and less than `MaxTokens`.
 	// If set, this enables enhanced reasoning capabilities for the model.
 	ThinkingBudgetTokens *int64 `yaml:"thinking-budget-tokens" validate:"omitempty,min=1024,ltfield=MaxTokens"`
+
+	// Temperature controls the randomness or "creativity" of responses.
+	// Values range from 0.0 to 1.0, with lower values making the output more focused.
+	// The default value is 1.0.
+	// It is generally recommended to alter this or `TopP` but not both.
+	Temperature *float64 `yaml:"temperature" validate:"omitempty,min=0,max=1"`
+
+	// TopP controls diversity via nucleus sampling.
+	// Values range from 0.0 to 1.0, with lower values making the output more focused.
+	// You usually only need to use `Temperature`.
+	TopP *float64 `yaml:"top-p" validate:"omitempty,min=0,max=1"`
+
+	// TopK limits response tokens to top K options for each token position.
+	// Higher values allow more diverse outputs by considering more token options.
+	// You usually only need to use `Temperature`.
+	TopK *int64 `yaml:"top-k" validate:"omitempty,min=0"`
+}
+
+// DeepseekModelParams represents Deepseek model-specific settings.
+type DeepseekModelParams struct {
+	// Temperature controls the randomness or "creativity" of the model's outputs.
+	// Values range from 0.0 to 2.0, with lower values making the output more focused.
+	// The default value is 1.0.
+	// Recommended values by use case:
+	// - 0.0: Coding / Math (best for precise, deterministic outputs)
+	// - 1.0: Data Cleaning / Data Analysis
+	// - 1.3: General Conversation / Translation
+	// - 1.5: Creative Writing / Poetry (more varied and creative outputs)
+	Temperature *float32 `yaml:"temperature" validate:"omitempty,min=0,max=2"`
+
+	// TopP controls diversity via nucleus sampling.
+	// Values range from 0.0 to 1.0, with lower values making the output more focused.
+	// You usually only need to use `Temperature`.
+	TopP *float32 `yaml:"top-p" validate:"omitempty,min=0,max=1"`
+
+	// PresencePenalty penalizes new tokens based on whether they appear in the text so far.
+	// Values range from -2.0 to 2.0, with positive values encouraging the model to use new tokens,
+	// increasing the model's likelihood to talk about new topics.
+	// The default value is 0.0.
+	PresencePenalty *float32 `yaml:"presence-penalty" validate:"omitempty,min=-2,max=2"`
+
+	// FrequencyPenalty penalizes new tokens based on their frequency in the text so far.
+	// Values range from -2.0 to 2.0, with positive values encouraging the model to use less frequent tokens,
+	// decreasing the model's likelihood to repeat the same line verbatim.
+	// The default value is 0.0.
+	FrequencyPenalty *float32 `yaml:"frequency-penalty" validate:"omitempty,min=-2,max=2"`
 }
 
 // UnmarshalYAML implements custom YAML unmarshaling for ProviderConfig.
@@ -255,8 +342,20 @@ func decodeRuns(provider string, value *yaml.Node, out *[]RunConfig) error {
 					return err
 				}
 				(*out)[i].ModelParams = params
+			case GOOGLE:
+				params := GoogleAIModelParams{}
+				if err := temp[i].ModelParams.Decode(&params); err != nil {
+					return err
+				}
+				(*out)[i].ModelParams = params
 			case ANTHROPIC:
 				params := AnthropicModelParams{}
+				if err := temp[i].ModelParams.Decode(&params); err != nil {
+					return err
+				}
+				(*out)[i].ModelParams = params
+			case DEEPSEEK:
+				params := DeepseekModelParams{}
 				if err := temp[i].ModelParams.Decode(&params); err != nil {
 					return err
 				}

@@ -82,6 +82,15 @@ func (o *Anthropic) Run(ctx context.Context, cfg config.RunConfig, task config.T
 					OfToolChoiceAuto: &anthropic.ToolChoiceAutoParam{},
 				}
 			}
+			if modelParams.Temperature != nil {
+				request.Temperature = anthropic.Float(*modelParams.Temperature)
+			}
+			if modelParams.TopP != nil {
+				request.TopP = anthropic.Float(*modelParams.TopP)
+			}
+			if modelParams.TopK != nil {
+				request.TopK = anthropic.Int(*modelParams.TopK)
+			}
 		} else {
 			return result, fmt.Errorf("%w: %s", ErrInvalidModelParams, cfg.Name)
 		}

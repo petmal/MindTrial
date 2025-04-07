@@ -53,6 +53,25 @@ func (o *Deepseek) Run(ctx context.Context, cfg config.RunConfig, task config.Ta
 		JSONMode: true,
 	}
 
+	if cfg.ModelParams != nil {
+		if modelParams, ok := cfg.ModelParams.(config.DeepseekModelParams); ok {
+			if modelParams.Temperature != nil {
+				request.Temperature = *modelParams.Temperature
+			}
+			if modelParams.TopP != nil {
+				request.TopP = *modelParams.TopP
+			}
+			if modelParams.FrequencyPenalty != nil {
+				request.FrequencyPenalty = *modelParams.FrequencyPenalty
+			}
+			if modelParams.PresencePenalty != nil {
+				request.PresencePenalty = *modelParams.PresencePenalty
+			}
+		} else {
+			return result, fmt.Errorf("%w: %s", ErrInvalidModelParams, cfg.Name)
+		}
+	}
+
 	resp, err := timed(func() (*deepseek.ChatCompletionResponse, error) {
 		return o.client.CreateChatCompletion(ctx, request)
 	}, &result.duration)

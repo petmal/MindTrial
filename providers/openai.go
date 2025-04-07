@@ -69,6 +69,18 @@ func (o *OpenAI) Run(ctx context.Context, cfg config.RunConfig, task config.Task
 					Content: result.recordPrompt(DefaultResponseFormatInstruction()),
 				})
 			}
+			if modelParams.Temperature != nil {
+				request.Temperature = *modelParams.Temperature
+			}
+			if modelParams.TopP != nil {
+				request.TopP = *modelParams.TopP
+			}
+			if modelParams.PresencePenalty != nil {
+				request.PresencePenalty = *modelParams.PresencePenalty
+			}
+			if modelParams.FrequencyPenalty != nil {
+				request.FrequencyPenalty = *modelParams.FrequencyPenalty
+			}
 		} else {
 			return result, fmt.Errorf("%w: %s", ErrInvalidModelParams, cfg.Name)
 		}

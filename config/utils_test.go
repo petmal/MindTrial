@@ -79,28 +79,6 @@ func TestLoadConfigFromFile(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "unsupported run model extra params",
-			args: args{
-				ctx: context.Background(),
-				path: createMockFile(t,
-					[]byte(
-						`config:
-    task-source: "tasks.yaml"
-    output-dir: "."
-    providers:
-        - name: google
-          client-config:
-              api-key: "604de01b-4b84-4727-8922-0d675541fe7b"
-          runs:
-              - name: "Wooden"
-                model: "quantifying"
-                model-parameters:
-                    reasoning-effort: "high"
-`)),
-			},
-			wantErr: true,
-		},
-		{
 			name: "invalid run model extra params",
 			args: args{
 				ctx: context.Background(),
@@ -267,6 +245,10 @@ func TestLoadConfigFromFile(t *testing.T) {
                 model-parameters:
                     reasoning-effort: high
                     text-response-format: true
+                    temperature: 0.7
+                    top-p: 0.95
+                    presence-penalty: 0.1
+                    frequency-penalty: 0.1
         - name: anthropic
           client-config:
               api-key: "c86be894-ad2e-4c7f-b0bd-4397df9f234f"
@@ -277,6 +259,9 @@ func TestLoadConfigFromFile(t *testing.T) {
                 model-parameters:
                     max-tokens: 4096
                     thinking-budget-tokens: 2048
+                    temperature: 0.7
+                    top-p: 0.95
+                    top-k: 40
         - name: deepseek
           client-config:
               api-key: "b8d40c7c-b169-49a9-9a5c-291741e86daa"
@@ -284,6 +269,21 @@ func TestLoadConfigFromFile(t *testing.T) {
           runs:
               - name: "DeepSeek"
                 model: "deepseek-coder"
+                model-parameters:
+                    temperature: 0.7
+                    top-p: 0.95
+                    presence-penalty: 0.1
+                    frequency-penalty: 0.1
+        - name: google
+          client-config:
+              api-key: "df2270f9-d4e1-4761-b809-bee219390d00"
+          runs:
+              - name: "Gemini"
+                model: "gemini-pro"
+                model-parameters:
+                    temperature: 0.7
+                    top-p: 0.95
+                    top-k: 40
 `)),
 			},
 			want: &Config{
@@ -305,6 +305,10 @@ func TestLoadConfigFromFile(t *testing.T) {
 									ModelParams: OpenAIModelParams{
 										ReasoningEffort:    testutils.Ptr("high"),
 										TextResponseFormat: true,
+										Temperature:        testutils.Ptr(float32(0.7)),
+										TopP:               testutils.Ptr(float32(0.95)),
+										PresencePenalty:    testutils.Ptr(float32(0.1)),
+										FrequencyPenalty:   testutils.Ptr(float32(0.1)),
 									},
 								},
 							},
@@ -324,6 +328,9 @@ func TestLoadConfigFromFile(t *testing.T) {
 									ModelParams: AnthropicModelParams{
 										MaxTokens:            testutils.Ptr(int64(4096)),
 										ThinkingBudgetTokens: testutils.Ptr(int64(2048)),
+										Temperature:          testutils.Ptr(float64(0.7)),
+										TopP:                 testutils.Ptr(float64(0.95)),
+										TopK:                 testutils.Ptr(int64(40)),
 									},
 								},
 							},
@@ -340,6 +347,31 @@ func TestLoadConfigFromFile(t *testing.T) {
 									Name:                 "DeepSeek",
 									Model:                "deepseek-coder",
 									MaxRequestsPerMinute: 0,
+									ModelParams: DeepseekModelParams{
+										Temperature:      testutils.Ptr(float32(0.7)),
+										TopP:             testutils.Ptr(float32(0.95)),
+										PresencePenalty:  testutils.Ptr(float32(0.1)),
+										FrequencyPenalty: testutils.Ptr(float32(0.1)),
+									},
+								},
+							},
+							Disabled: false,
+						},
+						{
+							Name: "google",
+							ClientConfig: GoogleAIClientConfig{
+								APIKey: "df2270f9-d4e1-4761-b809-bee219390d00",
+							},
+							Runs: []RunConfig{
+								{
+									Name:                 "Gemini",
+									Model:                "gemini-pro",
+									MaxRequestsPerMinute: 0,
+									ModelParams: GoogleAIModelParams{
+										Temperature: testutils.Ptr(float32(0.7)),
+										TopP:        testutils.Ptr(float32(0.95)),
+										TopK:        testutils.Ptr(int32(40)),
+									},
 								},
 							},
 							Disabled: false,
