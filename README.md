@@ -137,6 +137,7 @@ This file defines the tool's settings and target model configurations evaluated 
 >
 > Currently supported parameters for **Google** models include:
 >
+> - **text-response-format**: If `true`, use plain-text response format (less reliable) for compatibility with models that do not support `JSON`.
 > - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 2.0, default: 1.0). Lower values produce more focused and deterministic outputs.
 > - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0). Lower values produce more focused outputs.
 > - **top-k**: Limits tokens considered for each position to top K options. Higher values allow more diverse outputs.

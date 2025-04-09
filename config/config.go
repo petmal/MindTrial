@@ -188,6 +188,10 @@ type OpenAIModelParams struct {
 
 // GoogleAIModelParams represents Google AI model-specific settings.
 type GoogleAIModelParams struct {
+	// TextResponseFormat indicates whether to use plain-text response format
+	// for compatibility with models that do not support JSON.
+	TextResponseFormat bool `yaml:"text-response-format" validate:"omitempty"`
+
 	// Temperature controls the randomness or "creativity" of the model's outputs.
 	// Values range from 0.0 to 2.0, with lower values making the output more focused and deterministic.
 	// The default value is typically around 1.0.

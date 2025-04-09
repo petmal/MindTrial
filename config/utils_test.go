@@ -281,6 +281,7 @@ func TestLoadConfigFromFile(t *testing.T) {
               - name: "Gemini"
                 model: "gemini-pro"
                 model-parameters:
+                    text-response-format: true
                     temperature: 0.7
                     top-p: 0.95
                     top-k: 40
@@ -368,9 +369,10 @@ func TestLoadConfigFromFile(t *testing.T) {
 									Model:                "gemini-pro",
 									MaxRequestsPerMinute: 0,
 									ModelParams: GoogleAIModelParams{
-										Temperature: testutils.Ptr(float32(0.7)),
-										TopP:        testutils.Ptr(float32(0.95)),
-										TopK:        testutils.Ptr(int32(40)),
+										TextResponseFormat: true,
+										Temperature:        testutils.Ptr(float32(0.7)),
+										TopP:               testutils.Ptr(float32(0.95)),
+										TopK:               testutils.Ptr(int32(40)),
 									},
 								},
 							},

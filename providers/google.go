@@ -55,8 +55,14 @@ func (o *GoogleAI) Run(ctx context.Context, cfg config.RunConfig, task config.Ta
 		},
 	}
 
+	systemInstructions := make([]genai.Part, 0)
 	if cfg.ModelParams != nil {
 		if modelParams, ok := cfg.ModelParams.(config.GoogleAIModelParams); ok {
+			if modelParams.TextResponseFormat {
+				model.ResponseMIMEType = "text/plain"
+				model.ResponseSchema = nil
+				systemInstructions = append(systemInstructions, genai.Text(result.recordPrompt(DefaultResponseFormatInstruction())))
+			}
 			if modelParams.Temperature != nil {
 				model.Temperature = modelParams.Temperature
 			}
@@ -71,7 +77,8 @@ func (o *GoogleAI) Run(ctx context.Context, cfg config.RunConfig, task config.Ta
 		}
 	}
 
-	model.SystemInstruction = genai.NewUserContent(genai.Text(result.recordPrompt(DefaultAnswerFormatInstruction(task))))
+	systemInstructions = append(systemInstructions, genai.Text(result.recordPrompt(DefaultAnswerFormatInstruction(task))))
+	model.SystemInstruction = genai.NewUserContent(systemInstructions...)
 	resp, err := timed(func() (*genai.GenerateContentResponse, error) {
 		return model.GenerateContent(ctx, genai.Text(result.recordPrompt(task.Prompt)))
 	}, &result.duration)
@@ -87,7 +94,15 @@ func (o *GoogleAI) Run(ctx context.Context, cfg config.RunConfig, task config.Ta
 			if candidate.Content != nil {
 				for _, part := range candidate.Content.Parts {
 					if value, ok := part.(genai.Text); ok {
-						if err := json.Unmarshal([]byte(value), &result); err != nil {
+						content := []byte(value)
+						if model.ResponseSchema == nil {
+							repaired, err := utils.RepairTextJSON(string(content))
+							if err != nil {
+								return result, NewErrUnmarshalResponse(err, []byte(value), []byte(candidate.FinishReason.String()))
+							}
+							content = []byte(repaired)
+						}
+						if err := json.Unmarshal(content, &result); err != nil {
 							return result, NewErrUnmarshalResponse(err, []byte(value), []byte(candidate.FinishReason.String()))
 						}
 					}

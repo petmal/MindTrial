@@ -37,6 +37,11 @@ config:
         - name: "Gemini 2.0 Flash - latest"
           model: "gemini-2.0-flash"
           max-requests-per-minute: 15
+        - name: "Gemini 2.0 Flash - latest (thinking)"
+          model: "gemini-2.0-flash-thinking-exp"
+          max-requests-per-minute: 10
+          model-parameters:
+            text-response-format: true
     - name: anthropic
       client-config:
         api-key: ""
