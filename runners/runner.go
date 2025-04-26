@@ -20,10 +20,12 @@ import (
 // Success indicates that task finished successfully with correct result.
 // Failure indicates that task finished successfully but with incorrect result.
 // Error indicates that task failed to produce a result.
+// NotSupported indicates that task could not finish because the provider does not support the required features.
 const (
 	Success ResultKind = iota
 	Failure
 	Error
+	NotSupported
 )
 
 const runResultIDPrefix = "run"

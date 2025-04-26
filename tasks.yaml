@@ -257,3 +257,16 @@ task-config:
         <new first letter for each group separated by ", ">: <4-letter word formed by rearranging the new first letters>
       expected-result: |-
         P, O, P, R: PROP
+    - name: "visual - shapes - v1"
+      prompt: |-
+        The attached picture contains various shapes marked by letters.
+        It also contains a set of same shapes that have been rotated marked by numbers.
+        Your task is to find all matching pairs.
+      response-result-format: |-
+        <shape number>: <shape letter> pairs separated by ", " and ordered by shape number
+      expected-result: |-
+        1: G, 2: F, 3: B, 4: A, 5: C, 6: D, 7: E
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-shapes-v1.png"
+          type: "image/png"

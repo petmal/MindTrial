@@ -73,6 +73,11 @@
             color: #721c24;
             font-weight: bold;
         }
+        .skipped {
+            background-color: #e2e3e5;
+            color: #383d41;
+            font-weight: bold;
+        }
          
         .details {
             cursor: pointer;
@@ -124,7 +129,7 @@
         <section aria-labelledby="runsummary" itemscope itemtype="https://schema.org/Table" itemprop="hasPart">
             <h2 id="runsummary" itemprop="headline">Summary</h2>
             <meta itemprop="alternativeHeadline" content="AI Model Evaluation Run Summary">
-            <meta itemprop="description" content="Summary of success, failure, and error counts, along with total duration for each AI provider and run configuration.">
+            <meta itemprop="description" content="Summary of success, failure, error, and skipped counts, along with total duration for each AI provider and run configuration.">
             <table>
                 <thead>
                     <tr>
@@ -133,6 +138,7 @@
                         <th scope="col">Passed</th>
                         <th scope="col">Failed</th>
                         <th scope="col">Error</th>
+                        <th scope="col">Skipped</th>
                         <th scope="col">Total Duration</th>
                     </tr>
                 </thead>

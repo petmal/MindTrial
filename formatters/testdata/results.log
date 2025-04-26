@@ -5,4 +5,5 @@ provider-name |run-failure |task-name |Failed |10s      |@@ -1,67 +1,36 @@
 +Ipsam ea et optio explicabo eius et
  .
               |
-provider-name |run-error |task-name |Error |0s |error message |
+provider-name |run-error         |task-name |Error   |0s    |error message                              |
+provider-name |run-not-supported |task-name |Skipped |500ms |Sequi molestiae iusto sit sit dolorum aut. |

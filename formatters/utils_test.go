@@ -39,6 +39,11 @@ func TestToStatus(t *testing.T) {
 			want: Error,
 		},
 		{
+			name: "NotSupported",
+			kind: runners.NotSupported,
+			want: Skipped,
+		},
+		{
 			name: "Unknown",
 			kind: runners.ResultKind(999),
 			want: "Unknown (999)",
@@ -214,6 +219,15 @@ func TestFormatAnswer(t *testing.T) {
 			},
 			useHTML: false,
 			want:    DiffText("Expected output", "Actual output"),
+		},
+		{
+			name: "not supported result without HTML",
+			result: runners.RunResult{
+				Kind: runners.NotSupported,
+				Got:  "Skipped output",
+			},
+			useHTML: false,
+			want:    "Skipped output",
 		},
 	}
 

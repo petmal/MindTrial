@@ -32,7 +32,21 @@ var (
 	ErrCompileSchema = errors.New("failed to compile response schema")
 	// ErrGenerateResponse is returned when response generation fails.
 	ErrGenerateResponse = errors.New("failed to generate response")
+	// ErrCreatePromptRequest is returned when request generation fails.
+	ErrCreatePromptRequest = errors.New("failed to create prompt request")
+	// ErrFeatureNotSupported is returned when a requested feature is not supported by the provider.
+	ErrFeatureNotSupported = errors.New("feature not supported by provider")
+	// ErrFileNotSupported is returned when a task context file is not supported by the provider.
+	ErrFileNotSupported = fmt.Errorf("%w: file type", ErrFeatureNotSupported)
 )
+
+var supportedImageMimeTypes = map[string]bool{
+	"image/jpeg": true,
+	"image/jpg":  true,
+	"image/png":  true,
+	"image/gif":  true,
+	"image/webp": true,
+}
 
 // ErrUnmarshalResponse is returned when response unmarshaling fails.
 type ErrUnmarshalResponse struct {
@@ -87,6 +101,11 @@ func DefaultAnswerFormatInstruction(task config.Task) string {
 	return fmt.Sprintf("Provide the final answer in exactly this format: %s", task.ResponseResultFormat)
 }
 
+// DefaultTaskFileNameInstruction generates default task file name instruction to be passed to AI models that require it.
+func DefaultTaskFileNameInstruction(file config.TaskFile) string {
+	return fmt.Sprintf("[file: %s]", file.Name)
+}
+
 // Usage represents the token usage statistics for a response.
 type Usage struct {
 	InputTokens  *int64 `json:"-"` // Tokens used by the input if available.
@@ -138,9 +157,9 @@ func (r *Result) recordPrompt(prompt string) string {
 	return prompt
 }
 
-func recordUsage[T constraints.Signed](inputTokes *T, outputTokes *T, out *Usage) {
-	addIfNotNil(&out.InputTokens, inputTokes)
-	addIfNotNil(&out.OutputTokens, outputTokes)
+func recordUsage[T constraints.Signed](inputTokens *T, outputTokens *T, out *Usage) {
+	addIfNotNil(&out.InputTokens, inputTokens)
+	addIfNotNil(&out.OutputTokens, outputTokens)
 }
 
 func addIfNotNil[D ~int64, S constraints.Signed](dst **D, src *S) {
@@ -150,6 +169,10 @@ func addIfNotNil[D ~int64, S constraints.Signed](dst **D, src *S) {
 		}
 		**dst += D(*src)
 	}
+}
+
+func isSupportedImageType(mimeType string) bool {
+	return supportedImageMimeTypes[strings.ToLower(mimeType)]
 }
 
 // Validator verifies AI model responses.

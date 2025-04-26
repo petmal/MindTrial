@@ -49,6 +49,16 @@ var mockResults = runners.Results{
 			Got:      "error message",
 			Details:  "Pariatur rem dolores corporis voluptas aut eum repellat pariatur.",
 		},
+		{
+			Provider: "provider-name",
+			Task:     "task-name",
+			Run:      "run-not-supported",
+			Kind:     runners.NotSupported,
+			Duration: 500 * time.Millisecond,
+			Want:     "Animi aut eligendi repellendus debitis harum aut.",
+			Got:      "Sequi molestiae iusto sit sit dolorum aut.",
+			Details:  "Placeat itaque voluptatem. Impedit aut quia velit. Libero ducimus tenetur vel et quibusdam. Et fugiat culpa. Tenetur iste aut mollitia corrupti et suscipit quia. Voluptatem incidunt aut et aliquam unde autem deleniti ea ea.",
+		},
 	},
 }
 

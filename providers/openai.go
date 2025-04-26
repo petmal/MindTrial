@@ -90,11 +90,13 @@ func (o *OpenAI) Run(ctx context.Context, cfg config.RunConfig, task config.Task
 		openai.ChatCompletionMessage{
 			Role:    openai.ChatMessageRoleUser, // NOTE: system role not supported by all models
 			Content: result.recordPrompt(DefaultAnswerFormatInstruction(task)),
-		},
-		openai.ChatCompletionMessage{
-			Role:    openai.ChatMessageRoleUser,
-			Content: result.recordPrompt(task.Prompt),
 		})
+
+	if promptMessage, err := o.createPromptMessage(ctx, result.recordPrompt(task.Prompt), task.Files, &result); err != nil {
+		return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
+	} else {
+		request.Messages = append(request.Messages, promptMessage)
+	}
 
 	resp, err := timed(func() (openai.ChatCompletionResponse, error) {
 		return o.client.CreateChatCompletion(ctx, request)
@@ -118,6 +120,47 @@ func (o *OpenAI) Run(ctx context.Context, cfg config.RunConfig, task config.Task
 	}
 
 	return result, nil
+}
+
+func (o *OpenAI) createPromptMessage(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (message openai.ChatCompletionMessage, err error) {
+	message.Role = openai.ChatMessageRoleUser
+
+	if len(files) > 0 {
+		message.MultiContent = []openai.ChatMessagePart{
+			{
+				Type: openai.ChatMessagePartTypeText,
+				Text: promptText,
+			},
+		}
+
+		for _, file := range files {
+			if fileType, err := file.TypeValue(ctx); err != nil {
+				return message, err
+			} else if !isSupportedImageType(fileType) {
+				return message, fmt.Errorf("%w: %s", ErrFileNotSupported, fileType)
+			}
+			dataURL, err := file.GetDataURL(ctx)
+			if err != nil {
+				return message, err
+			}
+			// Attach file name as a separate text part before the image, for reference.
+			message.MultiContent = append(message.MultiContent, openai.ChatMessagePart{
+				Type: openai.ChatMessagePartTypeText,
+				Text: result.recordPrompt(DefaultTaskFileNameInstruction(file)),
+			})
+			message.MultiContent = append(message.MultiContent, openai.ChatMessagePart{
+				Type: openai.ChatMessagePartTypeImageURL,
+				ImageURL: &openai.ChatMessageImageURL{
+					URL:    dataURL,
+					Detail: openai.ImageURLDetailAuto,
+				},
+			})
+		}
+	} else {
+		message.Content = promptText
+	}
+
+	return message, nil
 }
 
 func (o *OpenAI) Close(ctx context.Context) error {

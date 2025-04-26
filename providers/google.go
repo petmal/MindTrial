@@ -79,8 +79,14 @@ func (o *GoogleAI) Run(ctx context.Context, cfg config.RunConfig, task config.Ta
 
 	systemInstructions = append(systemInstructions, genai.Text(result.recordPrompt(DefaultAnswerFormatInstruction(task))))
 	model.SystemInstruction = genai.NewUserContent(systemInstructions...)
+
+	promptParts, err := o.createPromptMessageParts(ctx, result.recordPrompt(task.Prompt), task.Files, &result)
+	if err != nil {
+		return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
+	}
+
 	resp, err := timed(func() (*genai.GenerateContentResponse, error) {
-		return model.GenerateContent(ctx, genai.Text(result.recordPrompt(task.Prompt)))
+		return model.GenerateContent(ctx, promptParts...)
 	}, &result.duration)
 	if err != nil {
 		return result, fmt.Errorf("%w: %v", ErrGenerateResponse, err)
@@ -112,6 +118,33 @@ func (o *GoogleAI) Run(ctx context.Context, cfg config.RunConfig, task config.Ta
 	}
 
 	return result, nil
+}
+
+func (o *GoogleAI) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []genai.Part, err error) {
+	parts = append(parts, genai.Text(promptText))
+
+	for _, file := range files {
+		fileType, err := file.TypeValue(ctx)
+		if err != nil {
+			return parts, err
+		} else if !isSupportedImageType(fileType) {
+			return parts, fmt.Errorf("%w: %s", ErrFileNotSupported, fileType)
+		}
+
+		content, err := file.Content(ctx)
+		if err != nil {
+			return parts, err
+		}
+
+		// Attach file name as a text part before the blob, for reference.
+		parts = append(parts, genai.Text(result.recordPrompt(DefaultTaskFileNameInstruction(file))))
+		parts = append(parts, genai.Blob{
+			MIMEType: fileType,
+			Data:     content,
+		})
+	}
+
+	return parts, nil
 }
 
 func (o *GoogleAI) Close(ctx context.Context) error {

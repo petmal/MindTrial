@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -151,4 +152,37 @@ func CleanIfNotBlank(filePath string) string {
 		return filepath.Clean(filePath)
 	}
 	return filePath
+}
+
+// OnceWithContext returns a function that invokes f only once regardless of the supplied context.
+// The first call's context is used for execution, and subsequent calls simply return the cached result.
+// This is similar to sync.OnceValues but specifically for functions that need a context.
+func OnceWithContext[T any](f func(context.Context) (T, error)) func(context.Context) (T, error) {
+	var (
+		once  sync.Once
+		valid bool
+		p     any
+		r     T
+		err   error
+	)
+
+	g := func(ctx context.Context) {
+		defer func() {
+			p = recover()
+			if !valid {
+				panic(p)
+			}
+		}()
+		r, err = f(ctx)
+		f = nil // allow function to be garbage collected
+		valid = true
+	}
+
+	return func(ctx context.Context) (T, error) {
+		once.Do(func() { g(ctx) })
+		if !valid {
+			panic(p)
+		}
+		return r, err
+	}
 }

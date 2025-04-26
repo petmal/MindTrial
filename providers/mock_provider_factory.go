@@ -51,6 +51,8 @@ func (m *MockProvider) Run(ctx context.Context, cfg config.RunConfig, task confi
 		switch task.Name {
 		case "error":
 			return result, fmt.Errorf("mock error")
+		case "not_supported":
+			return result, fmt.Errorf("%w: %s", ErrFeatureNotSupported, "mock not supported")
 		case "failure":
 			result.Explanation = "mock failure"
 			result.FinalAnswer = "Facere aperiam recusandae totam magnam nulla corrupti."

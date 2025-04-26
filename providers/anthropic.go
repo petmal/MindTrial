@@ -52,9 +52,6 @@ func (o *Anthropic) Run(ctx context.Context, cfg config.RunConfig, task config.T
 				Text: result.recordPrompt(DefaultAnswerFormatInstruction(task)),
 			},
 		},
-		Messages: []anthropic.MessageParam{
-			anthropic.NewUserMessage(anthropic.NewTextBlock(result.recordPrompt(task.Prompt))),
-		},
 		Tools: []anthropic.ToolUnionParam{
 			{
 				OfTool: &anthropic.ToolParam{
@@ -96,6 +93,14 @@ func (o *Anthropic) Run(ctx context.Context, cfg config.RunConfig, task config.T
 		}
 	}
 
+	if promptParts, err := o.createPromptMessageParts(ctx, result.recordPrompt(task.Prompt), task.Files, &result); err != nil {
+		return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
+	} else {
+		request.Messages = []anthropic.MessageParam{
+			anthropic.NewUserMessage(promptParts...),
+		}
+	}
+
 	resp, err := timed(func() (*anthropic.Message, error) {
 		return o.client.Messages.New(ctx, request)
 	}, &result.duration)
@@ -119,6 +124,30 @@ func (o *Anthropic) Run(ctx context.Context, cfg config.RunConfig, task config.T
 	}
 
 	return result, nil
+}
+
+func (o *Anthropic) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []anthropic.ContentBlockParamUnion, err error) {
+	parts = append(parts, anthropic.NewTextBlock(promptText))
+
+	for _, file := range files {
+		fileType, err := file.TypeValue(ctx)
+		if err != nil {
+			return nil, err
+		} else if !isSupportedImageType(fileType) {
+			return nil, fmt.Errorf("%w: %s", ErrFileNotSupported, fileType)
+		}
+
+		base64Data, err := file.Base64(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		// Attach file name as a text block before the image.
+		parts = append(parts, anthropic.NewTextBlock(result.recordPrompt(DefaultTaskFileNameInstruction(file))))
+		parts = append(parts, anthropic.NewImageBlockBase64(fileType, base64Data))
+	}
+
+	return parts, nil
 }
 
 func (o *Anthropic) Close(ctx context.Context) error {

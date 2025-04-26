@@ -73,6 +73,11 @@
             color: #721c24;
             font-weight: bold;
         }
+        .skipped {
+            background-color: #e2e3e5;
+            color: #383d41;
+            font-weight: bold;
+        }
          
         .details {
             cursor: pointer;
@@ -124,7 +129,7 @@
         <section aria-labelledby="runsummary" itemscope itemtype="https://schema.org/Table" itemprop="hasPart">
             <h2 id="runsummary" itemprop="headline">Summary</h2>
             <meta itemprop="alternativeHeadline" content="AI Model Evaluation Run Summary">
-            <meta itemprop="description" content="Summary of success, failure, and error counts, along with total duration for each AI provider and run configuration.">
+            <meta itemprop="description" content="Summary of success, failure, error, and skipped counts, along with total duration for each AI provider and run configuration.">
             <table>
                 <thead>
                     <tr>
@@ -133,6 +138,7 @@
                         <th scope="col">Passed</th>
                         <th scope="col">Failed</th>
                         <th scope="col">Error</th>
+                        <th scope="col">Skipped</th>
                         <th scope="col">Total Duration</th>
                     </tr>
                 </thead>
@@ -144,6 +150,7 @@
                         <td itemprop="measuredProperty" content="Passed">0</td>
                         <td itemprop="measuredProperty" content="Failed">0</td>
                         <td itemprop="measuredProperty" content="Error">1</td>
+                        <td itemprop="measuredProperty" content="Skipped">0</td>
                         <td itemprop="observationPeriod">0s</td>
                     </tr><tr itemscope itemtype="https://schema.org/Observation">
                         <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization">
@@ -153,7 +160,18 @@
                         <td itemprop="measuredProperty" content="Passed">0</td>
                         <td itemprop="measuredProperty" content="Failed">1</td>
                         <td itemprop="measuredProperty" content="Error">0</td>
+                        <td itemprop="measuredProperty" content="Skipped">0</td>
                         <td itemprop="observationPeriod">10s</td>
+                    </tr><tr itemscope itemtype="https://schema.org/Observation">
+                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization">
+                            <span itemprop="name">provider-name</span>
+                        </td>
+                        <td itemprop="identifier">run-not-supported</td>
+                        <td itemprop="measuredProperty" content="Passed">0</td>
+                        <td itemprop="measuredProperty" content="Failed">0</td>
+                        <td itemprop="measuredProperty" content="Error">0</td>
+                        <td itemprop="measuredProperty" content="Skipped">1</td>
+                        <td itemprop="observationPeriod">500ms</td>
                     </tr><tr itemscope itemtype="https://schema.org/Observation">
                         <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization">
                             <span itemprop="name">provider-name</span>
@@ -162,6 +180,7 @@
                         <td itemprop="measuredProperty" content="Passed">1</td>
                         <td itemprop="measuredProperty" content="Failed">0</td>
                         <td itemprop="measuredProperty" content="Error">0</td>
+                        <td itemprop="measuredProperty" content="Skipped">0</td>
                         <td itemprop="observationPeriod">1m35s</td>
                     </tr>
                 </tbody>
@@ -256,6 +275,31 @@
                             </button>
                             <div id="details-run-provider-name-run-error-task-name" itemprop="answerExplanation" itemscope itemtype="https://schema.org/WebContent" class="details-content">
                                 <span itemprop="text">Pariatur rem dolores corporis voluptas aut eum repellat pariatur.</span>
+                            </div>
+                        </td>
+                    </tr><tr itemscope itemtype="https://schema.org/Question">
+                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+                            <span itemprop="name">provider-name</span>
+                        </td>
+                        <td itemprop="identifier">run-not-supported</td>
+                        <td itemprop="name">task-name</td>
+                        <td class="skipped" itemprop="additionalProperty">
+                            Skipped
+                        </td>
+                        <td itemprop="timeRequired">500ms</td>
+                        <td>
+                            <div itemprop="suggestedAnswer" itemscope itemtype="https://schema.org/Answer" itemref="details-run-provider-name-run-not-supported-task-name">
+                                <span itemprop="text">Sequi molestiae iusto sit sit dolorum aut.</span>
+                            </div>
+                        </td>
+                        <td>
+                            <button type="button" class="details" aria-expanded="false"
+                                aria-controls="details-run-provider-name-run-not-supported-task-name"
+                                        onclick="toggleDetails('details-run-provider-name-run-not-supported-task-name'); this.setAttribute('aria-expanded', (this.getAttribute('aria-expanded')==='true' ? 'false' : 'true'));">
+                                        Show Details
+                            </button>
+                            <div id="details-run-provider-name-run-not-supported-task-name" itemprop="answerExplanation" itemscope itemtype="https://schema.org/WebContent" class="details-content">
+                                <span itemprop="text">Placeat itaque voluptatem. Impedit aut quia velit. Libero ducimus tenetur vel et quibusdam. Et fugiat culpa. Tenetur iste aut mollitia corrupti et suscipit quia. Voluptatem incidunt aut et aliquam unde autem deleniti ea ea.</span>
                             </div>
                         </td>
                     </tr>

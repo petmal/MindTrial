@@ -8,6 +8,7 @@ package config
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -435,6 +436,37 @@ func TestLoadTasksFromFile(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "task with duplicate file names",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`task-config:
+    tasks:
+        - name: "Books neural Automotive"
+          prompt: |-
+              Commodi enim magni.
+              Eos modi id omnis exercitationem debitis doloremque.
+
+              Et atque eius ut.
+          response-result-format: |-
+              Sed unde non.
+              Voluptatem quia voluptate id ipsum est rerum quisquam modi pariatur.
+          expected-result: |-
+              Ut quibusdam inventore dolorum velit.
+              Ullam et dolor laudantium placeat totam dolorem quia.
+              Ex voluptates et ipsam sunt nulla eos alias sint ad.
+
+              Deleniti ducimus natus et omnis expedita.
+          files:
+            - name: "file"
+              url: "path/to/file.txt"
+            - name: "file"
+              url: "http://example.com/file.txt"`)),
+			},
+			wantErr: true,
+		},
+		{
 			name: "valid file",
 			args: args{
 				ctx: context.Background(),
@@ -496,7 +528,14 @@ func TestLoadTasksFromFile(t *testing.T) {
               Ullam et dolor laudantium placeat totam dolorem quia.
               Ex voluptates et ipsam sunt nulla eos alias sint ad.
 
-              Deleniti ducimus natus et omnis expedita.`)),
+              Deleniti ducimus natus et omnis expedita.
+          files:
+            - name: "local-file"
+              uri: "path/to/file.txt"
+              type: "text"
+            - name: "remote-file"
+              uri: "http://example.com/file.txt"
+              type: "text"`)),
 			},
 			want: &Tasks{
 				TaskConfig: TaskConfig{
@@ -507,7 +546,11 @@ func TestLoadTasksFromFile(t *testing.T) {
 							Prompt:               "Commodi enim magni.\nEos modi id omnis exercitationem debitis doloremque.\n\nEt atque eius ut.",
 							ResponseResultFormat: "Sed unde non.\nVoluptatem quia voluptate id ipsum est rerum quisquam modi pariatur.",
 							ExpectedResult:       "Ut quibusdam inventore dolorum velit.\nUllam et dolor laudantium placeat totam dolorem quia.\nEx voluptates et ipsam sunt nulla eos alias sint ad.\n\nDeleniti ducimus natus et omnis expedita.",
-							Disabled:             testutils.Ptr(false),
+							Files: []TaskFile{
+								mockTaskFile(t, "local-file", "path/to/file.txt", "text"),
+								mockTaskFile(t, "remote-file", "http://example.com/file.txt", "text"),
+							},
+							Disabled: testutils.Ptr(false),
 						},
 					},
 				},
@@ -522,6 +565,18 @@ func TestLoadTasksFromFile(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				require.NoError(t, err)
+				for i := range got.TaskConfig.Tasks {
+					for j := range got.TaskConfig.Tasks[i].Files {
+						assert.NotNil(t, got.TaskConfig.Tasks[i].Files[j].content)
+						assert.NotNil(t, got.TaskConfig.Tasks[i].Files[j].base64)
+						assert.NotNil(t, got.TaskConfig.Tasks[i].Files[j].typeValue)
+
+						// Reset the private fields to nil for comparison.
+						got.TaskConfig.Tasks[i].Files[j].content = nil
+						got.TaskConfig.Tasks[i].Files[j].base64 = nil
+						got.TaskConfig.Tasks[i].Files[j].typeValue = nil
+					}
+				}
 				assert.Equal(t, tt.want, got)
 			}
 		})
@@ -530,6 +585,15 @@ func TestLoadTasksFromFile(t *testing.T) {
 
 func createMockFile(t *testing.T, contents []byte) string {
 	return testutils.CreateMockFile(t, "*.test.yaml", contents)
+}
+
+func mockTaskFile(t *testing.T, name string, uri string, mimeType string) TaskFile {
+	file := TaskFile{
+		Name: name,
+		Type: mimeType,
+	}
+	require.NoError(t, file.URI.Parse(uri))
+	return file
 }
 
 func TestIsNotBlank(t *testing.T) {
@@ -711,9 +775,14 @@ func TestGetEnabledTasks(t *testing.T) {
 						Prompt: "SMS",
 					},
 					{
-						Name:     "Rapid",
-						Prompt:   "enable",
-						Disabled: testutils.Ptr(false),
+						Name:                 "Rapid",
+						Prompt:               "enable",
+						ResponseResultFormat: "generating",
+						ExpectedResult:       "Account",
+						Disabled:             testutils.Ptr(false),
+						Files: []TaskFile{
+							mockTaskFile(t, "mock file", "http://example.com/file.txt", "text"),
+						},
 					},
 					{
 						Name:     "payment",
@@ -724,9 +793,14 @@ func TestGetEnabledTasks(t *testing.T) {
 			},
 			want: []Task{
 				{
-					Name:     "Rapid",
-					Prompt:   "enable",
-					Disabled: testutils.Ptr(false),
+					Name:                 "Rapid",
+					Prompt:               "enable",
+					ResponseResultFormat: "generating",
+					ExpectedResult:       "Account",
+					Disabled:             testutils.Ptr(false),
+					Files: []TaskFile{
+						mockTaskFile(t, "mock file", "http://example.com/file.txt", "text"),
+					},
 				},
 			},
 		},
@@ -986,4 +1060,88 @@ func TestCleanIfNotBlank(t *testing.T) {
 			assert.Equal(t, tt.want, CleanIfNotBlank(tt.filePath))
 		})
 	}
+}
+
+//nolint:staticcheck,errcheck,err113
+func TestOnceWithContext(t *testing.T) {
+	newOnceFunc := func() (func(context.Context) (int, error), *int) {
+		counter := testutils.Ptr(0)
+		return OnceWithContext(func(ctx context.Context) (int, error) {
+			if e := ctx.Value("error"); e != nil {
+				return *counter, e.(error)
+			} else if p := ctx.Value("panic"); p != nil {
+				panic(p.(string))
+			}
+
+			*counter++
+			return *counter, nil
+		}), counter
+	}
+
+	ctx := context.Background()
+
+	t.Run("with result", func(t *testing.T) {
+		wrapped, counter := newOnceFunc()
+		got, err := wrapped(ctx)
+		require.NoError(t, err)
+		require.Equal(t, 1, got)
+
+		got, err = wrapped(ctx)
+		require.NoError(t, err)
+		require.Equal(t, 1, got)
+
+		got, err = wrapped(context.WithValue(ctx, "error", errors.New("mock error")))
+		require.NoError(t, err)
+		require.Equal(t, 1, got)
+
+		got, err = wrapped(context.WithValue(ctx, "panic", "mock panic"))
+		require.NoError(t, err)
+		require.Equal(t, 1, got)
+
+		assert.Equal(t, 1, *counter)
+	})
+
+	t.Run("with error", func(t *testing.T) {
+		wantErr := errors.New("mock error")
+		wrapped, counter := newOnceFunc()
+		got, err := wrapped(context.WithValue(ctx, "error", wantErr))
+		require.ErrorIs(t, err, wantErr)
+		require.Equal(t, 0, got)
+
+		got, err = wrapped(ctx)
+		require.ErrorIs(t, err, wantErr)
+		require.Equal(t, 0, got)
+
+		got, err = wrapped(context.WithValue(ctx, "error", errors.New("other error")))
+		require.ErrorIs(t, err, wantErr)
+		require.Equal(t, 0, got)
+
+		got, err = wrapped(context.WithValue(ctx, "panic", "mock panic"))
+		require.ErrorIs(t, err, wantErr)
+		require.Equal(t, 0, got)
+
+		assert.Equal(t, 0, *counter)
+	})
+
+	t.Run("with panic", func(t *testing.T) {
+		wantPanic := "mock panic"
+		wrapped, counter := newOnceFunc()
+		require.PanicsWithValue(t, wantPanic, func() {
+			wrapped(context.WithValue(ctx, "panic", wantPanic))
+		})
+
+		require.PanicsWithValue(t, wantPanic, func() {
+			wrapped(ctx)
+		})
+
+		require.PanicsWithValue(t, wantPanic, func() {
+			wrapped(context.WithValue(ctx, "error", errors.New("mock error")))
+		})
+
+		require.PanicsWithValue(t, wantPanic, func() {
+			wrapped(context.WithValue(ctx, "panic", "other panic"))
+		})
+
+		assert.Equal(t, 0, *counter)
+	})
 }

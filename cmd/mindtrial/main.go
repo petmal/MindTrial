@@ -188,6 +188,14 @@ func run(ctx context.Context) (ok bool, err error) {
 		return true, nil
 	}
 
+	// Set the base path for each task context file to the location of the task definition file.
+	taskFileDir := filepath.Dir(tasksFile)
+	for _, task := range targetTasks {
+		if err = task.SetBaseFilePath(taskFileDir); err != nil {
+			return
+		}
+	}
+
 	// Time to be used to resolve name patterns.
 	timeRef := time.Now()
 

@@ -6,7 +6,7 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/petmal/mindtrial)](https://go.dev/)
 [![Go Reference](https://pkg.go.dev/badge/github.com/petmal/mindtrial.svg)](https://pkg.go.dev/github.com/petmal/mindtrial)
 
-**MindTrial** helps you assess and compare the performance of AI language models (LLMs) on text-based tasks. Use it to evaluate a single model or test multiple models from OpenAI, Google, Anthropic, and DeepSeek side by side, and get easy-to-read results in HTML and CSV formats.
+**MindTrial** helps you assess and compare the performance of AI language models (LLMs) on tasks that use text prompts, with optional file or image attachments. Use it to evaluate a single model or test multiple models from OpenAI, Google, Anthropic, and DeepSeek side by side, and get easy-to-read results in HTML and CSV formats.
 
 ## Quick Start Guide
 
@@ -31,6 +31,7 @@
 
 - Compare multiple AI models at once
 - Create custom test tasks using simple YAML files
+- Attach files or images to prompts for visual tasks
 - Get results in HTML and CSV formats
 - Easy to extend with new AI models
 - Smart rate limiting to prevent API overload
@@ -238,6 +239,19 @@ This file defines the tasks to be executed on all enabled run configurations. Ea
 - **response-result-format**: Defines how the AI should format the final answer to the prompt. This is important because the final answer will be compared to the `expected-result` and it needs to consistently follow the same format.
 - **expected-result**: This defines the expected (i.e. valid) final answer to the prompt. It must follow the `response-result-format` precisely.
 
+Optionally, a task can include a list of `files` to be sent along with the prompt:
+
+- **files**: A list of files to attach to the prompt. Each file entry defines the following properties:
+  - **name**: A unique name for the file, used for reference within the prompt if needed.
+  - **uri**: The path or URI to the file. Local file paths and remote HTTP/HTTPS URLs are supported. The file content will be downloaded and sent with the request.
+  - **type**: The MIME type of the file (e.g., `image/png`, `image/jpeg`). If omitted, the tool will attempt to infer the type based on the file extension or content.
+
+> [!NOTE]
+> If a task includes files, it will be skipped for any provider configuration that does not support file uploads or does not support the specific file type.
+
+> [!NOTE]
+> Currently supported image types include: `image/jpeg`, `image/jpg`, `image/png`, `image/gif`, `image/webp`. Support may vary by provider.
+
 > [!NOTE]
 > Currently, the letter-case is ignored when comparing the final answer to the `expected-result`.
 
@@ -252,16 +266,30 @@ A sample task from `tasks.yaml`:
 task-config:
   disabled: true
   tasks:
-    - name: "riddle - anagram - v1"
+    - name: "riddle - split words - v1"
       disabled: false
       prompt: |-
         There are four 8-letter words (animals) that have been split into 2-letter pieces.
         Find these four words by putting appropriate pieces back together:
+
         RR TE KA DG EH AN SQ EL UI OO HE LO AR PE NG OG
       response-result-format: |-
         list of words in alphabetical order separated by ", "
       expected-result: |-
         ANTELOPE, HEDGEHOG, KANGAROO, SQUIRREL
+    - name: "visual - shapes - v1"
+      prompt: |-
+        The attached picture contains various shapes marked by letters.
+        It also contains a set of same shapes that have been rotated marked by numbers.
+        Your task is to find all matching pairs.
+      response-result-format: |-
+        <shape number>: <shape letter> pairs separated by ", " and ordered by shape number
+      expected-result: |-
+        1: G, 2: F, 3: B, 4: A, 5: C, 6: D, 7: E
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-shapes-v1.png"
+          type: "image/png"
 ```
 
 ## Command Reference

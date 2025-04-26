@@ -9,10 +9,13 @@ package testutils
 
 import (
 	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -154,4 +157,32 @@ func AssertNotBlank(t *testing.T, value string) {
 // Ptr returns a pointer to the given value.
 func Ptr[T any](value T) *T {
 	return &value
+}
+
+// CreateMockServer creates a test HTTP server with configurable responses.
+// It accepts a map of paths to response configurations (status code and content).
+// Returns the server which should be closed after use.
+func CreateMockServer(t *testing.T, responses map[string]MockHTTPResponse) *httptest.Server {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if response, ok := responses[r.URL.Path]; ok {
+			if response.Delay > 0 {
+				time.Sleep(response.Delay)
+			}
+			w.WriteHeader(response.StatusCode)
+			if response.Content != nil {
+				if _, err := w.Write(response.Content); err != nil {
+					t.Fatalf("failed to write mock response: %v", err)
+				}
+			}
+		} else {
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+}
+
+// MockHTTPResponse defines a mock HTTP response for testing.
+type MockHTTPResponse struct {
+	StatusCode int
+	Content    []byte
+	Delay      time.Duration
 }

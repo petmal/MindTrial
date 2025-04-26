@@ -239,6 +239,9 @@ func (r *defaultRunner) runTask(ctx context.Context, provider providers.Provider
 	if err != nil { //nolint:gocritic
 		runResult.Kind = Error
 		runResult.Got = err.Error()
+		if errors.Is(err, providers.ErrFeatureNotSupported) {
+			runResult.Kind = NotSupported
+		}
 		var unmarshalErr *providers.ErrUnmarshalResponse
 		if errors.As(err, &unmarshalErr) {
 			runResult.Details = unmarshalErr.Details()
