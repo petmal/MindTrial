@@ -270,3 +270,285 @@ task-config:
         - name: "picture"
           uri: "./taskdata/visual-shapes-v1.png"
           type: "image/png"
+    - name: "riddle - letter cross - v2"
+      prompt: |-
+        Delete all letters that appear exactly four times in this grid.
+        Use the remaining letters to spell the name of a color.
+
+        D Z N K G - C U I M
+        P O A S D X J R B W
+        U G Q M Y B Z F - P
+        K W Z C U Z N W V J
+        A S F Y H Q X D H X
+        R - Q A N D J G C R
+        F J B E R T Y B U K
+        L M P S G - M P H S
+        N C H F Q K W A X Y
+      response-result-format: |-
+        name of the color
+      expected-result: |-
+        VIOLET
+    - name: "riddle - x words - v2"
+      prompt: |-
+        Organize the following five words into rows such that both diagonals
+        in the resulting 5x5 grid spell 5-letter words reading from top to bottom.
+
+        WALLS, SPINS, WATER, FLAKE, TRUST
+      response-result-format: |-
+        <left-to-right diagonal word>, <right-to-left diagonal word>
+      expected-result: |-
+        TALKS, TELLS
+    - name: "riddle - split words - v2"
+      prompt: |-
+        There are five 6-letter words (cities) that have been split into 2-letter pieces.
+        Find these four words by putting appropriate pieces back together:
+
+        NI LO ES ON GE NO NE BE VE RL IN CE ND VA FR
+      response-result-format: |-
+        list of words in alphabetical order separated by ", "
+      expected-result: |-
+        BERLIN, FRESNO, GENEVA, LONDON, VENICE
+    - name: "riddle - word columns - v2"
+      prompt: |-
+        Organize the following six words into rows such that columns number 2 and 5
+        in the resulting 6x6 grid spell 6-letter words reading from top to bottom.
+
+        FLOWER, TENORS, TENNIS, IMPOSE, AFRESH, PALATE
+      response-result-format: |-
+        <2nd-column word>, <5th-column word>
+      expected-result: |-
+        FEMALE, SISTER
+    - name: "riddle - anagram - v2"
+      prompt: |-
+        Two words (each individual word is a food) have been combined and their letters arranged in alphabetical order forming a single group.
+        Find the original words for each of these 4 groups:
+
+        1. AHKMOPR
+        2. AABDENRTU
+        3. BCEEEEEFHS
+        4. ACCEIORRRT
+      response-result-format: |-
+        1. <word>, <word>
+        2. <word>, <word>
+        etc. (words in each group must be alphabetically ordered)
+      expected-result: |-
+        1. HAM, PORK
+        2. BREAD, TUNA
+        3. BEEF, CHEESE
+        4. CARROT, RICE
+    - name: "riddle - first letter - v2"
+      prompt: |-
+        Replace the first letter of each of the words in the groups so that all words in each group have the same, new, first letter.
+        Make sure the new words are proper words, but not proper nouns.
+        When combined, the new first letters from all groups must form a proper English 3-letter word.
+
+        Group 1: SPRIGHT, ONION, KNIT, AMBER, INTO
+        Group 2: AIM, MINE, PRESS, OUNCE, SHOW
+        Group 3: FEAT, LINK, CORE, RUST, DARE
+      response-result-format: |-
+        <new first letter for each group separated by ", ">: <3-letter word formed by rearranging the new first letters>
+      expected-result: |-
+        U, D, M: MUD
+    - name: "riddle - trace words - v2"
+      prompt: |-
+        Trace 6 non-overlapping words fully covering this grid.
+        The words can be in any direction (horizontal or vertical) and each word does not need to be in a straight line.
+        Every letter in the grid must be used in exactly one word.
+        The words represent reptiles.
+
+        D R A Z G I
+        P Y L I U A
+        H T A N A O
+        O N E O N B
+        H C L U T E
+        A M E R T L
+      response-result-format: |-
+        the words in alphabetical order separated by ", "
+      expected-result: |-
+        BOA, CHAMELEON, IGUANA, LIZARD, PYTHON, TURTLE
+    - name: "riddle - trace words - v3"
+      prompt: |-
+        Trace 6 non-overlapping words fully covering this grid.
+        The words can be in any direction (horizontal or vertical) and each word does not need to be in a straight line.
+        Every letter in the grid must be used in exactly one word.
+        The words represent vegetables.
+
+        A R R O S P
+        C T E T O R
+        R U G T U N
+        N B A P U R
+        I B A C M O
+        P N I K P C
+      response-result-format: |-
+        the words in alphabetical order separated by ", "
+      expected-result: |-
+        CABBAGE, CARROT, CORN, PUMPKIN, SPROUT, TURNIP
+    - name: "riddle - letter cross - v3"
+      prompt: |-
+        Delete all letters that appear exactly four times in this grid.
+        Use the remaining letters to spell the name of a marine mammal.
+
+        G X N V C V N K R Q
+        Y L C E I G W H - F
+        J Z Y H F B Y D P O
+        P T D X M K T N G Z
+        G - Z Q P V X B J E
+        B F A T E H D I - X
+        O K Y M J Z N P C J
+        Q E O - S I O U K V
+        B I T F M Q C H M D
+      response-result-format: |-
+        name of the marine mammal
+      expected-result: |-
+        WALRUS
+    - name: "riddle - x words - v3"
+      prompt: |-
+        Organize the following five words into rows such that both diagonals
+        in the resulting 5x5 grid spell 5-letter words reading from top to bottom.
+
+        SPADE, SWIMS, COURT, FOLIC, PLOYS
+      response-result-format: |-
+        <left-to-right diagonal word>, <right-to-left diagonal word>
+      expected-result: |-
+        FOODS, CROPS
+    - name: "riddle - split words - v3"
+      prompt: |-
+        There are five 6-letter words (colors) that have been split into 2-letter pieces.
+        Find these four words by putting appropriate pieces back together:
+
+        OL YE RP LV LL PU VI SI OW MA ER ON ET RO LE
+      response-result-format: |-
+        list of words in alphabetical order separated by ", "
+      expected-result: |-
+        MAROON, PURPLE, SILVER, VIOLET, YELLOW
+    - name: "riddle - word columns - v3"
+      prompt: |-
+        Organize the following six words into rows such that columns number 2 and 5
+        in the resulting 6x6 grid spell 6-letter words reading from top to bottom.
+
+        MAJORS, ADRIFT, RHYTHM, ASPECT, DINING, ANSWER
+      response-result-format: |-
+        <2nd-column word>, <5th-column word>
+      expected-result: |-
+        DANISH, FRENCH
+    - name: "riddle - anagram - v3"
+      prompt: |-
+        Two words (each individual word is a fruit) have been combined and their letters arranged in alphabetical order forming a single group.
+        Find the original words for each of these 4 groups:
+
+        1. AELLMPPPU
+        2. AAEEGNOPRR
+        3. AACEEGHPPR
+        4. ACEILMNOOPRT
+      response-result-format: |-
+        1. <word>, <word>
+        2. <word>, <word>
+        etc. (words in each group must be alphabetically ordered)
+      expected-result:
+        - |
+          1. APPLE, PLUM
+          2. ORANGE, PEAR
+          3. GRAPE, PEACH
+          4. APRICOT, MELON
+        - |
+          1. APPLE, PLUM
+          2. ORANGE, PEAR
+          3. GRAPE, PEACH
+          4. APRICOT, LEMON
+    - name: "riddle - trace words - v4"
+      prompt: |-
+        Trace 5 non-overlapping words fully covering this grid.
+        The words can be in any direction (horizontal, vertical and diagonal) and each word does not need to be in a straight line.
+        Every letter in the grid must be used in exactly one word.
+        The words represent items commonly found in a kitchen.
+
+        C U L A R E
+        E R T P T K
+        R F L E C O
+        I R E R E O
+        G Y A O L T
+        E R T K E T
+      response-result-format: |-
+        the words in alphabetical order separated by ", "
+      expected-result: |-
+        COOKER, CUTLERY, KETTLE, PLATE, REFRIGERATOR
+    - name: "riddle - letter cross - v4"
+      prompt: |-
+        Delete all letters that appear exactly four times in this grid.
+        Use the remaining letters to spell the name of a musical instrument.
+
+        Q K W H B Z M E X N
+        O - F Z S P V F D C
+        D B E C L K U M Y V
+        H W M Q A X C N O K
+        S J Y N Z F - J Q -
+        L P T H D V O K S E
+        X C B O S E G - P Y
+        F N W L X J Y M I Z
+        J V D P R Q L W B H
+      response-result-format: |-
+        name of the musical instrument
+      expected-result: |-
+        GUITAR
+    - name: "riddle - x words - v4"
+      prompt: |-
+        Organize the following five words into rows such that both diagonals
+        in the resulting 5x5 grid spell 5-letter words reading from top to bottom.
+
+        FLASH, PRONG, EPOCH, SPACE, MERRY
+      response-result-format: |-
+        <left-to-right diagonal word>, <right-to-left diagonal word>
+      expected-result: |-
+        PEACH, GRAPE
+    - name: "riddle - split words - v3"
+      prompt: |-
+        There are four 8-letter words (occupations) that have been split into 2-letter pieces.
+        Find these four words by putting appropriate pieces back together:
+
+        CI OR RE MU SS SC MI IT UL ST SI NI ER PT WA AN
+      response-result-format: |-
+        list of words in alphabetical order separated by ", "
+      expected-result: |-
+        MINISTER, MUSICIAN, SCULPTOR, WAITRESS
+    - name: "riddle - word columns - v4"
+      prompt: |-
+        Organize the following six words into rows such that columns number 2 and 5
+        in the resulting 6x6 grid spell 6-letter words reading from top to bottom.
+
+        SWOOSH, SELLER, STORMY, INCOME, TISSUE, ERRORS
+      response-result-format: |-
+        <2nd-column word>, <5th-column word>
+      expected-result: |-
+        WINTER, SUMMER
+    - name: "riddle - anagram - v4"
+      prompt: |-
+        Two words have been combined and their letters arranged in alphabetical order forming a single group.
+        Find the original words for each of these 4 groups, the topic is sea animals:
+
+        1. AABCELRS
+        2. ADEHILQSUW
+        3. ABEHKLORRSST
+        4. CEOOOPRSSTTUY
+      response-result-format: |-
+        1. <word>, <word>
+        2. <word>, <word>
+        etc. (words in each group must be alphabetically ordered)
+      expected-result: |-
+        1. CRAB, SEAL
+        2. SQUID, WHALE
+        3. LOBSTER, SHARK
+        4. OCTOPUS, OYSTER
+    - name: "riddle - first letter - v3"
+      prompt: |-
+        Replace the first letter of each of the words in the groups so that all words in each group have the same, new, first letter.
+        Make sure the new words are proper words, but not proper nouns.
+        When combined, the new first letters from all groups must form a proper English 4-letter word.
+
+        Group 1: FOOT, PILE, DEAR, GULL, HARK
+        Group 2: FOOD, HEAR, MALE, SILL, LUST
+        Group 3: NOOK, BAKE, TINE, PEEK, SUMP
+        Group 4: SON, CRATE, ETCH, STEM, ORE
+      response-result-format: |-
+        <new first letter for each group separated by ", ">: <3-letter word formed by rearranging the new first letters>
+      expected-result: |-
+        B, G, L, I: GLIB
