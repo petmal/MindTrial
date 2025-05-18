@@ -38,7 +38,7 @@ func (o GoogleAI) Name() string {
 	return config.GOOGLE
 }
 
-func (o GoogleAI) Validator(expected string) Validator {
+func (o GoogleAI) Validator(expected utils.StringSet) Validator {
 	return NewDefaultValidator(expected)
 }
 

@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/petmal/mindtrial/pkg/testutils"
+	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -497,7 +498,7 @@ func TestLoadTasksFromFile(t *testing.T) {
 							Name:                 "Books neural Automotive",
 							Prompt:               "Commodi enim magni.\nEos modi id omnis exercitationem debitis doloremque.\n\nEt atque eius ut.",
 							ResponseResultFormat: "Sed unde non.\nVoluptatem quia voluptate id ipsum est rerum quisquam modi pariatur.",
-							ExpectedResult:       "Ut quibusdam inventore dolorum velit.\nUllam et dolor laudantium placeat totam dolorem quia.\nEx voluptates et ipsam sunt nulla eos alias sint ad.\n\nDeleniti ducimus natus et omnis expedita.",
+							ExpectedResult:       utils.NewStringSet("Ut quibusdam inventore dolorum velit.\nUllam et dolor laudantium placeat totam dolorem quia.\nEx voluptates et ipsam sunt nulla eos alias sint ad.\n\nDeleniti ducimus natus et omnis expedita."),
 						},
 					},
 				},
@@ -545,7 +546,7 @@ func TestLoadTasksFromFile(t *testing.T) {
 							Name:                 "Books neural Automotive",
 							Prompt:               "Commodi enim magni.\nEos modi id omnis exercitationem debitis doloremque.\n\nEt atque eius ut.",
 							ResponseResultFormat: "Sed unde non.\nVoluptatem quia voluptate id ipsum est rerum quisquam modi pariatur.",
-							ExpectedResult:       "Ut quibusdam inventore dolorum velit.\nUllam et dolor laudantium placeat totam dolorem quia.\nEx voluptates et ipsam sunt nulla eos alias sint ad.\n\nDeleniti ducimus natus et omnis expedita.",
+							ExpectedResult:       utils.NewStringSet("Ut quibusdam inventore dolorum velit.\nUllam et dolor laudantium placeat totam dolorem quia.\nEx voluptates et ipsam sunt nulla eos alias sint ad.\n\nDeleniti ducimus natus et omnis expedita."),
 							Files: []TaskFile{
 								mockTaskFile(t, "local-file", "path/to/file.txt", "text"),
 								mockTaskFile(t, "remote-file", "http://example.com/file.txt", "text"),
@@ -778,7 +779,7 @@ func TestGetEnabledTasks(t *testing.T) {
 						Name:                 "Rapid",
 						Prompt:               "enable",
 						ResponseResultFormat: "generating",
-						ExpectedResult:       "Account",
+						ExpectedResult:       utils.NewStringSet("Account"),
 						Disabled:             testutils.Ptr(false),
 						Files: []TaskFile{
 							mockTaskFile(t, "mock file", "http://example.com/file.txt", "text"),
@@ -796,7 +797,7 @@ func TestGetEnabledTasks(t *testing.T) {
 					Name:                 "Rapid",
 					Prompt:               "enable",
 					ResponseResultFormat: "generating",
-					ExpectedResult:       "Account",
+					ExpectedResult:       utils.NewStringSet("Account"),
 					Disabled:             testutils.Ptr(false),
 					Files: []TaskFile{
 						mockTaskFile(t, "mock file", "http://example.com/file.txt", "text"),

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/petmal/mindtrial/pkg/testutils"
+	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -14,33 +15,51 @@ import (
 func TestValidatorIsCorrect(t *testing.T) {
 	tests := []struct {
 		name     string
-		expected string
+		expected utils.StringSet
 		actual   Result
 		want     bool
 	}{
 		{
 			name:     "correct answer",
-			expected: "correct answer",
+			expected: utils.NewStringSet("correct answer"),
 			actual:   Result{FinalAnswer: "correct answer"},
 			want:     true,
 		},
 		{
 			name:     "incorrect answer",
-			expected: "correct answer",
+			expected: utils.NewStringSet("correct answer"),
 			actual:   Result{FinalAnswer: "wrong answer"},
 			want:     false,
 		},
 		{
 			name:     "case insensitive",
-			expected: "Correct Answer",
+			expected: utils.NewStringSet("Correct Answer"),
 			actual:   Result{FinalAnswer: "correct answer"},
 			want:     true,
 		},
 		{
 			name:     "trim spaces",
-			expected: "correct answer",
+			expected: utils.NewStringSet("correct answer"),
 			actual:   Result{FinalAnswer: " correct answer "},
 			want:     true,
+		},
+		{
+			name:     "multiple valid answers (first)",
+			expected: utils.NewStringSet("foo", "bar"),
+			actual:   Result{FinalAnswer: "foo"},
+			want:     true,
+		},
+		{
+			name:     "multiple valid answers (second)",
+			expected: utils.NewStringSet("foo", "bar"),
+			actual:   Result{FinalAnswer: "bar"},
+			want:     true,
+		},
+		{
+			name:     "multiple valid answers (wrong answer)",
+			expected: utils.NewStringSet("foo", "bar"),
+			actual:   Result{FinalAnswer: "wrong answer"},
+			want:     false,
 		},
 	}
 
@@ -71,7 +90,7 @@ func TestValidatorToCanonical(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, NewDefaultValidator("").ToCanonical(tt.value))
+			assert.Equal(t, tt.want, NewDefaultValidator(utils.StringSet{}).ToCanonical(tt.value))
 		})
 	}
 }

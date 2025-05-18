@@ -32,7 +32,7 @@ func (o OpenAI) Name() string {
 	return config.OPENAI
 }
 
-func (o OpenAI) Validator(expected string) Validator {
+func (o OpenAI) Validator(expected utils.StringSet) Validator {
 	return NewDefaultValidator(expected)
 }
 

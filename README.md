@@ -237,7 +237,8 @@ This file defines the tasks to be executed on all enabled run configurations. Ea
 - **name**: Display-friendly name to be shown in the results.
 - **prompt**: The prompt (i.e. task) that will be sent to the AI model.
 - **response-result-format**: Defines how the AI should format the final answer to the prompt. This is important because the final answer will be compared to the `expected-result` and it needs to consistently follow the same format.
-- **expected-result**: This defines the expected (i.e. valid) final answer to the prompt. It must follow the `response-result-format` precisely.
+- **expected-result**: This defines the accepted valid answer(s) to the prompt. It can be a string if there is only a single valid answer or a list of strings if there are multiple possible correct answers.
+Each answer must follow the `response-result-format` precisely.
 
 Optionally, a task can include a list of `files` to be sent along with the prompt:
 
@@ -290,6 +291,24 @@ task-config:
         - name: "picture"
           uri: "./taskdata/visual-shapes-v1.png"
           type: "image/png"
+    - name: "riddle - anagram - v3"
+      prompt: |-
+        Two words (each individual word is a fruit) have been combined and their letters arranged in alphabetical order forming a single group.
+        Find the original words for each of these 2 groups:
+
+        1. AACEEGHPPR
+        2. ACEILMNOOPRT
+      response-result-format: |-
+        1. <word>, <word>
+        2. <word>, <word>
+        (words in each group must be alphabetically ordered)
+      expected-result:
+        - |
+          1. GRAPE, PEACH
+          2. APRICOT, MELON
+        - |
+          1. GRAPE, PEACH
+          2. APRICOT, LEMON
 ```
 
 ## Command Reference

@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/petmal/mindtrial/runners"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -180,7 +181,7 @@ func TestFormatAnswer(t *testing.T) {
 		name    string
 		result  runners.RunResult
 		useHTML bool
-		want    string
+		want    []string
 	}{
 		{
 			name: "success result without HTML",
@@ -189,7 +190,7 @@ func TestFormatAnswer(t *testing.T) {
 				Got:  "Success output",
 			},
 			useHTML: false,
-			want:    "Success output",
+			want:    []string{"Success output"},
 		},
 		{
 			name: "error result without HTML",
@@ -198,27 +199,53 @@ func TestFormatAnswer(t *testing.T) {
 				Got:  "Error output",
 			},
 			useHTML: false,
-			want:    "Error output",
+			want:    []string{"Error output"},
 		},
 		{
 			name: "failure result with HTML",
 			result: runners.RunResult{
 				Kind: runners.Failure,
-				Want: "Expected output",
+				Want: utils.NewStringSet("Expected output"),
 				Got:  "Actual output",
 			},
 			useHTML: true,
-			want:    htmlDiffContentPrefix + DiffHTML("Expected output", "Actual output"),
+			want:    []string{htmlDiffContentPrefix + DiffHTML("Expected output", "Actual output")},
 		},
 		{
 			name: "failure result without HTML",
 			result: runners.RunResult{
 				Kind: runners.Failure,
-				Want: "Expected output",
+				Want: utils.NewStringSet("Expected output"),
 				Got:  "Actual output",
 			},
 			useHTML: false,
-			want:    DiffText("Expected output", "Actual output"),
+			want:    []string{DiffText("Expected output", "Actual output")},
+		},
+		{
+			name: "failure result multiple answers with HTML",
+			result: runners.RunResult{
+				Kind: runners.Failure,
+				Want: utils.NewStringSet("Expected output", "Other output"),
+				Got:  "Actual output",
+			},
+			useHTML: true,
+			want: []string{
+				htmlDiffContentPrefix + DiffHTML("Expected output", "Actual output"),
+				htmlDiffContentPrefix + DiffHTML("Other output", "Actual output"),
+			},
+		},
+		{
+			name: "failure result multiple answers without HTML",
+			result: runners.RunResult{
+				Kind: runners.Failure,
+				Want: utils.NewStringSet("Expected output", "Other output"),
+				Got:  "Actual output",
+			},
+			useHTML: false,
+			want: []string{
+				DiffText("Expected output", "Actual output"),
+				DiffText("Other output", "Actual output"),
+			},
 		},
 		{
 			name: "not supported result without HTML",
@@ -227,7 +254,7 @@ func TestFormatAnswer(t *testing.T) {
 				Got:  "Skipped output",
 			},
 			useHTML: false,
-			want:    "Skipped output",
+			want:    []string{"Skipped output"},
 		},
 	}
 

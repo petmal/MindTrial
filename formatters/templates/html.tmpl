@@ -100,6 +100,21 @@
             padding: 8px;
             font-size: 0.95em;
         }
+        /* Answer list styling */
+        .answer-list {
+            margin: 0;
+            padding-left: 1.5em;
+        }
+        .answer-list li {
+            margin-bottom: 1em;
+        }
+        .answer-list.single {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .answer-list.single li {
+            margin-bottom: 0;
+        }
         /* Responsive enhancements */
         @media (max-width: 768px) {
             th, td { padding: 10px; }
@@ -195,9 +210,15 @@
                         </td>
                         <td itemprop="timeRequired">{{.Duration | RoundToMS}}</td>
                         <td>
-                            <div itemprop="suggestedAnswer" itemscope itemtype="https://schema.org/Answer" itemref="details-{{.GetID}}">
-                                <span itemprop="text">{{FormatAnswer . true | SafeHTML}}</span>
-                            </div>
+                            {{- $answers := FormatAnswer . true -}}
+                            {{- $result := . -}}
+                            <ol class="answer-list{{if le (len $answers) 1}} single{{end}}">
+                                {{- range $answer := $answers }}
+                                    <li itemprop="suggestedAnswer" itemscope itemtype="https://schema.org/Answer" itemref="details-{{$result.GetID}}">
+                                        <span itemprop="text">{{$answer | SafeHTML}}</span>
+                                    </li>
+                                {{- end }}
+                            </ol>
                         </td>
                         <td>
                             <button type="button" class="details" aria-expanded="false"

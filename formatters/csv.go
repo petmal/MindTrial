@@ -36,7 +36,7 @@ func (f csvFormatter) Write(results runners.Results, out io.Writer) error {
 
 	return ForEachOrdered(results, func(_ string, runResults []runners.RunResult) error {
 		for _, result := range runResults {
-			row := []string{result.Provider, result.Run, result.Task, ToStatus(result.Kind), RoundToMS(result.Duration).String(), FormatAnswer(result, false), result.Details}
+			row := []string{result.Provider, result.Run, result.Task, ToStatus(result.Kind), RoundToMS(result.Duration).String(), formatAnswerText(result), result.Details}
 			if err := writer.Write(row); err != nil {
 				return fmt.Errorf("%w: %v", ErrPrintResults, err)
 			}

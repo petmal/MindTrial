@@ -225,7 +225,7 @@ func (r *defaultRunner) runTask(ctx context.Context, provider providers.Provider
 	runResult.Task = task.Name
 	runResult.Provider = provider.Name()
 	runResult.Run = run.Name
-	runResult.Want = validator.ToCanonical(task.ExpectedResult)
+	runResult.Want = task.ExpectedResult.Map(validator.ToCanonical)
 	defer func() {
 		if p := recover(); p != nil {
 			runResult.Kind = Error

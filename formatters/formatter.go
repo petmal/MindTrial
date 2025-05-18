@@ -11,9 +11,12 @@ package formatters
 import (
 	"errors"
 	"io"
+	"strings"
 
 	"github.com/petmal/mindtrial/runners"
 )
+
+const textAnswerSeparator = "---\n"
 
 // ErrPrintResults indicates that result formatting failed.
 var ErrPrintResults = errors.New("failed to print formatted results")
@@ -24,4 +27,8 @@ type Formatter interface {
 	FileExt() string
 	// Write outputs formatted results to the writer.
 	Write(results runners.Results, out io.Writer) error
+}
+
+func formatAnswerText(result runners.RunResult) string {
+	return strings.TrimSpace(strings.Join(FormatAnswer(result, false), textAnswerSeparator))
 }

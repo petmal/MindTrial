@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/petmal/mindtrial/pkg/testutils"
+	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/petmal/mindtrial/runners"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,7 +26,7 @@ var mockResults = runners.Results{
 			Run:      "run-success",
 			Kind:     runners.Success,
 			Duration: 95 * time.Second,
-			Want:     "Quos aut rerum quaerat qui ad culpa.",
+			Want:     utils.NewStringSet("Quos aut rerum quaerat qui ad culpa."),
 			Got:      "Quos aut rerum quaerat qui ad culpa.",
 			Details:  "Quis ea voluptatem non.\r\nAperiam dolor est alias odit enim fugiat vitae aliquam dolor.",
 		},
@@ -35,7 +36,27 @@ var mockResults = runners.Results{
 			Run:      "run-failure",
 			Kind:     runners.Failure,
 			Duration: 10 * time.Second,
-			Want:     "Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui.",
+			Want:     utils.NewStringSet("Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui."),
+			Got:      "Ipsam ea et optio explicabo eius et.",
+			Details:  "Ut eos eius modi nihil voluptatem error.\n\nVeniam omnis at possimus aliquid.\r\nUt voluptatem ullam et ea non beatae eos adipisci incidunt. Saepe atque occaecati. Tempore animi magni sequi modi omnis.\nConsequatur hic sint laboriosam maiores unde vero ipsum.\n",
+		},
+		{
+			Provider: "provider-name",
+			Task:     "task-name",
+			Run:      "run-success-multiple-answers",
+			Kind:     runners.Success,
+			Duration: 17 * time.Second,
+			Want:     utils.NewStringSet("Deserunt quo sint minus eos officiis et.", "Quos aut rerum quaerat qui ad culpa."),
+			Got:      "Quos aut rerum quaerat qui ad culpa.",
+			Details:  "Quis ea voluptatem non.\r\nAperiam dolor est alias odit enim fugiat vitae aliquam dolor.",
+		},
+		{
+			Provider: "provider-name",
+			Task:     "task-name",
+			Run:      "run-failure-multiple-answers",
+			Kind:     runners.Failure,
+			Duration: 3*time.Minute + 800*time.Millisecond,
+			Want:     utils.NewStringSet("Dolores saepe ad sed rerum autem iure minima et.", "Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui."),
 			Got:      "Ipsam ea et optio explicabo eius et.",
 			Details:  "Ut eos eius modi nihil voluptatem error.\n\nVeniam omnis at possimus aliquid.\r\nUt voluptatem ullam et ea non beatae eos adipisci incidunt. Saepe atque occaecati. Tempore animi magni sequi modi omnis.\nConsequatur hic sint laboriosam maiores unde vero ipsum.\n",
 		},
@@ -45,7 +66,7 @@ var mockResults = runners.Results{
 			Run:      "run-error",
 			Kind:     runners.Error,
 			Duration: 0 * time.Second,
-			Want:     "Cum et rem.",
+			Want:     utils.NewStringSet("Cum et rem."),
 			Got:      "error message",
 			Details:  "Pariatur rem dolores corporis voluptas aut eum repellat pariatur.",
 		},
@@ -55,7 +76,7 @@ var mockResults = runners.Results{
 			Run:      "run-not-supported",
 			Kind:     runners.NotSupported,
 			Duration: 500 * time.Millisecond,
-			Want:     "Animi aut eligendi repellendus debitis harum aut.",
+			Want:     utils.NewStringSet("Animi aut eligendi repellendus debitis harum aut."),
 			Got:      "Sequi molestiae iusto sit sit dolorum aut.",
 			Details:  "Placeat itaque voluptatem. Impedit aut quia velit. Libero ducimus tenetur vel et quibusdam. Et fugiat culpa. Tenetur iste aut mollitia corrupti et suscipit quia. Voluptatem incidunt aut et aliquam unde autem deleniti ea ea.",
 		},

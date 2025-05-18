@@ -3,7 +3,16 @@ provider-name |run-success |task-name |Passed |1m35s    |Quos aut rerum quaerat 
 provider-name |run-failure |task-name |Failed |10s      |@@ -1,67 +1,36 @@
 -Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui
 +Ipsam ea et optio explicabo eius et
- .
-              |
+ .            |
+provider-name |run-success-multiple-answers |task-name |Passed |17s    |Quos aut rerum quaerat qui ad culpa. |
+provider-name |run-failure-multiple-answers |task-name |Failed |3m0.8s |@@ -1,48 +1,36 @@
+-Dolores saepe ad sed rerum autem iure minima
++Ipsam ea et optio explicabo eius
+  et.
+---
+@@ -1,67 +1,36 @@
+-Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui
++Ipsam ea et optio explicabo eius et
+ .            |
 provider-name |run-error         |task-name |Error   |0s    |error message                              |
 provider-name |run-not-supported |task-name |Skipped |500ms |Sequi molestiae iusto sit sit dolorum aut. |

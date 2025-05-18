@@ -18,6 +18,7 @@ import (
 
 	"github.com/invopop/jsonschema"
 	"github.com/petmal/mindtrial/config"
+	"github.com/petmal/mindtrial/pkg/utils"
 	"golang.org/x/exp/constraints"
 )
 
@@ -184,26 +185,24 @@ type Validator interface {
 }
 
 type defaultValidator struct {
-	expected string
+	acceptedAnswers utils.StringSet
 }
 
-// NewDefaultValidator returns a new Validator to check results against the provided expected value.
-func NewDefaultValidator(expected string) Validator {
+// NewDefaultValidator returns a new Validator to check results against the provided expected value(s).
+func NewDefaultValidator(expected utils.StringSet) Validator {
 	return defaultValidator{
-		expected: toCanonicalForm(expected),
+		acceptedAnswers: expected,
 	}
 }
 
 func (v defaultValidator) IsCorrect(ctx context.Context, actual Result) bool {
-	return v.expected == toCanonicalForm(actual.FinalAnswer)
+	return v.acceptedAnswers.Any(func(expected string) bool {
+		return v.ToCanonical(expected) == v.ToCanonical(actual.FinalAnswer)
+	})
 }
 
 func (v defaultValidator) ToCanonical(value string) string {
-	return toCanonicalForm(value)
-}
-
-func toCanonicalForm(str string) string {
-	return strings.ToLower(strings.TrimSpace(str))
+	return strings.ToLower(strings.TrimSpace(value))
 }
 
 // Provider interacts with AI model services.
@@ -211,7 +210,7 @@ type Provider interface {
 	// Name returns the provider's unique identifier.
 	Name() string
 	// Validator creates a validator for checking response correctness.
-	Validator(expected string) Validator
+	Validator(expected utils.StringSet) Validator
 	// Run executes a task using specified configuration and returns the result.
 	Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error)
 	// Close releases resources when the provider is no longer needed.

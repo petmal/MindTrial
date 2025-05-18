@@ -8,10 +8,12 @@ package utils
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 )
 
 func TestNoPanic(t *testing.T) {
@@ -112,6 +114,7 @@ func TestJSONFromMarkdown(t *testing.T) {
 		})
 	}
 }
+
 func TestRepairTextJSON(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -188,4 +191,42 @@ func TestRepairTextJSON(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestStringSet_NewStringSet(t *testing.T) {
+	s := NewStringSet("a", "b", "a", "c")
+	assert.ElementsMatch(t, []string{"a", "b", "c"}, s.Values())
+}
+
+func TestStringSet_Any(t *testing.T) {
+	s := NewStringSet("a", "b", "c")
+	assert.True(t, s.Any(func(v string) bool { return v == "b" }))
+	assert.False(t, s.Any(func(v string) bool { return v == "z" }))
+}
+
+func TestStringSet_Map(t *testing.T) {
+	s := NewStringSet("a", "A", "b", "c")
+	require.ElementsMatch(t, []string{"a", "A", "b", "c"}, s.Values())
+	mapped := s.Map(strings.ToUpper) // "a" and "A" will both map to "A"
+	assert.ElementsMatch(t, []string{"A", "B", "C"}, mapped.Values())
+}
+
+func TestStringSet_YAMLUnmarshal(t *testing.T) {
+	var unmarshaled StringSet
+	err := yaml.Unmarshal([]byte("- a\n- b\n- a\n- c\n"), &unmarshaled)
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{"a", "b", "c"}, unmarshaled.Values())
+
+	err = yaml.Unmarshal([]byte("foo"), &unmarshaled)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"foo"}, unmarshaled.Values())
+}
+
+func TestStringSet_YAMLMarshal(t *testing.T) {
+	s := NewStringSet("a", "b", "c")
+	marshaled, err := yaml.Marshal(s)
+	require.NoError(t, err)
+	assert.Contains(t, string(marshaled), "a")
+	assert.Contains(t, string(marshaled), "b")
+	assert.Contains(t, string(marshaled), "c")
 }

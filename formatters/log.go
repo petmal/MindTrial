@@ -34,7 +34,7 @@ func (f logFormatter) Write(results runners.Results, out io.Writer) error {
 
 	return ForEachOrdered(results, func(_ string, runResults []runners.RunResult) error {
 		for _, result := range runResults {
-			if _, err := fmt.Fprintf(tab, "%s\t%s\t%s\t%s\t%s\t%s\t\n", result.Provider, result.Run, result.Task, ToStatus(result.Kind), RoundToMS(result.Duration), FormatAnswer(result, false)); err != nil {
+			if _, err := fmt.Fprintf(tab, "%s\t%s\t%s\t%s\t%s\t%s\t\n", result.Provider, result.Run, result.Task, ToStatus(result.Kind), RoundToMS(result.Duration), formatAnswerText(result)); err != nil {
 				return fmt.Errorf("%w: %v", ErrPrintResults, err)
 			}
 		}

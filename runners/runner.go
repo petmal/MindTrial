@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/petmal/mindtrial/config"
+	"github.com/petmal/mindtrial/pkg/utils"
 )
 
 // Success indicates that task finished successfully with correct result.
@@ -99,8 +100,8 @@ type RunResult struct {
 	Run string
 	// Got is the actual answer received from the AI model.
 	Got string
-	// Want is the expected answer for the task.
-	Want string
+	// Want are the accepted valid answer(s) for the task.
+	Want utils.StringSet
 	// Details contains additional information about the task result.
 	Details string
 	// Duration represents the time taken to generate the response.

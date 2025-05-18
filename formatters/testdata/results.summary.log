@@ -1,5 +1,7 @@
-Provider      |Run               |Passed |Failed |Error |Skipped |Total Duration |
-provider-name |run-error         |0      |0      |1     |0       |0s             |
-provider-name |run-failure       |0      |1      |0     |0       |10s            |
-provider-name |run-not-supported |0      |0      |0     |1       |500ms          |
-provider-name |run-success       |1      |0      |0     |0       |1m35s          |
+Provider      |Run                          |Passed |Failed |Error |Skipped |Total Duration |
+provider-name |run-error                    |0      |0      |1     |0       |0s             |
+provider-name |run-failure                  |0      |1      |0     |0       |10s            |
+provider-name |run-failure-multiple-answers |0      |1      |0     |0       |3m0.8s         |
+provider-name |run-not-supported            |0      |0      |0     |1       |500ms          |
+provider-name |run-success                  |1      |0      |0     |0       |1m35s          |
+provider-name |run-success-multiple-answers |1      |0      |0     |0       |17s            |

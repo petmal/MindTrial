@@ -19,6 +19,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/petmal/mindtrial/pkg/utils"
 	"gopkg.in/yaml.v3"
 )
 
@@ -346,9 +347,10 @@ type Task struct {
 	// ResponseResultFormat specifies how the AI should format the final answer to the prompt.
 	ResponseResultFormat string `yaml:"response-result-format" validate:"required"`
 
-	// ExpectedResult is the correct final answer to the prompt that the model should provide.
-	// It must follow the ResponseResultFormat precisely.
-	ExpectedResult string `yaml:"expected-result" validate:"required"`
+	// ExpectedResult is the set of accepted valid answers for the prompt.
+	// All values must follow the ResponseResultFormat precisely.
+	// Only one needs to match for the response to be considered correct.
+	ExpectedResult utils.StringSet `yaml:"expected-result" validate:"required"`
 
 	// Disabled indicates whether this specific task should be skipped.
 	// If set, overrides the global TaskConfig.Disabled value.

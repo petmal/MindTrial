@@ -12,6 +12,7 @@ import (
 
 	deepseek "github.com/cohesion-org/deepseek-go"
 	"github.com/petmal/mindtrial/config"
+	"github.com/petmal/mindtrial/pkg/utils"
 	"golang.org/x/exp/constraints"
 )
 
@@ -39,7 +40,7 @@ func (o Deepseek) Name() string {
 	return config.DEEPSEEK
 }
 
-func (o Deepseek) Validator(expected string) Validator {
+func (o Deepseek) Validator(expected utils.StringSet) Validator {
 	return NewDefaultValidator(expected)
 }
 

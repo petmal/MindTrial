@@ -71,17 +71,19 @@ func TotalDuration(resultsByKind map[runners.ResultKind][]runners.RunResult, inc
 }
 
 // FormatAnswer formats the result of a runner based on its kind and the specified output format.
-// For failures, it generates a diff between expected and actual output.
+// For failures, it generates a diff between expected and actual outputs.
 // The useHTML parameter controls whether diffs are formatted as HTML or plain text.
-func FormatAnswer(result runners.RunResult, useHTML bool) (answer string) {
+func FormatAnswer(result runners.RunResult, useHTML bool) (answers []string) {
 	switch result.Kind {
 	case runners.Success, runners.Error, runners.NotSupported:
-		answer = result.Got
+		answers = append(answers, result.Got)
 	case runners.Failure:
-		if useHTML {
-			answer = htmlDiffContentPrefix + DiffHTML(result.Want, result.Got)
-		} else {
-			answer = DiffText(result.Want, result.Got)
+		for _, want := range result.Want.Values() {
+			if useHTML {
+				answers = append(answers, htmlDiffContentPrefix+DiffHTML(want, result.Got))
+			} else {
+				answers = append(answers, DiffText(want, result.Got))
+			}
 		}
 	}
 	return

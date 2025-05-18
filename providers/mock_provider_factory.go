@@ -15,6 +15,7 @@ import (
 
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/testutils"
+	"github.com/petmal/mindtrial/pkg/utils"
 )
 
 type MockProvider struct {
@@ -25,7 +26,7 @@ func (m MockProvider) Name() string {
 	return m.name
 }
 
-func (m MockProvider) Validator(expected string) Validator {
+func (m MockProvider) Validator(expected utils.StringSet) Validator {
 	return NewDefaultValidator(expected)
 }
 
@@ -44,9 +45,10 @@ func (m *MockProvider) Run(ctx context.Context, cfg config.RunConfig, task confi
 		duration: 7211609999927884 * time.Nanosecond,
 	}
 
+	expectedValidAnswers := task.ExpectedResult.Values()
 	if cfg.Name == "pass" {
 		result.Explanation = "mock pass"
-		result.FinalAnswer = task.ExpectedResult
+		result.FinalAnswer = expectedValidAnswers[0]
 	} else {
 		switch task.Name {
 		case "error":
@@ -58,7 +60,7 @@ func (m *MockProvider) Run(ctx context.Context, cfg config.RunConfig, task confi
 			result.FinalAnswer = "Facere aperiam recusandae totam magnam nulla corrupti."
 		default:
 			result.Explanation = "mock success"
-			result.FinalAnswer = task.ExpectedResult
+			result.FinalAnswer = expectedValidAnswers[0]
 		}
 	}
 
