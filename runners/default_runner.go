@@ -16,6 +16,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"golang.org/x/time/rate"
+
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/providers"
 	"github.com/rs/zerolog"
@@ -195,13 +197,14 @@ func (r *defaultRunner) runTasks(ctx context.Context, provider providers.Provide
 	r.logMessage(rs, r.logger.Info(), "%s: starting %d task%s on this provider in %d configuration%s...", pluralize(provider.Name(), countable(len(tasks)), countable(len(runs)))...)
 	providerStart := time.Now()
 	for _, run := range runs {
-		var rateLimiter <-chan time.Time
+		var limiter *rate.Limiter
 		if run.MaxRequestsPerMinute > 0 {
 			r.logMessage(rs, r.logger.Info(), "%s: %s: request rate limited to %d requests/min.", provider.Name(), run.Name, run.MaxRequestsPerMinute)
-			rateLimiter = time.Tick(time.Duration(int(time.Minute/time.Microsecond)/run.MaxRequestsPerMinute) * time.Microsecond)
+			// Allow a burst up to the per-minute limit.
+			limiter = rate.NewLimiter(rate.Every(time.Minute/time.Duration(run.MaxRequestsPerMinute)), run.MaxRequestsPerMinute)
 		}
-		lastTaskIndex := len(tasks) - 1
-		for i, task := range tasks {
+
+		for _, task := range tasks {
 			runResult := RunResult{}
 			r.logMessage(rs, r.logger.Info(), "%s: %s: %s: starting task...", provider.Name(), run.Name, task.Name)
 			runStart := time.Now()
@@ -213,8 +216,11 @@ func (r *defaultRunner) runTasks(ctx context.Context, provider providers.Provide
 				r.logMessage(rs, r.logger.Warn().Err(err), "%s: %s: aborting remaining tasks", provider.Name(), run.Name)
 				return
 			}
-			if rateLimiter != nil && i < lastTaskIndex {
-				<-rateLimiter
+			if limiter != nil {
+				if err := limiter.Wait(ctx); err != nil {
+					r.logMessage(rs, r.logger.Warn().Err(err), "%s: %s: aborting remaining tasks", provider.Name(), run.Name)
+					return
+				}
 			}
 		}
 	}
