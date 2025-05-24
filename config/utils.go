@@ -157,7 +157,7 @@ func CleanIfNotBlank(filePath string) string {
 // OnceWithContext returns a function that invokes f only once regardless of the supplied context.
 // The first call's context is used for execution, and subsequent calls simply return the cached result.
 // This is similar to sync.OnceValues but specifically for functions that need a context.
-func OnceWithContext[T any](f func(context.Context) (T, error)) func(context.Context) (T, error) {
+func OnceWithContext[S any, T any](f func(context.Context, *S) (T, error)) func(context.Context, *S) (T, error) {
 	var (
 		once  sync.Once
 		valid bool
@@ -166,20 +166,20 @@ func OnceWithContext[T any](f func(context.Context) (T, error)) func(context.Con
 		err   error
 	)
 
-	g := func(ctx context.Context) {
+	g := func(ctx context.Context, state *S) {
 		defer func() {
 			p = recover()
 			if !valid {
 				panic(p)
 			}
 		}()
-		r, err = f(ctx)
+		r, err = f(ctx, state)
 		f = nil // allow function to be garbage collected
 		valid = true
 	}
 
-	return func(ctx context.Context) (T, error) {
-		once.Do(func() { g(ctx) })
+	return func(ctx context.Context, state *S) (T, error) {
+		once.Do(func() { g(ctx, state) })
 		if !valid {
 			panic(p)
 		}

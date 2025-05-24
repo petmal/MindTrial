@@ -182,9 +182,9 @@ type TaskFile struct {
 	// basePath is used to resolve relative local paths.
 	basePath string
 
-	content   func(context.Context) ([]byte, error)
-	base64    func(context.Context) (string, error)
-	typeValue func(context.Context) (string, error)
+	content   func(context.Context, *TaskFile) ([]byte, error)
+	base64    func(context.Context, *TaskFile) (string, error)
+	typeValue func(context.Context, *TaskFile) (string, error)
 }
 
 // UnmarshalYAML implements custom YAML unmarshaling for TaskFile.
@@ -202,13 +202,13 @@ func (f *TaskFile) UnmarshalYAML(value *yaml.Node) error {
 
 	// Set functions to load content and type on demand.
 	f.content = OnceWithContext(
-		func(ctx context.Context) (data []byte, err error) {
-			if f.URI.IsRemoteFile() {
-				if data, err = downloadFile(ctx, f.URI.URL()); err != nil {
+		func(ctx context.Context, state *TaskFile) (data []byte, err error) {
+			if state.URI.IsRemoteFile() {
+				if data, err = downloadFile(ctx, state.URI.URL()); err != nil {
 					return nil, err
 				}
 			} else {
-				if data, err = os.ReadFile(f.URI.Path(f.basePath)); err != nil {
+				if data, err = os.ReadFile(state.URI.Path(state.basePath)); err != nil {
 					return nil, fmt.Errorf("%w: %v", ErrAccessFile, err)
 				}
 			}
@@ -218,8 +218,8 @@ func (f *TaskFile) UnmarshalYAML(value *yaml.Node) error {
 	)
 
 	f.base64 = OnceWithContext(
-		func(ctx context.Context) (string, error) {
-			content, err := f.content(ctx)
+		func(ctx context.Context, state *TaskFile) (string, error) {
+			content, err := state.Content(ctx)
 			if err != nil {
 				return "", err
 			}
@@ -228,20 +228,20 @@ func (f *TaskFile) UnmarshalYAML(value *yaml.Node) error {
 	)
 
 	f.typeValue = OnceWithContext(
-		func(ctx context.Context) (string, error) {
-			if f.Type != "" {
-				return f.Type, nil
+		func(ctx context.Context, state *TaskFile) (string, error) {
+			if state.Type != "" {
+				return state.Type, nil
 			}
 
 			// Try to infer from file extension first.
-			if ext := filepath.Ext(f.URI.String()); ext != "" {
+			if ext := filepath.Ext(state.URI.String()); ext != "" {
 				if mimeType := mime.TypeByExtension(ext); mimeType != "" {
 					return mimeType, nil
 				}
 			}
 
 			// Fall back to detecting from content.
-			content, err := f.content(ctx)
+			content, err := state.Content(ctx)
 			if err != nil {
 				return "", err
 			}
@@ -308,17 +308,17 @@ func (f *TaskFile) Validate() error {
 
 // Content returns the raw file content, loading it on demand.
 func (f *TaskFile) Content(ctx context.Context) ([]byte, error) {
-	return f.content(ctx)
+	return f.content(ctx, f)
 }
 
 // Base64 returns the base64-encoded file content, loading it on demand.
 func (f *TaskFile) Base64(ctx context.Context) (string, error) {
-	return f.base64(ctx)
+	return f.base64(ctx, f)
 }
 
 // TypeValue returns the MIME type, inferring it if not set, loading content if needed.
 func (f *TaskFile) TypeValue(ctx context.Context) (string, error) {
-	return f.typeValue(ctx)
+	return f.typeValue(ctx, f)
 }
 
 // GetDataURL returns a complete data URL for the file (e.g., "data:image/png;base64,...").

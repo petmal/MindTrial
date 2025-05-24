@@ -762,10 +762,19 @@ func TestTaskConfig_GetEnabledTasks(t *testing.T) {
 }
 
 func TestTaskFile_SetBasePath(t *testing.T) {
-	mockFile := TaskFile{}
+	mockData := []byte("test content")
+	filePath := testutils.CreateMockFile(t, "test-*.txt", mockData)
+	fileDir := filepath.Dir(filePath)
+
+	mockFile := createMockTaskFile(t, filepath.Base(filePath), "text/plain")
 	assert.Empty(t, mockFile.basePath)
-	mockFile.SetBasePath("/base/path")
-	assert.Equal(t, "/base/path", mockFile.basePath)
+
+	mockFile.SetBasePath(fileDir)
+	assert.Equal(t, fileDir, mockFile.basePath)
+
+	data, err := mockFile.Content(context.Background())
+	require.NoError(t, err)
+	assert.Equal(t, mockData, data)
 }
 
 func TestTask_SetBaseFilePath(t *testing.T) {

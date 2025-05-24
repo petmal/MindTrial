@@ -1065,37 +1065,38 @@ func TestCleanIfNotBlank(t *testing.T) {
 
 //nolint:staticcheck,errcheck,err113
 func TestOnceWithContext(t *testing.T) {
-	newOnceFunc := func() (func(context.Context) (int, error), *int) {
-		counter := testutils.Ptr(0)
-		return OnceWithContext(func(ctx context.Context) (int, error) {
+	newOnceFunc := func() func(context.Context, *int) (int, error) {
+		return OnceWithContext(func(ctx context.Context, state *int) (int, error) {
 			if e := ctx.Value("error"); e != nil {
-				return *counter, e.(error)
+				return *state, e.(error)
 			} else if p := ctx.Value("panic"); p != nil {
 				panic(p.(string))
 			}
 
-			*counter++
-			return *counter, nil
-		}), counter
+			*state++
+			return *state, nil
+		})
 	}
 
 	ctx := context.Background()
 
 	t.Run("with result", func(t *testing.T) {
-		wrapped, counter := newOnceFunc()
-		got, err := wrapped(ctx)
+		counter := testutils.Ptr(0)
+
+		wrapped := newOnceFunc()
+		got, err := wrapped(ctx, counter)
 		require.NoError(t, err)
 		require.Equal(t, 1, got)
 
-		got, err = wrapped(ctx)
+		got, err = wrapped(ctx, counter)
 		require.NoError(t, err)
 		require.Equal(t, 1, got)
 
-		got, err = wrapped(context.WithValue(ctx, "error", errors.New("mock error")))
+		got, err = wrapped(context.WithValue(ctx, "error", errors.New("mock error")), counter)
 		require.NoError(t, err)
 		require.Equal(t, 1, got)
 
-		got, err = wrapped(context.WithValue(ctx, "panic", "mock panic"))
+		got, err = wrapped(context.WithValue(ctx, "panic", "mock panic"), counter)
 		require.NoError(t, err)
 		require.Equal(t, 1, got)
 
@@ -1103,46 +1104,50 @@ func TestOnceWithContext(t *testing.T) {
 	})
 
 	t.Run("with error", func(t *testing.T) {
+		counter := testutils.Ptr(17)
+
 		wantErr := errors.New("mock error")
-		wrapped, counter := newOnceFunc()
-		got, err := wrapped(context.WithValue(ctx, "error", wantErr))
+		wrapped := newOnceFunc()
+		got, err := wrapped(context.WithValue(ctx, "error", wantErr), counter)
 		require.ErrorIs(t, err, wantErr)
-		require.Equal(t, 0, got)
+		require.Equal(t, 17, got)
 
-		got, err = wrapped(ctx)
+		got, err = wrapped(ctx, counter)
 		require.ErrorIs(t, err, wantErr)
-		require.Equal(t, 0, got)
+		require.Equal(t, 17, got)
 
-		got, err = wrapped(context.WithValue(ctx, "error", errors.New("other error")))
+		got, err = wrapped(context.WithValue(ctx, "error", errors.New("other error")), counter)
 		require.ErrorIs(t, err, wantErr)
-		require.Equal(t, 0, got)
+		require.Equal(t, 17, got)
 
-		got, err = wrapped(context.WithValue(ctx, "panic", "mock panic"))
+		got, err = wrapped(context.WithValue(ctx, "panic", "mock panic"), counter)
 		require.ErrorIs(t, err, wantErr)
-		require.Equal(t, 0, got)
+		require.Equal(t, 17, got)
 
-		assert.Equal(t, 0, *counter)
+		assert.Equal(t, 17, *counter)
 	})
 
 	t.Run("with panic", func(t *testing.T) {
+		counter := testutils.Ptr(-1)
+
 		wantPanic := "mock panic"
-		wrapped, counter := newOnceFunc()
+		wrapped := newOnceFunc()
 		require.PanicsWithValue(t, wantPanic, func() {
-			wrapped(context.WithValue(ctx, "panic", wantPanic))
+			wrapped(context.WithValue(ctx, "panic", wantPanic), counter)
 		})
 
 		require.PanicsWithValue(t, wantPanic, func() {
-			wrapped(ctx)
+			wrapped(ctx, counter)
 		})
 
 		require.PanicsWithValue(t, wantPanic, func() {
-			wrapped(context.WithValue(ctx, "error", errors.New("mock error")))
+			wrapped(context.WithValue(ctx, "error", errors.New("mock error")), counter)
 		})
 
 		require.PanicsWithValue(t, wantPanic, func() {
-			wrapped(context.WithValue(ctx, "panic", "other panic"))
+			wrapped(context.WithValue(ctx, "panic", "other panic"), counter)
 		})
 
-		assert.Equal(t, 0, *counter)
+		assert.Equal(t, -1, *counter)
 	})
 }
