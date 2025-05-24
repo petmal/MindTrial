@@ -47,7 +47,7 @@ func (o Anthropic) Validator(expected utils.StringSet) Validator {
 func (o *Anthropic) Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error) {
 	request := anthropic.MessageNewParams{
 		MaxTokens: defaultMaxTokens,
-		Model:     cfg.Model,
+		Model:     anthropic.Model(cfg.Model),
 		System: []anthropic.TextBlockParam{
 			{
 				Text: result.recordPrompt(DefaultAnswerFormatInstruction(task)),
@@ -64,20 +64,19 @@ func (o *Anthropic) Run(ctx context.Context, cfg config.RunConfig, task config.T
 				},
 			},
 		},
-		ToolChoice: anthropic.ToolChoiceParamOfToolChoiceTool(responseFormatterToolName),
+		ToolChoice: anthropic.ToolChoiceParamOfTool(responseFormatterToolName),
 	}
-
 	if cfg.ModelParams != nil {
 		if modelParams, ok := cfg.ModelParams.(config.AnthropicModelParams); ok {
 			if modelParams.MaxTokens != nil {
 				request.MaxTokens = *modelParams.MaxTokens
 			}
 			if modelParams.ThinkingBudgetTokens != nil {
-				request.Thinking = anthropic.ThinkingConfigParamOfThinkingConfigEnabled(*modelParams.ThinkingBudgetTokens)
+				request.Thinking = anthropic.ThinkingConfigParamOfEnabled(*modelParams.ThinkingBudgetTokens)
 				// Thinking may not be enabled when tool_choice forces tool use.
 				// Use Auto instead.
 				request.ToolChoice = anthropic.ToolChoiceUnionParam{
-					OfToolChoiceAuto: &anthropic.ToolChoiceAutoParam{},
+					OfAuto: &anthropic.ToolChoiceAutoParam{},
 				}
 			}
 			if modelParams.Temperature != nil {

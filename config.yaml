@@ -48,12 +48,24 @@ config:
       runs:
         - name: "Claude 3.7 Sonnet - latest"
           model: "claude-3-7-sonnet-latest"
-          max-requests-per-minute: 5
+          max-requests-per-minute: 10
           model-parameters:
             max-tokens: 4096
         - name: "Claude 3.7 Sonnet - latest (extended thinking)"
           model: "claude-3-7-sonnet-latest"
-          max-requests-per-minute: 5
+          max-requests-per-minute: 10
+          model-parameters:
+            max-tokens: 8192
+            thinking-budget-tokens: 2048
+        - name: "Claude 4.0 Sonnet - latest (extended thinking)"
+          model: "claude-sonnet-4-0"
+          max-requests-per-minute: 10
+          model-parameters:
+            max-tokens: 8192
+            thinking-budget-tokens: 2048
+        - name: "Claude 4.0 Opus - latest (extended thinking)"
+          model: "claude-opus-4-0"
+          max-requests-per-minute: 10
           model-parameters:
             max-tokens: 8192
             thinking-budget-tokens: 2048
