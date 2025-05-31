@@ -153,6 +153,10 @@ type TaskConfig struct {
 	// Disabled indicates whether all tasks should be disabled by default.
 	// Individual tasks can override this setting.
 	Disabled bool `yaml:"disabled" validate:"omitempty"`
+
+	// ValidationRules are default validation settings for all tasks.
+	// Individual tasks can override these settings.
+	ValidationRules ValidationRules `yaml:"validation-rules" validate:"omitempty"`
 }
 
 // GetEnabledTasks returns a filtered list of tasks that are not disabled.
@@ -356,10 +360,54 @@ type Task struct {
 	// If set, overrides the global TaskConfig.Disabled value.
 	Disabled *bool `yaml:"disabled" validate:"omitempty"`
 
+	// ValidationRules are validation settings for this specific task.
+	// If set, overrides the global TaskConfig.ValidationRules values.
+	ValidationRules *ValidationRules `yaml:"validation-rules" validate:"omitempty"`
+
 	// Files is a list of files to be included with the prompt.
 	// This is primarily used for images but can support other file types
 	// depending on the provider's capabilities.
 	Files []TaskFile `yaml:"files" validate:"omitempty,unique=Name,dive"`
+}
+
+// ValidationRules represents task validation rules.
+// It controls how model responses should be validated against expected results.
+type ValidationRules struct {
+	// CaseSensitive determines whether string comparison should be case-sensitive.
+	CaseSensitive *bool `yaml:"case-sensitive" validate:"omitempty"`
+
+	// IgnoreWhitespace determines whether all whitespace should be ignored during comparison.
+	// When true, all whitespace characters (spaces, tabs, newlines) are removed before comparison.
+	IgnoreWhitespace *bool `yaml:"ignore-whitespace" validate:"omitempty"`
+}
+
+// IsCaseSensitive returns whether validation should be case sensitive.
+func (vr ValidationRules) IsCaseSensitive() bool {
+	return vr.CaseSensitive != nil && *vr.CaseSensitive
+}
+
+// IsIgnoreWhitespace returns whether whitespace should be ignored during validation.
+func (vr ValidationRules) IsIgnoreWhitespace() bool {
+	return vr.IgnoreWhitespace != nil && *vr.IgnoreWhitespace
+}
+
+// MergeWith merges these validation rules with other rules and returns the result.
+// The provided other values override these values if set.
+func (these ValidationRules) MergeWith(other *ValidationRules) ValidationRules {
+	resolved := these
+
+	if other != nil {
+		setIfNotNil(&resolved.CaseSensitive, other.CaseSensitive)
+		setIfNotNil(&resolved.IgnoreWhitespace, other.IgnoreWhitespace)
+	}
+
+	return resolved
+}
+
+func setIfNotNil[T any](dst **T, src *T) {
+	if src != nil {
+		*dst = src
+	}
 }
 
 // SetBaseFilePath sets the base path for all local files in the task.

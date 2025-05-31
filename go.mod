@@ -7,10 +7,10 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/invopop/jsonschema v0.13.0
 	github.com/kaptinlin/jsonrepair v0.1.1
-	github.com/sashabaranov/go-openai v1.40.0
+	github.com/sashabaranov/go-openai v1.40.1
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/time v0.11.0
-	google.golang.org/api v0.234.0
+	google.golang.org/api v0.235.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -31,7 +31,7 @@ require (
 	github.com/charmbracelet/x/windows v0.2.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.9 // indirect
-	github.com/go-logr/logr v1.4.2 // indirect
+	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
@@ -65,14 +65,14 @@ require (
 	golang.org/x/sync v0.14.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.25.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250519155744-55703ea1f237 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250519155744-55703ea1f237 // indirect
-	google.golang.org/grpc v1.72.1 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20250528174236-200df99c418a // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250528174236-200df99c418a // indirect
+	google.golang.org/grpc v1.72.2 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 )
 
 require (
-	github.com/anthropics/anthropic-sdk-go v1.2.0
+	github.com/anthropics/anthropic-sdk-go v1.2.1
 	github.com/charmbracelet/bubbles/v2 v2.0.0-beta.1
 	github.com/charmbracelet/bubbletea/v2 v2.0.0-beta.1
 	github.com/charmbracelet/lipgloss/v2 v2.0.0-beta.1
@@ -83,5 +83,5 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rs/zerolog v1.34.0
 	github.com/sergi/go-diff v1.3.1
-	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6
+	golang.org/x/exp v0.0.0-20250530174510-65e920069ea6
 )

@@ -38,8 +38,8 @@ func (o GoogleAI) Name() string {
 	return config.GOOGLE
 }
 
-func (o GoogleAI) Validator(expected utils.StringSet) Validator {
-	return NewDefaultValidator(expected)
+func (o GoogleAI) Validator(expected utils.StringSet, validationRules config.ValidationRules) Validator {
+	return NewDefaultValidator(expected, validationRules)
 }
 
 func (o *GoogleAI) Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error) {

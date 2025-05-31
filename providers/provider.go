@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -48,6 +49,8 @@ var supportedImageMimeTypes = map[string]bool{
 	"image/gif":  true,
 	"image/webp": true,
 }
+
+var whitespaceRegex = regexp.MustCompile(`\s+`)
 
 // ErrUnmarshalResponse is returned when response unmarshaling fails.
 type ErrUnmarshalResponse struct {
@@ -186,12 +189,14 @@ type Validator interface {
 
 type defaultValidator struct {
 	acceptedAnswers utils.StringSet
+	validationRules config.ValidationRules
 }
 
 // NewDefaultValidator returns a new Validator to check results against the provided expected value(s).
-func NewDefaultValidator(expected utils.StringSet) Validator {
+func NewDefaultValidator(expected utils.StringSet, validationRules config.ValidationRules) Validator {
 	return defaultValidator{
 		acceptedAnswers: expected,
+		validationRules: validationRules,
 	}
 }
 
@@ -202,15 +207,31 @@ func (v defaultValidator) IsCorrect(ctx context.Context, actual Result) bool {
 }
 
 func (v defaultValidator) ToCanonical(value string) string {
-	return strings.ToLower(strings.TrimSpace(value))
+	canonical := value
+
+	// Handle whitespace.
+	if v.validationRules.IsIgnoreWhitespace() {
+		canonical = whitespaceRegex.ReplaceAllString(canonical, "")
+	} else {
+		canonical = strings.TrimSpace(canonical)
+	}
+
+	// Handle case sensitivity.
+	if !v.validationRules.IsCaseSensitive() {
+		canonical = strings.ToLower(canonical)
+	}
+
+	return canonical
 }
 
 // Provider interacts with AI model services.
 type Provider interface {
 	// Name returns the provider's unique identifier.
 	Name() string
-	// Validator creates a validator for checking response correctness.
-	Validator(expected utils.StringSet) Validator
+	// Validator creates a validator for checking response correctness against expected answers.
+	// The expected parameter contains the set of accepted valid answers.
+	// The validationRules parameter controls how the validation should be performed.
+	Validator(expected utils.StringSet, validationRules config.ValidationRules) Validator
 	// Run executes a task using specified configuration and returns the result.
 	Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error)
 	// Close releases resources when the provider is no longer needed.

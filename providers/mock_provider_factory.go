@@ -26,8 +26,8 @@ func (m MockProvider) Name() string {
 	return m.name
 }
 
-func (m MockProvider) Validator(expected utils.StringSet) Validator {
-	return NewDefaultValidator(expected)
+func (m MockProvider) Validator(expected utils.StringSet, validationRules config.ValidationRules) Validator {
+	return NewDefaultValidator(expected, validationRules)
 }
 
 func (m *MockProvider) Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error) {
@@ -49,7 +49,7 @@ func (m *MockProvider) Run(ctx context.Context, cfg config.RunConfig, task confi
 	if cfg.Name == "pass" {
 		result.Explanation = "mock pass"
 		result.FinalAnswer = expectedValidAnswers[0]
-	} else {
+	} else if cfg.Name == "mock" {
 		switch task.Name {
 		case "error":
 			return result, fmt.Errorf("mock error")
@@ -62,6 +62,8 @@ func (m *MockProvider) Run(ctx context.Context, cfg config.RunConfig, task confi
 			result.Explanation = "mock success"
 			result.FinalAnswer = expectedValidAnswers[0]
 		}
+	} else {
+		result.FinalAnswer = task.Name
 	}
 
 	return result, nil

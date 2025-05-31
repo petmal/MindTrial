@@ -14,6 +14,7 @@ import (
 	"github.com/rs/zerolog"
 
 	"github.com/petmal/mindtrial/config"
+	"github.com/petmal/mindtrial/pkg/testutils"
 	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -77,7 +78,7 @@ func TestRunnerRun(t *testing.T) {
 						Kind:     Success,
 						Task:     "success",
 						Provider: "mock provider 1",
-						Run:      "Bacon",
+						Run:      "mock",
 						Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
 						Want:     utils.NewStringSet("provident quas tenetur repellat deserunt ut neque culpa."),
 						Details:  "success\n\nmock success",
@@ -87,7 +88,7 @@ func TestRunnerRun(t *testing.T) {
 						Kind:     Failure,
 						Task:     "failure",
 						Provider: "mock provider 1",
-						Run:      "Bacon",
+						Run:      "mock",
 						Got:      "facere aperiam recusandae totam magnam nulla corrupti.",
 						Want:     utils.NewStringSet("aperiam assumenda id provident ratione eos molestiae."),
 						Details:  "failure\n\nmock failure",
@@ -97,7 +98,7 @@ func TestRunnerRun(t *testing.T) {
 						Kind:     Error,
 						Task:     "error",
 						Provider: "mock provider 1",
-						Run:      "Bacon",
+						Run:      "mock",
 						Got:      "mock error",
 						Want:     utils.NewStringSet("doloribus quis incidunt velit quia."),
 						Details:  "",
@@ -107,7 +108,7 @@ func TestRunnerRun(t *testing.T) {
 						Kind:     Failure,
 						Task:     "failure",
 						Provider: "mock provider 1",
-						Run:      "Bacon",
+						Run:      "mock",
 						Got:      "facere aperiam recusandae totam magnam nulla corrupti.",
 						Want:     utils.NewStringSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
 						Details:  "failure\n\nmock failure",
@@ -117,7 +118,7 @@ func TestRunnerRun(t *testing.T) {
 						Kind:     Success,
 						Task:     "success",
 						Provider: "mock provider 1",
-						Run:      "Bacon",
+						Run:      "mock",
 						Got:      "omnis omnis ea quia et ut est.",
 						Want:     utils.NewStringSet("omnis omnis ea quia et ut est."),
 						Details:  "success\n\nmock success",
@@ -127,7 +128,7 @@ func TestRunnerRun(t *testing.T) {
 						Kind:     NotSupported,
 						Task:     "not_supported",
 						Provider: "mock provider 1",
-						Run:      "Bacon",
+						Run:      "mock",
 						Got:      "feature not supported by provider: mock not supported",
 						Want:     utils.NewStringSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
 						Details:  "",
@@ -137,7 +138,7 @@ func TestRunnerRun(t *testing.T) {
 						Kind:     Failure,
 						Task:     "failure",
 						Provider: "mock provider 1",
-						Run:      "Bacon",
+						Run:      "mock",
 						Got:      "facere aperiam recusandae totam magnam nulla corrupti.",
 						Want:     utils.NewStringSet("rerum nam illo", "dolore praesentium non"),
 						Details:  "failure\n\nmock failure",
@@ -147,7 +148,7 @@ func TestRunnerRun(t *testing.T) {
 						Kind:     Success,
 						Task:     "success",
 						Provider: "mock provider 1",
-						Run:      "Bacon",
+						Run:      "mock",
 						Got:      "corporis et ipsa",
 						Want:     utils.NewStringSet("corporis et ipsa", "nesciunt sed quia"),
 						Details:  "success\n\nmock success",
@@ -339,7 +340,7 @@ func createMockRunner(t *testing.T) Runner {
 			Name: "mock provider 1",
 			Runs: []config.RunConfig{
 				{
-					Name:                 "Bacon",
+					Name:                 "mock",
 					Model:                "microchip",
 					MaxRequestsPerMinute: 50,
 				},
@@ -362,7 +363,7 @@ func createMockRunner(t *testing.T) Runner {
 }
 
 func createMockRunnerFromConfig(t *testing.T, cfg []config.ProviderConfig) Runner {
-	runner, err := NewDefaultRunner(context.Background(), cfg, zerolog.Nop())
+	runner, err := NewDefaultRunner(context.Background(), cfg, config.ValidationRules{}, zerolog.Nop())
 	if err != nil {
 		t.Fatalf("failed to create runner: %v", err)
 	}
@@ -663,6 +664,90 @@ func TestRunResultGetID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := tt.runResult.GetID()
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestRunnerIntegrationWithValidation(t *testing.T) {
+	// Global validation rules: case insensitive, trim whitespace only.
+	globalRules := config.ValidationRules{
+		CaseSensitive:    testutils.Ptr(false), // case insensitive by default
+		IgnoreWhitespace: testutils.Ptr(false), // trim whitespace only by default
+	}
+
+	// Set up runner with global validation rules.
+	runner, err := NewDefaultRunner(context.Background(), []config.ProviderConfig{
+		{
+			Name: "mock provider 1",
+			Runs: []config.RunConfig{
+				{Name: "custom", Model: "test-model"}, // uses task name as answer
+			},
+		},
+	}, globalRules, zerolog.Nop())
+	require.NoError(t, err)
+
+	tests := []struct {
+		name           string
+		task           config.Task
+		wantResultKind ResultKind
+	}{
+		{
+			name: "global rules applied - case insensitive match",
+			task: config.Task{
+				Name:           "Hello_World",
+				ExpectedResult: utils.NewStringSet("hello_world"), // should match case insensitively
+			},
+			wantResultKind: Success,
+		},
+		{
+			name: "task rule override - case sensitive causes failure",
+			task: config.Task{
+				Name:           "Case_Test",
+				ExpectedResult: utils.NewStringSet("case_test"), // won't match due to case difference
+				ValidationRules: &config.ValidationRules{
+					CaseSensitive: testutils.Ptr(true), // override to case sensitive
+				},
+			},
+			wantResultKind: Failure,
+		}, {
+			name: "task rule override - ignore whitespace enables match",
+			task: config.Task{
+				Name:           "white space test",                   // task name contains spaces
+				ExpectedResult: utils.NewStringSet("whitespacetest"), // expected without spaces
+				ValidationRules: &config.ValidationRules{
+					IgnoreWhitespace: testutils.Ptr(true), // override to ignore whitespace
+				},
+			},
+			wantResultKind: Success,
+		},
+		{
+			name: "task rule override - whitespace sensitivity causes failure",
+			task: config.Task{
+				Name:           "spaced out test",                   // task name contains spaces
+				ExpectedResult: utils.NewStringSet("spacedouttest"), // expected without spaces
+				ValidationRules: &config.ValidationRules{
+					IgnoreWhitespace: testutils.Ptr(false), // override to be whitespace sensitive
+				},
+			},
+			wantResultKind: Failure, // should fail because "spaced out test" != "spacedouttest"
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			results, err := runner.Run(context.Background(), []config.Task{tt.task})
+			require.NoError(t, err)
+
+			allResults := results.GetResults()
+			require.Contains(t, allResults, "mock provider 1")
+
+			providerResults := allResults["mock provider 1"]
+			require.Len(t, providerResults, 1, "Should have exactly one result")
+
+			result := providerResults[0]
+			assert.Equal(t, tt.wantResultKind, result.Kind, "Result kind should match expected")
+			assert.Equal(t, "custom", result.Run, "Should use custom run")
+			assert.Equal(t, tt.task.Name, result.Task, "Task name should match")
 		})
 	}
 }

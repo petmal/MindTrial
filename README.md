@@ -253,12 +253,20 @@ Optionally, a task can include a list of `files` to be sent along with the promp
 > [!NOTE]
 > Currently supported image types include: `image/jpeg`, `image/jpg`, `image/png`, `image/gif`, `image/webp`. Support may vary by provider.
 
-> [!NOTE]
-> Currently, the letter-case is ignored when comparing the final answer to the `expected-result`.
-
 > [!TIP]
 > To disable all tasks by default, set `disabled: true` in the `task-config` section.
 > An individual task can override this by setting `disabled: false` (e.g. to enable just that one task).
+
+#### Validation Rules
+
+These rules control how the validator compares the model's answer to the expected results.
+By default, comparisons are case-insensitive and only trim leading and trailing whitespace.
+
+You can set validation rules globally for all tasks in the `task-config` section, and override them for individual tasks if needed; any option not specified at the task level will inherit the global setting from `task-config`:
+
+- **validation-rules**: Controls how model responses are validated against expected results.
+  - **case-sensitive**: If `true`, comparison is case-sensitive. If `false` (default), comparison ignores case.
+  - **ignore-whitespace**: If `true`, all whitespace (spaces, tabs, newlines) is removed before comparison. If `false` (default), only leading/trailing whitespace is trimmed, and internal whitespace is preserved.
 
 A sample task from `tasks.yaml`:
 
@@ -266,6 +274,9 @@ A sample task from `tasks.yaml`:
 # tasks.yaml
 task-config:
   disabled: true
+  validation-rules:
+    case-sensitive: false
+    ignore-whitespace: false
   tasks:
     - name: "riddle - split words - v1"
       disabled: false
@@ -287,6 +298,8 @@ task-config:
         <shape number>: <shape letter> pairs separated by ", " and ordered by shape number
       expected-result: |-
         1: G, 2: F, 3: B, 4: A, 5: C, 6: D, 7: E
+      validation-rules:
+        ignore-whitespace: true
       files:
         - name: "picture"
           uri: "./taskdata/visual-shapes-v1.png"

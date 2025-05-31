@@ -40,8 +40,8 @@ func (o Anthropic) Name() string {
 	return config.ANTHROPIC
 }
 
-func (o Anthropic) Validator(expected utils.StringSet) Validator {
-	return NewDefaultValidator(expected)
+func (o Anthropic) Validator(expected utils.StringSet, validationRules config.ValidationRules) Validator {
+	return NewDefaultValidator(expected, validationRules)
 }
 
 func (o *Anthropic) Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error) {

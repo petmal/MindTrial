@@ -32,8 +32,8 @@ func (o OpenAI) Name() string {
 	return config.OPENAI
 }
 
-func (o OpenAI) Validator(expected utils.StringSet) Validator {
-	return NewDefaultValidator(expected)
+func (o OpenAI) Validator(expected utils.StringSet, validationRules config.ValidationRules) Validator {
+	return NewDefaultValidator(expected, validationRules)
 }
 
 func (o *OpenAI) Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error) {

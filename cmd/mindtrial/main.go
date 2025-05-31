@@ -246,7 +246,7 @@ func run(ctx context.Context) (ok bool, err error) {
 	logger := zerolog.New(zerolog.MultiLevelWriter(logWriters...)).Level(getEnabledLogLevel()).With().Timestamp().Logger()
 
 	// Run tasks.
-	exec, err := runners.NewDefaultRunner(ctx, targetProviders, logger)
+	exec, err := runners.NewDefaultRunner(ctx, targetProviders, tasks.TaskConfig.ValidationRules, logger)
 	if err != nil {
 		return
 	}

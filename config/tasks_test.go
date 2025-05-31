@@ -818,3 +818,73 @@ func TestTask_SetBaseFilePath(t *testing.T) {
 		})
 	}
 }
+
+func TestValidationRulesResolution(t *testing.T) {
+	tests := []struct {
+		name        string
+		globalRules ValidationRules
+		taskRules   *ValidationRules
+		expected    ValidationRules
+	}{
+		{
+			name: "nil task rules uses global",
+			globalRules: ValidationRules{
+				CaseSensitive:    testutils.Ptr(false),
+				IgnoreWhitespace: testutils.Ptr(false),
+			},
+			taskRules: nil,
+			expected: ValidationRules{
+				CaseSensitive:    testutils.Ptr(false),
+				IgnoreWhitespace: testutils.Ptr(false),
+			},
+		},
+		{
+			name: "empty task rules uses global",
+			globalRules: ValidationRules{
+				CaseSensitive:    testutils.Ptr(true),
+				IgnoreWhitespace: testutils.Ptr(true),
+			},
+			taskRules: &ValidationRules{},
+			expected: ValidationRules{
+				CaseSensitive:    testutils.Ptr(true),
+				IgnoreWhitespace: testutils.Ptr(true),
+			},
+		},
+		{
+			name: "partial task override",
+			globalRules: ValidationRules{
+				CaseSensitive:    testutils.Ptr(false),
+				IgnoreWhitespace: testutils.Ptr(false),
+			},
+			taskRules: &ValidationRules{
+				CaseSensitive: testutils.Ptr(true), // override only this
+			},
+			expected: ValidationRules{
+				CaseSensitive:    testutils.Ptr(true),  // overridden
+				IgnoreWhitespace: testutils.Ptr(false), // from global
+			},
+		},
+		{
+			name: "complete task override",
+			globalRules: ValidationRules{
+				CaseSensitive:    testutils.Ptr(false),
+				IgnoreWhitespace: testutils.Ptr(false),
+			},
+			taskRules: &ValidationRules{
+				CaseSensitive:    testutils.Ptr(true),
+				IgnoreWhitespace: testutils.Ptr(true),
+			},
+			expected: ValidationRules{
+				CaseSensitive:    testutils.Ptr(true),
+				IgnoreWhitespace: testutils.Ptr(true),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.globalRules.MergeWith(tt.taskRules)
+			assert.Equal(t, tt.expected, got)
+		})
+	}
+}

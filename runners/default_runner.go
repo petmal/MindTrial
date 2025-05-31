@@ -109,7 +109,7 @@ func (r *asyncResultSet) emitMessageEvent(message string) {
 // NewDefaultRunner creates a new Runner that executes tasks on all configured providers
 // in parallel. The individual runs on a single provider are executed sequentially.
 // It returns an error if any provider initialization fails.
-func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, logger zerolog.Logger) (Runner, error) {
+func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, globalValidationRules config.ValidationRules, logger zerolog.Logger) (Runner, error) {
 	targets := make(map[providers.Provider][]config.RunConfig, len(cfg))
 	totalTargetCount := 0
 	for _, providerConfig := range cfg {
@@ -120,17 +120,20 @@ func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, logger z
 		targets[client] = providerConfig.Runs
 		totalTargetCount += len(providerConfig.Runs)
 	}
+
 	return &defaultRunner{
-		targets:          targets,
-		totalTargetCount: totalTargetCount,
-		logger:           logger,
+		targets:               targets,
+		totalTargetCount:      totalTargetCount,
+		globalValidationRules: globalValidationRules,
+		logger:                logger,
 	}, nil
 }
 
 type defaultRunner struct {
-	targets          map[providers.Provider][]config.RunConfig // All tasks will be executed against all run configurations of each target provider.
-	totalTargetCount int
-	logger           zerolog.Logger
+	targets               map[providers.Provider][]config.RunConfig // All tasks will be executed against all run configurations of each target provider.
+	totalTargetCount      int
+	globalValidationRules config.ValidationRules
+	logger                zerolog.Logger
 }
 
 func (r *defaultRunner) Start(ctx context.Context, tasks []config.Task) (AsyncResultSet, error) {
@@ -208,7 +211,7 @@ func (r *defaultRunner) runTasks(ctx context.Context, provider providers.Provide
 			runResult := RunResult{}
 			r.logMessage(rs, r.logger.Info(), "%s: %s: %s: starting task...", provider.Name(), run.Name, task.Name)
 			runStart := time.Now()
-			r.runTask(ctx, provider, run, task, provider.Validator(task.ExpectedResult), &runResult, rs)
+			r.runTask(ctx, provider, run, task, &runResult, rs)
 			r.logMessage(rs, r.logger.Info(), "%s: %s: %s: task has finished in %s.", provider.Name(), run.Name, task.Name, time.Since(runStart))
 			rs.appendResult(runResult)
 			rs.emitProgressEvent()
@@ -226,8 +229,13 @@ func (r *defaultRunner) runTasks(ctx context.Context, provider providers.Provide
 	}
 	r.logMessage(rs, r.logger.Info(), "%s: all tasks in all configurations have finished on this provider in %s.", provider.Name(), time.Since(providerStart))
 }
+func (r *defaultRunner) runTask(ctx context.Context, provider providers.Provider, run config.RunConfig, task config.Task, runResult *RunResult, emitter eventEmitter) {
+	// Resolve validation rules for this task.
+	resolvedValidationRules := r.globalValidationRules.MergeWith(task.ValidationRules)
 
-func (r *defaultRunner) runTask(ctx context.Context, provider providers.Provider, run config.RunConfig, task config.Task, validator providers.Validator, runResult *RunResult, emitter eventEmitter) {
+	// Create validator with resolved rules.
+	validator := provider.Validator(task.ExpectedResult, resolvedValidationRules)
+
 	runResult.Task = task.Name
 	runResult.Provider = provider.Name()
 	runResult.Run = run.Name
