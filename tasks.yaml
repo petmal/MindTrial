@@ -5,6 +5,9 @@
 # file, You can obtain one at <https://mozilla.org/MPL/2.0/>.
 
 task-config:
+  validation-rules:
+    case-sensitive: false
+    ignore-whitespace: false
   tasks:
     - name: "reasoning - section, color and number - v1"
       prompt: |-
@@ -93,12 +96,19 @@ task-config:
         1. <answer letter>)
         2. <answer letter>)
         etc.
-      expected-result: |-
-        1. b)
-        2. b)
-        3. c)
-        4. c)
-        5. a)
+      expected-result:
+        - |
+          1. b)
+          2. b)
+          3. c)
+          4. c)
+          5. a)
+        - |
+          1. b) 82
+          2. b) Store A
+          3. c) 10
+          4. c) 25
+          5. a) 8
     - name: "quiz - analogies"
       prompt: |-
         Complete the analogy by replacing [???] with a word that is not yet present in the sentence:
@@ -241,8 +251,11 @@ task-config:
         ER      ER
       response-result-format: |-
         <left-to-right diagonal word>, <right-to-left diagonal word>
-      expected-result: |-
-        FODDER, RUDDER
+      expected-result:
+        - |
+          FODDER, RUDDER
+        - |
+          FOGGER, RUGGER
     - name: "riddle - first letter - v1"
       prompt: |-
         Replace the first letter of each of the words in the groups so that all words in each group have the same, new, first letter.
@@ -266,6 +279,8 @@ task-config:
         <shape number>: <shape letter> pairs separated by ", " and ordered by shape number
       expected-result: |-
         1: G, 2: F, 3: B, 4: A, 5: C, 6: D, 7: E
+      validation-rules:
+        ignore-whitespace: true
       files:
         - name: "picture"
           uri: "./taskdata/visual-shapes-v1.png"
