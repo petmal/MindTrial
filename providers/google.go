@@ -80,7 +80,7 @@ func (o *GoogleAI) Run(ctx context.Context, cfg config.RunConfig, task config.Ta
 	systemInstructions = append(systemInstructions, genai.Text(result.recordPrompt(DefaultAnswerFormatInstruction(task))))
 	model.SystemInstruction = genai.NewUserContent(systemInstructions...)
 
-	promptParts, err := o.createPromptMessageParts(ctx, result.recordPrompt(task.Prompt), task.Files, &result)
+	promptParts, err := o.createPromptMessageParts(ctx, task.Prompt, task.Files, &result)
 	if err != nil {
 		return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
 	}
@@ -121,8 +121,6 @@ func (o *GoogleAI) Run(ctx context.Context, cfg config.RunConfig, task config.Ta
 }
 
 func (o *GoogleAI) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []genai.Part, err error) {
-	parts = append(parts, genai.Text(promptText))
-
 	for _, file := range files {
 		fileType, err := file.TypeValue(ctx)
 		if err != nil {
@@ -143,6 +141,8 @@ func (o *GoogleAI) createPromptMessageParts(ctx context.Context, promptText stri
 			Data:     content,
 		})
 	}
+
+	parts = append(parts, genai.Text(result.recordPrompt(promptText))) // append the prompt text after the file data for improved context integrity
 
 	return parts, nil
 }

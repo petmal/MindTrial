@@ -47,7 +47,6 @@ func (o Deepseek) Validator(expected utils.StringSet, validationRules config.Val
 func (o *Deepseek) Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error) {
 	responseFormatInstruction := result.recordPrompt(DefaultResponseFormatInstruction()) // NOTE: required with JSONMode
 	answerFormatInstruction := result.recordPrompt(DefaultAnswerFormatInstruction(task))
-	prompt := result.recordPrompt(task.Prompt)
 
 	var request any
 	if len(task.Files) > 0 {
@@ -55,7 +54,7 @@ func (o *Deepseek) Run(ctx context.Context, cfg config.RunConfig, task config.Ta
 			return result, fmt.Errorf("%w: %s", ErrFeatureNotSupported, "file upload")
 		}
 
-		promptParts, err := o.createPromptMessageParts(ctx, prompt, task.Files, &result)
+		promptParts, err := o.createPromptMessageParts(ctx, task.Prompt, task.Files, &result)
 		if err != nil {
 			return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
 		}
@@ -75,7 +74,7 @@ func (o *Deepseek) Run(ctx context.Context, cfg config.RunConfig, task config.Ta
 			Messages: []deepseek.ChatCompletionMessage{
 				{Role: deepseek.ChatMessageRoleSystem, Content: responseFormatInstruction},
 				{Role: deepseek.ChatMessageRoleSystem, Content: answerFormatInstruction},
-				{Role: deepseek.ChatMessageRoleUser, Content: prompt},
+				{Role: deepseek.ChatMessageRoleUser, Content: result.recordPrompt(task.Prompt)},
 			},
 			JSONMode: true,
 		}
@@ -111,11 +110,6 @@ func (o *Deepseek) isFileUploadSupported() bool {
 }
 
 func (o *Deepseek) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []deepseek.ContentItem, err error) {
-	parts = append(parts, deepseek.ContentItem{
-		Type: "text",
-		Text: promptText,
-	})
-
 	for _, file := range files {
 		if fileType, err := file.TypeValue(ctx); err != nil {
 			return parts, err
@@ -140,6 +134,11 @@ func (o *Deepseek) createPromptMessageParts(ctx context.Context, promptText stri
 			},
 		})
 	}
+
+	parts = append(parts, deepseek.ContentItem{
+		Type: "text",
+		Text: result.recordPrompt(promptText),
+	}) // append the prompt text after the file data for improved context integrity
 
 	return parts, nil
 }

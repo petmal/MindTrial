@@ -93,7 +93,7 @@ func (o *Anthropic) Run(ctx context.Context, cfg config.RunConfig, task config.T
 		}
 	}
 
-	if promptParts, err := o.createPromptMessageParts(ctx, result.recordPrompt(task.Prompt), task.Files, &result); err != nil {
+	if promptParts, err := o.createPromptMessageParts(ctx, task.Prompt, task.Files, &result); err != nil {
 		return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
 	} else {
 		request.Messages = []anthropic.MessageParam{
@@ -127,8 +127,6 @@ func (o *Anthropic) Run(ctx context.Context, cfg config.RunConfig, task config.T
 }
 
 func (o *Anthropic) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []anthropic.ContentBlockParamUnion, err error) {
-	parts = append(parts, anthropic.NewTextBlock(promptText))
-
 	for _, file := range files {
 		fileType, err := file.TypeValue(ctx)
 		if err != nil {
@@ -146,6 +144,8 @@ func (o *Anthropic) createPromptMessageParts(ctx context.Context, promptText str
 		parts = append(parts, anthropic.NewTextBlock(result.recordPrompt(DefaultTaskFileNameInstruction(file))))
 		parts = append(parts, anthropic.NewImageBlockBase64(fileType, base64Data))
 	}
+
+	parts = append(parts, anthropic.NewTextBlock(result.recordPrompt(promptText))) // append the prompt text after the file data for improved context integrity
 
 	return parts, nil
 }

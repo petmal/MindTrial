@@ -567,3 +567,263 @@ task-config:
         <new first letter for each group separated by ", ">: <3-letter word formed by rearranging the new first letters>
       expected-result: |-
         B, G, L, I: GLIB
+    - name: "riddle - symbols to numbers - v1"
+      prompt: |-
+        Each symbol in the following grid represents a number.
+        Work out the logic, and find the value behind each symbol.
+        Also, find the number behind the question mark symbol.
+
+        30 50 42 38
+        S  X  X  S 36
+        Z  X  S  Z 24
+        H  H  H  H ?
+        Z  X  S  X 32
+      response-result-format: |-
+        <H>, <S>, <X>, <Z>, <?>
+      expected-result:
+        - |
+          17, 7, 11, 3, 68
+        - |
+          H = 17, S = 7, X = 11, Z = 3, ? = 68
+      validation-rules:
+        ignore-whitespace: true
+    - name: "visual - logic math - v1"
+      prompt: |-
+        The attached picture has 3 scales loaded with objects (square, circle and triangle).
+        If the first two scales are in balance, which object is needed in place of "?", to balancde the third scale?
+      response-result-format: |-
+        <name of the object>
+      expected-result:
+        - |
+          square
+        - |
+          red square
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-logic-math-v1.png"
+          type: "image/png"
+    - name: "riddle - number pattern - v1"
+      prompt: |-
+        The numbers in these four groups follow the same pattern.
+        Use this pattern to identify the number behind the question mark symbol
+        in the fourth group.
+
+        7     14    4      8    6     12    3     6
+           35          20          30          ?
+        28    21    16    12    24    18    12    9
+      response-result-format: |-
+        <missing number>
+      expected-result: |-
+        15
+    - name: "riddle - transformation pattern - v1"
+      prompt: |-
+        Find the proper transformation to finish this sequence.
+
+        8 4 9             6 5 1           CJK               ???
+        7 3 2    is to    2 3 7    as    M F T    is to    ? ? ?
+        1 5 6             9 4 8         Z  X  W           ?  ?  ?
+      response-result-format: |-
+        values behind the 9 question marks separated by ", " from top-left to bottom-right
+      expected-result: |-
+        W, X, Z, T, F, M, K, J, C
+      validation-rules:
+        ignore-whitespace: true
+    - name: "visual - deduction - v1"
+      prompt: |-
+        If gear B in the attached picture spins counterclockwise, which direction will gear A spin?
+      response-result-format: |-
+        clockwise or counterclockwise
+      expected-result: |-
+        counterclockwise
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-deduction-v1.png"
+          type: "image/png"
+    - name: "visual - spatial awareness - v1"
+      prompt: |-
+        The pieces in the attached picture, when fitted together correctly, form a square.
+        However, two are not needed. Identify the two redundant pieces.
+      response-result-format: |-
+        letters identifying the redundant pieces in alphabetical order separated by ", "
+      expected-result: |-
+        B, E
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-spatial-awareness-v1.png"
+          type: "image/png"
+    - name: "visual - logic math - v2"
+      prompt: |-
+        The attached picture contains a wheel with color segments.
+        The values of the segments are three consecutive integers under 10.
+        The sum of all segments equals 50.
+        What are the values of orange and turquoise if magenta equals 7?
+      response-result-format: |-
+        <orange value>, <turquoise value>
+      expected-result: |-
+        9, 8
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-logic-math-v2.png"
+          type: "image/png"
+    - name: "visual - numerical awareness - v1"
+      prompt: |-
+        Work out the pattern and find out the missing number.
+      response-result-format: |-
+        <missing number>
+      expected-result: |-
+        1
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-numerical-awareness-v1.png"
+          type: "image/png"
+    - name: "riddle - deduction - v1"
+      prompt: |-
+        Have a look at the following four digital time displays.
+        Figure out the pattern and the rules of the sequence,
+        and determine what should be the next value.
+
+        15:14:01, 12:18:00, 08:26:58, 03:42:55
+      response-result-format: |-
+        next time in the sequence following the same format
+      expected-result: |-
+        21:14:51
+    - name: "visual - logic math - v3"
+      prompt: |-
+        Each color in the attached grid represents a number under 10.
+        Deduce the logic, and find the value behind each color.
+        Also, find the missing number.
+      response-result-format: |-
+        <missing number>, <black>, <red>, <green>, <blue>
+      expected-result: |-
+        19, 3, 5, 4, 7
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-logic-math-v3.png"
+          type: "image/png"
+    - name: "visual - deduction math - v1"
+      prompt: |-
+        The attached picture contains a mathematical problem expressed in colors.
+        Given that the sum of Red, Green and Blue equals 9, and assuming all color values are positive integers,
+        determine all possible solutions.
+      response-result-format: |-
+        One solution per line, in order of the yellow value.
+        Format each solution according to this template: <red>, <green>, <blue>, <black>, <yellow>
+      expected-result: |-
+        2, 3, 4, 5, 7
+        1, 6, 2, 7, 8
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-deduction-math-v1.png"
+          type: "image/png"
+    - name: "visual - spatial awareness - v2"
+      prompt: |-
+        How many rectangles can you count in the attached picture?
+      response-result-format: |-
+        <number>
+      expected-result: |-
+        23
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-spatial-awareness-v2.png"
+          type: "image/png"
+    - name: "visual - spatial awareness - v3"
+      prompt: |-
+        How many squares can you count in the attached picture?
+      response-result-format: |-
+        <number>
+      expected-result: |-
+        16
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-spatial-awareness-v3.png"
+          type: "image/png"
+    - name: "visual - spatial awareness - v4"
+      prompt: |-
+        Which of the shapes fits the other part of the polygon in the attached picture?
+      response-result-format: |-
+        letter identifying the matching part in the picture
+      expected-result: |-
+        B
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-spatial-awareness-v4.png"
+          type: "image/png"
+    - name: "visual - deduction pattern - v1"
+      prompt: |-
+        Can you spot the pattern of this grid and complete the missing section?
+      response-result-format: |-
+        ? ? ?
+        ? ? ?
+        ? ? ?
+      expected-result: |-
+        U W W
+        Z W W
+        T T U
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-deduction-pattern-v1.png"
+          type: "image/png"
+    - name: "visual - spatial awareness - v5"
+      prompt: |-
+        Which of the following cubes cannot be made from this layout?
+      response-result-format: |-
+        letter identifying the cube in the attached picture
+      expected-result: |-
+        E
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-spatial-awareness-v5.png"
+          type: "image/png"
+    - name: "visual - deduction - v2"
+      prompt: |-
+        Identify the pattern among the numbers in the attached diagram.
+        Infer which number should replace the question mark.
+      response-result-format: |-
+        ?
+      expected-result: |-
+        4
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-deduction-v2.png"
+          type: "image/png"
+    - name: "visual - deduction - v3"
+      prompt: |-
+        Which sides on the cubes in the picture contain the same symbols?
+      response-result-format: |-
+        alphabetically sorted letters identifying the sides separated by ", "
+      expected-result: |-
+        E, M
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-deduction-v3.png"
+          type: "image/png"
+    - name: "visual - deduction pattern - v2"
+      prompt: |-
+        The numbers in the attached grid occur in the following order: 9, 4, 8, 3, 7, 2
+        and run in an anti-clockwise spiral starting at the top right.
+        It is complicated by the addition of spaces and repeats according to a pattern.
+        Determine the pattern and use it to complete the missing section.
+      response-result-format: |-
+        replace the "?" with missing values, use "-" to indicate empty squares:
+        ? ? ?
+        ? ? ?
+        ? ? ?
+      expected-result: |-
+        - - 2
+        9 - 7
+        4 8 3
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-deduction-pattern-v2.png"
+          type: "image/png"
+    - name: "visual - deduction math - v2"
+      prompt: |-
+        Can you find the missing number in the attached grid?
+      response-result-format: |-
+        value behind the "?"
+      expected-result: |-
+        384
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-deduction-math-v2.png"
+          type: "image/png"

@@ -86,17 +86,17 @@ func (o *OpenAI) Run(ctx context.Context, cfg config.RunConfig, task config.Task
 		}
 	}
 
+	if promptMessage, err := o.createPromptMessage(ctx, task.Prompt, task.Files, &result); err != nil {
+		return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
+	} else {
+		request.Messages = append(request.Messages, promptMessage)
+	}
+
 	request.Messages = append(request.Messages,
 		openai.ChatCompletionMessage{
 			Role:    openai.ChatMessageRoleUser, // NOTE: system role not supported by all models
 			Content: result.recordPrompt(DefaultAnswerFormatInstruction(task)),
 		})
-
-	if promptMessage, err := o.createPromptMessage(ctx, result.recordPrompt(task.Prompt), task.Files, &result); err != nil {
-		return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
-	} else {
-		request.Messages = append(request.Messages, promptMessage)
-	}
 
 	resp, err := timed(func() (openai.ChatCompletionResponse, error) {
 		return o.client.CreateChatCompletion(ctx, request)
@@ -126,13 +126,6 @@ func (o *OpenAI) createPromptMessage(ctx context.Context, promptText string, fil
 	message.Role = openai.ChatMessageRoleUser
 
 	if len(files) > 0 {
-		message.MultiContent = []openai.ChatMessagePart{
-			{
-				Type: openai.ChatMessagePartTypeText,
-				Text: promptText,
-			},
-		}
-
 		for _, file := range files {
 			if fileType, err := file.TypeValue(ctx); err != nil {
 				return message, err
@@ -156,8 +149,13 @@ func (o *OpenAI) createPromptMessage(ctx context.Context, promptText string, fil
 				},
 			})
 		}
+
+		message.MultiContent = append(message.MultiContent, openai.ChatMessagePart{
+			Type: openai.ChatMessagePartTypeText,
+			Text: result.recordPrompt(promptText),
+		}) // append the prompt text after the file data for improved context integrity
 	} else {
-		message.Content = promptText
+		message.Content = result.recordPrompt(promptText)
 	}
 
 	return message, nil
