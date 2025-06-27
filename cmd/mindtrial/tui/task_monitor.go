@@ -21,15 +21,16 @@ import (
 )
 
 const (
-	viewportHeight = 15
-	padding        = 2
+	padding             = 2
+	viewportBorderColor = "62"
+	minViewportHeight   = 5
 )
 
 // progressModel represents the model for interactive task progress monitoring.
 type progressModel struct {
 	uiIsReady       bool
-	progressBar     progress.Model // The UI component for displaying progress.
-	viewport        viewport.Model // The UI component for displaying scrollable messages.
+	progressBar     progress.Model // component for displaying progress
+	viewport        viewport.Model // component for displaying scrollable messages
 	resultManager   runners.AsyncResultSet
 	progressPercent float64
 	messages        *ConsoleBuffer
@@ -44,23 +45,7 @@ type progressMsg float32
 type messageMsg string
 
 func newProgressModel(consoleBuffer *ConsoleBuffer, resultManager runners.AsyncResultSet) progressModel {
-	p := progress.New(
-		progress.WithDefaultGradient(),
-		progress.WithWidth(40),
-	)
-
-	vp := viewport.New(
-		viewport.WithWidth(80),
-		viewport.WithHeight(viewportHeight),
-	)
-	vp.Style = lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("62")).
-		PaddingRight(2)
-
 	return progressModel{
-		progressBar:     p,
-		viewport:        vp,
 		messages:        consoleBuffer,
 		resultManager:   resultManager,
 		progressPercent: 0.0,
@@ -94,10 +79,43 @@ func (m progressModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, cmd)
 		}
 	case tea.WindowSizeMsg:
-		m.progressBar.SetWidth(msg.Width - 2*padding)
-		m.viewport.SetWidth(msg.Width - 2*padding)
-		m.viewport.SetHeight(viewportHeight)
-		m.uiIsReady = true
+		// Calculate space needed for other UI elements.
+		titleHeight := 2    // title + spacing
+		progressHeight := 4 // progress stats + progress bar + spacing
+		helpHeight := 2     // help text + spacing
+		borderHeight := 2   // viewport border
+		totalReservedHeight := titleHeight + progressHeight + helpHeight + borderHeight + 2*padding
+
+		viewportHeight := max(msg.Height-totalReservedHeight, minViewportHeight)
+		componentWidth := msg.Width - 2*padding
+
+		if !m.uiIsReady {
+			m.progressBar = progress.New(
+				progress.WithDefaultGradient(),
+				progress.WithWidth(componentWidth),
+			)
+
+			m.viewport = viewport.New(
+				viewport.WithWidth(componentWidth),
+				viewport.WithHeight(viewportHeight),
+			)
+			m.viewport.Style = lipgloss.NewStyle().
+				Border(lipgloss.RoundedBorder()).
+				BorderForeground(lipgloss.Color(viewportBorderColor)).
+				PaddingRight(padding)
+			m.uiIsReady = true
+		} else {
+			m.viewport.SetWidth(componentWidth)
+			m.viewport.SetHeight(viewportHeight)
+			m.progressBar.SetWidth(componentWidth)
+		}
+
+		var cmd tea.Cmd
+		m.viewport, cmd = m.viewport.Update(msg)
+		cmds = append(cmds, cmd)
+
+		m.progressBar, cmd = m.progressBar.Update(msg)
+		cmds = append(cmds, cmd)
 
 	case progressMsg:
 		percent := float64(msg)
@@ -111,8 +129,8 @@ func (m progressModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, waitForMessage(m.resultManager.MessageEvents()))
 
 	case progress.FrameMsg:
-		progressBar, cmd := m.progressBar.Update(msg)
-		m.progressBar = progressBar
+		var cmd tea.Cmd
+		m.progressBar, cmd = m.progressBar.Update(msg)
 		cmds = append(cmds, cmd)
 	}
 
@@ -126,22 +144,22 @@ func (m progressModel) View() string {
 
 	var s strings.Builder
 
-	// title
+	// Title.
 	s.WriteString(lipgloss.NewStyle().Bold(true).Render("Task Progress"))
 	s.WriteString("\n\n")
 
-	// progress stats
+	// Progress stats.
 	s.WriteString(fmt.Sprintf("Progress: %.1f%%\n\n", m.progressPercent*100.0))
 
-	// progress bar
+	// Progress bar.
 	s.WriteString(m.progressBar.View())
 	s.WriteString("\n\n")
 
-	// log messages
+	// Log messages.
 	s.WriteString(m.viewport.View())
 	s.WriteString("\n\n")
 
-	// help text
+	// Help text.
 	helpText := lipgloss.NewStyle().Foreground(lipgloss.Color(helpTextColor)).Render(
 		"↑/↓: scroll log • q/esc: close • ctrl+c: exit",
 	)
@@ -222,13 +240,13 @@ func (t *TaskMonitor) Run(ctx context.Context, tasks []config.Task) (userAction 
 		return Exit, nil, fmt.Errorf("%w: %v", ErrInteractiveMode, ErrTerminalRequired)
 	}
 
-	// start tasks asynchronously
+	// Start tasks asynchronously.
 	result, err = t.runner.Start(ctx, tasks)
 	if err != nil {
 		return
 	}
 
-	// create and run the model
+	// Create and run the model.
 	model := newProgressModel(t.console, result)
 	p := tea.NewProgram(
 		model,
