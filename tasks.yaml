@@ -827,3 +827,245 @@ task-config:
         - name: "picture"
           uri: "./taskdata/visual-deduction-math-v2.png"
           type: "image/png"
+    - name: "visual - deduction pattern - v3"
+      prompt: |-
+        The symbols in the attached grid follow a repeating pattern.
+        Determine the pattern and the way it is propagated in the grid.
+        Use this information to complete the missing section of the grid.
+      response-result-format: |-
+        ? ? ?
+        ? ? ?
+        ? ? ?
+
+        Replace ? with appropriate unicode symbols (+ − × ÷).
+      expected-result: |-
+        × + ÷
+        ÷ × ×
+        ÷ − −
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-deduction-pattern-v3.png"
+          type: "image/png"
+    - name: "visual - numerical awareness - v2"
+      prompt: |-
+        The pieces in the attached picture can be assembled to form a square
+        in which the first column matches the first row, and so on.
+      response-result-format: |-
+        Assembled grid with numbers separated by spaces and new lines:
+        ? ? ..
+        ? ? ..
+        .
+        .
+      expected-result: |-
+        5 8 6 3 4
+        8 6 0 7 2
+        6 0 9 1 7
+        3 7 1 2 5
+        4 2 7 5 8
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-numerical-awareness-v2.png"
+          type: "image/png"
+    - name: "visual - numerical awareness - v3"
+      prompt: |-
+        Find which mathematical operators should replace the ? symbols in the attached picture.
+      response-result-format: |-
+        Operators (+ − × ÷) in the clockwise order separated by ", ".
+      expected-result: |-
+        ×, ÷, +
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-numerical-awareness-v3.png"
+          type: "image/png"
+    - name: "visual - numerical awareness - v4"
+      prompt: |-
+        Look at the attached grid and find all pairs of adjacent numbers that add up to 10,
+        in either horizontal, vertical or diagonal direction.
+      response-result-format: |-
+        number of pairs found
+      expected-result: |-
+        44
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-numerical-awareness-v4.png"
+          type: "image/png"
+    - name: "visual - ocr - v1"
+      prompt: |-
+        Convert the attached grid to text.
+      response-result-format: |-
+        Columns separated by " " and rows separated by "\n".
+      expected-result: |-
+        5 3 6 4 4 3 5 7 5 7 9 2 2 5 8 3
+        9 8 9 6 1 5 8 6 6 8 3 7 6 7 4 4
+        2 1 5 7 8 3 1 3 5 1 6 6 8 9 8 6
+        7 6 2 9 1 1 8 3 1 5 1 7 5 3 4 1
+        8 5 6 6 2 4 4 8 3 8 4 7 1 6 1 8
+        7 6 2 2 5 2 3 7 4 5 8 5 7 6 3 1
+        7 9 3 1 8 4 5 4 7 7 9 4 8 5 6 3
+        3 6 8 8 2 9 8 8 2 5 7 2 1 8 3 5
+        5 6 9 6 5 3 4 7 4 7 4 2 6 6 5 5
+        1 6 3 2 3 4 5 8 1 1 2 4 9 3 2 7
+        5 8 9 7 1 8 3 6 9 3 6 3 5 4 9 4
+        8 4 5 6 7 1 5 1 8 5 8 3 1 2 5 7
+        7 2 2 9 2 2 4 7 4 9 4 1 8 6 7 8
+        2 4 3 9 5 6 7 8 5 8 3 2 7 5 6 1
+        5 9 4 3 4 2 6 1 7 3 4 9 2 6 9 1
+        3 2 5 8 1 3 2 5 3 8 3 5 3 1 2 7
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-numerical-awareness-v4.png"
+          type: "image/png"
+    - name: "visual - spatial awareness - v6"
+      prompt: |-
+        The pieces in the attached picture, when put together, form a circle.
+        However, there are two extra pieces that are not needed. Find the two redundant pieces.
+      response-result-format: |-
+        alphabetically sorted letters identifying the redundant pieces separated by ", "
+      expected-result: |-
+        C, F
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-spatial-awareness-v6.png"
+          type: "image/png"
+    - name: "visual - deduction pattern - v4"
+      prompt: |-
+        The attached grid follows a specific numeric pattern: 5, 6, 4, 7, 3, 8, 2, 9, 1.
+        The numerical values alternate with the corresponding letters in the alphabet (A=1, B=2, ..., Z=26).
+        Locate the known elements of the pattern within the grid.
+        Determine the starting point and the direction in which the pattern progresses.
+        Use this insight to complete the missing section.
+      response-result-format: |-
+        ? ?
+        ? ?
+
+        Replace ? with appropriate symbols.
+      expected-result: |-
+        D 3
+        F 7
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-deduction-pattern-v4.png"
+          type: "image/png"
+    - name: "visual - spatial awareness - v7"
+      prompt: |-
+        Which of the following cubes cannot be made from this layout?
+      response-result-format: |-
+        letter identifying the cube in the attached picture
+      expected-result: |-
+        C
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-spatial-awareness-v7.png"
+          type: "image/png"
+    - name: "visual - deduction pattern - v5"
+      prompt: |-
+        The attached grid follows the pattern: 3, 1, 4, 1, 5, 8, 2, 7.
+        However, some numbers have been increased by 1. These numbers, when highlighted, form a letter.
+        Locate the known elements of the pattern within the grid.
+        Determine the starting point and the direction in which the pattern progresses.
+        Use this insight to identify the increased numbers.
+        Find the letter hidden in the grid.
+      response-result-format: |-
+        The letter formed by the numbers that have been incremented by one.
+      expected-result: |-
+        F
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-deduction-pattern-v5.png"
+          type: "image/png"
+    - name: "visual - ocr - v2"
+      prompt: |-
+        Convert the attached grid to text.
+      response-result-format: |-
+        Columns separated by " " and rows separated by "\n".
+      expected-result: |-
+        1 1 5 2 1 8 4 3
+        1 4 4 1 8 3 5 1
+        1 4 2 2 5 6 7 1
+        1 4 2 3 3 1 1 2
+        1 4 2 3 7 7 3 4
+        4 4 2 4 8 2 2 7
+        3 1 2 3 7 2 8 8
+        8 7 4 3 7 2 8 5
+        1 5 3 7 7 2 8 5
+        5 3 2 8 2 2 8 5
+        2 1 7 4 5 8 8 5
+        7 8 4 2 1 1 5 5
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-deduction-pattern-v5.png"
+          type: "image/png"
+    - name: "visual - numerical awareness - v5"
+      prompt: |-
+        The pieces in the attached picture can be assembled to form a square
+        in which the first column matches the first row, and so on.
+      response-result-format: |-
+        Assembled grid with numbers separated by spaces and new lines:
+        ? ? ..
+        ? ? ..
+        .
+        .
+      expected-result: |-
+        6 3 2 4 5 6 7 8
+        3 5 9 6 4 2 1 6
+        2 9 4 6 3 9 8 8
+        4 6 6 3 3 3 3 3
+        5 4 3 3 6 2 5 0
+        6 2 9 3 2 2 4 1
+        7 1 8 3 5 4 3 8
+        8 6 8 3 0 1 8 2
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-numerical-awareness-v5.png"
+          type: "image/png"
+    - name: "visual - numerical awareness - v6"
+      prompt: |-
+        Replace the question mark symbols in the attached picture with × and ÷ operators,
+        such that both diagrams result in the same value when read in clockwise direction.
+        Find all valid unique solutions.
+      response-result-format: |-
+        The operators in clockwise direction and separated by ", ", starting with the left diagram.
+        Print each solution on a new line sorted by result value in ascending order.
+      expected-result: |-
+        ×, ÷, ÷, ×
+        ×, ×, ×, ×
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-numerical-awareness-v6.png"
+          type: "image/png"
+    - name: "visual - spatial awareness - v8"
+      prompt: |-
+        Which of the shapes forms a perfect triangle with the other half in the attached picture?
+      response-result-format: |-
+        letter identifying the matching part in the picture
+      expected-result: |-
+        B
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-spatial-awareness-v8.png"
+          type: "image/png"
+    - name: "visual - spatial awareness - v9"
+      prompt: |-
+        One of the cubes in the attached picture is unique, find it.
+      response-result-format: |-
+        letter identifying the unique cube
+      expected-result: |-
+        C
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-spatial-awareness-v9.png"
+          type: "image/png"
+    - name: "visual - deduction - v4"
+      prompt: |-
+        The attached picture shows diagram of a rose garden with four fenced plots.
+        The fences are represented by thin lines in the picture.
+        Determine which of the plots has the longest fence.
+        You can assume that all roses are identical.
+      response-result-format: |-
+        The letter identifying the plot with the longest fence.
+      expected-result: |-
+        B
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual-deduction-v4.png"
+          type: "image/png"
