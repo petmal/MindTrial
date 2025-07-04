@@ -10,7 +10,8 @@ require (
 	github.com/sashabaranov/go-openai v1.40.3
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/time v0.12.0
-	google.golang.org/api v0.239.0
+	google.golang.org/api v0.240.0
+	gopkg.in/validator.v2 v2.0.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -72,13 +73,13 @@ require (
 )
 
 require (
-	github.com/anthropics/anthropic-sdk-go v1.4.0
+	github.com/anthropics/anthropic-sdk-go v1.5.0
 	github.com/charmbracelet/bubbles/v2 v2.0.0-beta.1
 	github.com/charmbracelet/bubbletea/v2 v2.0.0-beta.1
 	github.com/charmbracelet/lipgloss/v2 v2.0.0-beta.1
 	github.com/cohesion-org/deepseek-go v1.2.12
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/go-playground/validator/v10 v10.26.0
+	github.com/go-playground/validator/v10 v10.27.0
 	github.com/google/generative-ai-go v0.20.1
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rs/zerolog v1.34.0

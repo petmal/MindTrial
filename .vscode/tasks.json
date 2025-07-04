@@ -1,0 +1,37 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Generate Mistral AI Go Client",
+      "type": "shell",
+      "command": "openapi-generator-cli",
+      "args": [
+        "generate",
+        "-i", "https://docs.mistral.ai/redocusaurus/plugin-redoc-0.yaml",
+        "-g", "go",
+        "-o", ".",
+        "--git-host", "github.com",
+        "--git-user-id", "petmal",
+        "--git-repo-id", "mindtrial",
+        "--skip-validate-spec",
+        "--minimal-update",
+        // "--enable-post-process-file", // bug: https://github.com/OpenAPITools/openapi-generator/issues/10839
+        "--additional-properties packageName=mistralai",
+        "--additional-properties isGoSubmodule=true",
+        "--additional-properties disallowAdditionalPropertiesIfNotPresent=false",
+        "--additional-properties generateInterfaces=true",
+        "--enum-name-mappings auto=auto", // workaround: lowercase name used at assignment
+        "--type-mappings ToolChoice=ToolChoiceEnum", // workaround: wrong type used at assignment
+        "--model-name-mappings ImageURL=ImageURLStruct" // workaround: collision between generated file names
+      ],
+      "group": "build",
+      "options": {
+        "cwd": "${workspaceFolder}${/}pkg${/}mistralai",
+        "env": {
+          "GO_POST_PROCESS_FILE": "gofmt -w"
+        }
+      },
+      "problemMatcher": []
+    }
+  ]
+}

@@ -77,3 +77,15 @@ config:
         - name: "DeepSeek-R1 - latest"
           model: "deepseek-reasoner"
           max-requests-per-minute: 15
+    - name: mistralai
+      client-config:
+        api-key: ""
+      runs:
+        - name: "Mistral Large - latest"
+          model: "mistral-large-latest"
+          max-requests-per-minute: 5
+        - name: "Magistral Medium - latest (reasoning)"
+          model: "magistral-medium-latest"
+          max-requests-per-minute: 5
+          model-parameters:
+            prompt-mode: "reasoning"

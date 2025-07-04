@@ -6,7 +6,7 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/petmal/mindtrial)](https://go.dev/)
 [![Go Reference](https://pkg.go.dev/badge/github.com/petmal/mindtrial.svg)](https://pkg.go.dev/github.com/petmal/mindtrial)
 
-**MindTrial** helps you assess and compare the performance of AI language models (LLMs) on tasks that use text prompts, with optional file or image attachments. Use it to evaluate a single model or test multiple models from OpenAI, Google, Anthropic, and DeepSeek side by side, and get easy-to-read results in HTML and CSV formats.
+**MindTrial** helps you assess and compare the performance of AI language models (LLMs) on tasks that use text prompts, with optional file or image attachments. Use it to evaluate a single model or test multiple models from OpenAI, Google, Anthropic, DeepSeek, and Mistral AI side by side, and get easy-to-read results in HTML and CSV formats.
 
 ## Quick Start Guide
 
@@ -109,6 +109,7 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **google**: Google Gemini models
 > - **anthropic**: Anthropic Claude models
 > - **deepseek**: DeepSeek open-source models
+> - **mistralai**: Mistral AI models
 
 > [!NOTE]
 > **Anthropic** and **DeepSeek** providers support configurable request timeout in the `client-config` section:
@@ -149,6 +150,17 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0). Lower values produce more focused outputs.
 > - **presence-penalty**: Penalizes new tokens based on their presence in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use new tokens.
 > - **frequency-penalty**: Penalizes new tokens based on their frequency in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use less frequent tokens.
+>
+> Currently supported parameters for **Mistral AI** models include:
+>
+> - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 1.5). Lower values produce more focused and deterministic outputs.
+> - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0). Lower values produce more focused outputs.
+> - **max-tokens**: Controls the maximum number of tokens available to the model for generating a response.
+> - **presence-penalty**: Penalizes new tokens based on their presence in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use new tokens.
+> - **frequency-penalty**: Penalizes new tokens based on their frequency in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use less frequent tokens.
+> - **random-seed**: Provides the seed to use for random sampling. If set, requests will generate deterministic results.
+> - **prompt-mode**: When set to "reasoning", instructs the model to reason if supported.
+> - **safe-prompt**: Enables content filtering to ensure outputs comply with usage policies.
 
 > [!NOTE]
 > The results will be saved to `<output-dir>/<output-basename>.<format>`. If the result output file already exists, it will be replaced. If the log file already exists, it will be appended to.
@@ -381,6 +393,7 @@ go test -tags=test -race -v ./...
 ├── pkg/                 # Shared packages and utilities
 ├── providers/           # AI model service provider connectors
 ├── runners/             # Task execution and result aggregation
+├── taskdata/            # Auxiliary files referenced by tasks in tasks.yaml
 └── version/             # Application metadata
 ```
 

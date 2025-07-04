@@ -27,6 +27,8 @@ func NewProvider(ctx context.Context, cfg config.ProviderConfig) (Provider, erro
 		return NewAnthropic(cfg.ClientConfig.(config.AnthropicClientConfig)), nil
 	case config.DEEPSEEK:
 		return NewDeepseek(cfg.ClientConfig.(config.DeepseekClientConfig))
+	case config.MISTRALAI:
+		return NewMistralAI(cfg.ClientConfig.(config.MistralAIClientConfig))
 	}
 	return nil, fmt.Errorf("%w: %s", ErrUnknownProviderName, cfg.Name)
 }

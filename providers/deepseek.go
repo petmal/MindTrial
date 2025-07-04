@@ -51,7 +51,7 @@ func (o *Deepseek) Run(ctx context.Context, cfg config.RunConfig, task config.Ta
 	var request any
 	if len(task.Files) > 0 {
 		if !o.isFileUploadSupported() {
-			return result, fmt.Errorf("%w: %s", ErrFeatureNotSupported, "file upload")
+			return result, ErrFileUploadNotSupported
 		}
 
 		promptParts, err := o.createPromptMessageParts(ctx, task.Prompt, task.Files, &result)
@@ -83,6 +83,8 @@ func (o *Deepseek) Run(ctx context.Context, cfg config.RunConfig, task config.Ta
 	if cfg.ModelParams != nil {
 		if modelParams, ok := cfg.ModelParams.(config.DeepseekModelParams); ok {
 			o.applyModelParameters(request, modelParams)
+		} else {
+			return result, fmt.Errorf("%w: %s", ErrInvalidModelParams, cfg.Name)
 		}
 	}
 

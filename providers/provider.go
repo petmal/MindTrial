@@ -40,6 +40,8 @@ var (
 	ErrFeatureNotSupported = errors.New("feature not supported by provider")
 	// ErrFileNotSupported is returned when a task context file is not supported by the provider.
 	ErrFileNotSupported = fmt.Errorf("%w: file type", ErrFeatureNotSupported)
+	// ErrFileUploadNotSupported is returned when file upload is not supported by the provider.
+	ErrFileUploadNotSupported = fmt.Errorf("%w: file upload", ErrFeatureNotSupported)
 )
 
 var supportedImageMimeTypes = map[string]bool{
@@ -89,6 +91,21 @@ var ResultJSONSchema = sync.OnceValue(func() *jsonschema.Schema {
 		DoNotReference:            true,
 	}
 	return reflector.Reflect(Result{})
+})
+
+// ResultJSONSchemaRaw is a lazily initialized JSON schema for the Result type.
+var ResultJSONSchemaRaw = sync.OnceValue(func() map[string]interface{} {
+	schemaBytes, err := json.Marshal(ResultJSONSchema())
+	if err != nil {
+		panic(fmt.Errorf("%w: %v", ErrCompileSchema, err))
+	}
+
+	var schemaMap map[string]interface{}
+	if err := json.Unmarshal(schemaBytes, &schemaMap); err != nil {
+		panic(fmt.Errorf("%w: %v", ErrCompileSchema, err))
+	}
+
+	return schemaMap
 })
 
 // DefaultResponseFormatInstruction generates default response formatting instruction to be passed to AI models that require it.

@@ -157,6 +157,12 @@ func TestLoadConfigFromFile(t *testing.T) {
           runs:
               - name: "Afghani"
                 model: "Euro"
+        - name: mistralai
+          client-config:
+              api-key: "f1a2b3c4-d5e6-7f8g-9h0i-j1k2l3m4n5o6"
+          runs:
+              - name: "bypass"
+                model: "impactful"
 `)),
 			},
 			want: &Config{
@@ -215,6 +221,20 @@ func TestLoadConfigFromFile(t *testing.T) {
 								{
 									Name:                 "Afghani",
 									Model:                "Euro",
+									MaxRequestsPerMinute: 0,
+								},
+							},
+							Disabled: false,
+						},
+						{
+							Name: "mistralai",
+							ClientConfig: MistralAIClientConfig{
+								APIKey: "f1a2b3c4-d5e6-7f8g-9h0i-j1k2l3m4n5o6",
+							},
+							Runs: []RunConfig{
+								{
+									Name:                 "bypass",
+									Model:                "impactful",
 									MaxRequestsPerMinute: 0,
 								},
 							},
@@ -287,6 +307,21 @@ func TestLoadConfigFromFile(t *testing.T) {
                     temperature: 0.7
                     top-p: 0.95
                     top-k: 40
+        - name: mistralai
+          client-config:
+              api-key: "f1a2b3c4-d5e6-7f8g-9h0i-j1k2l3m4n5o6"
+          runs:
+              - name: "Mistral"
+                model: "mistral-large"
+                model-parameters:
+                    temperature: 0.8
+                    top-p: 0.9
+                    max-tokens: 2048
+                    presence-penalty: 0.2
+                    frequency-penalty: 0.2
+                    random-seed: 42
+                    prompt-mode: reasoning
+                    safe-prompt: true
 `)),
 			},
 			want: &Config{
@@ -375,6 +410,30 @@ func TestLoadConfigFromFile(t *testing.T) {
 										Temperature:        testutils.Ptr(float32(0.7)),
 										TopP:               testutils.Ptr(float32(0.95)),
 										TopK:               testutils.Ptr(int32(40)),
+									},
+								},
+							},
+							Disabled: false,
+						},
+						{
+							Name: "mistralai",
+							ClientConfig: MistralAIClientConfig{
+								APIKey: "f1a2b3c4-d5e6-7f8g-9h0i-j1k2l3m4n5o6",
+							},
+							Runs: []RunConfig{
+								{
+									Name:                 "Mistral",
+									Model:                "mistral-large",
+									MaxRequestsPerMinute: 0,
+									ModelParams: MistralAIModelParams{
+										Temperature:      testutils.Ptr(float32(0.8)),
+										TopP:             testutils.Ptr(float32(0.9)),
+										MaxTokens:        testutils.Ptr(int32(2048)),
+										PresencePenalty:  testutils.Ptr(float32(0.2)),
+										FrequencyPenalty: testutils.Ptr(float32(0.2)),
+										RandomSeed:       testutils.Ptr(int32(42)),
+										PromptMode:       testutils.Ptr("reasoning"),
+										SafePrompt:       testutils.Ptr(true),
 									},
 								},
 							},

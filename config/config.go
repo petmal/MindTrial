@@ -27,6 +27,8 @@ const (
 	ANTHROPIC string = "anthropic"
 	// DEEPSEEK identifies the Deepseek provider.
 	DEEPSEEK string = "deepseek"
+	// MISTRALAI identifies the Mistral AI provider.
+	MISTRALAI string = "mistralai"
 )
 
 // ErrInvalidConfigProperty indicates invalid configuration.
@@ -85,7 +87,7 @@ func (ac AppConfig) GetProvidersWithEnabledRuns() []ProviderConfig {
 // ProviderConfig defines settings for an AI provider.
 type ProviderConfig struct {
 	// Name specifies unique identifier of the provider.
-	Name string `yaml:"name" validate:"required,oneof=openai google anthropic deepseek"`
+	Name string `yaml:"name" validate:"required,oneof=openai google anthropic deepseek mistralai"`
 
 	// ClientConfig holds provider-specific client settings.
 	ClientConfig ClientConfig `yaml:"client-config" validate:"required"`
@@ -126,6 +128,12 @@ type DeepseekClientConfig struct {
 	APIKey string `yaml:"api-key" validate:"required"`
 	// RequestTimeout specifies the timeout for API requests.
 	RequestTimeout *time.Duration `yaml:"request-timeout" validate:"omitempty"`
+}
+
+// MistralAIClientConfig represents Mistral AI provider settings.
+type MistralAIClientConfig struct {
+	// APIKey is the API key for the Mistral AI generative models provider.
+	APIKey string `yaml:"api-key" validate:"required"`
 }
 
 // RunConfig defines settings for a single test configuration.
@@ -265,6 +273,48 @@ type DeepseekModelParams struct {
 	FrequencyPenalty *float32 `yaml:"frequency-penalty" validate:"omitempty,min=-2,max=2"`
 }
 
+// MistralAIModelParams represents Mistral AI model-specific settings.
+type MistralAIModelParams struct {
+	// Temperature controls the randomness or "creativity" of the model's outputs.
+	// Values range from 0.0 to 1.5, with lower values making the output more focused and deterministic.
+	// The default value varies depending on the model.
+	// It is generally recommended to alter this or `TopP` but not both.
+	Temperature *float32 `yaml:"temperature" validate:"omitempty,min=0,max=1.5"`
+
+	// TopP controls diversity via nucleus sampling.
+	// Values range from 0.0 to 1.0, with lower values making the output more focused.
+	// The default value is 1.0.
+	// It is generally recommended to alter this or `Temperature` but not both.
+	TopP *float32 `yaml:"top-p" validate:"omitempty,min=0,max=1"`
+
+	// MaxTokens controls the maximum number of tokens to generate in the completion.
+	// The token count of the prompt plus max_tokens cannot exceed the model's context length.
+	MaxTokens *int32 `yaml:"max-tokens" validate:"omitempty,min=0"`
+
+	// PresencePenalty penalizes new tokens based on whether they appear in the text so far.
+	// Values range from -2.0 to 2.0, with positive values encouraging the model to use new tokens,
+	// increasing the model's likelihood to talk about new topics.
+	// The default value is 0.0.
+	PresencePenalty *float32 `yaml:"presence-penalty" validate:"omitempty,min=-2,max=2"`
+
+	// FrequencyPenalty penalizes new tokens based on their frequency in the text so far.
+	// Values range from -2.0 to 2.0, with positive values encouraging the model to use less frequent tokens,
+	// decreasing the model's likelihood to repeat the same line verbatim.
+	// The default value is 0.0.
+	FrequencyPenalty *float32 `yaml:"frequency-penalty" validate:"omitempty,min=-2,max=2"`
+
+	// RandomSeed provides the seed to use for random sampling.
+	// If set, requests will generate deterministic results.
+	RandomSeed *int32 `yaml:"random-seed" validate:"omitempty"`
+
+	// PromptMode sets the prompt mode for the request.
+	// When set to "reasoning", a system prompt will be used to instruct the model to reason if supported.
+	PromptMode *string `yaml:"prompt-mode" validate:"omitempty,oneof=reasoning"`
+
+	// SafePrompt controls whether to inject a safety prompt before all conversations.
+	SafePrompt *bool `yaml:"safe-prompt" validate:"omitempty"`
+}
+
 // UnmarshalYAML implements custom YAML unmarshaling for ProviderConfig.
 // It handles provider-specific client configuration based on provider name.
 func (pc *ProviderConfig) UnmarshalYAML(value *yaml.Node) error {
@@ -307,6 +357,12 @@ func (pc *ProviderConfig) UnmarshalYAML(value *yaml.Node) error {
 		pc.ClientConfig = cfg
 	case DEEPSEEK:
 		cfg := DeepseekClientConfig{}
+		if err := temp.ClientConfig.Decode(&cfg); err != nil {
+			return err
+		}
+		pc.ClientConfig = cfg
+	case MISTRALAI:
+		cfg := MistralAIClientConfig{}
 		if err := temp.ClientConfig.Decode(&cfg); err != nil {
 			return err
 		}
@@ -360,6 +416,12 @@ func decodeRuns(provider string, value *yaml.Node, out *[]RunConfig) error {
 				(*out)[i].ModelParams = params
 			case DEEPSEEK:
 				params := DeepseekModelParams{}
+				if err := temp[i].ModelParams.Decode(&params); err != nil {
+					return err
+				}
+				(*out)[i].ModelParams = params
+			case MISTRALAI:
+				params := MistralAIModelParams{}
 				if err := temp[i].ModelParams.Decode(&params); err != nil {
 					return err
 				}
