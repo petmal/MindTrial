@@ -2,6 +2,10 @@ module github.com/petmal/mindtrial
 
 go 1.23.0
 
+retract (
+    v0.4.0 // no longer available, use v0.4.1 instead
+)
+
 require (
 	github.com/charmbracelet/x/term v0.2.1
 	github.com/google/uuid v1.6.0
