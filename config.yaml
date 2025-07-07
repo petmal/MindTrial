@@ -78,6 +78,9 @@ config:
           model: "deepseek-reasoner"
           max-requests-per-minute: 15
     - name: mistralai
+      retry-policy:
+        max-retry-attempts: 5
+        initial-delay-seconds: 30
       client-config:
         api-key: ""
       runs:

@@ -16,6 +16,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/sethvargo/go-retry"
 	"golang.org/x/time/rate"
 
 	"github.com/petmal/mindtrial/config"
@@ -208,13 +209,6 @@ func (r *defaultRunner) runTasks(ctx context.Context, provider providers.Provide
 		}
 
 		for _, task := range tasks {
-			runResult := RunResult{}
-			r.logMessage(rs, r.logger.Info(), "%s: %s: %s: starting task...", provider.Name(), run.Name, task.Name)
-			runStart := time.Now()
-			r.runTask(ctx, provider, run, task, &runResult, rs)
-			r.logMessage(rs, r.logger.Info(), "%s: %s: %s: task has finished in %s.", provider.Name(), run.Name, task.Name, time.Since(runStart))
-			rs.appendResult(runResult)
-			rs.emitProgressEvent()
 			if err := ctx.Err(); err != nil { // canceled or timed out
 				r.logMessage(rs, r.logger.Warn().Err(err), "%s: %s: aborting remaining tasks", provider.Name(), run.Name)
 				return
@@ -225,11 +219,20 @@ func (r *defaultRunner) runTasks(ctx context.Context, provider providers.Provide
 					return
 				}
 			}
+
+			runResult := RunResult{}
+			r.logMessage(rs, r.logger.Info(), "%s: %s: %s: starting task...", provider.Name(), run.Name, task.Name)
+			runStart := time.Now()
+			r.runTask(ctx, provider, run, task, &runResult, rs, limiter)
+			r.logMessage(rs, r.logger.Info(), "%s: %s: %s: task has finished in %s.", provider.Name(), run.Name, task.Name, time.Since(runStart))
+			rs.appendResult(runResult)
+			rs.emitProgressEvent()
 		}
 	}
 	r.logMessage(rs, r.logger.Info(), "%s: all tasks in all configurations have finished on this provider in %s.", provider.Name(), time.Since(providerStart))
 }
-func (r *defaultRunner) runTask(ctx context.Context, provider providers.Provider, run config.RunConfig, task config.Task, runResult *RunResult, emitter eventEmitter) {
+
+func (r *defaultRunner) runTask(ctx context.Context, provider providers.Provider, run config.RunConfig, task config.Task, runResult *RunResult, emitter eventEmitter, limiter *rate.Limiter) {
 	// Resolve validation rules for this task.
 	resolvedValidationRules := r.globalValidationRules.MergeWith(task.ValidationRules)
 
@@ -246,7 +249,8 @@ func (r *defaultRunner) runTask(ctx context.Context, provider providers.Provider
 			runResult.Got = fmt.Sprintf("%v", p)
 		}
 	}()
-	result, err := provider.Run(ctx, run, task)
+
+	result, err := r.executeProviderRun(ctx, provider, run, task, emitter, limiter)
 	usage := result.GetUsage()
 	r.logMessage(emitter, r.logger.Debug(), "%s: %s: %s: token usage: [in:%s, out:%s]", provider.Name(), run.Name, task.Name, formatLogInt64(usage.InputTokens), formatLogInt64(usage.OutputTokens))
 	r.logMessage(emitter, r.logger.Trace(), "%s: %s: %s: prompts:\n%s", provider.Name(), run.Name, task.Name, formatLogText(result.GetPrompts()))
@@ -255,6 +259,8 @@ func (r *defaultRunner) runTask(ctx context.Context, provider providers.Provider
 		runResult.Got = err.Error()
 		if errors.Is(err, providers.ErrFeatureNotSupported) {
 			runResult.Kind = NotSupported
+		} else {
+			r.logMessage(emitter, r.logger.Error().Err(err), "%s: %s: %s: task finished with error", provider.Name(), run.Name, task.Name)
 		}
 		var unmarshalErr *providers.ErrUnmarshalResponse
 		if errors.As(err, &unmarshalErr) {
@@ -284,6 +290,53 @@ func formatLogText(lines []string) string {
 		return "\t" + strings.Join(lines, "\n\n\t")
 	}
 	return "\t" + unknownLogValue
+}
+
+func (r *defaultRunner) executeProviderRun(ctx context.Context, provider providers.Provider, run config.RunConfig, task config.Task, emitter eventEmitter, limiter *rate.Limiter) (providers.Result, error) {
+	if run.RetryPolicy != nil && run.RetryPolicy.MaxRetryAttempts > 0 { // check if retry is enabled
+		backoff := retry.NewExponential(time.Duration(run.RetryPolicy.InitialDelaySeconds) * time.Second)
+		backoff = retry.WithMaxRetries(uint64(run.RetryPolicy.MaxRetryAttempts), backoff)
+		backoff = backoffWithCallback(func(nextRetryAttempt uint64, nextDelay time.Duration) {
+			r.logMessage(emitter, r.logger.Info(), "%s: %s: %s: retrying task %d/%d in %v", provider.Name(), run.Name, task.Name, nextRetryAttempt, run.RetryPolicy.MaxRetryAttempts, nextDelay)
+		}, backoff)
+
+		return retry.DoValue(ctx, backoff, func(ctx context.Context) (result providers.Result, err error) {
+			if err := ctx.Err(); err != nil { // canceled or timed out
+				r.logMessage(emitter, r.logger.Warn().Err(err), "%s: %s: %s: aborting task", provider.Name(), run.Name, task.Name)
+				return result, err
+			}
+			if limiter != nil {
+				if err := limiter.Wait(ctx); err != nil {
+					r.logMessage(emitter, r.logger.Warn().Err(err), "%s: %s: %s: aborting task", provider.Name(), run.Name, task.Name)
+					return result, err
+				}
+			}
+
+			result, err = provider.Run(ctx, run, task)
+			if errors.Is(err, providers.ErrRetryable) {
+				r.logMessage(emitter, r.logger.Warn().Err(err), "%s: %s: %s: task encountered a transient error", provider.Name(), run.Name, task.Name)
+				return result, retry.RetryableError(err)
+			}
+			return result, err
+		})
+	} else {
+		return provider.Run(ctx, run, task) // no retries enabled, run only once
+	}
+}
+
+func backoffWithCallback(onBackoff func(nextRetryAttempt uint64, nextDelay time.Duration), next retry.Backoff) retry.Backoff {
+	var retryCounter uint64 = 0
+	return retry.BackoffFunc(func() (nextDelay time.Duration, stop bool) {
+		nextDelay, stop = next.Next()
+		if stop {
+			return
+		}
+
+		nextRetry := atomic.AddUint64(&retryCounter, 1)
+		onBackoff(nextRetry, nextDelay)
+
+		return
+	})
 }
 
 func (r *defaultRunner) Close(ctx context.Context) {

@@ -8,6 +8,7 @@ require (
 	github.com/invopop/jsonschema v0.13.0
 	github.com/kaptinlin/jsonrepair v0.1.1
 	github.com/sashabaranov/go-openai v1.40.3
+	github.com/sethvargo/go-retry v0.3.0
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/time v0.12.0
 	google.golang.org/api v0.240.0

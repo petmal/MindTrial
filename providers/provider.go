@@ -42,6 +42,8 @@ var (
 	ErrFileNotSupported = fmt.Errorf("%w: file type", ErrFeatureNotSupported)
 	// ErrFileUploadNotSupported is returned when file upload is not supported by the provider.
 	ErrFileUploadNotSupported = fmt.Errorf("%w: file upload", ErrFeatureNotSupported)
+	// ErrRetryable is returned when an operation can be retried.
+	ErrRetryable = errors.New("retryable error")
 )
 
 var supportedImageMimeTypes = map[string]bool{
@@ -82,6 +84,16 @@ func NewErrUnmarshalResponse(cause error, rawMessage []byte, stopReason []byte) 
 		RawMessage: rawMessage,
 		StopReason: stopReason,
 	}
+}
+
+// WrapErrRetryable wraps an error as retryable, preserving the original error chain.
+func WrapErrRetryable(err error) error {
+	return fmt.Errorf("%w: %w", ErrRetryable, err)
+}
+
+// WrapErrGenerateResponse wraps an error as a generate response error, preserving the original error chain.
+func WrapErrGenerateResponse(err error) error {
+	return fmt.Errorf("%w: %w", ErrGenerateResponse, err)
 }
 
 // ResultJSONSchema is a lazily initialized JSON schema for the Result type.

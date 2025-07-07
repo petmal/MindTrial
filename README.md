@@ -185,6 +185,15 @@ This file defines the tool's settings and target model configurations evaluated 
 > Models can use the `max-requests-per-minute` property in their run configurations to limit the number of requests made per minute.
 
 > [!TIP]
+> To automatically retry failed requests due to rate limiting or other transient errors, set `retry-policy` at the provider level to apply to all runs.
+> An individual run configuration can override this by setting its own `retry-policy`:
+>
+> - **max-retry-attempts**: Maximum number of retry attempts (default: 0 means no retry).
+> - **initial-delay-seconds**: Initial delay before the first retry in seconds.
+>
+> Retries use exponential backoff starting with the initial delay.
+
+> [!TIP]
 > To disable all run configurations for a given provider, set `disabled: true` on that provider.
 > An individual run configuration can override this by setting `disabled: false` (e.g. to enable just that one configuration).
 
@@ -240,6 +249,16 @@ config:
         - name: "DeepSeek-R1 - latest"
           model: "deepseek-reasoner"
           max-requests-per-minute: 15
+    - name: mistralai
+      client-config:
+        api-key: "<your-api-key>"
+      runs:
+        - name: "Mistral Large - latest"
+          model: "mistral-large-latest"
+          max-requests-per-minute: 5
+          retry-policy:
+            max-retry-attempts: 5
+            initial-delay-seconds: 30
 ```
 
 ### tasks.yaml

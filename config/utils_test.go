@@ -310,6 +310,9 @@ func TestLoadConfigFromFile(t *testing.T) {
         - name: mistralai
           client-config:
               api-key: "f1a2b3c4-d5e6-7f8g-9h0i-j1k2l3m4n5o6"
+          retry-policy:
+              max-retry-attempts: 5
+              initial-delay-seconds: 10
           runs:
               - name: "Mistral"
                 model: "mistral-large"
@@ -322,6 +325,9 @@ func TestLoadConfigFromFile(t *testing.T) {
                     random-seed: 42
                     prompt-mode: reasoning
                     safe-prompt: true
+                retry-policy:
+                    max-retry-attempts: 3
+                    initial-delay-seconds: 1
 `)),
 			},
 			want: &Config{
@@ -420,6 +426,10 @@ func TestLoadConfigFromFile(t *testing.T) {
 							ClientConfig: MistralAIClientConfig{
 								APIKey: "f1a2b3c4-d5e6-7f8g-9h0i-j1k2l3m4n5o6",
 							},
+							RetryPolicy: RetryPolicy{
+								MaxRetryAttempts:    5,
+								InitialDelaySeconds: 10,
+							},
 							Runs: []RunConfig{
 								{
 									Name:                 "Mistral",
@@ -434,6 +444,10 @@ func TestLoadConfigFromFile(t *testing.T) {
 										RandomSeed:       testutils.Ptr(int32(42)),
 										PromptMode:       testutils.Ptr("reasoning"),
 										SafePrompt:       testutils.Ptr(true),
+									},
+									RetryPolicy: &RetryPolicy{
+										MaxRetryAttempts:    3,
+										InitialDelaySeconds: 1,
 									},
 								},
 							},
@@ -949,28 +963,34 @@ func TestGetProvidersWithEnabledRuns(t *testing.T) {
 			},
 			want: []ProviderConfig{
 				{
-					Name:     "provider with some configurations enabled",
-					Disabled: true,
+					Name:        "provider with some configurations enabled",
+					Disabled:    true,
+					RetryPolicy: RetryPolicy{},
 					Runs: []RunConfig{
 						{
-							Name:     "Human",
-							Model:    "back-end",
-							Disabled: testutils.Ptr(false),
+							Name:        "Human",
+							Model:       "back-end",
+							Disabled:    testutils.Ptr(false),
+							RetryPolicy: &RetryPolicy{},
 						},
 					},
 				},
 				{
-					Name:     "provider with all configurations enabled",
-					Disabled: false,
+					Name:        "provider with all configurations enabled",
+					Disabled:    false,
+					RetryPolicy: RetryPolicy{},
 					Runs: []RunConfig{
 						{
-							Name:     "Executive",
-							Model:    "Garden",
-							Disabled: testutils.Ptr(false),
+							Name:        "Executive",
+							Model:       "Garden",
+							Disabled:    testutils.Ptr(false),
+							RetryPolicy: &RetryPolicy{},
 						},
 						{
-							Name:  "Pants",
-							Model: "implement",
+							Name:        "Pants",
+							Model:       "implement",
+							Disabled:    testutils.Ptr(false),
+							RetryPolicy: &RetryPolicy{},
 						},
 					},
 				},
@@ -1209,4 +1229,145 @@ func TestOnceWithContext(t *testing.T) {
 
 		assert.Equal(t, -1, *counter)
 	})
+}
+
+func TestGetRunsResolved(t *testing.T) {
+	tests := []struct {
+		name string
+		pc   ProviderConfig
+		want []RunConfig
+	}{
+		{
+			name: "no runs",
+			pc: ProviderConfig{
+				Name:        "test-provider",
+				Disabled:    false,
+				RetryPolicy: RetryPolicy{MaxRetryAttempts: 3},
+				Runs:        []RunConfig{},
+			},
+			want: []RunConfig{},
+		},
+		{
+			name: "runs with nil retry policy and disabled flag",
+			pc: ProviderConfig{
+				Name:     "test-provider",
+				Disabled: false,
+				RetryPolicy: RetryPolicy{
+					MaxRetryAttempts:    3,
+					InitialDelaySeconds: 1,
+				},
+				Runs: []RunConfig{
+					{
+						Name:        "run1",
+						Model:       "model1",
+						Disabled:    nil,
+						RetryPolicy: nil,
+					},
+					{
+						Name:        "run2",
+						Model:       "model2",
+						Disabled:    nil,
+						RetryPolicy: nil,
+					},
+				},
+			},
+			want: []RunConfig{
+				{
+					Name:     "run1",
+					Model:    "model1",
+					Disabled: testutils.Ptr(false),
+					RetryPolicy: &RetryPolicy{
+						MaxRetryAttempts:    3,
+						InitialDelaySeconds: 1,
+					},
+				},
+				{
+					Name:     "run2",
+					Model:    "model2",
+					Disabled: testutils.Ptr(false),
+					RetryPolicy: &RetryPolicy{
+						MaxRetryAttempts:    3,
+						InitialDelaySeconds: 1,
+					},
+				},
+			},
+		},
+		{
+			name: "runs with explicit retry policy and disabled flag",
+			pc: ProviderConfig{
+				Name:        "test-provider",
+				Disabled:    false,
+				RetryPolicy: RetryPolicy{MaxRetryAttempts: 3},
+				Runs: []RunConfig{
+					{
+						Name:        "run1",
+						Model:       "model1",
+						Disabled:    testutils.Ptr(true),
+						RetryPolicy: &RetryPolicy{MaxRetryAttempts: 1},
+					},
+					{
+						Name:        "run2",
+						Model:       "model2",
+						Disabled:    testutils.Ptr(false),
+						RetryPolicy: &RetryPolicy{MaxRetryAttempts: 5},
+					},
+				},
+			},
+			want: []RunConfig{
+				{
+					Name:        "run1",
+					Model:       "model1",
+					Disabled:    testutils.Ptr(true),
+					RetryPolicy: &RetryPolicy{MaxRetryAttempts: 1},
+				},
+				{
+					Name:        "run2",
+					Model:       "model2",
+					Disabled:    testutils.Ptr(false),
+					RetryPolicy: &RetryPolicy{MaxRetryAttempts: 5},
+				},
+			},
+		},
+		{
+			name: "mixed resolved and explicit values",
+			pc: ProviderConfig{
+				Name:        "test-provider",
+				Disabled:    true,
+				RetryPolicy: RetryPolicy{MaxRetryAttempts: 2},
+				Runs: []RunConfig{
+					{
+						Name:        "run1",
+						Model:       "model1",
+						Disabled:    nil,
+						RetryPolicy: nil,
+					},
+					{
+						Name:        "run2",
+						Model:       "model2",
+						Disabled:    testutils.Ptr(false),
+						RetryPolicy: &RetryPolicy{MaxRetryAttempts: 4},
+					},
+				},
+			},
+			want: []RunConfig{
+				{
+					Name:        "run1",
+					Model:       "model1",
+					Disabled:    testutils.Ptr(true),
+					RetryPolicy: &RetryPolicy{MaxRetryAttempts: 2},
+				},
+				{
+					Name:        "run2",
+					Model:       "model2",
+					Disabled:    testutils.Ptr(false),
+					RetryPolicy: &RetryPolicy{MaxRetryAttempts: 4},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.pc.GetRunsResolved())
+		})
+	}
 }

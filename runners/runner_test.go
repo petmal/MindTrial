@@ -334,6 +334,75 @@ func TestRunnerRun(t *testing.T) {
 	}
 }
 
+func TestRunnerRunWithRetry(t *testing.T) {
+	tests := []struct {
+		name              string
+		maxRetryAttempts  uint
+		taskName          string
+		expectedKind      ResultKind
+		expectedGot       string
+		expectedInDetails string
+	}{
+		{
+			name:              "retry succeeds within max attempts",
+			maxRetryAttempts:  uint(4),
+			taskName:          "retry_2",
+			expectedKind:      Success,
+			expectedGot:       "provident quas tenetur repellat deserunt ut neque culpa.",
+			expectedInDetails: "mock success after 3 attempts",
+		},
+		{
+			name:             "retry exhausted - max attempts reached",
+			maxRetryAttempts: uint(2),
+			taskName:         "retry_5",
+			expectedKind:     Error,
+			expectedGot:      "failed to generate response: retryable error: mock transient error (retry 2)",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockRunner := createMockRunnerFromConfig(t, []config.ProviderConfig{
+				{
+					Name: "mock provider",
+					Runs: []config.RunConfig{
+						{
+							Name: "mock",
+							RetryPolicy: &config.RetryPolicy{
+								MaxRetryAttempts:    tt.maxRetryAttempts,
+								InitialDelaySeconds: 1,
+							},
+						},
+					},
+				},
+			}, zerolog.New(zerolog.NewTestWriter(t)))
+
+			tasks := []config.Task{
+				{
+					Name:           tt.taskName,
+					ExpectedResult: utils.NewStringSet("Provident quas tenetur repellat deserunt ut neque culpa."),
+				},
+			}
+
+			got, err := mockRunner.Run(context.Background(), tasks)
+			require.NoError(t, err)
+
+			results := got.GetResults()
+			require.Len(t, results, 1)
+			require.Contains(t, results, "mock provider")
+			require.Len(t, results["mock provider"], 1)
+
+			result := results["mock provider"][0]
+			assert.Equal(t, "mock provider", result.Provider)
+			assert.Equal(t, "mock", result.Run)
+			assert.Equal(t, tt.taskName, result.Task)
+			assert.Equal(t, tt.expectedKind, result.Kind)
+			assert.Equal(t, tt.expectedGot, result.Got)
+			assert.Contains(t, result.Details, tt.expectedInDetails)
+		})
+	}
+}
+
 func createMockRunner(t *testing.T) Runner {
 	return createMockRunnerFromConfig(t, []config.ProviderConfig{
 		{
@@ -359,11 +428,11 @@ func createMockRunner(t *testing.T) Runner {
 				},
 			},
 		},
-	})
+	}, zerolog.Nop())
 }
 
-func createMockRunnerFromConfig(t *testing.T, cfg []config.ProviderConfig) Runner {
-	runner, err := NewDefaultRunner(context.Background(), cfg, config.ValidationRules{}, zerolog.Nop())
+func createMockRunnerFromConfig(t *testing.T, cfg []config.ProviderConfig, logger zerolog.Logger) Runner {
+	runner, err := NewDefaultRunner(context.Background(), cfg, config.ValidationRules{}, logger)
 	if err != nil {
 		t.Fatalf("failed to create runner: %v", err)
 	}

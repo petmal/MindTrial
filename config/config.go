@@ -60,15 +60,16 @@ type AppConfig struct {
 }
 
 // GetProvidersWithEnabledRuns returns providers with their enabled run configurations.
-// If RunConfig.Disabled is nil, the parent ProviderConfig.Disabled value is used instead.
+// Run configurations are resolved using GetRunsResolved before filtering.
 // Any disabled run configurations are excluded from the results.
 // Providers with no enabled run configurations are excluded from the returned list.
 func (ac AppConfig) GetProvidersWithEnabledRuns() []ProviderConfig {
 	providers := make([]ProviderConfig, 0, len(ac.Providers))
 	for _, provider := range ac.Providers {
-		enabledRuns := make([]RunConfig, 0, len(provider.Runs))
-		for _, run := range provider.Runs {
-			if !ResolveFlagOverride(run.Disabled, provider.Disabled) {
+		resolvedRuns := provider.GetRunsResolved()
+		enabledRuns := make([]RunConfig, 0, len(resolvedRuns))
+		for _, run := range resolvedRuns {
+			if !*run.Disabled {
 				enabledRuns = append(enabledRuns, run)
 			}
 		}
@@ -78,6 +79,7 @@ func (ac AppConfig) GetProvidersWithEnabledRuns() []ProviderConfig {
 				ClientConfig: provider.ClientConfig,
 				Runs:         enabledRuns,
 				Disabled:     provider.Disabled,
+				RetryPolicy:  provider.RetryPolicy,
 			})
 		}
 	}
@@ -97,6 +99,26 @@ type ProviderConfig struct {
 
 	// Disabled indicates if all runs should be disabled by default.
 	Disabled bool `yaml:"disabled" validate:"omitempty"`
+
+	// RetryPolicy specifies default retry behavior for all runs in this provider.
+	RetryPolicy RetryPolicy `yaml:"retry-policy" validate:"omitempty"`
+}
+
+// GetRunsResolved returns runs with retry policies and disabled flags resolved.
+// If RunConfig.RetryPolicy is nil, the parent ProviderConfig.RetryPolicy value is used instead.
+// If RunConfig.Disabled is nil, the parent ProviderConfig.Disabled value is used instead.
+func (pc ProviderConfig) GetRunsResolved() []RunConfig {
+	resolved := make([]RunConfig, 0, len(pc.Runs))
+	for _, run := range pc.Runs {
+		if run.RetryPolicy == nil {
+			run.RetryPolicy = &pc.RetryPolicy
+		}
+		if run.Disabled == nil {
+			run.Disabled = &pc.Disabled
+		}
+		resolved = append(resolved, run)
+	}
+	return resolved
 }
 
 // ClientConfig is a marker interface for provider-specific configurations.
@@ -154,6 +176,20 @@ type RunConfig struct {
 
 	// ModelParams holds any model-specific configuration parameters.
 	ModelParams ModelParams `yaml:"model-parameters" validate:"omitempty"`
+
+	// RetryPolicy specifies retry behavior on transient errors.
+	// If set, overrides the parent ProviderConfig.RetryPolicy value.
+	RetryPolicy *RetryPolicy `yaml:"retry-policy" validate:"omitempty"`
+}
+
+// RetryPolicy defines retry behavior on transient errors.
+type RetryPolicy struct {
+	// MaxRetryAttempts specifies the maximum number of retry attempts.
+	// Value of 0 means no retry attempts will be made.
+	MaxRetryAttempts uint `yaml:"max-retry-attempts" validate:"omitempty,min=0"`
+
+	// InitialDelaySeconds specifies the initial delay in seconds before the first retry attempt.
+	InitialDelaySeconds int `yaml:"initial-delay-seconds" validate:"omitempty,gt=0"`
 }
 
 // ModelParams is a marker interface for model-specific parameters.
@@ -319,10 +355,11 @@ type MistralAIModelParams struct {
 // It handles provider-specific client configuration based on provider name.
 func (pc *ProviderConfig) UnmarshalYAML(value *yaml.Node) error {
 	var temp struct {
-		Name         string    `yaml:"name"`
-		ClientConfig yaml.Node `yaml:"client-config"`
-		Runs         yaml.Node `yaml:"runs"`
-		Disabled     bool      `yaml:"disabled"`
+		Name         string      `yaml:"name"`
+		ClientConfig yaml.Node   `yaml:"client-config"`
+		Runs         yaml.Node   `yaml:"runs"`
+		Disabled     bool        `yaml:"disabled"`
+		RetryPolicy  RetryPolicy `yaml:"retry-policy"`
 	}
 
 	if err := value.Decode(&temp); err != nil {
@@ -331,6 +368,7 @@ func (pc *ProviderConfig) UnmarshalYAML(value *yaml.Node) error {
 
 	pc.Name = temp.Name
 	pc.Disabled = temp.Disabled
+	pc.RetryPolicy = temp.RetryPolicy
 
 	if err := decodeRuns(temp.Name, &temp.Runs, &pc.Runs); err != nil {
 		return err
@@ -376,11 +414,12 @@ func (pc *ProviderConfig) UnmarshalYAML(value *yaml.Node) error {
 
 func decodeRuns(provider string, value *yaml.Node, out *[]RunConfig) error {
 	var temp []struct {
-		Name                 string    `yaml:"name"`
-		Model                string    `yaml:"model"`
-		MaxRequestsPerMinute int       `yaml:"max-requests-per-minute"`
-		Disabled             *bool     `yaml:"disabled"`
-		ModelParams          yaml.Node `yaml:"model-parameters"`
+		Name                 string       `yaml:"name"`
+		Model                string       `yaml:"model"`
+		MaxRequestsPerMinute int          `yaml:"max-requests-per-minute"`
+		Disabled             *bool        `yaml:"disabled"`
+		ModelParams          yaml.Node    `yaml:"model-parameters"`
+		RetryPolicy          *RetryPolicy `yaml:"retry-policy"`
 	}
 
 	if err := value.Decode(&temp); err != nil {
@@ -393,6 +432,7 @@ func decodeRuns(provider string, value *yaml.Node, out *[]RunConfig) error {
 		(*out)[i].Model = temp[i].Model
 		(*out)[i].MaxRequestsPerMinute = temp[i].MaxRequestsPerMinute
 		(*out)[i].Disabled = temp[i].Disabled
+		(*out)[i].RetryPolicy = temp[i].RetryPolicy
 
 		if !temp[i].ModelParams.IsZero() {
 			switch provider {

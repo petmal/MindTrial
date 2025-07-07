@@ -10,6 +10,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"slices"
 
 	"github.com/petmal/mindtrial/config"
 	mistralai "github.com/petmal/mindtrial/pkg/mistralai"
@@ -82,11 +84,14 @@ func (o *MistralAI) Run(ctx context.Context, cfg config.RunConfig, task config.T
 		}))))
 
 	resp, err := timed(func() (*mistralai.ChatCompletionResponse, error) {
-		response, _, err := o.client.ChatAPI.ChatCompletionV1ChatCompletionsPost(ctx).ChatCompletionRequest(*request).Execute()
+		response, httpResponse, err := o.client.ChatAPI.ChatCompletionV1ChatCompletionsPost(ctx).ChatCompletionRequest(*request).Execute()
+		if err != nil && o.isTransientResponse(httpResponse) {
+			return response, WrapErrRetryable(err)
+		}
 		return response, err
 	}, &result.duration)
 	if err != nil {
-		return result, fmt.Errorf("%w: %v", ErrGenerateResponse, err)
+		return result, WrapErrGenerateResponse(err)
 	}
 
 	if resp != nil {
@@ -111,6 +116,16 @@ func (o *MistralAI) Run(ctx context.Context, cfg config.RunConfig, task config.T
 
 func (o *MistralAI) isFileUploadSupported() bool {
 	return false // NOTE: Mistral AI API does not support file upload in the basic chat completion endpoint.
+}
+
+func (o *MistralAI) isTransientResponse(response *http.Response) bool {
+	return response != nil && slices.Contains([]int{
+		http.StatusTooManyRequests,
+		http.StatusRequestTimeout,
+		http.StatusBadGateway,
+		http.StatusServiceUnavailable,
+		http.StatusGatewayTimeout,
+	}, response.StatusCode)
 }
 
 func (o *MistralAI) applyModelParameters(request *mistralai.ChatCompletionRequest, modelParams config.MistralAIModelParams) error {
