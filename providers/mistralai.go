@@ -44,7 +44,7 @@ func (o MistralAI) Validator(expected utils.StringSet, validationRules config.Va
 
 func (o *MistralAI) Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error) {
 	if len(task.Files) > 0 {
-		if !o.isFileUploadSupported() {
+		if !o.isFileUploadSupported(cfg.Model) {
 			return result, ErrFileUploadNotSupported
 		}
 	}
@@ -78,9 +78,14 @@ func (o *MistralAI) Run(ctx context.Context, cfg config.RunConfig, task config.T
 			String: mistralai.PtrString(result.recordPrompt(DefaultAnswerFormatInstruction(task))),
 		})))
 
+	contentParts, err := o.createPromptMessageParts(ctx, task.Prompt, task.Files, &result)
+	if err != nil {
+		return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
+	}
+
 	request.Messages = append(request.Messages, mistralai.UserMessageAsChatCompletionRequestMessagesInner(
 		mistralai.NewUserMessage(*mistralai.NewNullableContent3(&mistralai.Content3{
-			String: mistralai.PtrString(result.recordPrompt(task.Prompt)),
+			ArrayOfContentChunk: &contentParts,
 		}))))
 
 	resp, err := timed(func() (*mistralai.ChatCompletionResponse, error) {
@@ -114,8 +119,16 @@ func (o *MistralAI) Run(ctx context.Context, cfg config.RunConfig, task config.T
 	return result, nil
 }
 
-func (o *MistralAI) isFileUploadSupported() bool {
-	return false // NOTE: Mistral AI API does not support file upload in the basic chat completion endpoint.
+func (o *MistralAI) isFileUploadSupported(model string) bool {
+	// Mistral AI models with vision capabilities.
+	// See: https://docs.mistral.ai/capabilities/vision/
+	return slices.Contains([]string{
+		"pixtral-12b-latest",
+		"pixtral-12b-2409", // legacy model name
+		"pixtral-large-latest",
+		"mistral-medium-latest",
+		"mistral-small-latest",
+	}, model)
 }
 
 func (o *MistralAI) isTransientResponse(response *http.Response) bool {
@@ -166,6 +179,37 @@ func (o *MistralAI) applyModelParameters(request *mistralai.ChatCompletionReques
 	}
 
 	return nil
+}
+
+func (o *MistralAI) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []mistralai.ContentChunk, err error) {
+	for _, file := range files {
+		if fileType, err := file.TypeValue(ctx); err != nil {
+			return parts, err
+		} else if !isSupportedImageType(fileType) {
+			return parts, fmt.Errorf("%w: %s", ErrFileNotSupported, fileType)
+		}
+
+		dataURL, err := file.GetDataURL(ctx)
+		if err != nil {
+			return parts, err
+		}
+
+		// Attach file name as a separate text block before the image.
+		parts = append(parts, mistralai.TextChunkAsContentChunk(
+			mistralai.NewTextChunk(result.recordPrompt(DefaultTaskFileNameInstruction(file)))))
+
+		// Create image URL struct and chunk.
+		imageURLChunk := mistralai.NewImageURLChunk(mistralai.ImageUrl{
+			ImageURLStruct: mistralai.NewImageURLStruct(dataURL),
+		})
+		parts = append(parts, mistralai.ImageURLChunkAsContentChunk(imageURLChunk))
+	}
+
+	// Append the prompt text after the file data for improved context integrity.
+	parts = append(parts, mistralai.TextChunkAsContentChunk(
+		mistralai.NewTextChunk(result.recordPrompt(promptText))))
+
+	return parts, nil
 }
 
 func (o *MistralAI) Close(ctx context.Context) error {
