@@ -15,10 +15,9 @@ import (
 	"fmt"
 )
 
-
 // Connectors struct for Connectors
 type Connectors struct {
-	Any *interface{}
+	Any                 *interface{}
 	MapmapOfStringint32 *map[string]int32
 }
 
@@ -26,7 +25,7 @@ type Connectors struct {
 func (dst *Connectors) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into Any
-	err = json.Unmarshal(data, &dst.Any);
+	err = json.Unmarshal(data, &dst.Any)
 	if err == nil {
 		jsonAny, _ := json.Marshal(dst.Any)
 		if string(jsonAny) == "{}" { // empty struct
@@ -39,7 +38,7 @@ func (dst *Connectors) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into MapmapOfStringint32
-	err = json.Unmarshal(data, &dst.MapmapOfStringint32);
+	err = json.Unmarshal(data, &dst.MapmapOfStringint32)
 	if err == nil {
 		jsonMapmapOfStringint32, _ := json.Marshal(dst.MapmapOfStringint32)
 		if string(jsonMapmapOfStringint32) == "{}" { // empty struct
@@ -66,7 +65,6 @@ func (src Connectors) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
-
 
 type NullableConnectors struct {
 	value *Connectors
@@ -103,5 +101,3 @@ func (v *NullableConnectors) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

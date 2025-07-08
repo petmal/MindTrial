@@ -22,11 +22,11 @@ var _ MappedNullable = &WandbIntegration{}
 type WandbIntegration struct {
 	Type *string `json:"type,omitempty"`
 	// The name of the project that the new run will be created under.
-	Project string `json:"project"`
-	Name NullableString `json:"name,omitempty"`
+	Project string         `json:"project"`
+	Name    NullableString `json:"name,omitempty"`
 	// The WandB API key to use for authentication.
-	ApiKey string `json:"api_key"`
-	RunName NullableString `json:"run_name,omitempty"`
+	ApiKey               string         `json:"api_key"`
+	RunName              NullableString `json:"run_name,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -143,6 +143,7 @@ func (o *WandbIntegration) HasName() bool {
 func (o *WandbIntegration) SetName(v string) {
 	o.Name.Set(&v)
 }
+
 // SetNameNil sets the value for Name to be an explicit nil
 func (o *WandbIntegration) SetNameNil() {
 	o.Name.Set(nil)
@@ -209,6 +210,7 @@ func (o *WandbIntegration) HasRunName() bool {
 func (o *WandbIntegration) SetRunName(v string) {
 	o.RunName.Set(&v)
 }
+
 // SetRunNameNil sets the value for RunName to be an explicit nil
 func (o *WandbIntegration) SetRunNameNil() {
 	o.RunName.Set(nil)
@@ -220,7 +222,7 @@ func (o *WandbIntegration) UnsetRunName() {
 }
 
 func (o WandbIntegration) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -262,10 +264,10 @@ func (o *WandbIntegration) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -330,5 +332,3 @@ func (v *NullableWandbIntegration) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

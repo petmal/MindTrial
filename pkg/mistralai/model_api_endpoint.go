@@ -21,9 +21,9 @@ type ApiEndpoint string
 // List of ApiEndpoint
 const (
 	V1_CHAT_COMPLETIONS ApiEndpoint = "/v1/chat/completions"
-	V1_EMBEDDINGS ApiEndpoint = "/v1/embeddings"
-	V1_FIM_COMPLETIONS ApiEndpoint = "/v1/fim/completions"
-	V1_MODERATIONS ApiEndpoint = "/v1/moderations"
+	V1_EMBEDDINGS       ApiEndpoint = "/v1/embeddings"
+	V1_FIM_COMPLETIONS  ApiEndpoint = "/v1/fim/completions"
+	V1_MODERATIONS      ApiEndpoint = "/v1/moderations"
 	V1_CHAT_MODERATIONS ApiEndpoint = "/v1/chat/moderations"
 )
 
@@ -114,4 +114,3 @@ func (v *NullableApiEndpoint) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-

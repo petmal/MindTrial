@@ -19,8 +19,8 @@ var _ MappedNullable = &UpdateFTModelIn{}
 
 // UpdateFTModelIn struct for UpdateFTModelIn
 type UpdateFTModelIn struct {
-	Name NullableString `json:"name,omitempty"`
-	Description NullableString `json:"description,omitempty"`
+	Name                 NullableString `json:"name,omitempty"`
+	Description          NullableString `json:"description,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -75,6 +75,7 @@ func (o *UpdateFTModelIn) HasName() bool {
 func (o *UpdateFTModelIn) SetName(v string) {
 	o.Name.Set(&v)
 }
+
 // SetNameNil sets the value for Name to be an explicit nil
 func (o *UpdateFTModelIn) SetNameNil() {
 	o.Name.Set(nil)
@@ -117,6 +118,7 @@ func (o *UpdateFTModelIn) HasDescription() bool {
 func (o *UpdateFTModelIn) SetDescription(v string) {
 	o.Description.Set(&v)
 }
+
 // SetDescriptionNil sets the value for Description to be an explicit nil
 func (o *UpdateFTModelIn) SetDescriptionNil() {
 	o.Description.Set(nil)
@@ -128,7 +130,7 @@ func (o *UpdateFTModelIn) UnsetDescription() {
 }
 
 func (o UpdateFTModelIn) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -208,5 +210,3 @@ func (v *NullableUpdateFTModelIn) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

@@ -20,20 +20,20 @@ var _ MappedNullable = &ClassifierFTModelOut{}
 
 // ClassifierFTModelOut struct for ClassifierFTModelOut
 type ClassifierFTModelOut struct {
-	Id string `json:"id"`
-	Object *string `json:"object,omitempty"`
-	Created int32 `json:"created"`
-	OwnedBy string `json:"owned_by"`
-	Root string `json:"root"`
-	Archived bool `json:"archived"`
-	Name NullableString `json:"name,omitempty"`
-	Description NullableString `json:"description,omitempty"`
-	Capabilities FTModelCapabilitiesOut `json:"capabilities"`
-	MaxContextLength *int32 `json:"max_context_length,omitempty"`
-	Aliases []string `json:"aliases,omitempty"`
-	Job string `json:"job"`
-	ClassifierTargets []ClassifierTargetOut `json:"classifier_targets"`
-	ModelType *string `json:"model_type,omitempty"`
+	Id                   string                 `json:"id"`
+	Object               *string                `json:"object,omitempty"`
+	Created              int32                  `json:"created"`
+	OwnedBy              string                 `json:"owned_by"`
+	Root                 string                 `json:"root"`
+	Archived             bool                   `json:"archived"`
+	Name                 NullableString         `json:"name,omitempty"`
+	Description          NullableString         `json:"description,omitempty"`
+	Capabilities         FTModelCapabilitiesOut `json:"capabilities"`
+	MaxContextLength     *int32                 `json:"max_context_length,omitempty"`
+	Aliases              []string               `json:"aliases,omitempty"`
+	Job                  string                 `json:"job"`
+	ClassifierTargets    []ClassifierTargetOut  `json:"classifier_targets"`
+	ModelType            *string                `json:"model_type,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -260,6 +260,7 @@ func (o *ClassifierFTModelOut) HasName() bool {
 func (o *ClassifierFTModelOut) SetName(v string) {
 	o.Name.Set(&v)
 }
+
 // SetNameNil sets the value for Name to be an explicit nil
 func (o *ClassifierFTModelOut) SetNameNil() {
 	o.Name.Set(nil)
@@ -302,6 +303,7 @@ func (o *ClassifierFTModelOut) HasDescription() bool {
 func (o *ClassifierFTModelOut) SetDescription(v string) {
 	o.Description.Set(&v)
 }
+
 // SetDescriptionNil sets the value for Description to be an explicit nil
 func (o *ClassifierFTModelOut) SetDescriptionNil() {
 	o.Description.Set(nil)
@@ -481,7 +483,7 @@ func (o *ClassifierFTModelOut) SetModelType(v string) {
 }
 
 func (o ClassifierFTModelOut) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -544,10 +546,10 @@ func (o *ClassifierFTModelOut) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -621,5 +623,3 @@ func (v *NullableClassifierFTModelOut) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

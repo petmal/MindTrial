@@ -23,11 +23,11 @@ type AgentUpdateRequest struct {
 	// List of tools which are available to the model during the conversation.
 	Tools []AgentToolsInner `json:"tools,omitempty"`
 	// Completion arguments that will be used to generate assistant responses. Can be overridden at each message request.
-	CompletionArgs *CompletionArgs `json:"completion_args,omitempty"`
-	Model NullableString `json:"model,omitempty"`
-	Name NullableString `json:"name,omitempty"`
-	Description NullableString `json:"description,omitempty"`
-	Handoffs []string `json:"handoffs,omitempty"`
+	CompletionArgs       *CompletionArgs `json:"completion_args,omitempty"`
+	Model                NullableString  `json:"model,omitempty"`
+	Name                 NullableString  `json:"name,omitempty"`
+	Description          NullableString  `json:"description,omitempty"`
+	Handoffs             []string        `json:"handoffs,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -82,6 +82,7 @@ func (o *AgentUpdateRequest) HasInstructions() bool {
 func (o *AgentUpdateRequest) SetInstructions(v string) {
 	o.Instructions.Set(&v)
 }
+
 // SetInstructionsNil sets the value for Instructions to be an explicit nil
 func (o *AgentUpdateRequest) SetInstructionsNil() {
 	o.Instructions.Set(nil)
@@ -188,6 +189,7 @@ func (o *AgentUpdateRequest) HasModel() bool {
 func (o *AgentUpdateRequest) SetModel(v string) {
 	o.Model.Set(&v)
 }
+
 // SetModelNil sets the value for Model to be an explicit nil
 func (o *AgentUpdateRequest) SetModelNil() {
 	o.Model.Set(nil)
@@ -230,6 +232,7 @@ func (o *AgentUpdateRequest) HasName() bool {
 func (o *AgentUpdateRequest) SetName(v string) {
 	o.Name.Set(&v)
 }
+
 // SetNameNil sets the value for Name to be an explicit nil
 func (o *AgentUpdateRequest) SetNameNil() {
 	o.Name.Set(nil)
@@ -272,6 +275,7 @@ func (o *AgentUpdateRequest) HasDescription() bool {
 func (o *AgentUpdateRequest) SetDescription(v string) {
 	o.Description.Set(&v)
 }
+
 // SetDescriptionNil sets the value for Description to be an explicit nil
 func (o *AgentUpdateRequest) SetDescriptionNil() {
 	o.Description.Set(nil)
@@ -316,7 +320,7 @@ func (o *AgentUpdateRequest) SetHandoffs(v []string) {
 }
 
 func (o AgentUpdateRequest) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -416,5 +420,3 @@ func (v *NullableAgentUpdateRequest) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

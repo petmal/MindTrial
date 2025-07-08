@@ -19,11 +19,11 @@ var _ MappedNullable = &ConversationUsageInfo{}
 
 // ConversationUsageInfo struct for ConversationUsageInfo
 type ConversationUsageInfo struct {
-	PromptTokens *int32 `json:"prompt_tokens,omitempty"`
-	CompletionTokens *int32 `json:"completion_tokens,omitempty"`
-	TotalTokens *int32 `json:"total_tokens,omitempty"`
-	ConnectorTokens *ConnectorTokens `json:"connector_tokens,omitempty"`
-	Connectors *Connectors `json:"connectors,omitempty"`
+	PromptTokens         *int32           `json:"prompt_tokens,omitempty"`
+	CompletionTokens     *int32           `json:"completion_tokens,omitempty"`
+	TotalTokens          *int32           `json:"total_tokens,omitempty"`
+	ConnectorTokens      *ConnectorTokens `json:"connector_tokens,omitempty"`
+	Connectors           *Connectors      `json:"connectors,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -219,7 +219,7 @@ func (o *ConversationUsageInfo) SetConnectors(v Connectors) {
 }
 
 func (o ConversationUsageInfo) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -311,5 +311,3 @@ func (v *NullableConversationUsageInfo) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

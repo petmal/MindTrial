@@ -20,8 +20,8 @@ var _ MappedNullable = &ImageURLStruct{}
 
 // ImageURLStruct struct for ImageURLStruct
 type ImageURLStruct struct {
-	Url string `json:"url"`
-	Detail NullableString `json:"detail,omitempty"`
+	Url                  string         `json:"url"`
+	Detail               NullableString `json:"detail,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -101,6 +101,7 @@ func (o *ImageURLStruct) HasDetail() bool {
 func (o *ImageURLStruct) SetDetail(v string) {
 	o.Detail.Set(&v)
 }
+
 // SetDetailNil sets the value for Detail to be an explicit nil
 func (o *ImageURLStruct) SetDetailNil() {
 	o.Detail.Set(nil)
@@ -112,7 +113,7 @@ func (o *ImageURLStruct) UnsetDetail() {
 }
 
 func (o ImageURLStruct) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -146,10 +147,10 @@ func (o *ImageURLStruct) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -211,5 +212,3 @@ func (v *NullableImageURLStruct) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

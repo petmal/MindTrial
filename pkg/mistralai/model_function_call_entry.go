@@ -12,8 +12,8 @@ package mistralai
 
 import (
 	"encoding/json"
-	"time"
 	"fmt"
+	"time"
 )
 
 // checks if the FunctionCallEntry type satisfies the MappedNullable interface at compile time
@@ -21,14 +21,14 @@ var _ MappedNullable = &FunctionCallEntry{}
 
 // FunctionCallEntry struct for FunctionCallEntry
 type FunctionCallEntry struct {
-	Object *string `json:"object,omitempty"`
-	Type *string `json:"type,omitempty"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	CompletedAt NullableTime `json:"completed_at,omitempty"`
-	Id *string `json:"id,omitempty"`
-	ToolCallId string `json:"tool_call_id"`
-	Name string `json:"name"`
-	Arguments FunctionCallEntryArguments `json:"arguments"`
+	Object               *string                    `json:"object,omitempty"`
+	Type                 *string                    `json:"type,omitempty"`
+	CreatedAt            *time.Time                 `json:"created_at,omitempty"`
+	CompletedAt          NullableTime               `json:"completed_at,omitempty"`
+	Id                   *string                    `json:"id,omitempty"`
+	ToolCallId           string                     `json:"tool_call_id"`
+	Name                 string                     `json:"name"`
+	Arguments            FunctionCallEntryArguments `json:"arguments"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -190,6 +190,7 @@ func (o *FunctionCallEntry) HasCompletedAt() bool {
 func (o *FunctionCallEntry) SetCompletedAt(v time.Time) {
 	o.CompletedAt.Set(&v)
 }
+
 // SetCompletedAtNil sets the value for CompletedAt to be an explicit nil
 func (o *FunctionCallEntry) SetCompletedAtNil() {
 	o.CompletedAt.Set(nil)
@@ -305,7 +306,7 @@ func (o *FunctionCallEntry) SetArguments(v FunctionCallEntryArguments) {
 }
 
 func (o FunctionCallEntry) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -355,10 +356,10 @@ func (o *FunctionCallEntry) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -426,5 +427,3 @@ func (v *NullableFunctionCallEntry) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

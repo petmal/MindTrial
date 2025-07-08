@@ -36,7 +36,6 @@ func CompletionDetailedJobOutAsResponse1(v *CompletionDetailedJobOut) Response1 
 	}
 }
 
-
 // Unmarshal JSON data into one of the pointers in the struct
 func (dst *Response1) UnmarshalJSON(data []byte) error {
 	var err error
@@ -102,7 +101,7 @@ func (src Response1) MarshalJSON() ([]byte, error) {
 }
 
 // Get the actual instance
-func (obj *Response1) GetActualInstance() (interface{}) {
+func (obj *Response1) GetActualInstance() interface{} {
 	if obj == nil {
 		return nil
 	}
@@ -119,7 +118,7 @@ func (obj *Response1) GetActualInstance() (interface{}) {
 }
 
 // Get the actual instance value
-func (obj Response1) GetActualInstanceValue() (interface{}) {
+func (obj Response1) GetActualInstanceValue() interface{} {
 	if obj.ClassifierDetailedJobOut != nil {
 		return *obj.ClassifierDetailedJobOut
 	}
@@ -167,5 +166,3 @@ func (v *NullableResponse1) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

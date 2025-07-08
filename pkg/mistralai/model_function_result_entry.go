@@ -12,8 +12,8 @@ package mistralai
 
 import (
 	"encoding/json"
-	"time"
 	"fmt"
+	"time"
 )
 
 // checks if the FunctionResultEntry type satisfies the MappedNullable interface at compile time
@@ -21,13 +21,13 @@ var _ MappedNullable = &FunctionResultEntry{}
 
 // FunctionResultEntry struct for FunctionResultEntry
 type FunctionResultEntry struct {
-	Object *string `json:"object,omitempty"`
-	Type *string `json:"type,omitempty"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	CompletedAt NullableTime `json:"completed_at,omitempty"`
-	Id *string `json:"id,omitempty"`
-	ToolCallId string `json:"tool_call_id"`
-	Result string `json:"result"`
+	Object               *string      `json:"object,omitempty"`
+	Type                 *string      `json:"type,omitempty"`
+	CreatedAt            *time.Time   `json:"created_at,omitempty"`
+	CompletedAt          NullableTime `json:"completed_at,omitempty"`
+	Id                   *string      `json:"id,omitempty"`
+	ToolCallId           string       `json:"tool_call_id"`
+	Result               string       `json:"result"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -188,6 +188,7 @@ func (o *FunctionResultEntry) HasCompletedAt() bool {
 func (o *FunctionResultEntry) SetCompletedAt(v time.Time) {
 	o.CompletedAt.Set(&v)
 }
+
 // SetCompletedAtNil sets the value for CompletedAt to be an explicit nil
 func (o *FunctionResultEntry) SetCompletedAtNil() {
 	o.CompletedAt.Set(nil)
@@ -279,7 +280,7 @@ func (o *FunctionResultEntry) SetResult(v string) {
 }
 
 func (o FunctionResultEntry) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -327,10 +328,10 @@ func (o *FunctionResultEntry) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -397,5 +398,3 @@ func (v *NullableFunctionResultEntry) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

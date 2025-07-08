@@ -20,9 +20,9 @@ var _ MappedNullable = &ModerationResponse{}
 
 // ModerationResponse struct for ModerationResponse
 type ModerationResponse struct {
-	Id string `json:"id"`
-	Model string `json:"model"`
-	Results []ModerationObject `json:"results"`
+	Id                   string             `json:"id"`
+	Model                string             `json:"model"`
+	Results              []ModerationObject `json:"results"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -121,7 +121,7 @@ func (o *ModerationResponse) SetResults(v []ModerationObject) {
 }
 
 func (o ModerationResponse) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -156,10 +156,10 @@ func (o *ModerationResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -222,5 +222,3 @@ func (v *NullableModerationResponse) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

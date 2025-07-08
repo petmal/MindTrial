@@ -15,18 +15,17 @@ import (
 	"fmt"
 )
 
-
 // InputEntriesInner struct for InputEntriesInner
 type InputEntriesInner struct {
 	FunctionResultEntry *FunctionResultEntry
-	MessageInputEntry *MessageInputEntry
+	MessageInputEntry   *MessageInputEntry
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
 func (dst *InputEntriesInner) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into FunctionResultEntry
-	err = json.Unmarshal(data, &dst.FunctionResultEntry);
+	err = json.Unmarshal(data, &dst.FunctionResultEntry)
 	if err == nil {
 		jsonFunctionResultEntry, _ := json.Marshal(dst.FunctionResultEntry)
 		if string(jsonFunctionResultEntry) == "{}" { // empty struct
@@ -39,7 +38,7 @@ func (dst *InputEntriesInner) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into MessageInputEntry
-	err = json.Unmarshal(data, &dst.MessageInputEntry);
+	err = json.Unmarshal(data, &dst.MessageInputEntry)
 	if err == nil {
 		jsonMessageInputEntry, _ := json.Marshal(dst.MessageInputEntry)
 		if string(jsonMessageInputEntry) == "{}" { // empty struct
@@ -66,7 +65,6 @@ func (src InputEntriesInner) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
-
 
 type NullableInputEntriesInner struct {
 	value *InputEntriesInner
@@ -103,5 +101,3 @@ func (v *NullableInputEntriesInner) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

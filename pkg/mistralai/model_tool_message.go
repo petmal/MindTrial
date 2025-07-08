@@ -20,10 +20,10 @@ var _ MappedNullable = &ToolMessage{}
 
 // ToolMessage struct for ToolMessage
 type ToolMessage struct {
-	Content NullableContent3 `json:"content"`
-	ToolCallId NullableString `json:"tool_call_id,omitempty"`
-	Name NullableString `json:"name,omitempty"`
-	Role *string `json:"role,omitempty"`
+	Content              NullableContent3 `json:"content"`
+	ToolCallId           NullableString   `json:"tool_call_id,omitempty"`
+	Name                 NullableString   `json:"name,omitempty"`
+	Role                 *string          `json:"role,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -109,6 +109,7 @@ func (o *ToolMessage) HasToolCallId() bool {
 func (o *ToolMessage) SetToolCallId(v string) {
 	o.ToolCallId.Set(&v)
 }
+
 // SetToolCallIdNil sets the value for ToolCallId to be an explicit nil
 func (o *ToolMessage) SetToolCallIdNil() {
 	o.ToolCallId.Set(nil)
@@ -151,6 +152,7 @@ func (o *ToolMessage) HasName() bool {
 func (o *ToolMessage) SetName(v string) {
 	o.Name.Set(&v)
 }
+
 // SetNameNil sets the value for Name to be an explicit nil
 func (o *ToolMessage) SetNameNil() {
 	o.Name.Set(nil)
@@ -194,7 +196,7 @@ func (o *ToolMessage) SetRole(v string) {
 }
 
 func (o ToolMessage) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -234,10 +236,10 @@ func (o *ToolMessage) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -301,5 +303,3 @@ func (v *NullableToolMessage) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

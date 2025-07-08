@@ -12,8 +12,8 @@ package mistralai
 
 import (
 	"encoding/json"
-	"time"
 	"fmt"
+	"time"
 )
 
 // checks if the ResponseDoneEvent type satisfies the MappedNullable interface at compile time
@@ -21,9 +21,9 @@ var _ MappedNullable = &ResponseDoneEvent{}
 
 // ResponseDoneEvent struct for ResponseDoneEvent
 type ResponseDoneEvent struct {
-	Type *string `json:"type,omitempty"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	Usage ConversationUsageInfo `json:"usage"`
+	Type                 *string               `json:"type,omitempty"`
+	CreatedAt            *time.Time            `json:"created_at,omitempty"`
+	Usage                ConversationUsageInfo `json:"usage"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -140,7 +140,7 @@ func (o *ResponseDoneEvent) SetUsage(v ConversationUsageInfo) {
 }
 
 func (o ResponseDoneEvent) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -177,10 +177,10 @@ func (o *ResponseDoneEvent) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -243,5 +243,3 @@ func (v *NullableResponseDoneEvent) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

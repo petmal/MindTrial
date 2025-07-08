@@ -21,7 +21,7 @@ type FTClassifierLossFunction string
 // List of FTClassifierLossFunction
 const (
 	SINGLE_CLASS FTClassifierLossFunction = "single_class"
-	MULTI_CLASS FTClassifierLossFunction = "multi_class"
+	MULTI_CLASS  FTClassifierLossFunction = "multi_class"
 )
 
 // All allowed values of FTClassifierLossFunction enum
@@ -108,4 +108,3 @@ func (v *NullableFTClassifierLossFunction) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-

@@ -19,8 +19,8 @@ var _ MappedNullable = &Prediction{}
 
 // Prediction struct for Prediction
 type Prediction struct {
-	Type *string `json:"type,omitempty"`
-	Content *string `json:"content,omitempty"`
+	Type                 *string `json:"type,omitempty"`
+	Content              *string `json:"content,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -116,7 +116,7 @@ func (o *Prediction) SetContent(v string) {
 }
 
 func (o Prediction) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -196,5 +196,3 @@ func (v *NullablePrediction) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

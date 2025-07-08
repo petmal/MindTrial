@@ -20,9 +20,9 @@ type Source string
 
 // List of Source
 const (
-	UPLOAD Source = "upload"
+	UPLOAD     Source = "upload"
 	REPOSITORY Source = "repository"
-	MISTRAL Source = "mistral"
+	MISTRAL    Source = "mistral"
 )
 
 // All allowed values of Source enum
@@ -110,4 +110,3 @@ func (v *NullableSource) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-

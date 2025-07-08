@@ -19,10 +19,10 @@ var _ MappedNullable = &ResponseBase{}
 
 // ResponseBase struct for ResponseBase
 type ResponseBase struct {
-	Id *string `json:"id,omitempty"`
-	Object *string `json:"object,omitempty"`
-	Model *string `json:"model,omitempty"`
-	Usage *UsageInfo `json:"usage,omitempty"`
+	Id                   *string    `json:"id,omitempty"`
+	Object               *string    `json:"object,omitempty"`
+	Model                *string    `json:"model,omitempty"`
+	Usage                *UsageInfo `json:"usage,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -174,7 +174,7 @@ func (o *ResponseBase) SetUsage(v UsageInfo) {
 }
 
 func (o ResponseBase) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -262,5 +262,3 @@ func (v *NullableResponseBase) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

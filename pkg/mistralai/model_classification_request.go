@@ -21,8 +21,8 @@ var _ MappedNullable = &ClassificationRequest{}
 // ClassificationRequest struct for ClassificationRequest
 type ClassificationRequest struct {
 	// ID of the model to use.
-	Model string `json:"model"`
-	Input Input1 `json:"input"`
+	Model                string `json:"model"`
+	Input                Input1 `json:"input"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -96,7 +96,7 @@ func (o *ClassificationRequest) SetInput(v Input1) {
 }
 
 func (o ClassificationRequest) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -129,10 +129,10 @@ func (o *ClassificationRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -194,5 +194,3 @@ func (v *NullableClassificationRequest) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

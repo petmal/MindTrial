@@ -15,18 +15,17 @@ import (
 	"fmt"
 )
 
-
 // Response struct for Response
 type Response struct {
 	LegacyJobMetadataOut *LegacyJobMetadataOut
-	ResponseAnyOf *ResponseAnyOf
+	ResponseAnyOf        *ResponseAnyOf
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
 func (dst *Response) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into LegacyJobMetadataOut
-	err = json.Unmarshal(data, &dst.LegacyJobMetadataOut);
+	err = json.Unmarshal(data, &dst.LegacyJobMetadataOut)
 	if err == nil {
 		jsonLegacyJobMetadataOut, _ := json.Marshal(dst.LegacyJobMetadataOut)
 		if string(jsonLegacyJobMetadataOut) == "{}" { // empty struct
@@ -39,7 +38,7 @@ func (dst *Response) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into ResponseAnyOf
-	err = json.Unmarshal(data, &dst.ResponseAnyOf);
+	err = json.Unmarshal(data, &dst.ResponseAnyOf)
 	if err == nil {
 		jsonResponseAnyOf, _ := json.Marshal(dst.ResponseAnyOf)
 		if string(jsonResponseAnyOf) == "{}" { // empty struct
@@ -66,7 +65,6 @@ func (src Response) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
-
 
 type NullableResponse struct {
 	value *Response
@@ -103,5 +101,3 @@ func (v *NullableResponse) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

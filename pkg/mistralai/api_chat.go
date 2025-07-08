@@ -18,14 +18,13 @@ import (
 	"net/url"
 )
 
-
 type ChatAPI interface {
 
 	/*
-	ChatCompletionV1ChatCompletionsPost Chat Completion
+		ChatCompletionV1ChatCompletionsPost Chat Completion
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiChatCompletionV1ChatCompletionsPostRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiChatCompletionV1ChatCompletionsPostRequest
 	*/
 	ChatCompletionV1ChatCompletionsPost(ctx context.Context) ApiChatCompletionV1ChatCompletionsPostRequest
 
@@ -38,8 +37,8 @@ type ChatAPI interface {
 type ChatAPIService service
 
 type ApiChatCompletionV1ChatCompletionsPostRequest struct {
-	ctx context.Context
-	ApiService ChatAPI
+	ctx                   context.Context
+	ApiService            ChatAPI
 	chatCompletionRequest *ChatCompletionRequest
 }
 
@@ -55,24 +54,25 @@ func (r ApiChatCompletionV1ChatCompletionsPostRequest) Execute() (*ChatCompletio
 /*
 ChatCompletionV1ChatCompletionsPost Chat Completion
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiChatCompletionV1ChatCompletionsPostRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiChatCompletionV1ChatCompletionsPostRequest
 */
 func (a *ChatAPIService) ChatCompletionV1ChatCompletionsPost(ctx context.Context) ApiChatCompletionV1ChatCompletionsPostRequest {
 	return ApiChatCompletionV1ChatCompletionsPostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return ChatCompletionResponse
+//
+//	@return ChatCompletionResponse
 func (a *ChatAPIService) ChatCompletionV1ChatCompletionsPostExecute(r ApiChatCompletionV1ChatCompletionsPostRequest) (*ChatCompletionResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *ChatCompletionResponse
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *ChatCompletionResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ChatAPIService.ChatCompletionV1ChatCompletionsPost")
@@ -137,8 +137,8 @@ func (a *ChatAPIService) ChatCompletionV1ChatCompletionsPostExecute(r ApiChatCom
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

@@ -19,9 +19,9 @@ import (
 // ChatCompletionRequestMessagesInner - struct for ChatCompletionRequestMessagesInner
 type ChatCompletionRequestMessagesInner struct {
 	AssistantMessage *AssistantMessage
-	SystemMessage *SystemMessage
-	ToolMessage *ToolMessage
-	UserMessage *UserMessage
+	SystemMessage    *SystemMessage
+	ToolMessage      *ToolMessage
+	UserMessage      *UserMessage
 }
 
 // AssistantMessageAsChatCompletionRequestMessagesInner is a convenience function that returns AssistantMessage wrapped in ChatCompletionRequestMessagesInner
@@ -51,7 +51,6 @@ func UserMessageAsChatCompletionRequestMessagesInner(v *UserMessage) ChatComplet
 		UserMessage: v,
 	}
 }
-
 
 // Unmarshal JSON data into one of the pointers in the struct
 func (dst *ChatCompletionRequestMessagesInner) UnmarshalJSON(data []byte) error {
@@ -162,7 +161,7 @@ func (src ChatCompletionRequestMessagesInner) MarshalJSON() ([]byte, error) {
 }
 
 // Get the actual instance
-func (obj *ChatCompletionRequestMessagesInner) GetActualInstance() (interface{}) {
+func (obj *ChatCompletionRequestMessagesInner) GetActualInstance() interface{} {
 	if obj == nil {
 		return nil
 	}
@@ -187,7 +186,7 @@ func (obj *ChatCompletionRequestMessagesInner) GetActualInstance() (interface{})
 }
 
 // Get the actual instance value
-func (obj ChatCompletionRequestMessagesInner) GetActualInstanceValue() (interface{}) {
+func (obj ChatCompletionRequestMessagesInner) GetActualInstanceValue() interface{} {
 	if obj.AssistantMessage != nil {
 		return *obj.AssistantMessage
 	}
@@ -243,5 +242,3 @@ func (v *NullableChatCompletionRequestMessagesInner) UnmarshalJSON(src []byte) e
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

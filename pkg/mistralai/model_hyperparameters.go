@@ -15,7 +15,6 @@ import (
 	"fmt"
 )
 
-
 // Hyperparameters struct for Hyperparameters
 type Hyperparameters struct {
 	ClassifierTrainingParametersIn *ClassifierTrainingParametersIn
@@ -26,7 +25,7 @@ type Hyperparameters struct {
 func (dst *Hyperparameters) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into ClassifierTrainingParametersIn
-	err = json.Unmarshal(data, &dst.ClassifierTrainingParametersIn);
+	err = json.Unmarshal(data, &dst.ClassifierTrainingParametersIn)
 	if err == nil {
 		jsonClassifierTrainingParametersIn, _ := json.Marshal(dst.ClassifierTrainingParametersIn)
 		if string(jsonClassifierTrainingParametersIn) == "{}" { // empty struct
@@ -39,7 +38,7 @@ func (dst *Hyperparameters) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into CompletionTrainingParametersIn
-	err = json.Unmarshal(data, &dst.CompletionTrainingParametersIn);
+	err = json.Unmarshal(data, &dst.CompletionTrainingParametersIn)
 	if err == nil {
 		jsonCompletionTrainingParametersIn, _ := json.Marshal(dst.CompletionTrainingParametersIn)
 		if string(jsonCompletionTrainingParametersIn) == "{}" { // empty struct
@@ -66,7 +65,6 @@ func (src Hyperparameters) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
-
 
 type NullableHyperparameters struct {
 	value *Hyperparameters
@@ -103,5 +101,3 @@ func (v *NullableHyperparameters) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

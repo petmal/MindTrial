@@ -12,8 +12,8 @@ package mistralai
 
 import (
 	"encoding/json"
-	"time"
 	"fmt"
+	"time"
 )
 
 // checks if the Agent type satisfies the MappedNullable interface at compile time
@@ -25,16 +25,16 @@ type Agent struct {
 	// List of tools which are available to the model during the conversation.
 	Tools []AgentToolsInner `json:"tools,omitempty"`
 	// Completion arguments that will be used to generate assistant responses. Can be overridden at each message request.
-	CompletionArgs *CompletionArgs `json:"completion_args,omitempty"`
-	Model string `json:"model"`
-	Name string `json:"name"`
-	Description NullableString `json:"description,omitempty"`
-	Handoffs []string `json:"handoffs,omitempty"`
-	Object *string `json:"object,omitempty"`
-	Id string `json:"id"`
-	Version int32 `json:"version"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CompletionArgs       *CompletionArgs `json:"completion_args,omitempty"`
+	Model                string          `json:"model"`
+	Name                 string          `json:"name"`
+	Description          NullableString  `json:"description,omitempty"`
+	Handoffs             []string        `json:"handoffs,omitempty"`
+	Object               *string         `json:"object,omitempty"`
+	Id                   string          `json:"id"`
+	Version              int32           `json:"version"`
+	CreatedAt            time.Time       `json:"created_at"`
+	UpdatedAt            time.Time       `json:"updated_at"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -99,6 +99,7 @@ func (o *Agent) HasInstructions() bool {
 func (o *Agent) SetInstructions(v string) {
 	o.Instructions.Set(&v)
 }
+
 // SetInstructionsNil sets the value for Instructions to be an explicit nil
 func (o *Agent) SetInstructionsNil() {
 	o.Instructions.Set(nil)
@@ -253,6 +254,7 @@ func (o *Agent) HasDescription() bool {
 func (o *Agent) SetDescription(v string) {
 	o.Description.Set(&v)
 }
+
 // SetDescriptionNil sets the value for Description to be an explicit nil
 func (o *Agent) SetDescriptionNil() {
 	o.Description.Set(nil)
@@ -425,7 +427,7 @@ func (o *Agent) SetUpdatedAt(v time.Time) {
 }
 
 func (o Agent) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -484,10 +486,10 @@ func (o *Agent) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -559,5 +561,3 @@ func (v *NullableAgent) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

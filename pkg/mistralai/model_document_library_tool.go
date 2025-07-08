@@ -22,7 +22,7 @@ var _ MappedNullable = &DocumentLibraryTool{}
 type DocumentLibraryTool struct {
 	Type *string `json:"type,omitempty"`
 	// Ids of the library in which to search.
-	LibraryIds []string `json:"library_ids"`
+	LibraryIds           []string `json:"library_ids"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -107,7 +107,7 @@ func (o *DocumentLibraryTool) SetLibraryIds(v []string) {
 }
 
 func (o DocumentLibraryTool) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -141,10 +141,10 @@ func (o *DocumentLibraryTool) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -206,5 +206,3 @@ func (v *NullableDocumentLibraryTool) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

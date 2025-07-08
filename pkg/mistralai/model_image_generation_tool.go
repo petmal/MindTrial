@@ -19,7 +19,7 @@ var _ MappedNullable = &ImageGenerationTool{}
 
 // ImageGenerationTool struct for ImageGenerationTool
 type ImageGenerationTool struct {
-	Type *string `json:"type,omitempty"`
+	Type                 *string `json:"type,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -79,7 +79,7 @@ func (o *ImageGenerationTool) SetType(v string) {
 }
 
 func (o ImageGenerationTool) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -155,5 +155,3 @@ func (v *NullableImageGenerationTool) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

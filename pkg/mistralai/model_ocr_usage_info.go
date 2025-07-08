@@ -21,8 +21,8 @@ var _ MappedNullable = &OCRUsageInfo{}
 // OCRUsageInfo struct for OCRUsageInfo
 type OCRUsageInfo struct {
 	// Number of pages processed
-	PagesProcessed int32 `json:"pages_processed"`
-	DocSizeBytes NullableInt32 `json:"doc_size_bytes,omitempty"`
+	PagesProcessed       int32         `json:"pages_processed"`
+	DocSizeBytes         NullableInt32 `json:"doc_size_bytes,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -102,6 +102,7 @@ func (o *OCRUsageInfo) HasDocSizeBytes() bool {
 func (o *OCRUsageInfo) SetDocSizeBytes(v int32) {
 	o.DocSizeBytes.Set(&v)
 }
+
 // SetDocSizeBytesNil sets the value for DocSizeBytes to be an explicit nil
 func (o *OCRUsageInfo) SetDocSizeBytesNil() {
 	o.DocSizeBytes.Set(nil)
@@ -113,7 +114,7 @@ func (o *OCRUsageInfo) UnsetDocSizeBytes() {
 }
 
 func (o OCRUsageInfo) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -147,10 +148,10 @@ func (o *OCRUsageInfo) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -212,5 +213,3 @@ func (v *NullableOCRUsageInfo) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

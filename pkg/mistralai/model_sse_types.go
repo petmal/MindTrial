@@ -21,14 +21,14 @@ type SSETypes string
 // List of SSETypes
 const (
 	CONVERSATION_RESPONSE_STARTED SSETypes = "conversation.response.started"
-	CONVERSATION_RESPONSE_DONE SSETypes = "conversation.response.done"
-	CONVERSATION_RESPONSE_ERROR SSETypes = "conversation.response.error"
-	MESSAGE_OUTPUT_DELTA SSETypes = "message.output.delta"
-	TOOL_EXECUTION_STARTED SSETypes = "tool.execution.started"
-	TOOL_EXECUTION_DONE SSETypes = "tool.execution.done"
-	AGENT_HANDOFF_STARTED SSETypes = "agent.handoff.started"
-	AGENT_HANDOFF_DONE SSETypes = "agent.handoff.done"
-	FUNCTION_CALL_DELTA SSETypes = "function.call.delta"
+	CONVERSATION_RESPONSE_DONE    SSETypes = "conversation.response.done"
+	CONVERSATION_RESPONSE_ERROR   SSETypes = "conversation.response.error"
+	MESSAGE_OUTPUT_DELTA          SSETypes = "message.output.delta"
+	TOOL_EXECUTION_STARTED        SSETypes = "tool.execution.started"
+	TOOL_EXECUTION_DONE           SSETypes = "tool.execution.done"
+	AGENT_HANDOFF_STARTED         SSETypes = "agent.handoff.started"
+	AGENT_HANDOFF_DONE            SSETypes = "agent.handoff.done"
+	FUNCTION_CALL_DELTA           SSETypes = "function.call.delta"
 )
 
 // All allowed values of SSETypes enum
@@ -122,4 +122,3 @@ func (v *NullableSSETypes) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-

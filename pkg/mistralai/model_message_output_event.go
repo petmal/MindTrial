@@ -12,8 +12,8 @@ package mistralai
 
 import (
 	"encoding/json"
-	"time"
 	"fmt"
+	"time"
 )
 
 // checks if the MessageOutputEvent type satisfies the MappedNullable interface at compile time
@@ -21,15 +21,15 @@ var _ MappedNullable = &MessageOutputEvent{}
 
 // MessageOutputEvent struct for MessageOutputEvent
 type MessageOutputEvent struct {
-	Type *string `json:"type,omitempty"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	OutputIndex *int32 `json:"output_index,omitempty"`
-	Id string `json:"id"`
-	ContentIndex *int32 `json:"content_index,omitempty"`
-	Model NullableString `json:"model,omitempty"`
-	AgentId NullableString `json:"agent_id,omitempty"`
-	Role *string `json:"role,omitempty"`
-	Content Content2 `json:"content"`
+	Type                 *string        `json:"type,omitempty"`
+	CreatedAt            *time.Time     `json:"created_at,omitempty"`
+	OutputIndex          *int32         `json:"output_index,omitempty"`
+	Id                   string         `json:"id"`
+	ContentIndex         *int32         `json:"content_index,omitempty"`
+	Model                NullableString `json:"model,omitempty"`
+	AgentId              NullableString `json:"agent_id,omitempty"`
+	Role                 *string        `json:"role,omitempty"`
+	Content              Content2       `json:"content"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -254,6 +254,7 @@ func (o *MessageOutputEvent) HasModel() bool {
 func (o *MessageOutputEvent) SetModel(v string) {
 	o.Model.Set(&v)
 }
+
 // SetModelNil sets the value for Model to be an explicit nil
 func (o *MessageOutputEvent) SetModelNil() {
 	o.Model.Set(nil)
@@ -296,6 +297,7 @@ func (o *MessageOutputEvent) HasAgentId() bool {
 func (o *MessageOutputEvent) SetAgentId(v string) {
 	o.AgentId.Set(&v)
 }
+
 // SetAgentIdNil sets the value for AgentId to be an explicit nil
 func (o *MessageOutputEvent) SetAgentIdNil() {
 	o.AgentId.Set(nil)
@@ -363,7 +365,7 @@ func (o *MessageOutputEvent) SetContent(v Content2) {
 }
 
 func (o MessageOutputEvent) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -417,10 +419,10 @@ func (o *MessageOutputEvent) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -489,5 +491,3 @@ func (v *NullableMessageOutputEvent) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

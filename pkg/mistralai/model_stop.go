@@ -15,18 +15,17 @@ import (
 	"fmt"
 )
 
-
 // Stop Stop generation if this token is detected. Or if one of these tokens is detected when providing an array
 type Stop struct {
 	ArrayOfString *[]string
-	String *string
+	String        *string
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
 func (dst *Stop) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into ArrayOfString
-	err = json.Unmarshal(data, &dst.ArrayOfString);
+	err = json.Unmarshal(data, &dst.ArrayOfString)
 	if err == nil {
 		jsonArrayOfString, _ := json.Marshal(dst.ArrayOfString)
 		if string(jsonArrayOfString) == "{}" { // empty struct
@@ -39,7 +38,7 @@ func (dst *Stop) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into String
-	err = json.Unmarshal(data, &dst.String);
+	err = json.Unmarshal(data, &dst.String)
 	if err == nil {
 		jsonString, _ := json.Marshal(dst.String)
 		if string(jsonString) == "{}" { // empty struct
@@ -66,7 +65,6 @@ func (src Stop) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
-
 
 type NullableStop struct {
 	value *Stop
@@ -103,5 +101,3 @@ func (v *NullableStop) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

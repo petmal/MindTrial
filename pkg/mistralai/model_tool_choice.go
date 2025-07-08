@@ -15,10 +15,9 @@ import (
 	"fmt"
 )
 
-
 // ToolChoice struct for ToolChoice
 type ToolChoice struct {
-	ToolChoice *ToolChoice
+	ToolChoice     *ToolChoice
 	ToolChoiceEnum *ToolChoiceEnum
 }
 
@@ -26,7 +25,7 @@ type ToolChoice struct {
 func (dst *ToolChoice) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into ToolChoice
-	err = json.Unmarshal(data, &dst.ToolChoice);
+	err = json.Unmarshal(data, &dst.ToolChoice)
 	if err == nil {
 		jsonToolChoice, _ := json.Marshal(dst.ToolChoice)
 		if string(jsonToolChoice) == "{}" { // empty struct
@@ -39,7 +38,7 @@ func (dst *ToolChoice) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into ToolChoiceEnum
-	err = json.Unmarshal(data, &dst.ToolChoiceEnum);
+	err = json.Unmarshal(data, &dst.ToolChoiceEnum)
 	if err == nil {
 		jsonToolChoiceEnum, _ := json.Marshal(dst.ToolChoiceEnum)
 		if string(jsonToolChoiceEnum) == "{}" { // empty struct
@@ -66,7 +65,6 @@ func (src ToolChoice) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
-
 
 type NullableToolChoice struct {
 	value *ToolChoice
@@ -103,5 +101,3 @@ func (v *NullableToolChoice) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

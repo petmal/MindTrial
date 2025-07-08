@@ -19,9 +19,9 @@ var _ MappedNullable = &EmbeddingResponseData{}
 
 // EmbeddingResponseData struct for EmbeddingResponseData
 type EmbeddingResponseData struct {
-	Object *string `json:"object,omitempty"`
-	Embedding []float32 `json:"embedding,omitempty"`
-	Index *int32 `json:"index,omitempty"`
+	Object               *string   `json:"object,omitempty"`
+	Embedding            []float32 `json:"embedding,omitempty"`
+	Index                *int32    `json:"index,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -141,7 +141,7 @@ func (o *EmbeddingResponseData) SetIndex(v int32) {
 }
 
 func (o EmbeddingResponseData) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -225,5 +225,3 @@ func (v *NullableEmbeddingResponseData) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

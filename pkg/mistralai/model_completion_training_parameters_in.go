@@ -21,12 +21,12 @@ var _ MappedNullable = &CompletionTrainingParametersIn{}
 type CompletionTrainingParametersIn struct {
 	TrainingSteps NullableInt32 `json:"training_steps,omitempty"`
 	// A parameter describing how much to adjust the pre-trained model's weights in response to the estimated error each time the weights are updated during the fine-tuning process.
-	LearningRate *float32 `json:"learning_rate,omitempty"`
-	WeightDecay NullableFloat32 `json:"weight_decay,omitempty"`
-	WarmupFraction NullableFloat32 `json:"warmup_fraction,omitempty"`
-	Epochs NullableFloat32 `json:"epochs,omitempty"`
-	SeqLen NullableInt32 `json:"seq_len,omitempty"`
-	FimRatio NullableFloat32 `json:"fim_ratio,omitempty"`
+	LearningRate         *float32        `json:"learning_rate,omitempty"`
+	WeightDecay          NullableFloat32 `json:"weight_decay,omitempty"`
+	WarmupFraction       NullableFloat32 `json:"warmup_fraction,omitempty"`
+	Epochs               NullableFloat32 `json:"epochs,omitempty"`
+	SeqLen               NullableInt32   `json:"seq_len,omitempty"`
+	FimRatio             NullableFloat32 `json:"fim_ratio,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -38,7 +38,7 @@ type _CompletionTrainingParametersIn CompletionTrainingParametersIn
 // will change when the set of required properties is changed
 func NewCompletionTrainingParametersIn() *CompletionTrainingParametersIn {
 	this := CompletionTrainingParametersIn{}
-	var learningRate float32 = 1.0E-4
+	var learningRate float32 = 1.0e-4
 	this.LearningRate = &learningRate
 	return &this
 }
@@ -48,7 +48,7 @@ func NewCompletionTrainingParametersIn() *CompletionTrainingParametersIn {
 // but it doesn't guarantee that properties required by API are set
 func NewCompletionTrainingParametersInWithDefaults() *CompletionTrainingParametersIn {
 	this := CompletionTrainingParametersIn{}
-	var learningRate float32 = 1.0E-4
+	var learningRate float32 = 1.0e-4
 	this.LearningRate = &learningRate
 	return &this
 }
@@ -85,6 +85,7 @@ func (o *CompletionTrainingParametersIn) HasTrainingSteps() bool {
 func (o *CompletionTrainingParametersIn) SetTrainingSteps(v int32) {
 	o.TrainingSteps.Set(&v)
 }
+
 // SetTrainingStepsNil sets the value for TrainingSteps to be an explicit nil
 func (o *CompletionTrainingParametersIn) SetTrainingStepsNil() {
 	o.TrainingSteps.Set(nil)
@@ -159,6 +160,7 @@ func (o *CompletionTrainingParametersIn) HasWeightDecay() bool {
 func (o *CompletionTrainingParametersIn) SetWeightDecay(v float32) {
 	o.WeightDecay.Set(&v)
 }
+
 // SetWeightDecayNil sets the value for WeightDecay to be an explicit nil
 func (o *CompletionTrainingParametersIn) SetWeightDecayNil() {
 	o.WeightDecay.Set(nil)
@@ -201,6 +203,7 @@ func (o *CompletionTrainingParametersIn) HasWarmupFraction() bool {
 func (o *CompletionTrainingParametersIn) SetWarmupFraction(v float32) {
 	o.WarmupFraction.Set(&v)
 }
+
 // SetWarmupFractionNil sets the value for WarmupFraction to be an explicit nil
 func (o *CompletionTrainingParametersIn) SetWarmupFractionNil() {
 	o.WarmupFraction.Set(nil)
@@ -243,6 +246,7 @@ func (o *CompletionTrainingParametersIn) HasEpochs() bool {
 func (o *CompletionTrainingParametersIn) SetEpochs(v float32) {
 	o.Epochs.Set(&v)
 }
+
 // SetEpochsNil sets the value for Epochs to be an explicit nil
 func (o *CompletionTrainingParametersIn) SetEpochsNil() {
 	o.Epochs.Set(nil)
@@ -285,6 +289,7 @@ func (o *CompletionTrainingParametersIn) HasSeqLen() bool {
 func (o *CompletionTrainingParametersIn) SetSeqLen(v int32) {
 	o.SeqLen.Set(&v)
 }
+
 // SetSeqLenNil sets the value for SeqLen to be an explicit nil
 func (o *CompletionTrainingParametersIn) SetSeqLenNil() {
 	o.SeqLen.Set(nil)
@@ -327,6 +332,7 @@ func (o *CompletionTrainingParametersIn) HasFimRatio() bool {
 func (o *CompletionTrainingParametersIn) SetFimRatio(v float32) {
 	o.FimRatio.Set(&v)
 }
+
 // SetFimRatioNil sets the value for FimRatio to be an explicit nil
 func (o *CompletionTrainingParametersIn) SetFimRatioNil() {
 	o.FimRatio.Set(nil)
@@ -338,7 +344,7 @@ func (o *CompletionTrainingParametersIn) UnsetFimRatio() {
 }
 
 func (o CompletionTrainingParametersIn) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -438,5 +444,3 @@ func (v *NullableCompletionTrainingParametersIn) UnmarshalJSON(src []byte) error
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

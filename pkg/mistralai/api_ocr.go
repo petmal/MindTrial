@@ -18,14 +18,13 @@ import (
 	"net/url"
 )
 
-
 type OcrAPI interface {
 
 	/*
-	OcrV1OcrPost OCR
+		OcrV1OcrPost OCR
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiOcrV1OcrPostRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiOcrV1OcrPostRequest
 	*/
 	OcrV1OcrPost(ctx context.Context) ApiOcrV1OcrPostRequest
 
@@ -38,7 +37,7 @@ type OcrAPI interface {
 type OcrAPIService service
 
 type ApiOcrV1OcrPostRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService OcrAPI
 	oCRRequest *OCRRequest
 }
@@ -55,24 +54,25 @@ func (r ApiOcrV1OcrPostRequest) Execute() (*OCRResponse, *http.Response, error) 
 /*
 OcrV1OcrPost OCR
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiOcrV1OcrPostRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiOcrV1OcrPostRequest
 */
 func (a *OcrAPIService) OcrV1OcrPost(ctx context.Context) ApiOcrV1OcrPostRequest {
 	return ApiOcrV1OcrPostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return OCRResponse
+//
+//	@return OCRResponse
 func (a *OcrAPIService) OcrV1OcrPostExecute(r ApiOcrV1OcrPostRequest) (*OCRResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *OCRResponse
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *OCRResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "OcrAPIService.OcrV1OcrPost")
@@ -137,8 +137,8 @@ func (a *OcrAPIService) OcrV1OcrPostExecute(r ApiOcrV1OcrPostRequest) (*OCRRespo
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

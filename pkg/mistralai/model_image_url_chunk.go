@@ -20,8 +20,8 @@ var _ MappedNullable = &ImageURLChunk{}
 
 // ImageURLChunk {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,iVBORw0
 type ImageURLChunk struct {
-	ImageUrl ImageUrl `json:"image_url"`
-	Type *string `json:"type,omitempty"`
+	ImageUrl             ImageUrl `json:"image_url"`
+	Type                 *string  `json:"type,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -106,7 +106,7 @@ func (o *ImageURLChunk) SetType(v string) {
 }
 
 func (o ImageURLChunk) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -140,10 +140,10 @@ func (o *ImageURLChunk) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -205,5 +205,3 @@ func (v *NullableImageURLChunk) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

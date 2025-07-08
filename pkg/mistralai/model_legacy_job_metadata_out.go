@@ -20,19 +20,19 @@ var _ MappedNullable = &LegacyJobMetadataOut{}
 
 // LegacyJobMetadataOut struct for LegacyJobMetadataOut
 type LegacyJobMetadataOut struct {
-	ExpectedDurationSeconds NullableInt32 `json:"expected_duration_seconds,omitempty"`
-	Cost NullableFloat32 `json:"cost,omitempty"`
-	CostCurrency NullableString `json:"cost_currency,omitempty"`
-	TrainTokensPerStep NullableInt32 `json:"train_tokens_per_step,omitempty"`
-	TrainTokens NullableInt32 `json:"train_tokens,omitempty"`
-	DataTokens NullableInt32 `json:"data_tokens,omitempty"`
-	EstimatedStartTime NullableInt32 `json:"estimated_start_time,omitempty"`
-	Deprecated *bool `json:"deprecated,omitempty"`
-	Details string `json:"details"`
-	Epochs NullableFloat32 `json:"epochs,omitempty"`
-	TrainingSteps NullableInt32 `json:"training_steps,omitempty"`
-	Object *string `json:"object,omitempty"`
-	AdditionalProperties map[string]interface{}
+	ExpectedDurationSeconds NullableInt32   `json:"expected_duration_seconds,omitempty"`
+	Cost                    NullableFloat32 `json:"cost,omitempty"`
+	CostCurrency            NullableString  `json:"cost_currency,omitempty"`
+	TrainTokensPerStep      NullableInt32   `json:"train_tokens_per_step,omitempty"`
+	TrainTokens             NullableInt32   `json:"train_tokens,omitempty"`
+	DataTokens              NullableInt32   `json:"data_tokens,omitempty"`
+	EstimatedStartTime      NullableInt32   `json:"estimated_start_time,omitempty"`
+	Deprecated              *bool           `json:"deprecated,omitempty"`
+	Details                 string          `json:"details"`
+	Epochs                  NullableFloat32 `json:"epochs,omitempty"`
+	TrainingSteps           NullableInt32   `json:"training_steps,omitempty"`
+	Object                  *string         `json:"object,omitempty"`
+	AdditionalProperties    map[string]interface{}
 }
 
 type _LegacyJobMetadataOut LegacyJobMetadataOut
@@ -95,6 +95,7 @@ func (o *LegacyJobMetadataOut) HasExpectedDurationSeconds() bool {
 func (o *LegacyJobMetadataOut) SetExpectedDurationSeconds(v int32) {
 	o.ExpectedDurationSeconds.Set(&v)
 }
+
 // SetExpectedDurationSecondsNil sets the value for ExpectedDurationSeconds to be an explicit nil
 func (o *LegacyJobMetadataOut) SetExpectedDurationSecondsNil() {
 	o.ExpectedDurationSeconds.Set(nil)
@@ -137,6 +138,7 @@ func (o *LegacyJobMetadataOut) HasCost() bool {
 func (o *LegacyJobMetadataOut) SetCost(v float32) {
 	o.Cost.Set(&v)
 }
+
 // SetCostNil sets the value for Cost to be an explicit nil
 func (o *LegacyJobMetadataOut) SetCostNil() {
 	o.Cost.Set(nil)
@@ -179,6 +181,7 @@ func (o *LegacyJobMetadataOut) HasCostCurrency() bool {
 func (o *LegacyJobMetadataOut) SetCostCurrency(v string) {
 	o.CostCurrency.Set(&v)
 }
+
 // SetCostCurrencyNil sets the value for CostCurrency to be an explicit nil
 func (o *LegacyJobMetadataOut) SetCostCurrencyNil() {
 	o.CostCurrency.Set(nil)
@@ -221,6 +224,7 @@ func (o *LegacyJobMetadataOut) HasTrainTokensPerStep() bool {
 func (o *LegacyJobMetadataOut) SetTrainTokensPerStep(v int32) {
 	o.TrainTokensPerStep.Set(&v)
 }
+
 // SetTrainTokensPerStepNil sets the value for TrainTokensPerStep to be an explicit nil
 func (o *LegacyJobMetadataOut) SetTrainTokensPerStepNil() {
 	o.TrainTokensPerStep.Set(nil)
@@ -263,6 +267,7 @@ func (o *LegacyJobMetadataOut) HasTrainTokens() bool {
 func (o *LegacyJobMetadataOut) SetTrainTokens(v int32) {
 	o.TrainTokens.Set(&v)
 }
+
 // SetTrainTokensNil sets the value for TrainTokens to be an explicit nil
 func (o *LegacyJobMetadataOut) SetTrainTokensNil() {
 	o.TrainTokens.Set(nil)
@@ -305,6 +310,7 @@ func (o *LegacyJobMetadataOut) HasDataTokens() bool {
 func (o *LegacyJobMetadataOut) SetDataTokens(v int32) {
 	o.DataTokens.Set(&v)
 }
+
 // SetDataTokensNil sets the value for DataTokens to be an explicit nil
 func (o *LegacyJobMetadataOut) SetDataTokensNil() {
 	o.DataTokens.Set(nil)
@@ -347,6 +353,7 @@ func (o *LegacyJobMetadataOut) HasEstimatedStartTime() bool {
 func (o *LegacyJobMetadataOut) SetEstimatedStartTime(v int32) {
 	o.EstimatedStartTime.Set(&v)
 }
+
 // SetEstimatedStartTimeNil sets the value for EstimatedStartTime to be an explicit nil
 func (o *LegacyJobMetadataOut) SetEstimatedStartTimeNil() {
 	o.EstimatedStartTime.Set(nil)
@@ -445,6 +452,7 @@ func (o *LegacyJobMetadataOut) HasEpochs() bool {
 func (o *LegacyJobMetadataOut) SetEpochs(v float32) {
 	o.Epochs.Set(&v)
 }
+
 // SetEpochsNil sets the value for Epochs to be an explicit nil
 func (o *LegacyJobMetadataOut) SetEpochsNil() {
 	o.Epochs.Set(nil)
@@ -487,6 +495,7 @@ func (o *LegacyJobMetadataOut) HasTrainingSteps() bool {
 func (o *LegacyJobMetadataOut) SetTrainingSteps(v int32) {
 	o.TrainingSteps.Set(&v)
 }
+
 // SetTrainingStepsNil sets the value for TrainingSteps to be an explicit nil
 func (o *LegacyJobMetadataOut) SetTrainingStepsNil() {
 	o.TrainingSteps.Set(nil)
@@ -530,7 +539,7 @@ func (o *LegacyJobMetadataOut) SetObject(v string) {
 }
 
 func (o LegacyJobMetadataOut) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -594,10 +603,10 @@ func (o *LegacyJobMetadataOut) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -669,5 +678,3 @@ func (v *NullableLegacyJobMetadataOut) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

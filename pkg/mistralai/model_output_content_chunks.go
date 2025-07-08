@@ -15,13 +15,12 @@ import (
 	"fmt"
 )
 
-
 // OutputContentChunks struct for OutputContentChunks
 type OutputContentChunks struct {
-	DocumentURLChunk *DocumentURLChunk
-	ImageURLChunk *ImageURLChunk
-	TextChunk *TextChunk
-	ToolFileChunk *ToolFileChunk
+	DocumentURLChunk   *DocumentURLChunk
+	ImageURLChunk      *ImageURLChunk
+	TextChunk          *TextChunk
+	ToolFileChunk      *ToolFileChunk
 	ToolReferenceChunk *ToolReferenceChunk
 }
 
@@ -29,7 +28,7 @@ type OutputContentChunks struct {
 func (dst *OutputContentChunks) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into DocumentURLChunk
-	err = json.Unmarshal(data, &dst.DocumentURLChunk);
+	err = json.Unmarshal(data, &dst.DocumentURLChunk)
 	if err == nil {
 		jsonDocumentURLChunk, _ := json.Marshal(dst.DocumentURLChunk)
 		if string(jsonDocumentURLChunk) == "{}" { // empty struct
@@ -42,7 +41,7 @@ func (dst *OutputContentChunks) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into ImageURLChunk
-	err = json.Unmarshal(data, &dst.ImageURLChunk);
+	err = json.Unmarshal(data, &dst.ImageURLChunk)
 	if err == nil {
 		jsonImageURLChunk, _ := json.Marshal(dst.ImageURLChunk)
 		if string(jsonImageURLChunk) == "{}" { // empty struct
@@ -55,7 +54,7 @@ func (dst *OutputContentChunks) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into TextChunk
-	err = json.Unmarshal(data, &dst.TextChunk);
+	err = json.Unmarshal(data, &dst.TextChunk)
 	if err == nil {
 		jsonTextChunk, _ := json.Marshal(dst.TextChunk)
 		if string(jsonTextChunk) == "{}" { // empty struct
@@ -68,7 +67,7 @@ func (dst *OutputContentChunks) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into ToolFileChunk
-	err = json.Unmarshal(data, &dst.ToolFileChunk);
+	err = json.Unmarshal(data, &dst.ToolFileChunk)
 	if err == nil {
 		jsonToolFileChunk, _ := json.Marshal(dst.ToolFileChunk)
 		if string(jsonToolFileChunk) == "{}" { // empty struct
@@ -81,7 +80,7 @@ func (dst *OutputContentChunks) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into ToolReferenceChunk
-	err = json.Unmarshal(data, &dst.ToolReferenceChunk);
+	err = json.Unmarshal(data, &dst.ToolReferenceChunk)
 	if err == nil {
 		jsonToolReferenceChunk, _ := json.Marshal(dst.ToolReferenceChunk)
 		if string(jsonToolReferenceChunk) == "{}" { // empty struct
@@ -121,7 +120,6 @@ func (src OutputContentChunks) MarshalJSON() ([]byte, error) {
 	return nil, nil // no data in anyOf schemas
 }
 
-
 type NullableOutputContentChunks struct {
 	value *OutputContentChunks
 	isSet bool
@@ -157,5 +155,3 @@ func (v *NullableOutputContentChunks) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

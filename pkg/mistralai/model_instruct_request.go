@@ -20,7 +20,7 @@ var _ MappedNullable = &InstructRequest{}
 
 // InstructRequest struct for InstructRequest
 type InstructRequest struct {
-	Messages []ChatCompletionRequestMessagesInner `json:"messages"`
+	Messages             []ChatCompletionRequestMessagesInner `json:"messages"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -69,7 +69,7 @@ func (o *InstructRequest) SetMessages(v []ChatCompletionRequestMessagesInner) {
 }
 
 func (o InstructRequest) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -100,10 +100,10 @@ func (o *InstructRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -164,5 +164,3 @@ func (v *NullableInstructRequest) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

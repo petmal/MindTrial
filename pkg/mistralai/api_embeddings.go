@@ -18,16 +18,15 @@ import (
 	"net/url"
 )
 
-
 type EmbeddingsAPI interface {
 
 	/*
-	EmbeddingsV1EmbeddingsPost Embeddings
+		EmbeddingsV1EmbeddingsPost Embeddings
 
-	Embeddings
+		Embeddings
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiEmbeddingsV1EmbeddingsPostRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiEmbeddingsV1EmbeddingsPostRequest
 	*/
 	EmbeddingsV1EmbeddingsPost(ctx context.Context) ApiEmbeddingsV1EmbeddingsPostRequest
 
@@ -40,8 +39,8 @@ type EmbeddingsAPI interface {
 type EmbeddingsAPIService service
 
 type ApiEmbeddingsV1EmbeddingsPostRequest struct {
-	ctx context.Context
-	ApiService EmbeddingsAPI
+	ctx              context.Context
+	ApiService       EmbeddingsAPI
 	embeddingRequest *EmbeddingRequest
 }
 
@@ -59,24 +58,25 @@ EmbeddingsV1EmbeddingsPost Embeddings
 
 Embeddings
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiEmbeddingsV1EmbeddingsPostRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiEmbeddingsV1EmbeddingsPostRequest
 */
 func (a *EmbeddingsAPIService) EmbeddingsV1EmbeddingsPost(ctx context.Context) ApiEmbeddingsV1EmbeddingsPostRequest {
 	return ApiEmbeddingsV1EmbeddingsPostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return EmbeddingResponse
+//
+//	@return EmbeddingResponse
 func (a *EmbeddingsAPIService) EmbeddingsV1EmbeddingsPostExecute(r ApiEmbeddingsV1EmbeddingsPostRequest) (*EmbeddingResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *EmbeddingResponse
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *EmbeddingResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "EmbeddingsAPIService.EmbeddingsV1EmbeddingsPost")
@@ -141,8 +141,8 @@ func (a *EmbeddingsAPIService) EmbeddingsV1EmbeddingsPostExecute(r ApiEmbeddings
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

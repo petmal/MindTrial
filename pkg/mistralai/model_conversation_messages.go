@@ -20,9 +20,9 @@ var _ MappedNullable = &ConversationMessages{}
 
 // ConversationMessages Similar to the conversation history but only keep the messages
 type ConversationMessages struct {
-	Object *string `json:"object,omitempty"`
-	ConversationId string `json:"conversation_id"`
-	Messages []MessageEntriesInner `json:"messages"`
+	Object               *string               `json:"object,omitempty"`
+	ConversationId       string                `json:"conversation_id"`
+	Messages             []MessageEntriesInner `json:"messages"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -132,7 +132,7 @@ func (o *ConversationMessages) SetMessages(v []MessageEntriesInner) {
 }
 
 func (o ConversationMessages) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -168,10 +168,10 @@ func (o *ConversationMessages) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -234,5 +234,3 @@ func (v *NullableConversationMessages) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

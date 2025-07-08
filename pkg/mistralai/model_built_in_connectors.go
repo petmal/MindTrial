@@ -20,11 +20,11 @@ type BuiltInConnectors string
 
 // List of BuiltInConnectors
 const (
-	WEB_SEARCH BuiltInConnectors = "web_search"
+	WEB_SEARCH         BuiltInConnectors = "web_search"
 	WEB_SEARCH_PREMIUM BuiltInConnectors = "web_search_premium"
-	CODE_INTERPRETER BuiltInConnectors = "code_interpreter"
-	IMAGE_GENERATION BuiltInConnectors = "image_generation"
-	DOCUMENT_LIBRARY BuiltInConnectors = "document_library"
+	CODE_INTERPRETER   BuiltInConnectors = "code_interpreter"
+	IMAGE_GENERATION   BuiltInConnectors = "image_generation"
+	DOCUMENT_LIBRARY   BuiltInConnectors = "document_library"
 )
 
 // All allowed values of BuiltInConnectors enum
@@ -114,4 +114,3 @@ func (v *NullableBuiltInConnectors) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-

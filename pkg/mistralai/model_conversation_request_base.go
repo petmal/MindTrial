@@ -20,17 +20,17 @@ var _ MappedNullable = &ConversationRequestBase{}
 
 // ConversationRequestBase struct for ConversationRequestBase
 type ConversationRequestBase struct {
-	Inputs ConversationInputs `json:"inputs"`
-	Stream NullableBool `json:"stream,omitempty"`
-	Store NullableBool `json:"store,omitempty"`
-	HandoffExecution NullableString `json:"handoff_execution,omitempty"`
-	Instructions NullableString `json:"instructions,omitempty"`
-	Tools []AgentToolsInner `json:"tools,omitempty"`
-	CompletionArgs NullableCompletionArgs `json:"completion_args,omitempty"`
-	Name NullableString `json:"name,omitempty"`
-	Description NullableString `json:"description,omitempty"`
-	AgentId NullableString `json:"agent_id,omitempty"`
-	Model NullableString `json:"model,omitempty"`
+	Inputs               ConversationInputs     `json:"inputs"`
+	Stream               NullableBool           `json:"stream,omitempty"`
+	Store                NullableBool           `json:"store,omitempty"`
+	HandoffExecution     NullableString         `json:"handoff_execution,omitempty"`
+	Instructions         NullableString         `json:"instructions,omitempty"`
+	Tools                []AgentToolsInner      `json:"tools,omitempty"`
+	CompletionArgs       NullableCompletionArgs `json:"completion_args,omitempty"`
+	Name                 NullableString         `json:"name,omitempty"`
+	Description          NullableString         `json:"description,omitempty"`
+	AgentId              NullableString         `json:"agent_id,omitempty"`
+	Model                NullableString         `json:"model,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -110,6 +110,7 @@ func (o *ConversationRequestBase) HasStream() bool {
 func (o *ConversationRequestBase) SetStream(v bool) {
 	o.Stream.Set(&v)
 }
+
 // SetStreamNil sets the value for Stream to be an explicit nil
 func (o *ConversationRequestBase) SetStreamNil() {
 	o.Stream.Set(nil)
@@ -152,6 +153,7 @@ func (o *ConversationRequestBase) HasStore() bool {
 func (o *ConversationRequestBase) SetStore(v bool) {
 	o.Store.Set(&v)
 }
+
 // SetStoreNil sets the value for Store to be an explicit nil
 func (o *ConversationRequestBase) SetStoreNil() {
 	o.Store.Set(nil)
@@ -194,6 +196,7 @@ func (o *ConversationRequestBase) HasHandoffExecution() bool {
 func (o *ConversationRequestBase) SetHandoffExecution(v string) {
 	o.HandoffExecution.Set(&v)
 }
+
 // SetHandoffExecutionNil sets the value for HandoffExecution to be an explicit nil
 func (o *ConversationRequestBase) SetHandoffExecutionNil() {
 	o.HandoffExecution.Set(nil)
@@ -236,6 +239,7 @@ func (o *ConversationRequestBase) HasInstructions() bool {
 func (o *ConversationRequestBase) SetInstructions(v string) {
 	o.Instructions.Set(&v)
 }
+
 // SetInstructionsNil sets the value for Instructions to be an explicit nil
 func (o *ConversationRequestBase) SetInstructionsNil() {
 	o.Instructions.Set(nil)
@@ -311,6 +315,7 @@ func (o *ConversationRequestBase) HasCompletionArgs() bool {
 func (o *ConversationRequestBase) SetCompletionArgs(v CompletionArgs) {
 	o.CompletionArgs.Set(&v)
 }
+
 // SetCompletionArgsNil sets the value for CompletionArgs to be an explicit nil
 func (o *ConversationRequestBase) SetCompletionArgsNil() {
 	o.CompletionArgs.Set(nil)
@@ -353,6 +358,7 @@ func (o *ConversationRequestBase) HasName() bool {
 func (o *ConversationRequestBase) SetName(v string) {
 	o.Name.Set(&v)
 }
+
 // SetNameNil sets the value for Name to be an explicit nil
 func (o *ConversationRequestBase) SetNameNil() {
 	o.Name.Set(nil)
@@ -395,6 +401,7 @@ func (o *ConversationRequestBase) HasDescription() bool {
 func (o *ConversationRequestBase) SetDescription(v string) {
 	o.Description.Set(&v)
 }
+
 // SetDescriptionNil sets the value for Description to be an explicit nil
 func (o *ConversationRequestBase) SetDescriptionNil() {
 	o.Description.Set(nil)
@@ -437,6 +444,7 @@ func (o *ConversationRequestBase) HasAgentId() bool {
 func (o *ConversationRequestBase) SetAgentId(v string) {
 	o.AgentId.Set(&v)
 }
+
 // SetAgentIdNil sets the value for AgentId to be an explicit nil
 func (o *ConversationRequestBase) SetAgentIdNil() {
 	o.AgentId.Set(nil)
@@ -479,6 +487,7 @@ func (o *ConversationRequestBase) HasModel() bool {
 func (o *ConversationRequestBase) SetModel(v string) {
 	o.Model.Set(&v)
 }
+
 // SetModelNil sets the value for Model to be an explicit nil
 func (o *ConversationRequestBase) SetModelNil() {
 	o.Model.Set(nil)
@@ -490,7 +499,7 @@ func (o *ConversationRequestBase) UnsetModel() {
 }
 
 func (o ConversationRequestBase) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -551,10 +560,10 @@ func (o *ConversationRequestBase) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -625,5 +634,3 @@ func (v *NullableConversationRequestBase) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

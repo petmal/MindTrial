@@ -19,9 +19,9 @@ import (
 // ContentChunk - struct for ContentChunk
 type ContentChunk struct {
 	DocumentURLChunk *DocumentURLChunk
-	ImageURLChunk *ImageURLChunk
-	ReferenceChunk *ReferenceChunk
-	TextChunk *TextChunk
+	ImageURLChunk    *ImageURLChunk
+	ReferenceChunk   *ReferenceChunk
+	TextChunk        *TextChunk
 }
 
 // DocumentURLChunkAsContentChunk is a convenience function that returns DocumentURLChunk wrapped in ContentChunk
@@ -51,7 +51,6 @@ func TextChunkAsContentChunk(v *TextChunk) ContentChunk {
 		TextChunk: v,
 	}
 }
-
 
 // Unmarshal JSON data into one of the pointers in the struct
 func (dst *ContentChunk) UnmarshalJSON(data []byte) error {
@@ -162,7 +161,7 @@ func (src ContentChunk) MarshalJSON() ([]byte, error) {
 }
 
 // Get the actual instance
-func (obj *ContentChunk) GetActualInstance() (interface{}) {
+func (obj *ContentChunk) GetActualInstance() interface{} {
 	if obj == nil {
 		return nil
 	}
@@ -187,7 +186,7 @@ func (obj *ContentChunk) GetActualInstance() (interface{}) {
 }
 
 // Get the actual instance value
-func (obj ContentChunk) GetActualInstanceValue() (interface{}) {
+func (obj ContentChunk) GetActualInstanceValue() interface{} {
 	if obj.DocumentURLChunk != nil {
 		return *obj.DocumentURLChunk
 	}
@@ -243,5 +242,3 @@ func (v *NullableContentChunk) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

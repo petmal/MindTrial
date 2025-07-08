@@ -23,10 +23,10 @@ type OCRResponse struct {
 	// List of OCR info for pages.
 	Pages []OCRPageObject `json:"pages"`
 	// The model used to generate the OCR.
-	Model string `json:"model"`
+	Model              string         `json:"model"`
 	DocumentAnnotation NullableString `json:"document_annotation,omitempty"`
 	// Usage info for the OCR request.
-	UsageInfo OCRUsageInfo `json:"usage_info"`
+	UsageInfo            OCRUsageInfo `json:"usage_info"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -132,6 +132,7 @@ func (o *OCRResponse) HasDocumentAnnotation() bool {
 func (o *OCRResponse) SetDocumentAnnotation(v string) {
 	o.DocumentAnnotation.Set(&v)
 }
+
 // SetDocumentAnnotationNil sets the value for DocumentAnnotation to be an explicit nil
 func (o *OCRResponse) SetDocumentAnnotationNil() {
 	o.DocumentAnnotation.Set(nil)
@@ -167,7 +168,7 @@ func (o *OCRResponse) SetUsageInfo(v OCRUsageInfo) {
 }
 
 func (o OCRResponse) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -205,10 +206,10 @@ func (o *OCRResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -272,5 +273,3 @@ func (v *NullableOCRResponse) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

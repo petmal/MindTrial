@@ -21,13 +21,13 @@ var _ MappedNullable = &OCRImageObject{}
 // OCRImageObject struct for OCRImageObject
 type OCRImageObject struct {
 	// Image ID for extracted image in a page
-	Id string `json:"id"`
-	TopLeftX NullableInt32 `json:"top_left_x"`
-	TopLeftY NullableInt32 `json:"top_left_y"`
-	BottomRightX NullableInt32 `json:"bottom_right_x"`
-	BottomRightY NullableInt32 `json:"bottom_right_y"`
-	ImageBase64 NullableString `json:"image_base64,omitempty"`
-	ImageAnnotation NullableString `json:"image_annotation,omitempty"`
+	Id                   string         `json:"id"`
+	TopLeftX             NullableInt32  `json:"top_left_x"`
+	TopLeftY             NullableInt32  `json:"top_left_y"`
+	BottomRightX         NullableInt32  `json:"bottom_right_x"`
+	BottomRightY         NullableInt32  `json:"bottom_right_y"`
+	ImageBase64          NullableString `json:"image_base64,omitempty"`
+	ImageAnnotation      NullableString `json:"image_annotation,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -215,6 +215,7 @@ func (o *OCRImageObject) HasImageBase64() bool {
 func (o *OCRImageObject) SetImageBase64(v string) {
 	o.ImageBase64.Set(&v)
 }
+
 // SetImageBase64Nil sets the value for ImageBase64 to be an explicit nil
 func (o *OCRImageObject) SetImageBase64Nil() {
 	o.ImageBase64.Set(nil)
@@ -257,6 +258,7 @@ func (o *OCRImageObject) HasImageAnnotation() bool {
 func (o *OCRImageObject) SetImageAnnotation(v string) {
 	o.ImageAnnotation.Set(&v)
 }
+
 // SetImageAnnotationNil sets the value for ImageAnnotation to be an explicit nil
 func (o *OCRImageObject) SetImageAnnotationNil() {
 	o.ImageAnnotation.Set(nil)
@@ -268,7 +270,7 @@ func (o *OCRImageObject) UnsetImageAnnotation() {
 }
 
 func (o OCRImageObject) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -313,10 +315,10 @@ func (o *OCRImageObject) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -383,5 +385,3 @@ func (v *NullableOCRImageObject) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

@@ -20,19 +20,19 @@ var _ MappedNullable = &CompletionFTModelOut{}
 
 // CompletionFTModelOut struct for CompletionFTModelOut
 type CompletionFTModelOut struct {
-	Id string `json:"id"`
-	Object *string `json:"object,omitempty"`
-	Created int32 `json:"created"`
-	OwnedBy string `json:"owned_by"`
-	Root string `json:"root"`
-	Archived bool `json:"archived"`
-	Name NullableString `json:"name,omitempty"`
-	Description NullableString `json:"description,omitempty"`
-	Capabilities FTModelCapabilitiesOut `json:"capabilities"`
-	MaxContextLength *int32 `json:"max_context_length,omitempty"`
-	Aliases []string `json:"aliases,omitempty"`
-	Job string `json:"job"`
-	ModelType *string `json:"model_type,omitempty"`
+	Id                   string                 `json:"id"`
+	Object               *string                `json:"object,omitempty"`
+	Created              int32                  `json:"created"`
+	OwnedBy              string                 `json:"owned_by"`
+	Root                 string                 `json:"root"`
+	Archived             bool                   `json:"archived"`
+	Name                 NullableString         `json:"name,omitempty"`
+	Description          NullableString         `json:"description,omitempty"`
+	Capabilities         FTModelCapabilitiesOut `json:"capabilities"`
+	MaxContextLength     *int32                 `json:"max_context_length,omitempty"`
+	Aliases              []string               `json:"aliases,omitempty"`
+	Job                  string                 `json:"job"`
+	ModelType            *string                `json:"model_type,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -258,6 +258,7 @@ func (o *CompletionFTModelOut) HasName() bool {
 func (o *CompletionFTModelOut) SetName(v string) {
 	o.Name.Set(&v)
 }
+
 // SetNameNil sets the value for Name to be an explicit nil
 func (o *CompletionFTModelOut) SetNameNil() {
 	o.Name.Set(nil)
@@ -300,6 +301,7 @@ func (o *CompletionFTModelOut) HasDescription() bool {
 func (o *CompletionFTModelOut) SetDescription(v string) {
 	o.Description.Set(&v)
 }
+
 // SetDescriptionNil sets the value for Description to be an explicit nil
 func (o *CompletionFTModelOut) SetDescriptionNil() {
 	o.Description.Set(nil)
@@ -455,7 +457,7 @@ func (o *CompletionFTModelOut) SetModelType(v string) {
 }
 
 func (o CompletionFTModelOut) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -516,10 +518,10 @@ func (o *CompletionFTModelOut) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -592,5 +594,3 @@ func (v *NullableCompletionFTModelOut) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

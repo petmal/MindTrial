@@ -19,14 +19,14 @@ var _ MappedNullable = &JobMetadataOut{}
 
 // JobMetadataOut struct for JobMetadataOut
 type JobMetadataOut struct {
-	ExpectedDurationSeconds NullableInt32 `json:"expected_duration_seconds,omitempty"`
-	Cost NullableFloat32 `json:"cost,omitempty"`
-	CostCurrency NullableString `json:"cost_currency,omitempty"`
-	TrainTokensPerStep NullableInt32 `json:"train_tokens_per_step,omitempty"`
-	TrainTokens NullableInt32 `json:"train_tokens,omitempty"`
-	DataTokens NullableInt32 `json:"data_tokens,omitempty"`
-	EstimatedStartTime NullableInt32 `json:"estimated_start_time,omitempty"`
-	AdditionalProperties map[string]interface{}
+	ExpectedDurationSeconds NullableInt32   `json:"expected_duration_seconds,omitempty"`
+	Cost                    NullableFloat32 `json:"cost,omitempty"`
+	CostCurrency            NullableString  `json:"cost_currency,omitempty"`
+	TrainTokensPerStep      NullableInt32   `json:"train_tokens_per_step,omitempty"`
+	TrainTokens             NullableInt32   `json:"train_tokens,omitempty"`
+	DataTokens              NullableInt32   `json:"data_tokens,omitempty"`
+	EstimatedStartTime      NullableInt32   `json:"estimated_start_time,omitempty"`
+	AdditionalProperties    map[string]interface{}
 }
 
 type _JobMetadataOut JobMetadataOut
@@ -80,6 +80,7 @@ func (o *JobMetadataOut) HasExpectedDurationSeconds() bool {
 func (o *JobMetadataOut) SetExpectedDurationSeconds(v int32) {
 	o.ExpectedDurationSeconds.Set(&v)
 }
+
 // SetExpectedDurationSecondsNil sets the value for ExpectedDurationSeconds to be an explicit nil
 func (o *JobMetadataOut) SetExpectedDurationSecondsNil() {
 	o.ExpectedDurationSeconds.Set(nil)
@@ -122,6 +123,7 @@ func (o *JobMetadataOut) HasCost() bool {
 func (o *JobMetadataOut) SetCost(v float32) {
 	o.Cost.Set(&v)
 }
+
 // SetCostNil sets the value for Cost to be an explicit nil
 func (o *JobMetadataOut) SetCostNil() {
 	o.Cost.Set(nil)
@@ -164,6 +166,7 @@ func (o *JobMetadataOut) HasCostCurrency() bool {
 func (o *JobMetadataOut) SetCostCurrency(v string) {
 	o.CostCurrency.Set(&v)
 }
+
 // SetCostCurrencyNil sets the value for CostCurrency to be an explicit nil
 func (o *JobMetadataOut) SetCostCurrencyNil() {
 	o.CostCurrency.Set(nil)
@@ -206,6 +209,7 @@ func (o *JobMetadataOut) HasTrainTokensPerStep() bool {
 func (o *JobMetadataOut) SetTrainTokensPerStep(v int32) {
 	o.TrainTokensPerStep.Set(&v)
 }
+
 // SetTrainTokensPerStepNil sets the value for TrainTokensPerStep to be an explicit nil
 func (o *JobMetadataOut) SetTrainTokensPerStepNil() {
 	o.TrainTokensPerStep.Set(nil)
@@ -248,6 +252,7 @@ func (o *JobMetadataOut) HasTrainTokens() bool {
 func (o *JobMetadataOut) SetTrainTokens(v int32) {
 	o.TrainTokens.Set(&v)
 }
+
 // SetTrainTokensNil sets the value for TrainTokens to be an explicit nil
 func (o *JobMetadataOut) SetTrainTokensNil() {
 	o.TrainTokens.Set(nil)
@@ -290,6 +295,7 @@ func (o *JobMetadataOut) HasDataTokens() bool {
 func (o *JobMetadataOut) SetDataTokens(v int32) {
 	o.DataTokens.Set(&v)
 }
+
 // SetDataTokensNil sets the value for DataTokens to be an explicit nil
 func (o *JobMetadataOut) SetDataTokensNil() {
 	o.DataTokens.Set(nil)
@@ -332,6 +338,7 @@ func (o *JobMetadataOut) HasEstimatedStartTime() bool {
 func (o *JobMetadataOut) SetEstimatedStartTime(v int32) {
 	o.EstimatedStartTime.Set(&v)
 }
+
 // SetEstimatedStartTimeNil sets the value for EstimatedStartTime to be an explicit nil
 func (o *JobMetadataOut) SetEstimatedStartTimeNil() {
 	o.EstimatedStartTime.Set(nil)
@@ -343,7 +350,7 @@ func (o *JobMetadataOut) UnsetEstimatedStartTime() {
 }
 
 func (o JobMetadataOut) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -443,5 +450,3 @@ func (v *NullableJobMetadataOut) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

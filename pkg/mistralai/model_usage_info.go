@@ -20,9 +20,9 @@ var _ MappedNullable = &UsageInfo{}
 
 // UsageInfo struct for UsageInfo
 type UsageInfo struct {
-	PromptTokens int32 `json:"prompt_tokens"`
-	CompletionTokens int32 `json:"completion_tokens"`
-	TotalTokens int32 `json:"total_tokens"`
+	PromptTokens         int32 `json:"prompt_tokens"`
+	CompletionTokens     int32 `json:"completion_tokens"`
+	TotalTokens          int32 `json:"total_tokens"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -121,7 +121,7 @@ func (o *UsageInfo) SetTotalTokens(v int32) {
 }
 
 func (o UsageInfo) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -156,10 +156,10 @@ func (o *UsageInfo) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -222,5 +222,3 @@ func (v *NullableUsageInfo) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

@@ -20,12 +20,12 @@ var _ MappedNullable = &CompletionChunk{}
 
 // CompletionChunk struct for CompletionChunk
 type CompletionChunk struct {
-	Id string `json:"id"`
-	Object *string `json:"object,omitempty"`
-	Created *int32 `json:"created,omitempty"`
-	Model string `json:"model"`
-	Usage *UsageInfo `json:"usage,omitempty"`
-	Choices []CompletionResponseStreamChoice `json:"choices"`
+	Id                   string                           `json:"id"`
+	Object               *string                          `json:"object,omitempty"`
+	Created              *int32                           `json:"created,omitempty"`
+	Model                string                           `json:"model"`
+	Usage                *UsageInfo                       `json:"usage,omitempty"`
+	Choices              []CompletionResponseStreamChoice `json:"choices"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -220,7 +220,7 @@ func (o *CompletionChunk) SetChoices(v []CompletionResponseStreamChoice) {
 }
 
 func (o CompletionChunk) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -264,10 +264,10 @@ func (o *CompletionChunk) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -333,5 +333,3 @@ func (v *NullableCompletionChunk) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

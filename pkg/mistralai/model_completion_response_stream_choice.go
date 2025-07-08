@@ -20,9 +20,9 @@ var _ MappedNullable = &CompletionResponseStreamChoice{}
 
 // CompletionResponseStreamChoice struct for CompletionResponseStreamChoice
 type CompletionResponseStreamChoice struct {
-	Index int32 `json:"index"`
-	Delta DeltaMessage `json:"delta"`
-	FinishReason NullableString `json:"finish_reason"`
+	Index                int32          `json:"index"`
+	Delta                DeltaMessage   `json:"delta"`
+	FinishReason         NullableString `json:"finish_reason"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -123,7 +123,7 @@ func (o *CompletionResponseStreamChoice) SetFinishReason(v string) {
 }
 
 func (o CompletionResponseStreamChoice) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -158,10 +158,10 @@ func (o *CompletionResponseStreamChoice) UnmarshalJSON(data []byte) (err error) 
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -224,5 +224,3 @@ func (v *NullableCompletionResponseStreamChoice) UnmarshalJSON(src []byte) error
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

@@ -36,7 +36,6 @@ func CompletionFTModelOutAsResponse2(v *CompletionFTModelOut) Response2 {
 	}
 }
 
-
 // Unmarshal JSON data into one of the pointers in the struct
 func (dst *Response2) UnmarshalJSON(data []byte) error {
 	var err error
@@ -102,7 +101,7 @@ func (src Response2) MarshalJSON() ([]byte, error) {
 }
 
 // Get the actual instance
-func (obj *Response2) GetActualInstance() (interface{}) {
+func (obj *Response2) GetActualInstance() interface{} {
 	if obj == nil {
 		return nil
 	}
@@ -119,7 +118,7 @@ func (obj *Response2) GetActualInstance() (interface{}) {
 }
 
 // Get the actual instance value
-func (obj Response2) GetActualInstanceValue() (interface{}) {
+func (obj Response2) GetActualInstanceValue() interface{} {
 	if obj.ClassifierFTModelOut != nil {
 		return *obj.ClassifierFTModelOut
 	}
@@ -167,5 +166,3 @@ func (v *NullableResponse2) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

@@ -21,8 +21,8 @@ type FilePurpose string
 // List of FilePurpose
 const (
 	FINE_TUNE FilePurpose = "fine-tune"
-	BATCH FilePurpose = "batch"
-	OCR FilePurpose = "ocr"
+	BATCH     FilePurpose = "batch"
+	OCR       FilePurpose = "ocr"
 )
 
 // All allowed values of FilePurpose enum
@@ -110,4 +110,3 @@ func (v *NullableFilePurpose) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-

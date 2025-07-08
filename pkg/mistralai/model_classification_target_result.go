@@ -20,7 +20,7 @@ var _ MappedNullable = &ClassificationTargetResult{}
 
 // ClassificationTargetResult struct for ClassificationTargetResult
 type ClassificationTargetResult struct {
-	Scores map[string]float32 `json:"scores"`
+	Scores               map[string]float32 `json:"scores"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -69,7 +69,7 @@ func (o *ClassificationTargetResult) SetScores(v map[string]float32) {
 }
 
 func (o ClassificationTargetResult) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -100,10 +100,10 @@ func (o *ClassificationTargetResult) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -164,5 +164,3 @@ func (v *NullableClassificationTargetResult) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

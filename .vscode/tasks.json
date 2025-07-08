@@ -15,7 +15,7 @@
         "--git-repo-id", "mindtrial",
         "--skip-validate-spec",
         "--minimal-update",
-        // "--enable-post-process-file", // bug: https://github.com/OpenAPITools/openapi-generator/issues/10839
+        "--enable-post-process-file",
         "--additional-properties packageName=mistralai",
         "--additional-properties isGoSubmodule=true",
         "--additional-properties disallowAdditionalPropertiesIfNotPresent=false",

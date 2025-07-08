@@ -15,7 +15,6 @@ import (
 	"fmt"
 )
 
-
 // Description struct for Description
 type Description struct {
 	String *string
@@ -30,7 +29,7 @@ func (dst *Description) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into String
-	err = json.Unmarshal(data, &dst.String);
+	err = json.Unmarshal(data, &dst.String)
 	if err == nil {
 		jsonString, _ := json.Marshal(dst.String)
 		if string(jsonString) == "{}" { // empty struct
@@ -53,7 +52,6 @@ func (src Description) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
-
 
 type NullableDescription struct {
 	value *Description
@@ -90,5 +88,3 @@ func (v *NullableDescription) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

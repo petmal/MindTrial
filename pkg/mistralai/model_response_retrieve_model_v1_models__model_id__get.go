@@ -19,7 +19,7 @@ import (
 // ResponseRetrieveModelV1ModelsModelIdGet - struct for ResponseRetrieveModelV1ModelsModelIdGet
 type ResponseRetrieveModelV1ModelsModelIdGet struct {
 	BaseModelCard *BaseModelCard
-	FTModelCard *FTModelCard
+	FTModelCard   *FTModelCard
 }
 
 // BaseModelCardAsResponseRetrieveModelV1ModelsModelIdGet is a convenience function that returns BaseModelCard wrapped in ResponseRetrieveModelV1ModelsModelIdGet
@@ -35,7 +35,6 @@ func FTModelCardAsResponseRetrieveModelV1ModelsModelIdGet(v *FTModelCard) Respon
 		FTModelCard: v,
 	}
 }
-
 
 // Unmarshal JSON data into one of the pointers in the struct
 func (dst *ResponseRetrieveModelV1ModelsModelIdGet) UnmarshalJSON(data []byte) error {
@@ -102,7 +101,7 @@ func (src ResponseRetrieveModelV1ModelsModelIdGet) MarshalJSON() ([]byte, error)
 }
 
 // Get the actual instance
-func (obj *ResponseRetrieveModelV1ModelsModelIdGet) GetActualInstance() (interface{}) {
+func (obj *ResponseRetrieveModelV1ModelsModelIdGet) GetActualInstance() interface{} {
 	if obj == nil {
 		return nil
 	}
@@ -119,7 +118,7 @@ func (obj *ResponseRetrieveModelV1ModelsModelIdGet) GetActualInstance() (interfa
 }
 
 // Get the actual instance value
-func (obj ResponseRetrieveModelV1ModelsModelIdGet) GetActualInstanceValue() (interface{}) {
+func (obj ResponseRetrieveModelV1ModelsModelIdGet) GetActualInstanceValue() interface{} {
 	if obj.BaseModelCard != nil {
 		return *obj.BaseModelCard
 	}
@@ -167,5 +166,3 @@ func (v *NullableResponseRetrieveModelV1ModelsModelIdGet) UnmarshalJSON(src []by
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

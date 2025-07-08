@@ -12,8 +12,8 @@ package mistralai
 
 import (
 	"encoding/json"
-	"time"
 	"fmt"
+	"time"
 )
 
 // checks if the AgentHandoffEntry type satisfies the MappedNullable interface at compile time
@@ -21,15 +21,15 @@ var _ MappedNullable = &AgentHandoffEntry{}
 
 // AgentHandoffEntry struct for AgentHandoffEntry
 type AgentHandoffEntry struct {
-	Object *string `json:"object,omitempty"`
-	Type *string `json:"type,omitempty"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	CompletedAt NullableTime `json:"completed_at,omitempty"`
-	Id *string `json:"id,omitempty"`
-	PreviousAgentId string `json:"previous_agent_id"`
-	PreviousAgentName string `json:"previous_agent_name"`
-	NextAgentId string `json:"next_agent_id"`
-	NextAgentName string `json:"next_agent_name"`
+	Object               *string      `json:"object,omitempty"`
+	Type                 *string      `json:"type,omitempty"`
+	CreatedAt            *time.Time   `json:"created_at,omitempty"`
+	CompletedAt          NullableTime `json:"completed_at,omitempty"`
+	Id                   *string      `json:"id,omitempty"`
+	PreviousAgentId      string       `json:"previous_agent_id"`
+	PreviousAgentName    string       `json:"previous_agent_name"`
+	NextAgentId          string       `json:"next_agent_id"`
+	NextAgentName        string       `json:"next_agent_name"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -192,6 +192,7 @@ func (o *AgentHandoffEntry) HasCompletedAt() bool {
 func (o *AgentHandoffEntry) SetCompletedAt(v time.Time) {
 	o.CompletedAt.Set(&v)
 }
+
 // SetCompletedAtNil sets the value for CompletedAt to be an explicit nil
 func (o *AgentHandoffEntry) SetCompletedAtNil() {
 	o.CompletedAt.Set(nil)
@@ -331,7 +332,7 @@ func (o *AgentHandoffEntry) SetNextAgentName(v string) {
 }
 
 func (o AgentHandoffEntry) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -383,10 +384,10 @@ func (o *AgentHandoffEntry) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -455,5 +456,3 @@ func (v *NullableAgentHandoffEntry) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

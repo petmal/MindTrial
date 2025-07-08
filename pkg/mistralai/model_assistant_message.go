@@ -19,11 +19,11 @@ var _ MappedNullable = &AssistantMessage{}
 
 // AssistantMessage struct for AssistantMessage
 type AssistantMessage struct {
-	Content NullableContent3 `json:"content,omitempty"`
-	ToolCalls []ToolCall `json:"tool_calls,omitempty"`
+	Content   NullableContent3 `json:"content,omitempty"`
+	ToolCalls []ToolCall       `json:"tool_calls,omitempty"`
 	// Set this to `true` when adding an assistant message as prefix to condition the model response. The role of the prefix message is to force the model to start its answer by the content of the message.
-	Prefix *bool `json:"prefix,omitempty"`
-	Role *string `json:"role,omitempty"`
+	Prefix               *bool   `json:"prefix,omitempty"`
+	Role                 *string `json:"role,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -86,6 +86,7 @@ func (o *AssistantMessage) HasContent() bool {
 func (o *AssistantMessage) SetContent(v Content3) {
 	o.Content.Set(&v)
 }
+
 // SetContentNil sets the value for Content to be an explicit nil
 func (o *AssistantMessage) SetContentNil() {
 	o.Content.Set(nil)
@@ -194,7 +195,7 @@ func (o *AssistantMessage) SetRole(v string) {
 }
 
 func (o AssistantMessage) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -282,5 +283,3 @@ func (v *NullableAssistantMessage) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

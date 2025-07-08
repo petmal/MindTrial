@@ -20,9 +20,9 @@ var _ MappedNullable = &DocumentURLChunk{}
 
 // DocumentURLChunk struct for DocumentURLChunk
 type DocumentURLChunk struct {
-	DocumentUrl string `json:"document_url"`
-	DocumentName NullableString `json:"document_name,omitempty"`
-	Type *string `json:"type,omitempty"`
+	DocumentUrl          string         `json:"document_url"`
+	DocumentName         NullableString `json:"document_name,omitempty"`
+	Type                 *string        `json:"type,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -106,6 +106,7 @@ func (o *DocumentURLChunk) HasDocumentName() bool {
 func (o *DocumentURLChunk) SetDocumentName(v string) {
 	o.DocumentName.Set(&v)
 }
+
 // SetDocumentNameNil sets the value for DocumentName to be an explicit nil
 func (o *DocumentURLChunk) SetDocumentNameNil() {
 	o.DocumentName.Set(nil)
@@ -149,7 +150,7 @@ func (o *DocumentURLChunk) SetType(v string) {
 }
 
 func (o DocumentURLChunk) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -186,10 +187,10 @@ func (o *DocumentURLChunk) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -252,5 +253,3 @@ func (v *NullableDocumentURLChunk) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

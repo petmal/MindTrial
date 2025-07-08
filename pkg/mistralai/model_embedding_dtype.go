@@ -20,10 +20,10 @@ type EmbeddingDtype string
 
 // List of EmbeddingDtype
 const (
-	FLOAT EmbeddingDtype = "float"
-	INT8 EmbeddingDtype = "int8"
-	UINT8 EmbeddingDtype = "uint8"
-	BINARY EmbeddingDtype = "binary"
+	FLOAT   EmbeddingDtype = "float"
+	INT8    EmbeddingDtype = "int8"
+	UINT8   EmbeddingDtype = "uint8"
+	BINARY  EmbeddingDtype = "binary"
 	UBINARY EmbeddingDtype = "ubinary"
 )
 
@@ -114,4 +114,3 @@ func (v *NullableEmbeddingDtype) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-

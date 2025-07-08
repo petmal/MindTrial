@@ -20,12 +20,12 @@ var _ MappedNullable = &FIMCompletionResponse{}
 
 // FIMCompletionResponse struct for FIMCompletionResponse
 type FIMCompletionResponse struct {
-	Id *string `json:"id,omitempty"`
-	Object *string `json:"object,omitempty"`
-	Model *string `json:"model,omitempty"`
-	Usage *UsageInfo `json:"usage,omitempty"`
-	Created *int32 `json:"created,omitempty"`
-	Choices []ChatCompletionChoice `json:"choices"`
+	Id                   *string                `json:"id,omitempty"`
+	Object               *string                `json:"object,omitempty"`
+	Model                *string                `json:"model,omitempty"`
+	Usage                *UsageInfo             `json:"usage,omitempty"`
+	Created              *int32                 `json:"created,omitempty"`
+	Choices              []ChatCompletionChoice `json:"choices"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -234,7 +234,7 @@ func (o *FIMCompletionResponse) SetChoices(v []ChatCompletionChoice) {
 }
 
 func (o FIMCompletionResponse) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -280,10 +280,10 @@ func (o *FIMCompletionResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -349,5 +349,3 @@ func (v *NullableFIMCompletionResponse) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

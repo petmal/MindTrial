@@ -25,8 +25,8 @@ type OCRPageObject struct {
 	// The markdown string response of the page
 	Markdown string `json:"markdown"`
 	// List of all extracted images in the page
-	Images []OCRImageObject `json:"images"`
-	Dimensions NullableOCRPageDimensions `json:"dimensions"`
+	Images               []OCRImageObject          `json:"images"`
+	Dimensions           NullableOCRPageDimensions `json:"dimensions"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -152,7 +152,7 @@ func (o *OCRPageObject) SetDimensions(v OCRPageDimensions) {
 }
 
 func (o OCRPageObject) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -189,10 +189,10 @@ func (o *OCRPageObject) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -256,5 +256,3 @@ func (v *NullableOCRPageObject) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

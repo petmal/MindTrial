@@ -18,14 +18,13 @@ import (
 	"net/url"
 )
 
-
 type AgentsAPI interface {
 
 	/*
-	AgentsCompletionV1AgentsCompletionsPost Agents Completion
+		AgentsCompletionV1AgentsCompletionsPost Agents Completion
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiAgentsCompletionV1AgentsCompletionsPostRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiAgentsCompletionV1AgentsCompletionsPostRequest
 	*/
 	AgentsCompletionV1AgentsCompletionsPost(ctx context.Context) ApiAgentsCompletionV1AgentsCompletionsPostRequest
 
@@ -38,8 +37,8 @@ type AgentsAPI interface {
 type AgentsAPIService service
 
 type ApiAgentsCompletionV1AgentsCompletionsPostRequest struct {
-	ctx context.Context
-	ApiService AgentsAPI
+	ctx                     context.Context
+	ApiService              AgentsAPI
 	agentsCompletionRequest *AgentsCompletionRequest
 }
 
@@ -55,24 +54,25 @@ func (r ApiAgentsCompletionV1AgentsCompletionsPostRequest) Execute() (*ChatCompl
 /*
 AgentsCompletionV1AgentsCompletionsPost Agents Completion
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiAgentsCompletionV1AgentsCompletionsPostRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiAgentsCompletionV1AgentsCompletionsPostRequest
 */
 func (a *AgentsAPIService) AgentsCompletionV1AgentsCompletionsPost(ctx context.Context) ApiAgentsCompletionV1AgentsCompletionsPostRequest {
 	return ApiAgentsCompletionV1AgentsCompletionsPostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return ChatCompletionResponse
+//
+//	@return ChatCompletionResponse
 func (a *AgentsAPIService) AgentsCompletionV1AgentsCompletionsPostExecute(r ApiAgentsCompletionV1AgentsCompletionsPostRequest) (*ChatCompletionResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *ChatCompletionResponse
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *ChatCompletionResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AgentsAPIService.AgentsCompletionV1AgentsCompletionsPost")
@@ -137,8 +137,8 @@ func (a *AgentsAPIService) AgentsCompletionV1AgentsCompletionsPostExecute(r ApiA
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

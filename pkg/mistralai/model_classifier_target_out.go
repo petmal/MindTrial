@@ -20,10 +20,10 @@ var _ MappedNullable = &ClassifierTargetOut{}
 
 // ClassifierTargetOut struct for ClassifierTargetOut
 type ClassifierTargetOut struct {
-	Name string `json:"name"`
-	Labels []string `json:"labels"`
-	Weight float32 `json:"weight"`
-	LossFunction FTClassifierLossFunction `json:"loss_function"`
+	Name                 string                   `json:"name"`
+	Labels               []string                 `json:"labels"`
+	Weight               float32                  `json:"weight"`
+	LossFunction         FTClassifierLossFunction `json:"loss_function"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -147,7 +147,7 @@ func (o *ClassifierTargetOut) SetLossFunction(v FTClassifierLossFunction) {
 }
 
 func (o ClassifierTargetOut) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -184,10 +184,10 @@ func (o *ClassifierTargetOut) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -251,5 +251,3 @@ func (v *NullableClassifierTargetOut) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

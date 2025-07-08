@@ -21,11 +21,11 @@ var _ MappedNullable = &EmbeddingRequest{}
 // EmbeddingRequest struct for EmbeddingRequest
 type EmbeddingRequest struct {
 	// ID of the model to use.
-	Model string `json:"model"`
-	Input Input2 `json:"input"`
+	Model           string        `json:"model"`
+	Input           Input2        `json:"input"`
 	OutputDimension NullableInt32 `json:"output_dimension,omitempty"`
 	// The data type of the output embeddings.
-	OutputDtype *EmbeddingDtype `json:"output_dtype,omitempty"`
+	OutputDtype          *EmbeddingDtype `json:"output_dtype,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -130,6 +130,7 @@ func (o *EmbeddingRequest) HasOutputDimension() bool {
 func (o *EmbeddingRequest) SetOutputDimension(v int32) {
 	o.OutputDimension.Set(&v)
 }
+
 // SetOutputDimensionNil sets the value for OutputDimension to be an explicit nil
 func (o *EmbeddingRequest) SetOutputDimensionNil() {
 	o.OutputDimension.Set(nil)
@@ -173,7 +174,7 @@ func (o *EmbeddingRequest) SetOutputDtype(v EmbeddingDtype) {
 }
 
 func (o EmbeddingRequest) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -212,10 +213,10 @@ func (o *EmbeddingRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -279,5 +280,3 @@ func (v *NullableEmbeddingRequest) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

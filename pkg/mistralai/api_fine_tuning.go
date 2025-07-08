@@ -20,17 +20,16 @@ import (
 	"time"
 )
 
-
 type FineTuningAPI interface {
 
 	/*
-	JobsApiRoutesFineTuningCancelFineTuningJob Cancel Fine Tuning Job
+		JobsApiRoutesFineTuningCancelFineTuningJob Cancel Fine Tuning Job
 
-	Request the cancellation of a fine tuning job.
+		Request the cancellation of a fine tuning job.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param jobId The ID of the job to cancel.
-	@return ApiJobsApiRoutesFineTuningCancelFineTuningJobRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param jobId The ID of the job to cancel.
+		@return ApiJobsApiRoutesFineTuningCancelFineTuningJobRequest
 	*/
 	JobsApiRoutesFineTuningCancelFineTuningJob(ctx context.Context, jobId string) ApiJobsApiRoutesFineTuningCancelFineTuningJobRequest
 
@@ -39,12 +38,12 @@ type FineTuningAPI interface {
 	JobsApiRoutesFineTuningCancelFineTuningJobExecute(r ApiJobsApiRoutesFineTuningCancelFineTuningJobRequest) (*Response1, *http.Response, error)
 
 	/*
-	JobsApiRoutesFineTuningCreateFineTuningJob Create Fine Tuning Job
+		JobsApiRoutesFineTuningCreateFineTuningJob Create Fine Tuning Job
 
-	Create a new fine-tuning job, it will be queued for processing.
+		Create a new fine-tuning job, it will be queued for processing.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiJobsApiRoutesFineTuningCreateFineTuningJobRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiJobsApiRoutesFineTuningCreateFineTuningJobRequest
 	*/
 	JobsApiRoutesFineTuningCreateFineTuningJob(ctx context.Context) ApiJobsApiRoutesFineTuningCreateFineTuningJobRequest
 
@@ -53,13 +52,13 @@ type FineTuningAPI interface {
 	JobsApiRoutesFineTuningCreateFineTuningJobExecute(r ApiJobsApiRoutesFineTuningCreateFineTuningJobRequest) (*Response, *http.Response, error)
 
 	/*
-	JobsApiRoutesFineTuningGetFineTuningJob Get Fine Tuning Job
+		JobsApiRoutesFineTuningGetFineTuningJob Get Fine Tuning Job
 
-	Get a fine-tuned job details by its UUID.
+		Get a fine-tuned job details by its UUID.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param jobId The ID of the job to analyse.
-	@return ApiJobsApiRoutesFineTuningGetFineTuningJobRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param jobId The ID of the job to analyse.
+		@return ApiJobsApiRoutesFineTuningGetFineTuningJobRequest
 	*/
 	JobsApiRoutesFineTuningGetFineTuningJob(ctx context.Context, jobId string) ApiJobsApiRoutesFineTuningGetFineTuningJobRequest
 
@@ -68,12 +67,12 @@ type FineTuningAPI interface {
 	JobsApiRoutesFineTuningGetFineTuningJobExecute(r ApiJobsApiRoutesFineTuningGetFineTuningJobRequest) (*Response1, *http.Response, error)
 
 	/*
-	JobsApiRoutesFineTuningGetFineTuningJobs Get Fine Tuning Jobs
+		JobsApiRoutesFineTuningGetFineTuningJobs Get Fine Tuning Jobs
 
-	Get a list of fine-tuning jobs for your organization and user.
+		Get a list of fine-tuning jobs for your organization and user.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiJobsApiRoutesFineTuningGetFineTuningJobsRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiJobsApiRoutesFineTuningGetFineTuningJobsRequest
 	*/
 	JobsApiRoutesFineTuningGetFineTuningJobs(ctx context.Context) ApiJobsApiRoutesFineTuningGetFineTuningJobsRequest
 
@@ -82,13 +81,13 @@ type FineTuningAPI interface {
 	JobsApiRoutesFineTuningGetFineTuningJobsExecute(r ApiJobsApiRoutesFineTuningGetFineTuningJobsRequest) (*JobsOut, *http.Response, error)
 
 	/*
-	JobsApiRoutesFineTuningStartFineTuningJob Start Fine Tuning Job
+		JobsApiRoutesFineTuningStartFineTuningJob Start Fine Tuning Job
 
-	Request the start of a validated fine tuning job.
+		Request the start of a validated fine tuning job.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param jobId
-	@return ApiJobsApiRoutesFineTuningStartFineTuningJobRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param jobId
+		@return ApiJobsApiRoutesFineTuningStartFineTuningJobRequest
 	*/
 	JobsApiRoutesFineTuningStartFineTuningJob(ctx context.Context, jobId string) ApiJobsApiRoutesFineTuningStartFineTuningJobRequest
 
@@ -101,9 +100,9 @@ type FineTuningAPI interface {
 type FineTuningAPIService service
 
 type ApiJobsApiRoutesFineTuningCancelFineTuningJobRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService FineTuningAPI
-	jobId string
+	jobId      string
 }
 
 func (r ApiJobsApiRoutesFineTuningCancelFineTuningJobRequest) Execute() (*Response1, *http.Response, error) {
@@ -115,26 +114,27 @@ JobsApiRoutesFineTuningCancelFineTuningJob Cancel Fine Tuning Job
 
 Request the cancellation of a fine tuning job.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param jobId The ID of the job to cancel.
- @return ApiJobsApiRoutesFineTuningCancelFineTuningJobRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param jobId The ID of the job to cancel.
+	@return ApiJobsApiRoutesFineTuningCancelFineTuningJobRequest
 */
 func (a *FineTuningAPIService) JobsApiRoutesFineTuningCancelFineTuningJob(ctx context.Context, jobId string) ApiJobsApiRoutesFineTuningCancelFineTuningJobRequest {
 	return ApiJobsApiRoutesFineTuningCancelFineTuningJobRequest{
 		ApiService: a,
-		ctx: ctx,
-		jobId: jobId,
+		ctx:        ctx,
+		jobId:      jobId,
 	}
 }
 
 // Execute executes the request
-//  @return Response1
+//
+//	@return Response1
 func (a *FineTuningAPIService) JobsApiRoutesFineTuningCancelFineTuningJobExecute(r ApiJobsApiRoutesFineTuningCancelFineTuningJobRequest) (*Response1, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *Response1
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *Response1
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "FineTuningAPIService.JobsApiRoutesFineTuningCancelFineTuningJob")
@@ -204,10 +204,10 @@ func (a *FineTuningAPIService) JobsApiRoutesFineTuningCancelFineTuningJobExecute
 }
 
 type ApiJobsApiRoutesFineTuningCreateFineTuningJobRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService FineTuningAPI
-	jobIn *JobIn
-	dryRun *bool
+	jobIn      *JobIn
+	dryRun     *bool
 }
 
 func (r ApiJobsApiRoutesFineTuningCreateFineTuningJobRequest) JobIn(jobIn JobIn) ApiJobsApiRoutesFineTuningCreateFineTuningJobRequest {
@@ -215,7 +215,7 @@ func (r ApiJobsApiRoutesFineTuningCreateFineTuningJobRequest) JobIn(jobIn JobIn)
 	return r
 }
 
-// * If &#x60;true&#x60; the job is not spawned, instead the query returns a handful of useful metadata   for the user to perform sanity checks (see &#x60;LegacyJobMetadataOut&#x60; response). * Otherwise, the job is started and the query returns the job ID along with some of the   input parameters (see &#x60;JobOut&#x60; response). 
+// * If &#x60;true&#x60; the job is not spawned, instead the query returns a handful of useful metadata   for the user to perform sanity checks (see &#x60;LegacyJobMetadataOut&#x60; response). * Otherwise, the job is started and the query returns the job ID along with some of the   input parameters (see &#x60;JobOut&#x60; response).
 func (r ApiJobsApiRoutesFineTuningCreateFineTuningJobRequest) DryRun(dryRun bool) ApiJobsApiRoutesFineTuningCreateFineTuningJobRequest {
 	r.dryRun = &dryRun
 	return r
@@ -230,24 +230,25 @@ JobsApiRoutesFineTuningCreateFineTuningJob Create Fine Tuning Job
 
 Create a new fine-tuning job, it will be queued for processing.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiJobsApiRoutesFineTuningCreateFineTuningJobRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiJobsApiRoutesFineTuningCreateFineTuningJobRequest
 */
 func (a *FineTuningAPIService) JobsApiRoutesFineTuningCreateFineTuningJob(ctx context.Context) ApiJobsApiRoutesFineTuningCreateFineTuningJobRequest {
 	return ApiJobsApiRoutesFineTuningCreateFineTuningJobRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return Response
+//
+//	@return Response
 func (a *FineTuningAPIService) JobsApiRoutesFineTuningCreateFineTuningJobExecute(r ApiJobsApiRoutesFineTuningCreateFineTuningJobRequest) (*Response, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *Response
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *Response
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "FineTuningAPIService.JobsApiRoutesFineTuningCreateFineTuningJob")
@@ -324,9 +325,9 @@ func (a *FineTuningAPIService) JobsApiRoutesFineTuningCreateFineTuningJobExecute
 }
 
 type ApiJobsApiRoutesFineTuningGetFineTuningJobRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService FineTuningAPI
-	jobId string
+	jobId      string
 }
 
 func (r ApiJobsApiRoutesFineTuningGetFineTuningJobRequest) Execute() (*Response1, *http.Response, error) {
@@ -338,26 +339,27 @@ JobsApiRoutesFineTuningGetFineTuningJob Get Fine Tuning Job
 
 Get a fine-tuned job details by its UUID.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param jobId The ID of the job to analyse.
- @return ApiJobsApiRoutesFineTuningGetFineTuningJobRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param jobId The ID of the job to analyse.
+	@return ApiJobsApiRoutesFineTuningGetFineTuningJobRequest
 */
 func (a *FineTuningAPIService) JobsApiRoutesFineTuningGetFineTuningJob(ctx context.Context, jobId string) ApiJobsApiRoutesFineTuningGetFineTuningJobRequest {
 	return ApiJobsApiRoutesFineTuningGetFineTuningJobRequest{
 		ApiService: a,
-		ctx: ctx,
-		jobId: jobId,
+		ctx:        ctx,
+		jobId:      jobId,
 	}
 }
 
 // Execute executes the request
-//  @return Response1
+//
+//	@return Response1
 func (a *FineTuningAPIService) JobsApiRoutesFineTuningGetFineTuningJobExecute(r ApiJobsApiRoutesFineTuningGetFineTuningJobRequest) (*Response1, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodGet
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *Response1
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *Response1
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "FineTuningAPIService.JobsApiRoutesFineTuningGetFineTuningJob")
@@ -427,18 +429,18 @@ func (a *FineTuningAPIService) JobsApiRoutesFineTuningGetFineTuningJobExecute(r 
 }
 
 type ApiJobsApiRoutesFineTuningGetFineTuningJobsRequest struct {
-	ctx context.Context
-	ApiService FineTuningAPI
-	page *int32
-	pageSize *int32
-	model *string
-	createdAfter *time.Time
+	ctx           context.Context
+	ApiService    FineTuningAPI
+	page          *int32
+	pageSize      *int32
+	model         *string
+	createdAfter  *time.Time
 	createdBefore *time.Time
-	createdByMe *bool
-	status *string
-	wandbProject *string
-	wandbName *string
-	suffix *string
+	createdByMe   *bool
+	status        *string
+	wandbProject  *string
+	wandbName     *string
+	suffix        *string
 }
 
 // The page number of the results to be returned.
@@ -509,24 +511,25 @@ JobsApiRoutesFineTuningGetFineTuningJobs Get Fine Tuning Jobs
 
 Get a list of fine-tuning jobs for your organization and user.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiJobsApiRoutesFineTuningGetFineTuningJobsRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiJobsApiRoutesFineTuningGetFineTuningJobsRequest
 */
 func (a *FineTuningAPIService) JobsApiRoutesFineTuningGetFineTuningJobs(ctx context.Context) ApiJobsApiRoutesFineTuningGetFineTuningJobsRequest {
 	return ApiJobsApiRoutesFineTuningGetFineTuningJobsRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return JobsOut
+//
+//	@return JobsOut
 func (a *FineTuningAPIService) JobsApiRoutesFineTuningGetFineTuningJobsExecute(r ApiJobsApiRoutesFineTuningGetFineTuningJobsRequest) (*JobsOut, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodGet
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *JobsOut
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *JobsOut
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "FineTuningAPIService.JobsApiRoutesFineTuningGetFineTuningJobs")
@@ -634,9 +637,9 @@ func (a *FineTuningAPIService) JobsApiRoutesFineTuningGetFineTuningJobsExecute(r
 }
 
 type ApiJobsApiRoutesFineTuningStartFineTuningJobRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService FineTuningAPI
-	jobId string
+	jobId      string
 }
 
 func (r ApiJobsApiRoutesFineTuningStartFineTuningJobRequest) Execute() (*Response1, *http.Response, error) {
@@ -648,26 +651,27 @@ JobsApiRoutesFineTuningStartFineTuningJob Start Fine Tuning Job
 
 Request the start of a validated fine tuning job.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param jobId
- @return ApiJobsApiRoutesFineTuningStartFineTuningJobRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param jobId
+	@return ApiJobsApiRoutesFineTuningStartFineTuningJobRequest
 */
 func (a *FineTuningAPIService) JobsApiRoutesFineTuningStartFineTuningJob(ctx context.Context, jobId string) ApiJobsApiRoutesFineTuningStartFineTuningJobRequest {
 	return ApiJobsApiRoutesFineTuningStartFineTuningJobRequest{
 		ApiService: a,
-		ctx: ctx,
-		jobId: jobId,
+		ctx:        ctx,
+		jobId:      jobId,
 	}
 }
 
 // Execute executes the request
-//  @return Response1
+//
+//	@return Response1
 func (a *FineTuningAPIService) JobsApiRoutesFineTuningStartFineTuningJobExecute(r ApiJobsApiRoutesFineTuningStartFineTuningJobRequest) (*Response1, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *Response1
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *Response1
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "FineTuningAPIService.JobsApiRoutesFineTuningStartFineTuningJob")

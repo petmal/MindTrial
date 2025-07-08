@@ -12,8 +12,8 @@ package mistralai
 
 import (
 	"encoding/json"
-	"time"
 	"fmt"
+	"time"
 )
 
 // checks if the AgentHandoffDoneEvent type satisfies the MappedNullable interface at compile time
@@ -21,12 +21,12 @@ var _ MappedNullable = &AgentHandoffDoneEvent{}
 
 // AgentHandoffDoneEvent struct for AgentHandoffDoneEvent
 type AgentHandoffDoneEvent struct {
-	Type *string `json:"type,omitempty"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	OutputIndex *int32 `json:"output_index,omitempty"`
-	Id string `json:"id"`
-	NextAgentId string `json:"next_agent_id"`
-	NextAgentName string `json:"next_agent_name"`
+	Type                 *string    `json:"type,omitempty"`
+	CreatedAt            *time.Time `json:"created_at,omitempty"`
+	OutputIndex          *int32     `json:"output_index,omitempty"`
+	Id                   string     `json:"id"`
+	NextAgentId          string     `json:"next_agent_id"`
+	NextAgentName        string     `json:"next_agent_name"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -229,7 +229,7 @@ func (o *AgentHandoffDoneEvent) SetNextAgentName(v string) {
 }
 
 func (o AgentHandoffDoneEvent) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -273,10 +273,10 @@ func (o *AgentHandoffDoneEvent) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -342,5 +342,3 @@ func (v *NullableAgentHandoffDoneEvent) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

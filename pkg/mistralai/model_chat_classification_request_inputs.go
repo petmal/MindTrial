@@ -15,10 +15,9 @@ import (
 	"fmt"
 )
 
-
 // ChatClassificationRequestInputs Chat to classify
 type ChatClassificationRequestInputs struct {
-	InstructRequest *InstructRequest
+	InstructRequest        *InstructRequest
 	ArrayOfInstructRequest *[]InstructRequest
 }
 
@@ -26,7 +25,7 @@ type ChatClassificationRequestInputs struct {
 func (dst *ChatClassificationRequestInputs) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into InstructRequest
-	err = json.Unmarshal(data, &dst.InstructRequest);
+	err = json.Unmarshal(data, &dst.InstructRequest)
 	if err == nil {
 		jsonInstructRequest, _ := json.Marshal(dst.InstructRequest)
 		if string(jsonInstructRequest) == "{}" { // empty struct
@@ -39,7 +38,7 @@ func (dst *ChatClassificationRequestInputs) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into ArrayOfInstructRequest
-	err = json.Unmarshal(data, &dst.ArrayOfInstructRequest);
+	err = json.Unmarshal(data, &dst.ArrayOfInstructRequest)
 	if err == nil {
 		jsonArrayOfInstructRequest, _ := json.Marshal(dst.ArrayOfInstructRequest)
 		if string(jsonArrayOfInstructRequest) == "{}" { // empty struct
@@ -66,7 +65,6 @@ func (src ChatClassificationRequestInputs) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
-
 
 type NullableChatClassificationRequestInputs struct {
 	value *ChatClassificationRequestInputs
@@ -103,5 +101,3 @@ func (v *NullableChatClassificationRequestInputs) UnmarshalJSON(src []byte) erro
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

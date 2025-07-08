@@ -19,9 +19,9 @@ var _ MappedNullable = &DeltaMessage{}
 
 // DeltaMessage struct for DeltaMessage
 type DeltaMessage struct {
-	Role NullableString `json:"role,omitempty"`
-	Content NullableDeltaMessageContent `json:"content,omitempty"`
-	ToolCalls []ToolCall `json:"tool_calls,omitempty"`
+	Role                 NullableString              `json:"role,omitempty"`
+	Content              NullableDeltaMessageContent `json:"content,omitempty"`
+	ToolCalls            []ToolCall                  `json:"tool_calls,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -76,6 +76,7 @@ func (o *DeltaMessage) HasRole() bool {
 func (o *DeltaMessage) SetRole(v string) {
 	o.Role.Set(&v)
 }
+
 // SetRoleNil sets the value for Role to be an explicit nil
 func (o *DeltaMessage) SetRoleNil() {
 	o.Role.Set(nil)
@@ -118,6 +119,7 @@ func (o *DeltaMessage) HasContent() bool {
 func (o *DeltaMessage) SetContent(v DeltaMessageContent) {
 	o.Content.Set(&v)
 }
+
 // SetContentNil sets the value for Content to be an explicit nil
 func (o *DeltaMessage) SetContentNil() {
 	o.Content.Set(nil)
@@ -162,7 +164,7 @@ func (o *DeltaMessage) SetToolCalls(v []ToolCall) {
 }
 
 func (o DeltaMessage) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -246,5 +248,3 @@ func (v *NullableDeltaMessage) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

@@ -19,11 +19,11 @@ var _ MappedNullable = &FTModelCapabilitiesOut{}
 
 // FTModelCapabilitiesOut struct for FTModelCapabilitiesOut
 type FTModelCapabilitiesOut struct {
-	CompletionChat *bool `json:"completion_chat,omitempty"`
-	CompletionFim *bool `json:"completion_fim,omitempty"`
-	FunctionCalling *bool `json:"function_calling,omitempty"`
-	FineTuning *bool `json:"fine_tuning,omitempty"`
-	Classification *bool `json:"classification,omitempty"`
+	CompletionChat       *bool `json:"completion_chat,omitempty"`
+	CompletionFim        *bool `json:"completion_fim,omitempty"`
+	FunctionCalling      *bool `json:"function_calling,omitempty"`
+	FineTuning           *bool `json:"fine_tuning,omitempty"`
+	Classification       *bool `json:"classification,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -227,7 +227,7 @@ func (o *FTModelCapabilitiesOut) SetClassification(v bool) {
 }
 
 func (o FTModelCapabilitiesOut) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -319,5 +319,3 @@ func (v *NullableFTModelCapabilitiesOut) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

@@ -22,7 +22,7 @@ type ModerationObject struct {
 	// Moderation result thresholds
 	Categories map[string]bool `json:"categories,omitempty"`
 	// Moderation result
-	CategoryScores map[string]float32 `json:"category_scores,omitempty"`
+	CategoryScores       map[string]float32 `json:"category_scores,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -110,7 +110,7 @@ func (o *ModerationObject) SetCategoryScores(v map[string]float32) {
 }
 
 func (o ModerationObject) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -190,5 +190,3 @@ func (v *NullableModerationObject) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

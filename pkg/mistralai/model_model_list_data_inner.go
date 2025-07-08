@@ -19,7 +19,7 @@ import (
 // ModelListDataInner - struct for ModelListDataInner
 type ModelListDataInner struct {
 	BaseModelCard *BaseModelCard
-	FTModelCard *FTModelCard
+	FTModelCard   *FTModelCard
 }
 
 // BaseModelCardAsModelListDataInner is a convenience function that returns BaseModelCard wrapped in ModelListDataInner
@@ -35,7 +35,6 @@ func FTModelCardAsModelListDataInner(v *FTModelCard) ModelListDataInner {
 		FTModelCard: v,
 	}
 }
-
 
 // Unmarshal JSON data into one of the pointers in the struct
 func (dst *ModelListDataInner) UnmarshalJSON(data []byte) error {
@@ -102,7 +101,7 @@ func (src ModelListDataInner) MarshalJSON() ([]byte, error) {
 }
 
 // Get the actual instance
-func (obj *ModelListDataInner) GetActualInstance() (interface{}) {
+func (obj *ModelListDataInner) GetActualInstance() interface{} {
 	if obj == nil {
 		return nil
 	}
@@ -119,7 +118,7 @@ func (obj *ModelListDataInner) GetActualInstance() (interface{}) {
 }
 
 // Get the actual instance value
-func (obj ModelListDataInner) GetActualInstanceValue() (interface{}) {
+func (obj ModelListDataInner) GetActualInstanceValue() interface{} {
 	if obj.BaseModelCard != nil {
 		return *obj.BaseModelCard
 	}
@@ -167,5 +166,3 @@ func (v *NullableModelListDataInner) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

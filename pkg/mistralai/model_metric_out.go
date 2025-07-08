@@ -19,10 +19,10 @@ var _ MappedNullable = &MetricOut{}
 
 // MetricOut Metrics at the step number during the fine-tuning job. Use these metrics to assess if the training is going smoothly (loss should decrease, token accuracy should increase).
 type MetricOut struct {
-	TrainLoss NullableFloat32 `json:"train_loss,omitempty"`
-	ValidLoss NullableFloat32 `json:"valid_loss,omitempty"`
+	TrainLoss              NullableFloat32 `json:"train_loss,omitempty"`
+	ValidLoss              NullableFloat32 `json:"valid_loss,omitempty"`
 	ValidMeanTokenAccuracy NullableFloat32 `json:"valid_mean_token_accuracy,omitempty"`
-	AdditionalProperties map[string]interface{}
+	AdditionalProperties   map[string]interface{}
 }
 
 type _MetricOut MetricOut
@@ -76,6 +76,7 @@ func (o *MetricOut) HasTrainLoss() bool {
 func (o *MetricOut) SetTrainLoss(v float32) {
 	o.TrainLoss.Set(&v)
 }
+
 // SetTrainLossNil sets the value for TrainLoss to be an explicit nil
 func (o *MetricOut) SetTrainLossNil() {
 	o.TrainLoss.Set(nil)
@@ -118,6 +119,7 @@ func (o *MetricOut) HasValidLoss() bool {
 func (o *MetricOut) SetValidLoss(v float32) {
 	o.ValidLoss.Set(&v)
 }
+
 // SetValidLossNil sets the value for ValidLoss to be an explicit nil
 func (o *MetricOut) SetValidLossNil() {
 	o.ValidLoss.Set(nil)
@@ -160,6 +162,7 @@ func (o *MetricOut) HasValidMeanTokenAccuracy() bool {
 func (o *MetricOut) SetValidMeanTokenAccuracy(v float32) {
 	o.ValidMeanTokenAccuracy.Set(&v)
 }
+
 // SetValidMeanTokenAccuracyNil sets the value for ValidMeanTokenAccuracy to be an explicit nil
 func (o *MetricOut) SetValidMeanTokenAccuracyNil() {
 	o.ValidMeanTokenAccuracy.Set(nil)
@@ -171,7 +174,7 @@ func (o *MetricOut) UnsetValidMeanTokenAccuracy() {
 }
 
 func (o MetricOut) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -255,5 +258,3 @@ func (v *NullableMetricOut) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

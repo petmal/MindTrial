@@ -18,12 +18,12 @@ import (
 
 // AgentToolsInner - struct for AgentToolsInner
 type AgentToolsInner struct {
-	CodeInterpreterTool *CodeInterpreterTool
-	DocumentLibraryTool *DocumentLibraryTool
-	FunctionTool *FunctionTool
-	ImageGenerationTool *ImageGenerationTool
+	CodeInterpreterTool  *CodeInterpreterTool
+	DocumentLibraryTool  *DocumentLibraryTool
+	FunctionTool         *FunctionTool
+	ImageGenerationTool  *ImageGenerationTool
 	WebSearchPremiumTool *WebSearchPremiumTool
-	WebSearchTool *WebSearchTool
+	WebSearchTool        *WebSearchTool
 }
 
 // CodeInterpreterToolAsAgentToolsInner is a convenience function that returns CodeInterpreterTool wrapped in AgentToolsInner
@@ -67,7 +67,6 @@ func WebSearchToolAsAgentToolsInner(v *WebSearchTool) AgentToolsInner {
 		WebSearchTool: v,
 	}
 }
-
 
 // Unmarshal JSON data into one of the pointers in the struct
 func (dst *AgentToolsInner) UnmarshalJSON(data []byte) error {
@@ -222,7 +221,7 @@ func (src AgentToolsInner) MarshalJSON() ([]byte, error) {
 }
 
 // Get the actual instance
-func (obj *AgentToolsInner) GetActualInstance() (interface{}) {
+func (obj *AgentToolsInner) GetActualInstance() interface{} {
 	if obj == nil {
 		return nil
 	}
@@ -255,7 +254,7 @@ func (obj *AgentToolsInner) GetActualInstance() (interface{}) {
 }
 
 // Get the actual instance value
-func (obj AgentToolsInner) GetActualInstanceValue() (interface{}) {
+func (obj AgentToolsInner) GetActualInstanceValue() interface{} {
 	if obj.CodeInterpreterTool != nil {
 		return *obj.CodeInterpreterTool
 	}
@@ -319,5 +318,3 @@ func (v *NullableAgentToolsInner) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

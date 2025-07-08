@@ -20,13 +20,13 @@ type FineTuneableModel string
 
 // List of FineTuneableModel
 const (
-	OPEN_MISTRAL_7B FineTuneableModel = "open-mistral-7b"
+	OPEN_MISTRAL_7B      FineTuneableModel = "open-mistral-7b"
 	MISTRAL_SMALL_LATEST FineTuneableModel = "mistral-small-latest"
-	CODESTRAL_LATEST FineTuneableModel = "codestral-latest"
+	CODESTRAL_LATEST     FineTuneableModel = "codestral-latest"
 	MISTRAL_LARGE_LATEST FineTuneableModel = "mistral-large-latest"
-	OPEN_MISTRAL_NEMO FineTuneableModel = "open-mistral-nemo"
-	MINISTRAL_3B_LATEST FineTuneableModel = "ministral-3b-latest"
-	MINISTRAL_8B_LATEST FineTuneableModel = "ministral-8b-latest"
+	OPEN_MISTRAL_NEMO    FineTuneableModel = "open-mistral-nemo"
+	MINISTRAL_3B_LATEST  FineTuneableModel = "ministral-3b-latest"
+	MINISTRAL_8B_LATEST  FineTuneableModel = "ministral-8b-latest"
 )
 
 // All allowed values of FineTuneableModel enum
@@ -118,4 +118,3 @@ func (v *NullableFineTuneableModel) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-

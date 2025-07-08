@@ -20,17 +20,17 @@ var _ MappedNullable = &ConversationRequest{}
 
 // ConversationRequest struct for ConversationRequest
 type ConversationRequest struct {
-	Inputs ConversationInputs `json:"inputs"`
-	Stream *bool `json:"stream,omitempty"`
-	Store *bool `json:"store,omitempty"`
-	HandoffExecution *string `json:"handoff_execution,omitempty"`
-	Instructions *string `json:"instructions,omitempty"`
-	Tools []AgentToolsInner `json:"tools,omitempty"`
-	CompletionArgs *CompletionArgs `json:"completion_args,omitempty"`
-	Name *string `json:"name,omitempty"`
-	Description *string `json:"description,omitempty"`
-	AgentId *string `json:"agent_id,omitempty"`
-	Model *string `json:"model,omitempty"`
+	Inputs               ConversationInputs `json:"inputs"`
+	Stream               *bool              `json:"stream,omitempty"`
+	Store                *bool              `json:"store,omitempty"`
+	HandoffExecution     *string            `json:"handoff_execution,omitempty"`
+	Instructions         *string            `json:"instructions,omitempty"`
+	Tools                []AgentToolsInner  `json:"tools,omitempty"`
+	CompletionArgs       *CompletionArgs    `json:"completion_args,omitempty"`
+	Name                 *string            `json:"name,omitempty"`
+	Description          *string            `json:"description,omitempty"`
+	AgentId              *string            `json:"agent_id,omitempty"`
+	Model                *string            `json:"model,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -403,7 +403,7 @@ func (o *ConversationRequest) SetModel(v string) {
 }
 
 func (o ConversationRequest) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -464,10 +464,10 @@ func (o *ConversationRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -538,5 +538,3 @@ func (v *NullableConversationRequest) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

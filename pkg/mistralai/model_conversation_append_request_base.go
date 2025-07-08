@@ -24,10 +24,10 @@ type ConversationAppendRequestBase struct {
 	// Whether to stream back partial progress. Otherwise, the server will hold the request open until the timeout or until completion, with the response containing the full result as JSON.
 	Stream *bool `json:"stream,omitempty"`
 	// Whether to store the results into our servers or not.
-	Store *bool `json:"store,omitempty"`
+	Store            *bool   `json:"store,omitempty"`
 	HandoffExecution *string `json:"handoff_execution,omitempty"`
 	// Completion arguments that will be used to generate assistant responses. Can be overridden at each message request.
-	CompletionArgs *CompletionArgs `json:"completion_args,omitempty"`
+	CompletionArgs       *CompletionArgs `json:"completion_args,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -216,7 +216,7 @@ func (o *ConversationAppendRequestBase) SetCompletionArgs(v CompletionArgs) {
 }
 
 func (o ConversationAppendRequestBase) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -259,10 +259,10 @@ func (o *ConversationAppendRequestBase) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -327,5 +327,3 @@ func (v *NullableConversationAppendRequestBase) UnmarshalJSON(src []byte) error 
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

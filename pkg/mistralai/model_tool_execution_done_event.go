@@ -12,8 +12,8 @@ package mistralai
 
 import (
 	"encoding/json"
-	"time"
 	"fmt"
+	"time"
 )
 
 // checks if the ToolExecutionDoneEvent type satisfies the MappedNullable interface at compile time
@@ -21,12 +21,12 @@ var _ MappedNullable = &ToolExecutionDoneEvent{}
 
 // ToolExecutionDoneEvent struct for ToolExecutionDoneEvent
 type ToolExecutionDoneEvent struct {
-	Type *string `json:"type,omitempty"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	OutputIndex *int32 `json:"output_index,omitempty"`
-	Id string `json:"id"`
-	Name BuiltInConnectors `json:"name"`
-	Info map[string]interface{} `json:"info,omitempty"`
+	Type                 *string                `json:"type,omitempty"`
+	CreatedAt            *time.Time             `json:"created_at,omitempty"`
+	OutputIndex          *int32                 `json:"output_index,omitempty"`
+	Id                   string                 `json:"id"`
+	Name                 BuiltInConnectors      `json:"name"`
+	Info                 map[string]interface{} `json:"info,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -236,7 +236,7 @@ func (o *ToolExecutionDoneEvent) SetInfo(v map[string]interface{}) {
 }
 
 func (o ToolExecutionDoneEvent) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -281,10 +281,10 @@ func (o *ToolExecutionDoneEvent) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -350,5 +350,3 @@ func (v *NullableToolExecutionDoneEvent) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

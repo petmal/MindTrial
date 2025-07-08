@@ -31,10 +31,10 @@ type UploadFileOut struct {
 	// The name of the uploaded file.
 	Filename string `json:"filename"`
 	// The intended purpose of the uploaded file. Only accepts fine-tuning (`fine-tune`) for now.
-	Purpose FilePurpose `json:"purpose"`
-	SampleType SampleType `json:"sample_type"`
-	NumLines NullableInt32 `json:"num_lines,omitempty"`
-	Source Source `json:"source"`
+	Purpose              FilePurpose   `json:"purpose"`
+	SampleType           SampleType    `json:"sample_type"`
+	NumLines             NullableInt32 `json:"num_lines,omitempty"`
+	Source               Source        `json:"source"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -265,6 +265,7 @@ func (o *UploadFileOut) HasNumLines() bool {
 func (o *UploadFileOut) SetNumLines(v int32) {
 	o.NumLines.Set(&v)
 }
+
 // SetNumLinesNil sets the value for NumLines to be an explicit nil
 func (o *UploadFileOut) SetNumLinesNil() {
 	o.NumLines.Set(nil)
@@ -300,7 +301,7 @@ func (o *UploadFileOut) SetSource(v Source) {
 }
 
 func (o UploadFileOut) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -348,10 +349,10 @@ func (o *UploadFileOut) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -420,5 +421,3 @@ func (v *NullableUploadFileOut) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

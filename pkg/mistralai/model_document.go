@@ -15,18 +15,17 @@ import (
 	"fmt"
 )
 
-
 // Document Document to run OCR on
 type Document struct {
 	DocumentURLChunk *DocumentURLChunk
-	ImageURLChunk *ImageURLChunk
+	ImageURLChunk    *ImageURLChunk
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
 func (dst *Document) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into DocumentURLChunk
-	err = json.Unmarshal(data, &dst.DocumentURLChunk);
+	err = json.Unmarshal(data, &dst.DocumentURLChunk)
 	if err == nil {
 		jsonDocumentURLChunk, _ := json.Marshal(dst.DocumentURLChunk)
 		if string(jsonDocumentURLChunk) == "{}" { // empty struct
@@ -39,7 +38,7 @@ func (dst *Document) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into ImageURLChunk
-	err = json.Unmarshal(data, &dst.ImageURLChunk);
+	err = json.Unmarshal(data, &dst.ImageURLChunk)
 	if err == nil {
 		jsonImageURLChunk, _ := json.Marshal(dst.ImageURLChunk)
 		if string(jsonImageURLChunk) == "{}" { // empty struct
@@ -66,7 +65,6 @@ func (src Document) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
-
 
 type NullableDocument struct {
 	value *Document
@@ -103,5 +101,3 @@ func (v *NullableDocument) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

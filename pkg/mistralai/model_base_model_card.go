@@ -12,8 +12,8 @@ package mistralai
 
 import (
 	"encoding/json"
-	"time"
 	"fmt"
+	"time"
 )
 
 // checks if the BaseModelCard type satisfies the MappedNullable interface at compile time
@@ -21,19 +21,19 @@ var _ MappedNullable = &BaseModelCard{}
 
 // BaseModelCard struct for BaseModelCard
 type BaseModelCard struct {
-	Id string `json:"id"`
-	Object *string `json:"object,omitempty"`
-	Created *int32 `json:"created,omitempty"`
-	OwnedBy *string `json:"owned_by,omitempty"`
-	Capabilities ModelCapabilities `json:"capabilities"`
-	Name NullableString `json:"name,omitempty"`
-	Description NullableString `json:"description,omitempty"`
-	MaxContextLength *int32 `json:"max_context_length,omitempty"`
-	Aliases []string `json:"aliases,omitempty"`
-	Deprecation NullableTime `json:"deprecation,omitempty"`
-	DefaultModelTemperature NullableFloat32 `json:"default_model_temperature,omitempty"`
-	Type *string `json:"type,omitempty"`
-	AdditionalProperties map[string]interface{}
+	Id                      string            `json:"id"`
+	Object                  *string           `json:"object,omitempty"`
+	Created                 *int32            `json:"created,omitempty"`
+	OwnedBy                 *string           `json:"owned_by,omitempty"`
+	Capabilities            ModelCapabilities `json:"capabilities"`
+	Name                    NullableString    `json:"name,omitempty"`
+	Description             NullableString    `json:"description,omitempty"`
+	MaxContextLength        *int32            `json:"max_context_length,omitempty"`
+	Aliases                 []string          `json:"aliases,omitempty"`
+	Deprecation             NullableTime      `json:"deprecation,omitempty"`
+	DefaultModelTemperature NullableFloat32   `json:"default_model_temperature,omitempty"`
+	Type                    *string           `json:"type,omitempty"`
+	AdditionalProperties    map[string]interface{}
 }
 
 type _BaseModelCard BaseModelCard
@@ -249,6 +249,7 @@ func (o *BaseModelCard) HasName() bool {
 func (o *BaseModelCard) SetName(v string) {
 	o.Name.Set(&v)
 }
+
 // SetNameNil sets the value for Name to be an explicit nil
 func (o *BaseModelCard) SetNameNil() {
 	o.Name.Set(nil)
@@ -291,6 +292,7 @@ func (o *BaseModelCard) HasDescription() bool {
 func (o *BaseModelCard) SetDescription(v string) {
 	o.Description.Set(&v)
 }
+
 // SetDescriptionNil sets the value for Description to be an explicit nil
 func (o *BaseModelCard) SetDescriptionNil() {
 	o.Description.Set(nil)
@@ -397,6 +399,7 @@ func (o *BaseModelCard) HasDeprecation() bool {
 func (o *BaseModelCard) SetDeprecation(v time.Time) {
 	o.Deprecation.Set(&v)
 }
+
 // SetDeprecationNil sets the value for Deprecation to be an explicit nil
 func (o *BaseModelCard) SetDeprecationNil() {
 	o.Deprecation.Set(nil)
@@ -439,6 +442,7 @@ func (o *BaseModelCard) HasDefaultModelTemperature() bool {
 func (o *BaseModelCard) SetDefaultModelTemperature(v float32) {
 	o.DefaultModelTemperature.Set(&v)
 }
+
 // SetDefaultModelTemperatureNil sets the value for DefaultModelTemperature to be an explicit nil
 func (o *BaseModelCard) SetDefaultModelTemperatureNil() {
 	o.DefaultModelTemperature.Set(nil)
@@ -482,7 +486,7 @@ func (o *BaseModelCard) SetType(v string) {
 }
 
 func (o BaseModelCard) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -545,10 +549,10 @@ func (o *BaseModelCard) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -620,5 +624,3 @@ func (v *NullableBaseModelCard) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

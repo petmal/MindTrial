@@ -20,19 +20,19 @@ var _ MappedNullable = &JobIn{}
 
 // JobIn struct for JobIn
 type JobIn struct {
-	Model FineTuneableModel `json:"model"`
-	TrainingFiles []TrainingFile `json:"training_files,omitempty"`
-	ValidationFiles []string `json:"validation_files,omitempty"`
-	Suffix NullableString `json:"suffix,omitempty"`
-	Integrations []WandbIntegration `json:"integrations,omitempty"`
+	Model           FineTuneableModel  `json:"model"`
+	TrainingFiles   []TrainingFile     `json:"training_files,omitempty"`
+	ValidationFiles []string           `json:"validation_files,omitempty"`
+	Suffix          NullableString     `json:"suffix,omitempty"`
+	Integrations    []WandbIntegration `json:"integrations,omitempty"`
 	// This field will be required in a future release.
-	AutoStart *bool `json:"auto_start,omitempty"`
-	InvalidSampleSkipPercentage *float32 `json:"invalid_sample_skip_percentage,omitempty"`
-	JobType NullableFineTuneableModelType `json:"job_type,omitempty"`
-	Hyperparameters Hyperparameters `json:"hyperparameters"`
-	Repositories []GithubRepositoryIn `json:"repositories,omitempty"`
-	ClassifierTargets []ClassifierTargetIn `json:"classifier_targets,omitempty"`
-	AdditionalProperties map[string]interface{}
+	AutoStart                   *bool                         `json:"auto_start,omitempty"`
+	InvalidSampleSkipPercentage *float32                      `json:"invalid_sample_skip_percentage,omitempty"`
+	JobType                     NullableFineTuneableModelType `json:"job_type,omitempty"`
+	Hyperparameters             Hyperparameters               `json:"hyperparameters"`
+	Repositories                []GithubRepositoryIn          `json:"repositories,omitempty"`
+	ClassifierTargets           []ClassifierTargetIn          `json:"classifier_targets,omitempty"`
+	AdditionalProperties        map[string]interface{}
 }
 
 type _JobIn JobIn
@@ -181,6 +181,7 @@ func (o *JobIn) HasSuffix() bool {
 func (o *JobIn) SetSuffix(v string) {
 	o.Suffix.Set(&v)
 }
+
 // SetSuffixNil sets the value for Suffix to be an explicit nil
 func (o *JobIn) SetSuffixNil() {
 	o.Suffix.Set(nil)
@@ -320,6 +321,7 @@ func (o *JobIn) HasJobType() bool {
 func (o *JobIn) SetJobType(v FineTuneableModelType) {
 	o.JobType.Set(&v)
 }
+
 // SetJobTypeNil sets the value for JobType to be an explicit nil
 func (o *JobIn) SetJobTypeNil() {
 	o.JobType.Set(nil)
@@ -421,7 +423,7 @@ func (o *JobIn) SetClassifierTargets(v []ClassifierTargetIn) {
 }
 
 func (o JobIn) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -481,10 +483,10 @@ func (o *JobIn) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -555,5 +557,3 @@ func (v *NullableJobIn) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

@@ -12,8 +12,8 @@ package mistralai
 
 import (
 	"encoding/json"
-	"time"
 	"fmt"
+	"time"
 )
 
 // checks if the ModelConversation type satisfies the MappedNullable interface at compile time
@@ -25,14 +25,14 @@ type ModelConversation struct {
 	// List of tools which are available to the model during the conversation.
 	Tools []AgentToolsInner `json:"tools,omitempty"`
 	// Completion arguments that will be used to generate assistant responses. Can be overridden at each message request.
-	CompletionArgs *CompletionArgs `json:"completion_args,omitempty"`
-	Name NullableString `json:"name,omitempty"`
-	Description NullableString `json:"description,omitempty"`
-	Object *string `json:"object,omitempty"`
-	Id string `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Model string `json:"model"`
+	CompletionArgs       *CompletionArgs `json:"completion_args,omitempty"`
+	Name                 NullableString  `json:"name,omitempty"`
+	Description          NullableString  `json:"description,omitempty"`
+	Object               *string         `json:"object,omitempty"`
+	Id                   string          `json:"id"`
+	CreatedAt            time.Time       `json:"created_at"`
+	UpdatedAt            time.Time       `json:"updated_at"`
+	Model                string          `json:"model"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -95,6 +95,7 @@ func (o *ModelConversation) HasInstructions() bool {
 func (o *ModelConversation) SetInstructions(v string) {
 	o.Instructions.Set(&v)
 }
+
 // SetInstructionsNil sets the value for Instructions to be an explicit nil
 func (o *ModelConversation) SetInstructionsNil() {
 	o.Instructions.Set(nil)
@@ -201,6 +202,7 @@ func (o *ModelConversation) HasName() bool {
 func (o *ModelConversation) SetName(v string) {
 	o.Name.Set(&v)
 }
+
 // SetNameNil sets the value for Name to be an explicit nil
 func (o *ModelConversation) SetNameNil() {
 	o.Name.Set(nil)
@@ -243,6 +245,7 @@ func (o *ModelConversation) HasDescription() bool {
 func (o *ModelConversation) SetDescription(v string) {
 	o.Description.Set(&v)
 }
+
 // SetDescriptionNil sets the value for Description to be an explicit nil
 func (o *ModelConversation) SetDescriptionNil() {
 	o.Description.Set(nil)
@@ -382,7 +385,7 @@ func (o *ModelConversation) SetModel(v string) {
 }
 
 func (o ModelConversation) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -437,10 +440,10 @@ func (o *ModelConversation) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -510,5 +513,3 @@ func (v *NullableModelConversation) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

@@ -19,17 +19,16 @@ import (
 	"strings"
 )
 
-
 type BetaConversationsAPI interface {
 
 	/*
-	AgentsApiV1ConversationsAppend Append new entries to an existing conversation.
+		AgentsApiV1ConversationsAppend Append new entries to an existing conversation.
 
-	Run completion on the history of the conversation and the user entries. Return the new created entries.
+		Run completion on the history of the conversation and the user entries. Return the new created entries.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param conversationId ID of the conversation to which we append entries.
-	@return ApiAgentsApiV1ConversationsAppendRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param conversationId ID of the conversation to which we append entries.
+		@return ApiAgentsApiV1ConversationsAppendRequest
 	*/
 	AgentsApiV1ConversationsAppend(ctx context.Context, conversationId string) ApiAgentsApiV1ConversationsAppendRequest
 
@@ -38,13 +37,13 @@ type BetaConversationsAPI interface {
 	AgentsApiV1ConversationsAppendExecute(r ApiAgentsApiV1ConversationsAppendRequest) (*ConversationResponse, *http.Response, error)
 
 	/*
-	AgentsApiV1ConversationsAppendStream Append new entries to an existing conversation.
+		AgentsApiV1ConversationsAppendStream Append new entries to an existing conversation.
 
-	Run completion on the history of the conversation and the user entries. Return the new created entries.
+		Run completion on the history of the conversation and the user entries. Return the new created entries.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param conversationId ID of the conversation to which we append entries.
-	@return ApiAgentsApiV1ConversationsAppendStreamRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param conversationId ID of the conversation to which we append entries.
+		@return ApiAgentsApiV1ConversationsAppendStreamRequest
 	*/
 	AgentsApiV1ConversationsAppendStream(ctx context.Context, conversationId string) ApiAgentsApiV1ConversationsAppendStreamRequest
 
@@ -53,13 +52,13 @@ type BetaConversationsAPI interface {
 	AgentsApiV1ConversationsAppendStreamExecute(r ApiAgentsApiV1ConversationsAppendStreamRequest) (*ConversationEvents, *http.Response, error)
 
 	/*
-	AgentsApiV1ConversationsGet Retrieve a conversation information.
+		AgentsApiV1ConversationsGet Retrieve a conversation information.
 
-	Given a conversation_id retrieve a conversation entity with its attributes.
+		Given a conversation_id retrieve a conversation entity with its attributes.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param conversationId ID of the conversation from which we are fetching metadata.
-	@return ApiAgentsApiV1ConversationsGetRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param conversationId ID of the conversation from which we are fetching metadata.
+		@return ApiAgentsApiV1ConversationsGetRequest
 	*/
 	AgentsApiV1ConversationsGet(ctx context.Context, conversationId string) ApiAgentsApiV1ConversationsGetRequest
 
@@ -68,13 +67,13 @@ type BetaConversationsAPI interface {
 	AgentsApiV1ConversationsGetExecute(r ApiAgentsApiV1ConversationsGetRequest) (*ResponseV1ConversationsGet, *http.Response, error)
 
 	/*
-	AgentsApiV1ConversationsHistory Retrieve all entries in a conversation.
+		AgentsApiV1ConversationsHistory Retrieve all entries in a conversation.
 
-	Given a conversation_id retrieve all the entries belonging to that conversation. The entries are sorted in the order they were appended, those can be messages, connectors or function_call.
+		Given a conversation_id retrieve all the entries belonging to that conversation. The entries are sorted in the order they were appended, those can be messages, connectors or function_call.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param conversationId ID of the conversation from which we are fetching entries.
-	@return ApiAgentsApiV1ConversationsHistoryRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param conversationId ID of the conversation from which we are fetching entries.
+		@return ApiAgentsApiV1ConversationsHistoryRequest
 	*/
 	AgentsApiV1ConversationsHistory(ctx context.Context, conversationId string) ApiAgentsApiV1ConversationsHistoryRequest
 
@@ -83,12 +82,12 @@ type BetaConversationsAPI interface {
 	AgentsApiV1ConversationsHistoryExecute(r ApiAgentsApiV1ConversationsHistoryRequest) (*ConversationHistory, *http.Response, error)
 
 	/*
-	AgentsApiV1ConversationsList List all created conversations.
+		AgentsApiV1ConversationsList List all created conversations.
 
-	Retrieve a list of conversation entities sorted by creation time.
+		Retrieve a list of conversation entities sorted by creation time.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiAgentsApiV1ConversationsListRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiAgentsApiV1ConversationsListRequest
 	*/
 	AgentsApiV1ConversationsList(ctx context.Context) ApiAgentsApiV1ConversationsListRequest
 
@@ -97,13 +96,13 @@ type BetaConversationsAPI interface {
 	AgentsApiV1ConversationsListExecute(r ApiAgentsApiV1ConversationsListRequest) ([]AgentsApiV1ConversationsList200ResponseInner, *http.Response, error)
 
 	/*
-	AgentsApiV1ConversationsMessages Retrieve all messages in a conversation.
+		AgentsApiV1ConversationsMessages Retrieve all messages in a conversation.
 
-	Given a conversation_id retrieve all the messages belonging to that conversation. This is similar to retrieving all entries except we filter the messages only.
+		Given a conversation_id retrieve all the messages belonging to that conversation. This is similar to retrieving all entries except we filter the messages only.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param conversationId ID of the conversation from which we are fetching messages.
-	@return ApiAgentsApiV1ConversationsMessagesRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param conversationId ID of the conversation from which we are fetching messages.
+		@return ApiAgentsApiV1ConversationsMessagesRequest
 	*/
 	AgentsApiV1ConversationsMessages(ctx context.Context, conversationId string) ApiAgentsApiV1ConversationsMessagesRequest
 
@@ -112,13 +111,13 @@ type BetaConversationsAPI interface {
 	AgentsApiV1ConversationsMessagesExecute(r ApiAgentsApiV1ConversationsMessagesRequest) (*ConversationMessages, *http.Response, error)
 
 	/*
-	AgentsApiV1ConversationsRestart Restart a conversation starting from a given entry.
+		AgentsApiV1ConversationsRestart Restart a conversation starting from a given entry.
 
-	Given a conversation_id and an id, recreate a conversation from this point and run completion. A new conversation is returned with the new entries returned.
+		Given a conversation_id and an id, recreate a conversation from this point and run completion. A new conversation is returned with the new entries returned.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param conversationId ID of the original conversation which is being restarted.
-	@return ApiAgentsApiV1ConversationsRestartRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param conversationId ID of the original conversation which is being restarted.
+		@return ApiAgentsApiV1ConversationsRestartRequest
 	*/
 	AgentsApiV1ConversationsRestart(ctx context.Context, conversationId string) ApiAgentsApiV1ConversationsRestartRequest
 
@@ -127,13 +126,13 @@ type BetaConversationsAPI interface {
 	AgentsApiV1ConversationsRestartExecute(r ApiAgentsApiV1ConversationsRestartRequest) (*ConversationResponse, *http.Response, error)
 
 	/*
-	AgentsApiV1ConversationsRestartStream Restart a conversation starting from a given entry.
+		AgentsApiV1ConversationsRestartStream Restart a conversation starting from a given entry.
 
-	Given a conversation_id and an id, recreate a conversation from this point and run completion. A new conversation is returned with the new entries returned.
+		Given a conversation_id and an id, recreate a conversation from this point and run completion. A new conversation is returned with the new entries returned.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param conversationId ID of the original conversation which is being restarted.
-	@return ApiAgentsApiV1ConversationsRestartStreamRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param conversationId ID of the original conversation which is being restarted.
+		@return ApiAgentsApiV1ConversationsRestartStreamRequest
 	*/
 	AgentsApiV1ConversationsRestartStream(ctx context.Context, conversationId string) ApiAgentsApiV1ConversationsRestartStreamRequest
 
@@ -142,12 +141,12 @@ type BetaConversationsAPI interface {
 	AgentsApiV1ConversationsRestartStreamExecute(r ApiAgentsApiV1ConversationsRestartStreamRequest) (*ConversationEvents, *http.Response, error)
 
 	/*
-	AgentsApiV1ConversationsStart Create a conversation and append entries to it.
+		AgentsApiV1ConversationsStart Create a conversation and append entries to it.
 
-	Create a new conversation, using a base model or an agent and append entries. Completion and tool executions are run and the response is appended to the conversation.Use the returned conversation_id to continue the conversation.
+		Create a new conversation, using a base model or an agent and append entries. Completion and tool executions are run and the response is appended to the conversation.Use the returned conversation_id to continue the conversation.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiAgentsApiV1ConversationsStartRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiAgentsApiV1ConversationsStartRequest
 	*/
 	AgentsApiV1ConversationsStart(ctx context.Context) ApiAgentsApiV1ConversationsStartRequest
 
@@ -156,12 +155,12 @@ type BetaConversationsAPI interface {
 	AgentsApiV1ConversationsStartExecute(r ApiAgentsApiV1ConversationsStartRequest) (*ConversationResponse, *http.Response, error)
 
 	/*
-	AgentsApiV1ConversationsStartStream Create a conversation and append entries to it.
+		AgentsApiV1ConversationsStartStream Create a conversation and append entries to it.
 
-	Create a new conversation, using a base model or an agent and append entries. Completion and tool executions are run and the response is appended to the conversation.Use the returned conversation_id to continue the conversation.
+		Create a new conversation, using a base model or an agent and append entries. Completion and tool executions are run and the response is appended to the conversation.Use the returned conversation_id to continue the conversation.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiAgentsApiV1ConversationsStartStreamRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiAgentsApiV1ConversationsStartStreamRequest
 	*/
 	AgentsApiV1ConversationsStartStream(ctx context.Context) ApiAgentsApiV1ConversationsStartStreamRequest
 
@@ -174,9 +173,9 @@ type BetaConversationsAPI interface {
 type BetaConversationsAPIService service
 
 type ApiAgentsApiV1ConversationsAppendRequest struct {
-	ctx context.Context
-	ApiService BetaConversationsAPI
-	conversationId string
+	ctx                       context.Context
+	ApiService                BetaConversationsAPI
+	conversationId            string
 	conversationAppendRequest *ConversationAppendRequest
 }
 
@@ -194,26 +193,27 @@ AgentsApiV1ConversationsAppend Append new entries to an existing conversation.
 
 Run completion on the history of the conversation and the user entries. Return the new created entries.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param conversationId ID of the conversation to which we append entries.
- @return ApiAgentsApiV1ConversationsAppendRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param conversationId ID of the conversation to which we append entries.
+	@return ApiAgentsApiV1ConversationsAppendRequest
 */
 func (a *BetaConversationsAPIService) AgentsApiV1ConversationsAppend(ctx context.Context, conversationId string) ApiAgentsApiV1ConversationsAppendRequest {
 	return ApiAgentsApiV1ConversationsAppendRequest{
-		ApiService: a,
-		ctx: ctx,
+		ApiService:     a,
+		ctx:            ctx,
 		conversationId: conversationId,
 	}
 }
 
 // Execute executes the request
-//  @return ConversationResponse
+//
+//	@return ConversationResponse
 func (a *BetaConversationsAPIService) AgentsApiV1ConversationsAppendExecute(r ApiAgentsApiV1ConversationsAppendRequest) (*ConversationResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *ConversationResponse
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *ConversationResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaConversationsAPIService.AgentsApiV1ConversationsAppend")
@@ -279,8 +279,8 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsAppendExecute(r Ap
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -298,9 +298,9 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsAppendExecute(r Ap
 }
 
 type ApiAgentsApiV1ConversationsAppendStreamRequest struct {
-	ctx context.Context
-	ApiService BetaConversationsAPI
-	conversationId string
+	ctx                             context.Context
+	ApiService                      BetaConversationsAPI
+	conversationId                  string
 	conversationAppendStreamRequest *ConversationAppendStreamRequest
 }
 
@@ -318,26 +318,27 @@ AgentsApiV1ConversationsAppendStream Append new entries to an existing conversat
 
 Run completion on the history of the conversation and the user entries. Return the new created entries.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param conversationId ID of the conversation to which we append entries.
- @return ApiAgentsApiV1ConversationsAppendStreamRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param conversationId ID of the conversation to which we append entries.
+	@return ApiAgentsApiV1ConversationsAppendStreamRequest
 */
 func (a *BetaConversationsAPIService) AgentsApiV1ConversationsAppendStream(ctx context.Context, conversationId string) ApiAgentsApiV1ConversationsAppendStreamRequest {
 	return ApiAgentsApiV1ConversationsAppendStreamRequest{
-		ApiService: a,
-		ctx: ctx,
+		ApiService:     a,
+		ctx:            ctx,
 		conversationId: conversationId,
 	}
 }
 
 // Execute executes the request
-//  @return ConversationEvents
+//
+//	@return ConversationEvents
 func (a *BetaConversationsAPIService) AgentsApiV1ConversationsAppendStreamExecute(r ApiAgentsApiV1ConversationsAppendStreamRequest) (*ConversationEvents, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *ConversationEvents
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *ConversationEvents
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaConversationsAPIService.AgentsApiV1ConversationsAppendStream")
@@ -403,8 +404,8 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsAppendStreamExecut
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -422,8 +423,8 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsAppendStreamExecut
 }
 
 type ApiAgentsApiV1ConversationsGetRequest struct {
-	ctx context.Context
-	ApiService BetaConversationsAPI
+	ctx            context.Context
+	ApiService     BetaConversationsAPI
 	conversationId string
 }
 
@@ -436,26 +437,27 @@ AgentsApiV1ConversationsGet Retrieve a conversation information.
 
 Given a conversation_id retrieve a conversation entity with its attributes.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param conversationId ID of the conversation from which we are fetching metadata.
- @return ApiAgentsApiV1ConversationsGetRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param conversationId ID of the conversation from which we are fetching metadata.
+	@return ApiAgentsApiV1ConversationsGetRequest
 */
 func (a *BetaConversationsAPIService) AgentsApiV1ConversationsGet(ctx context.Context, conversationId string) ApiAgentsApiV1ConversationsGetRequest {
 	return ApiAgentsApiV1ConversationsGetRequest{
-		ApiService: a,
-		ctx: ctx,
+		ApiService:     a,
+		ctx:            ctx,
 		conversationId: conversationId,
 	}
 }
 
 // Execute executes the request
-//  @return ResponseV1ConversationsGet
+//
+//	@return ResponseV1ConversationsGet
 func (a *BetaConversationsAPIService) AgentsApiV1ConversationsGetExecute(r ApiAgentsApiV1ConversationsGetRequest) (*ResponseV1ConversationsGet, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodGet
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *ResponseV1ConversationsGet
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *ResponseV1ConversationsGet
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaConversationsAPIService.AgentsApiV1ConversationsGet")
@@ -516,8 +518,8 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsGetExecute(r ApiAg
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -535,8 +537,8 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsGetExecute(r ApiAg
 }
 
 type ApiAgentsApiV1ConversationsHistoryRequest struct {
-	ctx context.Context
-	ApiService BetaConversationsAPI
+	ctx            context.Context
+	ApiService     BetaConversationsAPI
 	conversationId string
 }
 
@@ -549,26 +551,27 @@ AgentsApiV1ConversationsHistory Retrieve all entries in a conversation.
 
 Given a conversation_id retrieve all the entries belonging to that conversation. The entries are sorted in the order they were appended, those can be messages, connectors or function_call.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param conversationId ID of the conversation from which we are fetching entries.
- @return ApiAgentsApiV1ConversationsHistoryRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param conversationId ID of the conversation from which we are fetching entries.
+	@return ApiAgentsApiV1ConversationsHistoryRequest
 */
 func (a *BetaConversationsAPIService) AgentsApiV1ConversationsHistory(ctx context.Context, conversationId string) ApiAgentsApiV1ConversationsHistoryRequest {
 	return ApiAgentsApiV1ConversationsHistoryRequest{
-		ApiService: a,
-		ctx: ctx,
+		ApiService:     a,
+		ctx:            ctx,
 		conversationId: conversationId,
 	}
 }
 
 // Execute executes the request
-//  @return ConversationHistory
+//
+//	@return ConversationHistory
 func (a *BetaConversationsAPIService) AgentsApiV1ConversationsHistoryExecute(r ApiAgentsApiV1ConversationsHistoryRequest) (*ConversationHistory, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodGet
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *ConversationHistory
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *ConversationHistory
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaConversationsAPIService.AgentsApiV1ConversationsHistory")
@@ -629,8 +632,8 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsHistoryExecute(r A
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -648,10 +651,10 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsHistoryExecute(r A
 }
 
 type ApiAgentsApiV1ConversationsListRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService BetaConversationsAPI
-	page *int32
-	pageSize *int32
+	page       *int32
+	pageSize   *int32
 }
 
 func (r ApiAgentsApiV1ConversationsListRequest) Page(page int32) ApiAgentsApiV1ConversationsListRequest {
@@ -673,24 +676,25 @@ AgentsApiV1ConversationsList List all created conversations.
 
 Retrieve a list of conversation entities sorted by creation time.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiAgentsApiV1ConversationsListRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiAgentsApiV1ConversationsListRequest
 */
 func (a *BetaConversationsAPIService) AgentsApiV1ConversationsList(ctx context.Context) ApiAgentsApiV1ConversationsListRequest {
 	return ApiAgentsApiV1ConversationsListRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return []AgentsApiV1ConversationsList200ResponseInner
+//
+//	@return []AgentsApiV1ConversationsList200ResponseInner
 func (a *BetaConversationsAPIService) AgentsApiV1ConversationsListExecute(r ApiAgentsApiV1ConversationsListRequest) ([]AgentsApiV1ConversationsList200ResponseInner, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodGet
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  []AgentsApiV1ConversationsList200ResponseInner
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue []AgentsApiV1ConversationsList200ResponseInner
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaConversationsAPIService.AgentsApiV1ConversationsList")
@@ -762,8 +766,8 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsListExecute(r ApiA
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -781,8 +785,8 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsListExecute(r ApiA
 }
 
 type ApiAgentsApiV1ConversationsMessagesRequest struct {
-	ctx context.Context
-	ApiService BetaConversationsAPI
+	ctx            context.Context
+	ApiService     BetaConversationsAPI
 	conversationId string
 }
 
@@ -795,26 +799,27 @@ AgentsApiV1ConversationsMessages Retrieve all messages in a conversation.
 
 Given a conversation_id retrieve all the messages belonging to that conversation. This is similar to retrieving all entries except we filter the messages only.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param conversationId ID of the conversation from which we are fetching messages.
- @return ApiAgentsApiV1ConversationsMessagesRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param conversationId ID of the conversation from which we are fetching messages.
+	@return ApiAgentsApiV1ConversationsMessagesRequest
 */
 func (a *BetaConversationsAPIService) AgentsApiV1ConversationsMessages(ctx context.Context, conversationId string) ApiAgentsApiV1ConversationsMessagesRequest {
 	return ApiAgentsApiV1ConversationsMessagesRequest{
-		ApiService: a,
-		ctx: ctx,
+		ApiService:     a,
+		ctx:            ctx,
 		conversationId: conversationId,
 	}
 }
 
 // Execute executes the request
-//  @return ConversationMessages
+//
+//	@return ConversationMessages
 func (a *BetaConversationsAPIService) AgentsApiV1ConversationsMessagesExecute(r ApiAgentsApiV1ConversationsMessagesRequest) (*ConversationMessages, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodGet
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *ConversationMessages
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *ConversationMessages
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaConversationsAPIService.AgentsApiV1ConversationsMessages")
@@ -875,8 +880,8 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsMessagesExecute(r 
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -894,9 +899,9 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsMessagesExecute(r 
 }
 
 type ApiAgentsApiV1ConversationsRestartRequest struct {
-	ctx context.Context
-	ApiService BetaConversationsAPI
-	conversationId string
+	ctx                        context.Context
+	ApiService                 BetaConversationsAPI
+	conversationId             string
 	conversationRestartRequest *ConversationRestartRequest
 }
 
@@ -914,26 +919,27 @@ AgentsApiV1ConversationsRestart Restart a conversation starting from a given ent
 
 Given a conversation_id and an id, recreate a conversation from this point and run completion. A new conversation is returned with the new entries returned.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param conversationId ID of the original conversation which is being restarted.
- @return ApiAgentsApiV1ConversationsRestartRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param conversationId ID of the original conversation which is being restarted.
+	@return ApiAgentsApiV1ConversationsRestartRequest
 */
 func (a *BetaConversationsAPIService) AgentsApiV1ConversationsRestart(ctx context.Context, conversationId string) ApiAgentsApiV1ConversationsRestartRequest {
 	return ApiAgentsApiV1ConversationsRestartRequest{
-		ApiService: a,
-		ctx: ctx,
+		ApiService:     a,
+		ctx:            ctx,
 		conversationId: conversationId,
 	}
 }
 
 // Execute executes the request
-//  @return ConversationResponse
+//
+//	@return ConversationResponse
 func (a *BetaConversationsAPIService) AgentsApiV1ConversationsRestartExecute(r ApiAgentsApiV1ConversationsRestartRequest) (*ConversationResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *ConversationResponse
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *ConversationResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaConversationsAPIService.AgentsApiV1ConversationsRestart")
@@ -999,8 +1005,8 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsRestartExecute(r A
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -1018,9 +1024,9 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsRestartExecute(r A
 }
 
 type ApiAgentsApiV1ConversationsRestartStreamRequest struct {
-	ctx context.Context
-	ApiService BetaConversationsAPI
-	conversationId string
+	ctx                              context.Context
+	ApiService                       BetaConversationsAPI
+	conversationId                   string
 	conversationRestartStreamRequest *ConversationRestartStreamRequest
 }
 
@@ -1038,26 +1044,27 @@ AgentsApiV1ConversationsRestartStream Restart a conversation starting from a giv
 
 Given a conversation_id and an id, recreate a conversation from this point and run completion. A new conversation is returned with the new entries returned.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param conversationId ID of the original conversation which is being restarted.
- @return ApiAgentsApiV1ConversationsRestartStreamRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param conversationId ID of the original conversation which is being restarted.
+	@return ApiAgentsApiV1ConversationsRestartStreamRequest
 */
 func (a *BetaConversationsAPIService) AgentsApiV1ConversationsRestartStream(ctx context.Context, conversationId string) ApiAgentsApiV1ConversationsRestartStreamRequest {
 	return ApiAgentsApiV1ConversationsRestartStreamRequest{
-		ApiService: a,
-		ctx: ctx,
+		ApiService:     a,
+		ctx:            ctx,
 		conversationId: conversationId,
 	}
 }
 
 // Execute executes the request
-//  @return ConversationEvents
+//
+//	@return ConversationEvents
 func (a *BetaConversationsAPIService) AgentsApiV1ConversationsRestartStreamExecute(r ApiAgentsApiV1ConversationsRestartStreamRequest) (*ConversationEvents, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *ConversationEvents
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *ConversationEvents
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaConversationsAPIService.AgentsApiV1ConversationsRestartStream")
@@ -1123,8 +1130,8 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsRestartStreamExecu
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -1142,8 +1149,8 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsRestartStreamExecu
 }
 
 type ApiAgentsApiV1ConversationsStartRequest struct {
-	ctx context.Context
-	ApiService BetaConversationsAPI
+	ctx                 context.Context
+	ApiService          BetaConversationsAPI
 	conversationRequest *ConversationRequest
 }
 
@@ -1161,24 +1168,25 @@ AgentsApiV1ConversationsStart Create a conversation and append entries to it.
 
 Create a new conversation, using a base model or an agent and append entries. Completion and tool executions are run and the response is appended to the conversation.Use the returned conversation_id to continue the conversation.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiAgentsApiV1ConversationsStartRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiAgentsApiV1ConversationsStartRequest
 */
 func (a *BetaConversationsAPIService) AgentsApiV1ConversationsStart(ctx context.Context) ApiAgentsApiV1ConversationsStartRequest {
 	return ApiAgentsApiV1ConversationsStartRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return ConversationResponse
+//
+//	@return ConversationResponse
 func (a *BetaConversationsAPIService) AgentsApiV1ConversationsStartExecute(r ApiAgentsApiV1ConversationsStartRequest) (*ConversationResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *ConversationResponse
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *ConversationResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaConversationsAPIService.AgentsApiV1ConversationsStart")
@@ -1243,8 +1251,8 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsStartExecute(r Api
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -1262,8 +1270,8 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsStartExecute(r Api
 }
 
 type ApiAgentsApiV1ConversationsStartStreamRequest struct {
-	ctx context.Context
-	ApiService BetaConversationsAPI
+	ctx                       context.Context
+	ApiService                BetaConversationsAPI
 	conversationStreamRequest *ConversationStreamRequest
 }
 
@@ -1281,24 +1289,25 @@ AgentsApiV1ConversationsStartStream Create a conversation and append entries to 
 
 Create a new conversation, using a base model or an agent and append entries. Completion and tool executions are run and the response is appended to the conversation.Use the returned conversation_id to continue the conversation.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiAgentsApiV1ConversationsStartStreamRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiAgentsApiV1ConversationsStartStreamRequest
 */
 func (a *BetaConversationsAPIService) AgentsApiV1ConversationsStartStream(ctx context.Context) ApiAgentsApiV1ConversationsStartStreamRequest {
 	return ApiAgentsApiV1ConversationsStartStreamRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return ConversationEvents
+//
+//	@return ConversationEvents
 func (a *BetaConversationsAPIService) AgentsApiV1ConversationsStartStreamExecute(r ApiAgentsApiV1ConversationsStartStreamRequest) (*ConversationEvents, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *ConversationEvents
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *ConversationEvents
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaConversationsAPIService.AgentsApiV1ConversationsStartStream")
@@ -1363,8 +1372,8 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsStartStreamExecute
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

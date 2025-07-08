@@ -19,16 +19,16 @@ var _ MappedNullable = &CompletionArgs{}
 
 // CompletionArgs White-listed arguments from the completion API
 type CompletionArgs struct {
-	Stop NullableCompletionArgsStop `json:"stop,omitempty"`
-	PresencePenalty NullableFloat32 `json:"presence_penalty,omitempty"`
-	FrequencyPenalty NullableFloat32 `json:"frequency_penalty,omitempty"`
-	Temperature *float32 `json:"temperature,omitempty"`
-	TopP NullableFloat32 `json:"top_p,omitempty"`
-	MaxTokens NullableInt32 `json:"max_tokens,omitempty"`
-	RandomSeed NullableInt32 `json:"random_seed,omitempty"`
-	Prediction NullablePrediction `json:"prediction,omitempty"`
-	ResponseFormat NullableResponseFormat `json:"response_format,omitempty"`
-	ToolChoice *ToolChoiceEnum `json:"tool_choice,omitempty"`
+	Stop                 NullableCompletionArgsStop `json:"stop,omitempty"`
+	PresencePenalty      NullableFloat32            `json:"presence_penalty,omitempty"`
+	FrequencyPenalty     NullableFloat32            `json:"frequency_penalty,omitempty"`
+	Temperature          *float32                   `json:"temperature,omitempty"`
+	TopP                 NullableFloat32            `json:"top_p,omitempty"`
+	MaxTokens            NullableInt32              `json:"max_tokens,omitempty"`
+	RandomSeed           NullableInt32              `json:"random_seed,omitempty"`
+	Prediction           NullablePrediction         `json:"prediction,omitempty"`
+	ResponseFormat       NullableResponseFormat     `json:"response_format,omitempty"`
+	ToolChoice           *ToolChoiceEnum            `json:"tool_choice,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -87,6 +87,7 @@ func (o *CompletionArgs) HasStop() bool {
 func (o *CompletionArgs) SetStop(v CompletionArgsStop) {
 	o.Stop.Set(&v)
 }
+
 // SetStopNil sets the value for Stop to be an explicit nil
 func (o *CompletionArgs) SetStopNil() {
 	o.Stop.Set(nil)
@@ -129,6 +130,7 @@ func (o *CompletionArgs) HasPresencePenalty() bool {
 func (o *CompletionArgs) SetPresencePenalty(v float32) {
 	o.PresencePenalty.Set(&v)
 }
+
 // SetPresencePenaltyNil sets the value for PresencePenalty to be an explicit nil
 func (o *CompletionArgs) SetPresencePenaltyNil() {
 	o.PresencePenalty.Set(nil)
@@ -171,6 +173,7 @@ func (o *CompletionArgs) HasFrequencyPenalty() bool {
 func (o *CompletionArgs) SetFrequencyPenalty(v float32) {
 	o.FrequencyPenalty.Set(&v)
 }
+
 // SetFrequencyPenaltyNil sets the value for FrequencyPenalty to be an explicit nil
 func (o *CompletionArgs) SetFrequencyPenaltyNil() {
 	o.FrequencyPenalty.Set(nil)
@@ -245,6 +248,7 @@ func (o *CompletionArgs) HasTopP() bool {
 func (o *CompletionArgs) SetTopP(v float32) {
 	o.TopP.Set(&v)
 }
+
 // SetTopPNil sets the value for TopP to be an explicit nil
 func (o *CompletionArgs) SetTopPNil() {
 	o.TopP.Set(nil)
@@ -287,6 +291,7 @@ func (o *CompletionArgs) HasMaxTokens() bool {
 func (o *CompletionArgs) SetMaxTokens(v int32) {
 	o.MaxTokens.Set(&v)
 }
+
 // SetMaxTokensNil sets the value for MaxTokens to be an explicit nil
 func (o *CompletionArgs) SetMaxTokensNil() {
 	o.MaxTokens.Set(nil)
@@ -329,6 +334,7 @@ func (o *CompletionArgs) HasRandomSeed() bool {
 func (o *CompletionArgs) SetRandomSeed(v int32) {
 	o.RandomSeed.Set(&v)
 }
+
 // SetRandomSeedNil sets the value for RandomSeed to be an explicit nil
 func (o *CompletionArgs) SetRandomSeedNil() {
 	o.RandomSeed.Set(nil)
@@ -371,6 +377,7 @@ func (o *CompletionArgs) HasPrediction() bool {
 func (o *CompletionArgs) SetPrediction(v Prediction) {
 	o.Prediction.Set(&v)
 }
+
 // SetPredictionNil sets the value for Prediction to be an explicit nil
 func (o *CompletionArgs) SetPredictionNil() {
 	o.Prediction.Set(nil)
@@ -413,6 +420,7 @@ func (o *CompletionArgs) HasResponseFormat() bool {
 func (o *CompletionArgs) SetResponseFormat(v ResponseFormat) {
 	o.ResponseFormat.Set(&v)
 }
+
 // SetResponseFormatNil sets the value for ResponseFormat to be an explicit nil
 func (o *CompletionArgs) SetResponseFormatNil() {
 	o.ResponseFormat.Set(nil)
@@ -456,7 +464,7 @@ func (o *CompletionArgs) SetToolChoice(v ToolChoiceEnum) {
 }
 
 func (o CompletionArgs) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -568,5 +576,3 @@ func (v *NullableCompletionArgs) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

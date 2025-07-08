@@ -15,22 +15,21 @@ import (
 	"fmt"
 )
 
-
 // ConversationHistoryEntriesInner struct for ConversationHistoryEntriesInner
 type ConversationHistoryEntriesInner struct {
-	AgentHandoffEntry *AgentHandoffEntry
-	FunctionCallEntry *FunctionCallEntry
+	AgentHandoffEntry   *AgentHandoffEntry
+	FunctionCallEntry   *FunctionCallEntry
 	FunctionResultEntry *FunctionResultEntry
-	MessageInputEntry *MessageInputEntry
-	MessageOutputEntry *MessageOutputEntry
-	ToolExecutionEntry *ToolExecutionEntry
+	MessageInputEntry   *MessageInputEntry
+	MessageOutputEntry  *MessageOutputEntry
+	ToolExecutionEntry  *ToolExecutionEntry
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
 func (dst *ConversationHistoryEntriesInner) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into AgentHandoffEntry
-	err = json.Unmarshal(data, &dst.AgentHandoffEntry);
+	err = json.Unmarshal(data, &dst.AgentHandoffEntry)
 	if err == nil {
 		jsonAgentHandoffEntry, _ := json.Marshal(dst.AgentHandoffEntry)
 		if string(jsonAgentHandoffEntry) == "{}" { // empty struct
@@ -43,7 +42,7 @@ func (dst *ConversationHistoryEntriesInner) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into FunctionCallEntry
-	err = json.Unmarshal(data, &dst.FunctionCallEntry);
+	err = json.Unmarshal(data, &dst.FunctionCallEntry)
 	if err == nil {
 		jsonFunctionCallEntry, _ := json.Marshal(dst.FunctionCallEntry)
 		if string(jsonFunctionCallEntry) == "{}" { // empty struct
@@ -56,7 +55,7 @@ func (dst *ConversationHistoryEntriesInner) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into FunctionResultEntry
-	err = json.Unmarshal(data, &dst.FunctionResultEntry);
+	err = json.Unmarshal(data, &dst.FunctionResultEntry)
 	if err == nil {
 		jsonFunctionResultEntry, _ := json.Marshal(dst.FunctionResultEntry)
 		if string(jsonFunctionResultEntry) == "{}" { // empty struct
@@ -69,7 +68,7 @@ func (dst *ConversationHistoryEntriesInner) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into MessageInputEntry
-	err = json.Unmarshal(data, &dst.MessageInputEntry);
+	err = json.Unmarshal(data, &dst.MessageInputEntry)
 	if err == nil {
 		jsonMessageInputEntry, _ := json.Marshal(dst.MessageInputEntry)
 		if string(jsonMessageInputEntry) == "{}" { // empty struct
@@ -82,7 +81,7 @@ func (dst *ConversationHistoryEntriesInner) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into MessageOutputEntry
-	err = json.Unmarshal(data, &dst.MessageOutputEntry);
+	err = json.Unmarshal(data, &dst.MessageOutputEntry)
 	if err == nil {
 		jsonMessageOutputEntry, _ := json.Marshal(dst.MessageOutputEntry)
 		if string(jsonMessageOutputEntry) == "{}" { // empty struct
@@ -95,7 +94,7 @@ func (dst *ConversationHistoryEntriesInner) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into ToolExecutionEntry
-	err = json.Unmarshal(data, &dst.ToolExecutionEntry);
+	err = json.Unmarshal(data, &dst.ToolExecutionEntry)
 	if err == nil {
 		jsonToolExecutionEntry, _ := json.Marshal(dst.ToolExecutionEntry)
 		if string(jsonToolExecutionEntry) == "{}" { // empty struct
@@ -139,7 +138,6 @@ func (src ConversationHistoryEntriesInner) MarshalJSON() ([]byte, error) {
 	return nil, nil // no data in anyOf schemas
 }
 
-
 type NullableConversationHistoryEntriesInner struct {
 	value *ConversationHistoryEntriesInner
 	isSet bool
@@ -175,5 +173,3 @@ func (v *NullableConversationHistoryEntriesInner) UnmarshalJSON(src []byte) erro
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

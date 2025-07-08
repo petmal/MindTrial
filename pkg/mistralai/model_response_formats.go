@@ -20,7 +20,7 @@ type ResponseFormats string
 
 // List of ResponseFormats
 const (
-	TEXT ResponseFormats = "text"
+	TEXT        ResponseFormats = "text"
 	JSON_OBJECT ResponseFormats = "json_object"
 	JSON_SCHEMA ResponseFormats = "json_schema"
 )
@@ -110,4 +110,3 @@ func (v *NullableResponseFormats) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-

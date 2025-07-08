@@ -20,26 +20,26 @@ var _ MappedNullable = &CompletionDetailedJobOut{}
 
 // CompletionDetailedJobOut struct for CompletionDetailedJobOut
 type CompletionDetailedJobOut struct {
-	Id string `json:"id"`
-	AutoStart bool `json:"auto_start"`
-	Model FineTuneableModel `json:"model"`
-	Status string `json:"status"`
-	CreatedAt int32 `json:"created_at"`
-	ModifiedAt int32 `json:"modified_at"`
-	TrainingFiles []string `json:"training_files"`
-	ValidationFiles []string `json:"validation_files,omitempty"`
-	Object *string `json:"object,omitempty"`
-	FineTunedModel NullableString `json:"fine_tuned_model,omitempty"`
-	Suffix NullableString `json:"suffix,omitempty"`
-	Integrations []WandbIntegrationOut `json:"integrations,omitempty"`
-	TrainedTokens NullableInt32 `json:"trained_tokens,omitempty"`
-	Metadata NullableJobMetadataOut `json:"metadata,omitempty"`
-	JobType *string `json:"job_type,omitempty"`
+	Id              string                       `json:"id"`
+	AutoStart       bool                         `json:"auto_start"`
+	Model           FineTuneableModel            `json:"model"`
+	Status          string                       `json:"status"`
+	CreatedAt       int32                        `json:"created_at"`
+	ModifiedAt      int32                        `json:"modified_at"`
+	TrainingFiles   []string                     `json:"training_files"`
+	ValidationFiles []string                     `json:"validation_files,omitempty"`
+	Object          *string                      `json:"object,omitempty"`
+	FineTunedModel  NullableString               `json:"fine_tuned_model,omitempty"`
+	Suffix          NullableString               `json:"suffix,omitempty"`
+	Integrations    []WandbIntegrationOut        `json:"integrations,omitempty"`
+	TrainedTokens   NullableInt32                `json:"trained_tokens,omitempty"`
+	Metadata        NullableJobMetadataOut       `json:"metadata,omitempty"`
+	JobType         *string                      `json:"job_type,omitempty"`
 	Hyperparameters CompletionTrainingParameters `json:"hyperparameters"`
-	Repositories []GithubRepositoryOut `json:"repositories,omitempty"`
+	Repositories    []GithubRepositoryOut        `json:"repositories,omitempty"`
 	// Event items are created every time the status of a fine-tuning job changes. The timestamped list of all events is accessible here.
-	Events []EventOut `json:"events,omitempty"`
-	Checkpoints []CheckpointOut `json:"checkpoints,omitempty"`
+	Events               []EventOut      `json:"events,omitempty"`
+	Checkpoints          []CheckpointOut `json:"checkpoints,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -343,6 +343,7 @@ func (o *CompletionDetailedJobOut) HasFineTunedModel() bool {
 func (o *CompletionDetailedJobOut) SetFineTunedModel(v string) {
 	o.FineTunedModel.Set(&v)
 }
+
 // SetFineTunedModelNil sets the value for FineTunedModel to be an explicit nil
 func (o *CompletionDetailedJobOut) SetFineTunedModelNil() {
 	o.FineTunedModel.Set(nil)
@@ -385,6 +386,7 @@ func (o *CompletionDetailedJobOut) HasSuffix() bool {
 func (o *CompletionDetailedJobOut) SetSuffix(v string) {
 	o.Suffix.Set(&v)
 }
+
 // SetSuffixNil sets the value for Suffix to be an explicit nil
 func (o *CompletionDetailedJobOut) SetSuffixNil() {
 	o.Suffix.Set(nil)
@@ -460,6 +462,7 @@ func (o *CompletionDetailedJobOut) HasTrainedTokens() bool {
 func (o *CompletionDetailedJobOut) SetTrainedTokens(v int32) {
 	o.TrainedTokens.Set(&v)
 }
+
 // SetTrainedTokensNil sets the value for TrainedTokens to be an explicit nil
 func (o *CompletionDetailedJobOut) SetTrainedTokensNil() {
 	o.TrainedTokens.Set(nil)
@@ -502,6 +505,7 @@ func (o *CompletionDetailedJobOut) HasMetadata() bool {
 func (o *CompletionDetailedJobOut) SetMetadata(v JobMetadataOut) {
 	o.Metadata.Set(&v)
 }
+
 // SetMetadataNil sets the value for Metadata to be an explicit nil
 func (o *CompletionDetailedJobOut) SetMetadataNil() {
 	o.Metadata.Set(nil)
@@ -665,7 +669,7 @@ func (o *CompletionDetailedJobOut) SetCheckpoints(v []CheckpointOut) {
 }
 
 func (o CompletionDetailedJobOut) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -743,10 +747,10 @@ func (o *CompletionDetailedJobOut) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -825,5 +829,3 @@ func (v *NullableCompletionDetailedJobOut) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

@@ -21,9 +21,9 @@ var _ MappedNullable = &ClassifierJobOut{}
 // ClassifierJobOut struct for ClassifierJobOut
 type ClassifierJobOut struct {
 	// The ID of the job.
-	Id string `json:"id"`
-	AutoStart bool `json:"auto_start"`
-	Model FineTuneableModel `json:"model"`
+	Id        string            `json:"id"`
+	AutoStart bool              `json:"auto_start"`
+	Model     FineTuneableModel `json:"model"`
 	// The current status of the fine-tuning job.
 	Status string `json:"status"`
 	// The UNIX timestamp (in seconds) for when the fine-tuning job was created.
@@ -31,18 +31,18 @@ type ClassifierJobOut struct {
 	// The UNIX timestamp (in seconds) for when the fine-tuning job was last modified.
 	ModifiedAt int32 `json:"modified_at"`
 	// A list containing the IDs of uploaded files that contain training data.
-	TrainingFiles []string `json:"training_files"`
+	TrainingFiles   []string `json:"training_files"`
 	ValidationFiles []string `json:"validation_files,omitempty"`
 	// The object type of the fine-tuning job.
-	Object *string `json:"object,omitempty"`
-	FineTunedModel NullableString `json:"fine_tuned_model,omitempty"`
-	Suffix NullableString `json:"suffix,omitempty"`
-	Integrations []WandbIntegrationOut `json:"integrations,omitempty"`
-	TrainedTokens NullableInt32 `json:"trained_tokens,omitempty"`
-	Metadata NullableJobMetadataOut `json:"metadata,omitempty"`
+	Object         *string                `json:"object,omitempty"`
+	FineTunedModel NullableString         `json:"fine_tuned_model,omitempty"`
+	Suffix         NullableString         `json:"suffix,omitempty"`
+	Integrations   []WandbIntegrationOut  `json:"integrations,omitempty"`
+	TrainedTokens  NullableInt32          `json:"trained_tokens,omitempty"`
+	Metadata       NullableJobMetadataOut `json:"metadata,omitempty"`
 	// The type of job (`FT` for fine-tuning).
-	JobType *string `json:"job_type,omitempty"`
-	Hyperparameters ClassifierTrainingParameters `json:"hyperparameters"`
+	JobType              *string                      `json:"job_type,omitempty"`
+	Hyperparameters      ClassifierTrainingParameters `json:"hyperparameters"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -346,6 +346,7 @@ func (o *ClassifierJobOut) HasFineTunedModel() bool {
 func (o *ClassifierJobOut) SetFineTunedModel(v string) {
 	o.FineTunedModel.Set(&v)
 }
+
 // SetFineTunedModelNil sets the value for FineTunedModel to be an explicit nil
 func (o *ClassifierJobOut) SetFineTunedModelNil() {
 	o.FineTunedModel.Set(nil)
@@ -388,6 +389,7 @@ func (o *ClassifierJobOut) HasSuffix() bool {
 func (o *ClassifierJobOut) SetSuffix(v string) {
 	o.Suffix.Set(&v)
 }
+
 // SetSuffixNil sets the value for Suffix to be an explicit nil
 func (o *ClassifierJobOut) SetSuffixNil() {
 	o.Suffix.Set(nil)
@@ -463,6 +465,7 @@ func (o *ClassifierJobOut) HasTrainedTokens() bool {
 func (o *ClassifierJobOut) SetTrainedTokens(v int32) {
 	o.TrainedTokens.Set(&v)
 }
+
 // SetTrainedTokensNil sets the value for TrainedTokens to be an explicit nil
 func (o *ClassifierJobOut) SetTrainedTokensNil() {
 	o.TrainedTokens.Set(nil)
@@ -505,6 +508,7 @@ func (o *ClassifierJobOut) HasMetadata() bool {
 func (o *ClassifierJobOut) SetMetadata(v JobMetadataOut) {
 	o.Metadata.Set(&v)
 }
+
 // SetMetadataNil sets the value for Metadata to be an explicit nil
 func (o *ClassifierJobOut) SetMetadataNil() {
 	o.Metadata.Set(nil)
@@ -572,7 +576,7 @@ func (o *ClassifierJobOut) SetHyperparameters(v ClassifierTrainingParameters) {
 }
 
 func (o ClassifierJobOut) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -641,10 +645,10 @@ func (o *ClassifierJobOut) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -720,5 +724,3 @@ func (v *NullableClassifierJobOut) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

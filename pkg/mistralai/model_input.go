@@ -15,10 +15,9 @@ import (
 	"fmt"
 )
 
-
 // Input Chat to classify
 type Input struct {
-	ArrayOfChatCompletionRequestMessagesInner *[]ChatCompletionRequestMessagesInner
+	ArrayOfChatCompletionRequestMessagesInner        *[]ChatCompletionRequestMessagesInner
 	ArrayOfArrayOfChatCompletionRequestMessagesInner *[][]ChatCompletionRequestMessagesInner
 }
 
@@ -26,7 +25,7 @@ type Input struct {
 func (dst *Input) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into ArrayOfChatCompletionRequestMessagesInner
-	err = json.Unmarshal(data, &dst.ArrayOfChatCompletionRequestMessagesInner);
+	err = json.Unmarshal(data, &dst.ArrayOfChatCompletionRequestMessagesInner)
 	if err == nil {
 		jsonArrayOfChatCompletionRequestMessagesInner, _ := json.Marshal(dst.ArrayOfChatCompletionRequestMessagesInner)
 		if string(jsonArrayOfChatCompletionRequestMessagesInner) == "{}" { // empty struct
@@ -39,7 +38,7 @@ func (dst *Input) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into ArrayOfArrayOfChatCompletionRequestMessagesInner
-	err = json.Unmarshal(data, &dst.ArrayOfArrayOfChatCompletionRequestMessagesInner);
+	err = json.Unmarshal(data, &dst.ArrayOfArrayOfChatCompletionRequestMessagesInner)
 	if err == nil {
 		jsonArrayOfArrayOfChatCompletionRequestMessagesInner, _ := json.Marshal(dst.ArrayOfArrayOfChatCompletionRequestMessagesInner)
 		if string(jsonArrayOfArrayOfChatCompletionRequestMessagesInner) == "{}" { // empty struct
@@ -66,7 +65,6 @@ func (src Input) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
-
 
 type NullableInput struct {
 	value *Input
@@ -103,5 +101,3 @@ func (v *NullableInput) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

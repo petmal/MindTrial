@@ -18,14 +18,14 @@ import (
 
 // Data - struct for Data
 type Data struct {
-	AgentHandoffDoneEvent *AgentHandoffDoneEvent
-	AgentHandoffStartedEvent *AgentHandoffStartedEvent
-	FunctionCallEvent *FunctionCallEvent
-	MessageOutputEvent *MessageOutputEvent
-	ResponseDoneEvent *ResponseDoneEvent
-	ResponseErrorEvent *ResponseErrorEvent
-	ResponseStartedEvent *ResponseStartedEvent
-	ToolExecutionDoneEvent *ToolExecutionDoneEvent
+	AgentHandoffDoneEvent     *AgentHandoffDoneEvent
+	AgentHandoffStartedEvent  *AgentHandoffStartedEvent
+	FunctionCallEvent         *FunctionCallEvent
+	MessageOutputEvent        *MessageOutputEvent
+	ResponseDoneEvent         *ResponseDoneEvent
+	ResponseErrorEvent        *ResponseErrorEvent
+	ResponseStartedEvent      *ResponseStartedEvent
+	ToolExecutionDoneEvent    *ToolExecutionDoneEvent
 	ToolExecutionStartedEvent *ToolExecutionStartedEvent
 }
 
@@ -91,7 +91,6 @@ func ToolExecutionStartedEventAsData(v *ToolExecutionStartedEvent) Data {
 		ToolExecutionStartedEvent: v,
 	}
 }
-
 
 // Unmarshal JSON data into one of the pointers in the struct
 func (dst *Data) UnmarshalJSON(data []byte) error {
@@ -312,7 +311,7 @@ func (src Data) MarshalJSON() ([]byte, error) {
 }
 
 // Get the actual instance
-func (obj *Data) GetActualInstance() (interface{}) {
+func (obj *Data) GetActualInstance() interface{} {
 	if obj == nil {
 		return nil
 	}
@@ -357,7 +356,7 @@ func (obj *Data) GetActualInstance() (interface{}) {
 }
 
 // Get the actual instance value
-func (obj Data) GetActualInstanceValue() (interface{}) {
+func (obj Data) GetActualInstanceValue() interface{} {
 	if obj.AgentHandoffDoneEvent != nil {
 		return *obj.AgentHandoffDoneEvent
 	}
@@ -433,5 +432,3 @@ func (v *NullableData) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

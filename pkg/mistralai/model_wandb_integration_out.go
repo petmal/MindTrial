@@ -22,10 +22,10 @@ var _ MappedNullable = &WandbIntegrationOut{}
 type WandbIntegrationOut struct {
 	Type *string `json:"type,omitempty"`
 	// The name of the project that the new run will be created under.
-	Project string `json:"project"`
-	Name NullableString `json:"name,omitempty"`
-	RunName NullableString `json:"run_name,omitempty"`
-	Url NullableString `json:"url,omitempty"`
+	Project              string         `json:"project"`
+	Name                 NullableString `json:"name,omitempty"`
+	RunName              NullableString `json:"run_name,omitempty"`
+	Url                  NullableString `json:"url,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -141,6 +141,7 @@ func (o *WandbIntegrationOut) HasName() bool {
 func (o *WandbIntegrationOut) SetName(v string) {
 	o.Name.Set(&v)
 }
+
 // SetNameNil sets the value for Name to be an explicit nil
 func (o *WandbIntegrationOut) SetNameNil() {
 	o.Name.Set(nil)
@@ -183,6 +184,7 @@ func (o *WandbIntegrationOut) HasRunName() bool {
 func (o *WandbIntegrationOut) SetRunName(v string) {
 	o.RunName.Set(&v)
 }
+
 // SetRunNameNil sets the value for RunName to be an explicit nil
 func (o *WandbIntegrationOut) SetRunNameNil() {
 	o.RunName.Set(nil)
@@ -225,6 +227,7 @@ func (o *WandbIntegrationOut) HasUrl() bool {
 func (o *WandbIntegrationOut) SetUrl(v string) {
 	o.Url.Set(&v)
 }
+
 // SetUrlNil sets the value for Url to be an explicit nil
 func (o *WandbIntegrationOut) SetUrlNil() {
 	o.Url.Set(nil)
@@ -236,7 +239,7 @@ func (o *WandbIntegrationOut) UnsetUrl() {
 }
 
 func (o WandbIntegrationOut) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -279,10 +282,10 @@ func (o *WandbIntegrationOut) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -347,5 +350,3 @@ func (v *NullableWandbIntegrationOut) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

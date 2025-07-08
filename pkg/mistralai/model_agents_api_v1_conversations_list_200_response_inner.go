@@ -15,7 +15,6 @@ import (
 	"fmt"
 )
 
-
 // AgentsApiV1ConversationsList200ResponseInner struct for AgentsApiV1ConversationsList200ResponseInner
 type AgentsApiV1ConversationsList200ResponseInner struct {
 	AgentConversation *AgentConversation
@@ -26,7 +25,7 @@ type AgentsApiV1ConversationsList200ResponseInner struct {
 func (dst *AgentsApiV1ConversationsList200ResponseInner) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into AgentConversation
-	err = json.Unmarshal(data, &dst.AgentConversation);
+	err = json.Unmarshal(data, &dst.AgentConversation)
 	if err == nil {
 		jsonAgentConversation, _ := json.Marshal(dst.AgentConversation)
 		if string(jsonAgentConversation) == "{}" { // empty struct
@@ -39,7 +38,7 @@ func (dst *AgentsApiV1ConversationsList200ResponseInner) UnmarshalJSON(data []by
 	}
 
 	// try to unmarshal JSON data into ModelConversation
-	err = json.Unmarshal(data, &dst.ModelConversation);
+	err = json.Unmarshal(data, &dst.ModelConversation)
 	if err == nil {
 		jsonModelConversation, _ := json.Marshal(dst.ModelConversation)
 		if string(jsonModelConversation) == "{}" { // empty struct
@@ -66,7 +65,6 @@ func (src AgentsApiV1ConversationsList200ResponseInner) MarshalJSON() ([]byte, e
 
 	return nil, nil // no data in anyOf schemas
 }
-
 
 type NullableAgentsApiV1ConversationsList200ResponseInner struct {
 	value *AgentsApiV1ConversationsList200ResponseInner
@@ -103,5 +101,3 @@ func (v *NullableAgentsApiV1ConversationsList200ResponseInner) UnmarshalJSON(src
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

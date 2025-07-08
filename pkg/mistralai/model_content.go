@@ -15,18 +15,17 @@ import (
 	"fmt"
 )
 
-
 // Content struct for Content
 type Content struct {
 	ArrayOfMessageInputContentChunksInner *[]MessageInputContentChunksInner
-	String *string
+	String                                *string
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
 func (dst *Content) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into ArrayOfMessageInputContentChunksInner
-	err = json.Unmarshal(data, &dst.ArrayOfMessageInputContentChunksInner);
+	err = json.Unmarshal(data, &dst.ArrayOfMessageInputContentChunksInner)
 	if err == nil {
 		jsonArrayOfMessageInputContentChunksInner, _ := json.Marshal(dst.ArrayOfMessageInputContentChunksInner)
 		if string(jsonArrayOfMessageInputContentChunksInner) == "{}" { // empty struct
@@ -39,7 +38,7 @@ func (dst *Content) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into String
-	err = json.Unmarshal(data, &dst.String);
+	err = json.Unmarshal(data, &dst.String)
 	if err == nil {
 		jsonString, _ := json.Marshal(dst.String)
 		if string(jsonString) == "{}" { // empty struct
@@ -66,7 +65,6 @@ func (src Content) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
-
 
 type NullableContent struct {
 	value *Content
@@ -103,5 +101,3 @@ func (v *NullableContent) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

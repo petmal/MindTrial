@@ -21,11 +21,11 @@ var _ MappedNullable = &ClassifierTrainingParametersIn{}
 type ClassifierTrainingParametersIn struct {
 	TrainingSteps NullableInt32 `json:"training_steps,omitempty"`
 	// A parameter describing how much to adjust the pre-trained model's weights in response to the estimated error each time the weights are updated during the fine-tuning process.
-	LearningRate *float32 `json:"learning_rate,omitempty"`
-	WeightDecay NullableFloat32 `json:"weight_decay,omitempty"`
-	WarmupFraction NullableFloat32 `json:"warmup_fraction,omitempty"`
-	Epochs NullableFloat32 `json:"epochs,omitempty"`
-	SeqLen NullableInt32 `json:"seq_len,omitempty"`
+	LearningRate         *float32        `json:"learning_rate,omitempty"`
+	WeightDecay          NullableFloat32 `json:"weight_decay,omitempty"`
+	WarmupFraction       NullableFloat32 `json:"warmup_fraction,omitempty"`
+	Epochs               NullableFloat32 `json:"epochs,omitempty"`
+	SeqLen               NullableInt32   `json:"seq_len,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -37,7 +37,7 @@ type _ClassifierTrainingParametersIn ClassifierTrainingParametersIn
 // will change when the set of required properties is changed
 func NewClassifierTrainingParametersIn() *ClassifierTrainingParametersIn {
 	this := ClassifierTrainingParametersIn{}
-	var learningRate float32 = 1.0E-4
+	var learningRate float32 = 1.0e-4
 	this.LearningRate = &learningRate
 	return &this
 }
@@ -47,7 +47,7 @@ func NewClassifierTrainingParametersIn() *ClassifierTrainingParametersIn {
 // but it doesn't guarantee that properties required by API are set
 func NewClassifierTrainingParametersInWithDefaults() *ClassifierTrainingParametersIn {
 	this := ClassifierTrainingParametersIn{}
-	var learningRate float32 = 1.0E-4
+	var learningRate float32 = 1.0e-4
 	this.LearningRate = &learningRate
 	return &this
 }
@@ -84,6 +84,7 @@ func (o *ClassifierTrainingParametersIn) HasTrainingSteps() bool {
 func (o *ClassifierTrainingParametersIn) SetTrainingSteps(v int32) {
 	o.TrainingSteps.Set(&v)
 }
+
 // SetTrainingStepsNil sets the value for TrainingSteps to be an explicit nil
 func (o *ClassifierTrainingParametersIn) SetTrainingStepsNil() {
 	o.TrainingSteps.Set(nil)
@@ -158,6 +159,7 @@ func (o *ClassifierTrainingParametersIn) HasWeightDecay() bool {
 func (o *ClassifierTrainingParametersIn) SetWeightDecay(v float32) {
 	o.WeightDecay.Set(&v)
 }
+
 // SetWeightDecayNil sets the value for WeightDecay to be an explicit nil
 func (o *ClassifierTrainingParametersIn) SetWeightDecayNil() {
 	o.WeightDecay.Set(nil)
@@ -200,6 +202,7 @@ func (o *ClassifierTrainingParametersIn) HasWarmupFraction() bool {
 func (o *ClassifierTrainingParametersIn) SetWarmupFraction(v float32) {
 	o.WarmupFraction.Set(&v)
 }
+
 // SetWarmupFractionNil sets the value for WarmupFraction to be an explicit nil
 func (o *ClassifierTrainingParametersIn) SetWarmupFractionNil() {
 	o.WarmupFraction.Set(nil)
@@ -242,6 +245,7 @@ func (o *ClassifierTrainingParametersIn) HasEpochs() bool {
 func (o *ClassifierTrainingParametersIn) SetEpochs(v float32) {
 	o.Epochs.Set(&v)
 }
+
 // SetEpochsNil sets the value for Epochs to be an explicit nil
 func (o *ClassifierTrainingParametersIn) SetEpochsNil() {
 	o.Epochs.Set(nil)
@@ -284,6 +288,7 @@ func (o *ClassifierTrainingParametersIn) HasSeqLen() bool {
 func (o *ClassifierTrainingParametersIn) SetSeqLen(v int32) {
 	o.SeqLen.Set(&v)
 }
+
 // SetSeqLenNil sets the value for SeqLen to be an explicit nil
 func (o *ClassifierTrainingParametersIn) SetSeqLenNil() {
 	o.SeqLen.Set(nil)
@@ -295,7 +300,7 @@ func (o *ClassifierTrainingParametersIn) UnsetSeqLen() {
 }
 
 func (o ClassifierTrainingParametersIn) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -391,5 +396,3 @@ func (v *NullableClassifierTrainingParametersIn) UnmarshalJSON(src []byte) error
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

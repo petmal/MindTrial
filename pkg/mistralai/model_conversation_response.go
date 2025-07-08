@@ -20,10 +20,10 @@ var _ MappedNullable = &ConversationResponse{}
 
 // ConversationResponse The response after appending new entries to the conversation.
 type ConversationResponse struct {
-	Object *string `json:"object,omitempty"`
-	ConversationId string `json:"conversation_id"`
-	Outputs []ConversationResponseOutputsInner `json:"outputs"`
-	Usage ConversationUsageInfo `json:"usage"`
+	Object               *string                            `json:"object,omitempty"`
+	ConversationId       string                             `json:"conversation_id"`
+	Outputs              []ConversationResponseOutputsInner `json:"outputs"`
+	Usage                ConversationUsageInfo              `json:"usage"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -158,7 +158,7 @@ func (o *ConversationResponse) SetUsage(v ConversationUsageInfo) {
 }
 
 func (o ConversationResponse) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -196,10 +196,10 @@ func (o *ConversationResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -263,5 +263,3 @@ func (v *NullableConversationResponse) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

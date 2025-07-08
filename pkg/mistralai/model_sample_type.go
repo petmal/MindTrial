@@ -20,11 +20,11 @@ type SampleType string
 
 // List of SampleType
 const (
-	PRETRAIN SampleType = "pretrain"
-	INSTRUCT SampleType = "instruct"
+	PRETRAIN      SampleType = "pretrain"
+	INSTRUCT      SampleType = "instruct"
 	BATCH_REQUEST SampleType = "batch_request"
-	BATCH_RESULT SampleType = "batch_result"
-	BATCH_ERROR SampleType = "batch_error"
+	BATCH_RESULT  SampleType = "batch_result"
+	BATCH_ERROR   SampleType = "batch_error"
 )
 
 // All allowed values of SampleType enum
@@ -114,4 +114,3 @@ func (v *NullableSampleType) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-

@@ -20,12 +20,12 @@ var _ MappedNullable = &GithubRepositoryIn{}
 
 // GithubRepositoryIn struct for GithubRepositoryIn
 type GithubRepositoryIn struct {
-	Type *string `json:"type,omitempty"`
-	Name string `json:"name"`
-	Owner string `json:"owner"`
-	Ref NullableString `json:"ref,omitempty"`
-	Weight *float32 `json:"weight,omitempty"`
-	Token string `json:"token"`
+	Type                 *string        `json:"type,omitempty"`
+	Name                 string         `json:"name"`
+	Owner                string         `json:"owner"`
+	Ref                  NullableString `json:"ref,omitempty"`
+	Weight               *float32       `json:"weight,omitempty"`
+	Token                string         `json:"token"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -171,6 +171,7 @@ func (o *GithubRepositoryIn) HasRef() bool {
 func (o *GithubRepositoryIn) SetRef(v string) {
 	o.Ref.Set(&v)
 }
+
 // SetRefNil sets the value for Ref to be an explicit nil
 func (o *GithubRepositoryIn) SetRefNil() {
 	o.Ref.Set(nil)
@@ -238,7 +239,7 @@ func (o *GithubRepositoryIn) SetToken(v string) {
 }
 
 func (o GithubRepositoryIn) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -282,10 +283,10 @@ func (o *GithubRepositoryIn) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -351,5 +352,3 @@ func (v *NullableGithubRepositoryIn) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

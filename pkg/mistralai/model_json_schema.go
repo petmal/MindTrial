@@ -20,10 +20,10 @@ var _ MappedNullable = &JsonSchema{}
 
 // JsonSchema struct for JsonSchema
 type JsonSchema struct {
-	Name string `json:"name"`
-	Description NullableDescription `json:"description,omitempty"`
-	Schema map[string]interface{} `json:"schema"`
-	Strict *bool `json:"strict,omitempty"`
+	Name                 string                 `json:"name"`
+	Description          NullableDescription    `json:"description,omitempty"`
+	Schema               map[string]interface{} `json:"schema"`
+	Strict               *bool                  `json:"strict,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -108,6 +108,7 @@ func (o *JsonSchema) HasDescription() bool {
 func (o *JsonSchema) SetDescription(v Description) {
 	o.Description.Set(&v)
 }
+
 // SetDescriptionNil sets the value for Description to be an explicit nil
 func (o *JsonSchema) SetDescriptionNil() {
 	o.Description.Set(nil)
@@ -175,7 +176,7 @@ func (o *JsonSchema) SetStrict(v bool) {
 }
 
 func (o JsonSchema) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -214,10 +215,10 @@ func (o *JsonSchema) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -281,5 +282,3 @@ func (v *NullableJsonSchema) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

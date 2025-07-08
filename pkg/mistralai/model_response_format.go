@@ -19,8 +19,8 @@ var _ MappedNullable = &ResponseFormat{}
 
 // ResponseFormat struct for ResponseFormat
 type ResponseFormat struct {
-	Type *ResponseFormats `json:"type,omitempty"`
-	JsonSchema NullableJsonSchema `json:"json_schema,omitempty"`
+	Type                 *ResponseFormats   `json:"type,omitempty"`
+	JsonSchema           NullableJsonSchema `json:"json_schema,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -107,6 +107,7 @@ func (o *ResponseFormat) HasJsonSchema() bool {
 func (o *ResponseFormat) SetJsonSchema(v JsonSchema) {
 	o.JsonSchema.Set(&v)
 }
+
 // SetJsonSchemaNil sets the value for JsonSchema to be an explicit nil
 func (o *ResponseFormat) SetJsonSchemaNil() {
 	o.JsonSchema.Set(nil)
@@ -118,7 +119,7 @@ func (o *ResponseFormat) UnsetJsonSchema() {
 }
 
 func (o ResponseFormat) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -198,5 +199,3 @@ func (v *NullableResponseFormat) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

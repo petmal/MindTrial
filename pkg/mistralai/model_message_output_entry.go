@@ -12,8 +12,8 @@ package mistralai
 
 import (
 	"encoding/json"
-	"time"
 	"fmt"
+	"time"
 )
 
 // checks if the MessageOutputEntry type satisfies the MappedNullable interface at compile time
@@ -21,15 +21,15 @@ var _ MappedNullable = &MessageOutputEntry{}
 
 // MessageOutputEntry struct for MessageOutputEntry
 type MessageOutputEntry struct {
-	Object *string `json:"object,omitempty"`
-	Type *string `json:"type,omitempty"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	CompletedAt NullableTime `json:"completed_at,omitempty"`
-	Id *string `json:"id,omitempty"`
-	AgentId NullableString `json:"agent_id,omitempty"`
-	Model NullableString `json:"model,omitempty"`
-	Role *string `json:"role,omitempty"`
-	Content Content1 `json:"content"`
+	Object               *string        `json:"object,omitempty"`
+	Type                 *string        `json:"type,omitempty"`
+	CreatedAt            *time.Time     `json:"created_at,omitempty"`
+	CompletedAt          NullableTime   `json:"completed_at,omitempty"`
+	Id                   *string        `json:"id,omitempty"`
+	AgentId              NullableString `json:"agent_id,omitempty"`
+	Model                NullableString `json:"model,omitempty"`
+	Role                 *string        `json:"role,omitempty"`
+	Content              Content1       `json:"content"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -193,6 +193,7 @@ func (o *MessageOutputEntry) HasCompletedAt() bool {
 func (o *MessageOutputEntry) SetCompletedAt(v time.Time) {
 	o.CompletedAt.Set(&v)
 }
+
 // SetCompletedAtNil sets the value for CompletedAt to be an explicit nil
 func (o *MessageOutputEntry) SetCompletedAtNil() {
 	o.CompletedAt.Set(nil)
@@ -267,6 +268,7 @@ func (o *MessageOutputEntry) HasAgentId() bool {
 func (o *MessageOutputEntry) SetAgentId(v string) {
 	o.AgentId.Set(&v)
 }
+
 // SetAgentIdNil sets the value for AgentId to be an explicit nil
 func (o *MessageOutputEntry) SetAgentIdNil() {
 	o.AgentId.Set(nil)
@@ -309,6 +311,7 @@ func (o *MessageOutputEntry) HasModel() bool {
 func (o *MessageOutputEntry) SetModel(v string) {
 	o.Model.Set(&v)
 }
+
 // SetModelNil sets the value for Model to be an explicit nil
 func (o *MessageOutputEntry) SetModelNil() {
 	o.Model.Set(nil)
@@ -376,7 +379,7 @@ func (o *MessageOutputEntry) SetContent(v Content1) {
 }
 
 func (o MessageOutputEntry) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -431,10 +434,10 @@ func (o *MessageOutputEntry) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -503,5 +506,3 @@ func (v *NullableMessageOutputEntry) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

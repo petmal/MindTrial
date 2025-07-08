@@ -18,16 +18,15 @@ import (
 	"net/url"
 )
 
-
 type FimAPI interface {
 
 	/*
-	FimCompletionV1FimCompletionsPost Fim Completion
+		FimCompletionV1FimCompletionsPost Fim Completion
 
-	FIM completion.
+		FIM completion.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiFimCompletionV1FimCompletionsPostRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiFimCompletionV1FimCompletionsPostRequest
 	*/
 	FimCompletionV1FimCompletionsPost(ctx context.Context) ApiFimCompletionV1FimCompletionsPostRequest
 
@@ -40,8 +39,8 @@ type FimAPI interface {
 type FimAPIService service
 
 type ApiFimCompletionV1FimCompletionsPostRequest struct {
-	ctx context.Context
-	ApiService FimAPI
+	ctx                  context.Context
+	ApiService           FimAPI
 	fIMCompletionRequest *FIMCompletionRequest
 }
 
@@ -59,24 +58,25 @@ FimCompletionV1FimCompletionsPost Fim Completion
 
 FIM completion.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiFimCompletionV1FimCompletionsPostRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiFimCompletionV1FimCompletionsPostRequest
 */
 func (a *FimAPIService) FimCompletionV1FimCompletionsPost(ctx context.Context) ApiFimCompletionV1FimCompletionsPostRequest {
 	return ApiFimCompletionV1FimCompletionsPostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return FIMCompletionResponse
+//
+//	@return FIMCompletionResponse
 func (a *FimAPIService) FimCompletionV1FimCompletionsPostExecute(r ApiFimCompletionV1FimCompletionsPostRequest) (*FIMCompletionResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *FIMCompletionResponse
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *FIMCompletionResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "FimAPIService.FimCompletionV1FimCompletionsPost")
@@ -141,8 +141,8 @@ func (a *FimAPIService) FimCompletionV1FimCompletionsPostExecute(r ApiFimComplet
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

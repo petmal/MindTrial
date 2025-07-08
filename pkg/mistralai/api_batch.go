@@ -16,22 +16,21 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strings"
 	"time"
-	"reflect"
 )
-
 
 type BatchAPI interface {
 
 	/*
-	JobsApiRoutesBatchCancelBatchJob Cancel Batch Job
+		JobsApiRoutesBatchCancelBatchJob Cancel Batch Job
 
-	Request the cancellation of a batch job.
+		Request the cancellation of a batch job.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param jobId
-	@return ApiJobsApiRoutesBatchCancelBatchJobRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param jobId
+		@return ApiJobsApiRoutesBatchCancelBatchJobRequest
 	*/
 	JobsApiRoutesBatchCancelBatchJob(ctx context.Context, jobId string) ApiJobsApiRoutesBatchCancelBatchJobRequest
 
@@ -40,12 +39,12 @@ type BatchAPI interface {
 	JobsApiRoutesBatchCancelBatchJobExecute(r ApiJobsApiRoutesBatchCancelBatchJobRequest) (*BatchJobOut, *http.Response, error)
 
 	/*
-	JobsApiRoutesBatchCreateBatchJob Create Batch Job
+		JobsApiRoutesBatchCreateBatchJob Create Batch Job
 
-	Create a new batch job, it will be queued for processing.
+		Create a new batch job, it will be queued for processing.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiJobsApiRoutesBatchCreateBatchJobRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiJobsApiRoutesBatchCreateBatchJobRequest
 	*/
 	JobsApiRoutesBatchCreateBatchJob(ctx context.Context) ApiJobsApiRoutesBatchCreateBatchJobRequest
 
@@ -54,13 +53,13 @@ type BatchAPI interface {
 	JobsApiRoutesBatchCreateBatchJobExecute(r ApiJobsApiRoutesBatchCreateBatchJobRequest) (*BatchJobOut, *http.Response, error)
 
 	/*
-	JobsApiRoutesBatchGetBatchJob Get Batch Job
+		JobsApiRoutesBatchGetBatchJob Get Batch Job
 
-	Get a batch job details by its UUID.
+		Get a batch job details by its UUID.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param jobId
-	@return ApiJobsApiRoutesBatchGetBatchJobRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param jobId
+		@return ApiJobsApiRoutesBatchGetBatchJobRequest
 	*/
 	JobsApiRoutesBatchGetBatchJob(ctx context.Context, jobId string) ApiJobsApiRoutesBatchGetBatchJobRequest
 
@@ -69,12 +68,12 @@ type BatchAPI interface {
 	JobsApiRoutesBatchGetBatchJobExecute(r ApiJobsApiRoutesBatchGetBatchJobRequest) (*BatchJobOut, *http.Response, error)
 
 	/*
-	JobsApiRoutesBatchGetBatchJobs Get Batch Jobs
+		JobsApiRoutesBatchGetBatchJobs Get Batch Jobs
 
-	Get a list of batch jobs for your organization and user.
+		Get a list of batch jobs for your organization and user.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiJobsApiRoutesBatchGetBatchJobsRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiJobsApiRoutesBatchGetBatchJobsRequest
 	*/
 	JobsApiRoutesBatchGetBatchJobs(ctx context.Context) ApiJobsApiRoutesBatchGetBatchJobsRequest
 
@@ -87,9 +86,9 @@ type BatchAPI interface {
 type BatchAPIService service
 
 type ApiJobsApiRoutesBatchCancelBatchJobRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService BatchAPI
-	jobId string
+	jobId      string
 }
 
 func (r ApiJobsApiRoutesBatchCancelBatchJobRequest) Execute() (*BatchJobOut, *http.Response, error) {
@@ -101,26 +100,27 @@ JobsApiRoutesBatchCancelBatchJob Cancel Batch Job
 
 Request the cancellation of a batch job.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param jobId
- @return ApiJobsApiRoutesBatchCancelBatchJobRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param jobId
+	@return ApiJobsApiRoutesBatchCancelBatchJobRequest
 */
 func (a *BatchAPIService) JobsApiRoutesBatchCancelBatchJob(ctx context.Context, jobId string) ApiJobsApiRoutesBatchCancelBatchJobRequest {
 	return ApiJobsApiRoutesBatchCancelBatchJobRequest{
 		ApiService: a,
-		ctx: ctx,
-		jobId: jobId,
+		ctx:        ctx,
+		jobId:      jobId,
 	}
 }
 
 // Execute executes the request
-//  @return BatchJobOut
+//
+//	@return BatchJobOut
 func (a *BatchAPIService) JobsApiRoutesBatchCancelBatchJobExecute(r ApiJobsApiRoutesBatchCancelBatchJobRequest) (*BatchJobOut, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *BatchJobOut
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *BatchJobOut
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BatchAPIService.JobsApiRoutesBatchCancelBatchJob")
@@ -190,7 +190,7 @@ func (a *BatchAPIService) JobsApiRoutesBatchCancelBatchJobExecute(r ApiJobsApiRo
 }
 
 type ApiJobsApiRoutesBatchCreateBatchJobRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService BatchAPI
 	batchJobIn *BatchJobIn
 }
@@ -209,24 +209,25 @@ JobsApiRoutesBatchCreateBatchJob Create Batch Job
 
 Create a new batch job, it will be queued for processing.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiJobsApiRoutesBatchCreateBatchJobRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiJobsApiRoutesBatchCreateBatchJobRequest
 */
 func (a *BatchAPIService) JobsApiRoutesBatchCreateBatchJob(ctx context.Context) ApiJobsApiRoutesBatchCreateBatchJobRequest {
 	return ApiJobsApiRoutesBatchCreateBatchJobRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return BatchJobOut
+//
+//	@return BatchJobOut
 func (a *BatchAPIService) JobsApiRoutesBatchCreateBatchJobExecute(r ApiJobsApiRoutesBatchCreateBatchJobRequest) (*BatchJobOut, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *BatchJobOut
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *BatchJobOut
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BatchAPIService.JobsApiRoutesBatchCreateBatchJob")
@@ -300,9 +301,9 @@ func (a *BatchAPIService) JobsApiRoutesBatchCreateBatchJobExecute(r ApiJobsApiRo
 }
 
 type ApiJobsApiRoutesBatchGetBatchJobRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService BatchAPI
-	jobId string
+	jobId      string
 }
 
 func (r ApiJobsApiRoutesBatchGetBatchJobRequest) Execute() (*BatchJobOut, *http.Response, error) {
@@ -314,26 +315,27 @@ JobsApiRoutesBatchGetBatchJob Get Batch Job
 
 Get a batch job details by its UUID.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param jobId
- @return ApiJobsApiRoutesBatchGetBatchJobRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param jobId
+	@return ApiJobsApiRoutesBatchGetBatchJobRequest
 */
 func (a *BatchAPIService) JobsApiRoutesBatchGetBatchJob(ctx context.Context, jobId string) ApiJobsApiRoutesBatchGetBatchJobRequest {
 	return ApiJobsApiRoutesBatchGetBatchJobRequest{
 		ApiService: a,
-		ctx: ctx,
-		jobId: jobId,
+		ctx:        ctx,
+		jobId:      jobId,
 	}
 }
 
 // Execute executes the request
-//  @return BatchJobOut
+//
+//	@return BatchJobOut
 func (a *BatchAPIService) JobsApiRoutesBatchGetBatchJobExecute(r ApiJobsApiRoutesBatchGetBatchJobRequest) (*BatchJobOut, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodGet
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *BatchJobOut
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *BatchJobOut
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BatchAPIService.JobsApiRoutesBatchGetBatchJob")
@@ -403,15 +405,15 @@ func (a *BatchAPIService) JobsApiRoutesBatchGetBatchJobExecute(r ApiJobsApiRoute
 }
 
 type ApiJobsApiRoutesBatchGetBatchJobsRequest struct {
-	ctx context.Context
-	ApiService BatchAPI
-	page *int32
-	pageSize *int32
-	model *string
-	metadata *map[string]interface{}
+	ctx          context.Context
+	ApiService   BatchAPI
+	page         *int32
+	pageSize     *int32
+	model        *string
+	metadata     *map[string]interface{}
 	createdAfter *time.Time
-	createdByMe *bool
-	status *[]BatchJobStatus
+	createdByMe  *bool
+	status       *[]BatchJobStatus
 }
 
 func (r ApiJobsApiRoutesBatchGetBatchJobsRequest) Page(page int32) ApiJobsApiRoutesBatchGetBatchJobsRequest {
@@ -458,24 +460,25 @@ JobsApiRoutesBatchGetBatchJobs Get Batch Jobs
 
 Get a list of batch jobs for your organization and user.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiJobsApiRoutesBatchGetBatchJobsRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiJobsApiRoutesBatchGetBatchJobsRequest
 */
 func (a *BatchAPIService) JobsApiRoutesBatchGetBatchJobs(ctx context.Context) ApiJobsApiRoutesBatchGetBatchJobsRequest {
 	return ApiJobsApiRoutesBatchGetBatchJobsRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return BatchJobsOut
+//
+//	@return BatchJobsOut
 func (a *BatchAPIService) JobsApiRoutesBatchGetBatchJobsExecute(r ApiJobsApiRoutesBatchGetBatchJobsRequest) (*BatchJobsOut, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodGet
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *BatchJobsOut
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *BatchJobsOut
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BatchAPIService.JobsApiRoutesBatchGetBatchJobs")

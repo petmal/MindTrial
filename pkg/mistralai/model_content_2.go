@@ -15,18 +15,17 @@ import (
 	"fmt"
 )
 
-
 // Content2 struct for Content2
 type Content2 struct {
 	OutputContentChunks *OutputContentChunks
-	String *string
+	String              *string
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
 func (dst *Content2) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into OutputContentChunks
-	err = json.Unmarshal(data, &dst.OutputContentChunks);
+	err = json.Unmarshal(data, &dst.OutputContentChunks)
 	if err == nil {
 		jsonOutputContentChunks, _ := json.Marshal(dst.OutputContentChunks)
 		if string(jsonOutputContentChunks) == "{}" { // empty struct
@@ -39,7 +38,7 @@ func (dst *Content2) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into String
-	err = json.Unmarshal(data, &dst.String);
+	err = json.Unmarshal(data, &dst.String)
 	if err == nil {
 		jsonString, _ := json.Marshal(dst.String)
 		if string(jsonString) == "{}" { // empty struct
@@ -66,7 +65,6 @@ func (src Content2) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
-
 
 type NullableContent2 struct {
 	value *Content2
@@ -103,5 +101,3 @@ func (v *NullableContent2) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

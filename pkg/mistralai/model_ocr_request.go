@@ -20,16 +20,16 @@ var _ MappedNullable = &OCRRequest{}
 
 // OCRRequest struct for OCRRequest
 type OCRRequest struct {
-	Model NullableString `json:"model"`
-	Id *string `json:"id,omitempty"`
-	Document Document `json:"document"`
-	Pages []int32 `json:"pages,omitempty"`
-	IncludeImageBase64 NullableBool `json:"include_image_base64,omitempty"`
-	ImageLimit NullableInt32 `json:"image_limit,omitempty"`
-	ImageMinSize NullableInt32 `json:"image_min_size,omitempty"`
-	BboxAnnotationFormat NullableResponseFormat `json:"bbox_annotation_format,omitempty"`
+	Model                    NullableString         `json:"model"`
+	Id                       *string                `json:"id,omitempty"`
+	Document                 Document               `json:"document"`
+	Pages                    []int32                `json:"pages,omitempty"`
+	IncludeImageBase64       NullableBool           `json:"include_image_base64,omitempty"`
+	ImageLimit               NullableInt32          `json:"image_limit,omitempty"`
+	ImageMinSize             NullableInt32          `json:"image_min_size,omitempty"`
+	BboxAnnotationFormat     NullableResponseFormat `json:"bbox_annotation_format,omitempty"`
 	DocumentAnnotationFormat NullableResponseFormat `json:"document_annotation_format,omitempty"`
-	AdditionalProperties map[string]interface{}
+	AdditionalProperties     map[string]interface{}
 }
 
 type _OCRRequest OCRRequest
@@ -200,6 +200,7 @@ func (o *OCRRequest) HasIncludeImageBase64() bool {
 func (o *OCRRequest) SetIncludeImageBase64(v bool) {
 	o.IncludeImageBase64.Set(&v)
 }
+
 // SetIncludeImageBase64Nil sets the value for IncludeImageBase64 to be an explicit nil
 func (o *OCRRequest) SetIncludeImageBase64Nil() {
 	o.IncludeImageBase64.Set(nil)
@@ -242,6 +243,7 @@ func (o *OCRRequest) HasImageLimit() bool {
 func (o *OCRRequest) SetImageLimit(v int32) {
 	o.ImageLimit.Set(&v)
 }
+
 // SetImageLimitNil sets the value for ImageLimit to be an explicit nil
 func (o *OCRRequest) SetImageLimitNil() {
 	o.ImageLimit.Set(nil)
@@ -284,6 +286,7 @@ func (o *OCRRequest) HasImageMinSize() bool {
 func (o *OCRRequest) SetImageMinSize(v int32) {
 	o.ImageMinSize.Set(&v)
 }
+
 // SetImageMinSizeNil sets the value for ImageMinSize to be an explicit nil
 func (o *OCRRequest) SetImageMinSizeNil() {
 	o.ImageMinSize.Set(nil)
@@ -326,6 +329,7 @@ func (o *OCRRequest) HasBboxAnnotationFormat() bool {
 func (o *OCRRequest) SetBboxAnnotationFormat(v ResponseFormat) {
 	o.BboxAnnotationFormat.Set(&v)
 }
+
 // SetBboxAnnotationFormatNil sets the value for BboxAnnotationFormat to be an explicit nil
 func (o *OCRRequest) SetBboxAnnotationFormatNil() {
 	o.BboxAnnotationFormat.Set(nil)
@@ -368,6 +372,7 @@ func (o *OCRRequest) HasDocumentAnnotationFormat() bool {
 func (o *OCRRequest) SetDocumentAnnotationFormat(v ResponseFormat) {
 	o.DocumentAnnotationFormat.Set(&v)
 }
+
 // SetDocumentAnnotationFormatNil sets the value for DocumentAnnotationFormat to be an explicit nil
 func (o *OCRRequest) SetDocumentAnnotationFormatNil() {
 	o.DocumentAnnotationFormat.Set(nil)
@@ -379,7 +384,7 @@ func (o *OCRRequest) UnsetDocumentAnnotationFormat() {
 }
 
 func (o OCRRequest) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -433,10 +438,10 @@ func (o *OCRRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -505,5 +510,3 @@ func (v *NullableOCRRequest) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

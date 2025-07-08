@@ -20,11 +20,11 @@ var _ MappedNullable = &BatchJobIn{}
 
 // BatchJobIn struct for BatchJobIn
 type BatchJobIn struct {
-	InputFiles []string `json:"input_files"`
-	Endpoint ApiEndpoint `json:"endpoint"`
-	Model string `json:"model"`
-	Metadata map[string]string `json:"metadata,omitempty"`
-	TimeoutHours *int32 `json:"timeout_hours,omitempty"`
+	InputFiles           []string          `json:"input_files"`
+	Endpoint             ApiEndpoint       `json:"endpoint"`
+	Model                string            `json:"model"`
+	Metadata             map[string]string `json:"metadata,omitempty"`
+	TimeoutHours         *int32            `json:"timeout_hours,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -192,7 +192,7 @@ func (o *BatchJobIn) SetTimeoutHours(v int32) {
 }
 
 func (o BatchJobIn) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -233,10 +233,10 @@ func (o *BatchJobIn) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -301,5 +301,3 @@ func (v *NullableBatchJobIn) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

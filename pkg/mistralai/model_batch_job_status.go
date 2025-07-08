@@ -20,13 +20,13 @@ type BatchJobStatus string
 
 // List of BatchJobStatus
 const (
-	QUEUED BatchJobStatus = "QUEUED"
-	RUNNING BatchJobStatus = "RUNNING"
-	SUCCESS BatchJobStatus = "SUCCESS"
-	FAILED BatchJobStatus = "FAILED"
-	TIMEOUT_EXCEEDED BatchJobStatus = "TIMEOUT_EXCEEDED"
+	QUEUED                 BatchJobStatus = "QUEUED"
+	RUNNING                BatchJobStatus = "RUNNING"
+	SUCCESS                BatchJobStatus = "SUCCESS"
+	FAILED                 BatchJobStatus = "FAILED"
+	TIMEOUT_EXCEEDED       BatchJobStatus = "TIMEOUT_EXCEEDED"
 	CANCELLATION_REQUESTED BatchJobStatus = "CANCELLATION_REQUESTED"
-	CANCELLED BatchJobStatus = "CANCELLED"
+	CANCELLED              BatchJobStatus = "CANCELLED"
 )
 
 // All allowed values of BatchJobStatus enum
@@ -118,4 +118,3 @@ func (v *NullableBatchJobStatus) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-

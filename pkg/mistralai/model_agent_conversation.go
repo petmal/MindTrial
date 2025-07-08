@@ -12,8 +12,8 @@ package mistralai
 
 import (
 	"encoding/json"
-	"time"
 	"fmt"
+	"time"
 )
 
 // checks if the AgentConversation type satisfies the MappedNullable interface at compile time
@@ -21,13 +21,13 @@ var _ MappedNullable = &AgentConversation{}
 
 // AgentConversation struct for AgentConversation
 type AgentConversation struct {
-	Name NullableString `json:"name,omitempty"`
-	Description NullableString `json:"description,omitempty"`
-	Object *string `json:"object,omitempty"`
-	Id string `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	AgentId string `json:"agent_id"`
+	Name                 NullableString `json:"name,omitempty"`
+	Description          NullableString `json:"description,omitempty"`
+	Object               *string        `json:"object,omitempty"`
+	Id                   string         `json:"id"`
+	CreatedAt            time.Time      `json:"created_at"`
+	UpdatedAt            time.Time      `json:"updated_at"`
+	AgentId              string         `json:"agent_id"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -90,6 +90,7 @@ func (o *AgentConversation) HasName() bool {
 func (o *AgentConversation) SetName(v string) {
 	o.Name.Set(&v)
 }
+
 // SetNameNil sets the value for Name to be an explicit nil
 func (o *AgentConversation) SetNameNil() {
 	o.Name.Set(nil)
@@ -132,6 +133,7 @@ func (o *AgentConversation) HasDescription() bool {
 func (o *AgentConversation) SetDescription(v string) {
 	o.Description.Set(&v)
 }
+
 // SetDescriptionNil sets the value for Description to be an explicit nil
 func (o *AgentConversation) SetDescriptionNil() {
 	o.Description.Set(nil)
@@ -271,7 +273,7 @@ func (o *AgentConversation) SetAgentId(v string) {
 }
 
 func (o AgentConversation) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -317,10 +319,10 @@ func (o *AgentConversation) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -387,5 +389,3 @@ func (v *NullableAgentConversation) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

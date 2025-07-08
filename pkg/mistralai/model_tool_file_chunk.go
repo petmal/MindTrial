@@ -20,11 +20,11 @@ var _ MappedNullable = &ToolFileChunk{}
 
 // ToolFileChunk struct for ToolFileChunk
 type ToolFileChunk struct {
-	Type *string `json:"type,omitempty"`
-	Tool BuiltInConnectors `json:"tool"`
-	FileId string `json:"file_id"`
-	FileName NullableString `json:"file_name,omitempty"`
-	FileType NullableString `json:"file_type,omitempty"`
+	Type                 *string           `json:"type,omitempty"`
+	Tool                 BuiltInConnectors `json:"tool"`
+	FileId               string            `json:"file_id"`
+	FileName             NullableString    `json:"file_name,omitempty"`
+	FileType             NullableString    `json:"file_type,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -165,6 +165,7 @@ func (o *ToolFileChunk) HasFileName() bool {
 func (o *ToolFileChunk) SetFileName(v string) {
 	o.FileName.Set(&v)
 }
+
 // SetFileNameNil sets the value for FileName to be an explicit nil
 func (o *ToolFileChunk) SetFileNameNil() {
 	o.FileName.Set(nil)
@@ -207,6 +208,7 @@ func (o *ToolFileChunk) HasFileType() bool {
 func (o *ToolFileChunk) SetFileType(v string) {
 	o.FileType.Set(&v)
 }
+
 // SetFileTypeNil sets the value for FileType to be an explicit nil
 func (o *ToolFileChunk) SetFileTypeNil() {
 	o.FileType.Set(nil)
@@ -218,7 +220,7 @@ func (o *ToolFileChunk) UnsetFileType() {
 }
 
 func (o ToolFileChunk) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -260,10 +262,10 @@ func (o *ToolFileChunk) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -328,5 +330,3 @@ func (v *NullableToolFileChunk) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

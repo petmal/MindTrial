@@ -21,31 +21,31 @@ var _ MappedNullable = &ChatCompletionRequest{}
 // ChatCompletionRequest struct for ChatCompletionRequest
 type ChatCompletionRequest struct {
 	// ID of the model to use. You can use the [List Available Models](/api/#tag/models/operation/list_models_v1_models_get) API to see all of your available models, or see our [Model overview](/models) for model descriptions.
-	Model string `json:"model"`
+	Model       string          `json:"model"`
 	Temperature NullableFloat32 `json:"temperature,omitempty"`
 	// Nucleus sampling, where the model considers the results of the tokens with `top_p` probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. We generally recommend altering this or `temperature` but not both.
-	TopP *float32 `json:"top_p,omitempty"`
+	TopP      *float32      `json:"top_p,omitempty"`
 	MaxTokens NullableInt32 `json:"max_tokens,omitempty"`
 	// Whether to stream back partial progress. If set, tokens will be sent as data-only server-side events as they become available, with the stream terminated by a data: [DONE] message. Otherwise, the server will hold the request open until the timeout or until completion, with the response containing the full result as JSON.
-	Stream *bool `json:"stream,omitempty"`
-	Stop *Stop `json:"stop,omitempty"`
+	Stream     *bool         `json:"stream,omitempty"`
+	Stop       *Stop         `json:"stop,omitempty"`
 	RandomSeed NullableInt32 `json:"random_seed,omitempty"`
 	// The prompt(s) to generate completions for, encoded as a list of dict with role and content.
-	Messages []ChatCompletionRequestMessagesInner `json:"messages"`
-	ResponseFormat *ResponseFormat `json:"response_format,omitempty"`
-	Tools []Tool `json:"tools,omitempty"`
-	ToolChoice *ToolChoiceEnum `json:"tool_choice,omitempty"`
+	Messages       []ChatCompletionRequestMessagesInner `json:"messages"`
+	ResponseFormat *ResponseFormat                      `json:"response_format,omitempty"`
+	Tools          []Tool                               `json:"tools,omitempty"`
+	ToolChoice     *ToolChoiceEnum                      `json:"tool_choice,omitempty"`
 	// presence_penalty determines how much the model penalizes the repetition of words or phrases. A higher presence penalty encourages the model to use a wider variety of words and phrases, making the output more diverse and creative.
 	PresencePenalty *float32 `json:"presence_penalty,omitempty"`
 	// frequency_penalty penalizes the repetition of words based on their frequency in the generated text. A higher frequency penalty discourages the model from repeating words that have already appeared frequently in the output, promoting diversity and reducing repetition.
-	FrequencyPenalty *float32 `json:"frequency_penalty,omitempty"`
-	N NullableInt32 `json:"n,omitempty"`
+	FrequencyPenalty *float32      `json:"frequency_penalty,omitempty"`
+	N                NullableInt32 `json:"n,omitempty"`
 	// Enable users to specify expected results, optimizing response times by leveraging known or predictable content. This approach is especially effective for updating text documents or code files with minimal changes, reducing latency while maintaining high-quality results.
-	Prediction *Prediction `json:"prediction,omitempty"`
-	ParallelToolCalls *bool `json:"parallel_tool_calls,omitempty"`
-	PromptMode NullableMistralPromptMode `json:"prompt_mode,omitempty"`
+	Prediction        *Prediction               `json:"prediction,omitempty"`
+	ParallelToolCalls *bool                     `json:"parallel_tool_calls,omitempty"`
+	PromptMode        NullableMistralPromptMode `json:"prompt_mode,omitempty"`
 	// Whether to inject a safety prompt before all conversations.
-	SafePrompt *bool `json:"safe_prompt,omitempty"`
+	SafePrompt           *bool `json:"safe_prompt,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -154,6 +154,7 @@ func (o *ChatCompletionRequest) HasTemperature() bool {
 func (o *ChatCompletionRequest) SetTemperature(v float32) {
 	o.Temperature.Set(&v)
 }
+
 // SetTemperatureNil sets the value for Temperature to be an explicit nil
 func (o *ChatCompletionRequest) SetTemperatureNil() {
 	o.Temperature.Set(nil)
@@ -228,6 +229,7 @@ func (o *ChatCompletionRequest) HasMaxTokens() bool {
 func (o *ChatCompletionRequest) SetMaxTokens(v int32) {
 	o.MaxTokens.Set(&v)
 }
+
 // SetMaxTokensNil sets the value for MaxTokens to be an explicit nil
 func (o *ChatCompletionRequest) SetMaxTokensNil() {
 	o.MaxTokens.Set(nil)
@@ -334,6 +336,7 @@ func (o *ChatCompletionRequest) HasRandomSeed() bool {
 func (o *ChatCompletionRequest) SetRandomSeed(v int32) {
 	o.RandomSeed.Set(&v)
 }
+
 // SetRandomSeedNil sets the value for RandomSeed to be an explicit nil
 func (o *ChatCompletionRequest) SetRandomSeedNil() {
 	o.RandomSeed.Set(nil)
@@ -561,6 +564,7 @@ func (o *ChatCompletionRequest) HasN() bool {
 func (o *ChatCompletionRequest) SetN(v int32) {
 	o.N.Set(&v)
 }
+
 // SetNNil sets the value for N to be an explicit nil
 func (o *ChatCompletionRequest) SetNNil() {
 	o.N.Set(nil)
@@ -667,6 +671,7 @@ func (o *ChatCompletionRequest) HasPromptMode() bool {
 func (o *ChatCompletionRequest) SetPromptMode(v MistralPromptMode) {
 	o.PromptMode.Set(&v)
 }
+
 // SetPromptModeNil sets the value for PromptMode to be an explicit nil
 func (o *ChatCompletionRequest) SetPromptModeNil() {
 	o.PromptMode.Set(nil)
@@ -710,7 +715,7 @@ func (o *ChatCompletionRequest) SetSafePrompt(v bool) {
 }
 
 func (o ChatCompletionRequest) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -791,10 +796,10 @@ func (o *ChatCompletionRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -872,5 +877,3 @@ func (v *NullableChatCompletionRequest) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

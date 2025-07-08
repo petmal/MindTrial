@@ -21,19 +21,19 @@ var _ MappedNullable = &FIMCompletionRequest{}
 // FIMCompletionRequest struct for FIMCompletionRequest
 type FIMCompletionRequest struct {
 	// ID of the model to use. Only compatible for now with:   - `codestral-2405`   - `codestral-latest`
-	Model string `json:"model"`
+	Model       string          `json:"model"`
 	Temperature NullableFloat32 `json:"temperature,omitempty"`
 	// Nucleus sampling, where the model considers the results of the tokens with `top_p` probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. We generally recommend altering this or `temperature` but not both.
-	TopP *float32 `json:"top_p,omitempty"`
+	TopP      *float32      `json:"top_p,omitempty"`
 	MaxTokens NullableInt32 `json:"max_tokens,omitempty"`
 	// Whether to stream back partial progress. If set, tokens will be sent as data-only server-side events as they become available, with the stream terminated by a data: [DONE] message. Otherwise, the server will hold the request open until the timeout or until completion, with the response containing the full result as JSON.
-	Stream *bool `json:"stream,omitempty"`
-	Stop *Stop `json:"stop,omitempty"`
+	Stream     *bool         `json:"stream,omitempty"`
+	Stop       *Stop         `json:"stop,omitempty"`
 	RandomSeed NullableInt32 `json:"random_seed,omitempty"`
 	// The text/code to complete.
-	Prompt string `json:"prompt"`
-	Suffix NullableString `json:"suffix,omitempty"`
-	MinTokens NullableInt32 `json:"min_tokens,omitempty"`
+	Prompt               string         `json:"prompt"`
+	Suffix               NullableString `json:"suffix,omitempty"`
+	MinTokens            NullableInt32  `json:"min_tokens,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -124,6 +124,7 @@ func (o *FIMCompletionRequest) HasTemperature() bool {
 func (o *FIMCompletionRequest) SetTemperature(v float32) {
 	o.Temperature.Set(&v)
 }
+
 // SetTemperatureNil sets the value for Temperature to be an explicit nil
 func (o *FIMCompletionRequest) SetTemperatureNil() {
 	o.Temperature.Set(nil)
@@ -198,6 +199,7 @@ func (o *FIMCompletionRequest) HasMaxTokens() bool {
 func (o *FIMCompletionRequest) SetMaxTokens(v int32) {
 	o.MaxTokens.Set(&v)
 }
+
 // SetMaxTokensNil sets the value for MaxTokens to be an explicit nil
 func (o *FIMCompletionRequest) SetMaxTokensNil() {
 	o.MaxTokens.Set(nil)
@@ -304,6 +306,7 @@ func (o *FIMCompletionRequest) HasRandomSeed() bool {
 func (o *FIMCompletionRequest) SetRandomSeed(v int32) {
 	o.RandomSeed.Set(&v)
 }
+
 // SetRandomSeedNil sets the value for RandomSeed to be an explicit nil
 func (o *FIMCompletionRequest) SetRandomSeedNil() {
 	o.RandomSeed.Set(nil)
@@ -370,6 +373,7 @@ func (o *FIMCompletionRequest) HasSuffix() bool {
 func (o *FIMCompletionRequest) SetSuffix(v string) {
 	o.Suffix.Set(&v)
 }
+
 // SetSuffixNil sets the value for Suffix to be an explicit nil
 func (o *FIMCompletionRequest) SetSuffixNil() {
 	o.Suffix.Set(nil)
@@ -412,6 +416,7 @@ func (o *FIMCompletionRequest) HasMinTokens() bool {
 func (o *FIMCompletionRequest) SetMinTokens(v int32) {
 	o.MinTokens.Set(&v)
 }
+
 // SetMinTokensNil sets the value for MinTokens to be an explicit nil
 func (o *FIMCompletionRequest) SetMinTokensNil() {
 	o.MinTokens.Set(nil)
@@ -423,7 +428,7 @@ func (o *FIMCompletionRequest) UnsetMinTokens() {
 }
 
 func (o FIMCompletionRequest) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -480,10 +485,10 @@ func (o *FIMCompletionRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -553,5 +558,3 @@ func (v *NullableFIMCompletionRequest) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

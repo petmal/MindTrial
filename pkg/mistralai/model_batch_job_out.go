@@ -20,23 +20,23 @@ var _ MappedNullable = &BatchJobOut{}
 
 // BatchJobOut struct for BatchJobOut
 type BatchJobOut struct {
-	Id string `json:"id"`
-	Object *string `json:"object,omitempty"`
-	InputFiles []string `json:"input_files"`
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
-	Endpoint string `json:"endpoint"`
-	Model string `json:"model"`
-	OutputFile NullableString `json:"output_file,omitempty"`
-	ErrorFile NullableString `json:"error_file,omitempty"`
-	Errors []BatchError `json:"errors"`
-	Status BatchJobStatus `json:"status"`
-	CreatedAt int32 `json:"created_at"`
-	TotalRequests int32 `json:"total_requests"`
-	CompletedRequests int32 `json:"completed_requests"`
-	SucceededRequests int32 `json:"succeeded_requests"`
-	FailedRequests int32 `json:"failed_requests"`
-	StartedAt NullableInt32 `json:"started_at,omitempty"`
-	CompletedAt NullableInt32 `json:"completed_at,omitempty"`
+	Id                   string                 `json:"id"`
+	Object               *string                `json:"object,omitempty"`
+	InputFiles           []string               `json:"input_files"`
+	Metadata             map[string]interface{} `json:"metadata,omitempty"`
+	Endpoint             string                 `json:"endpoint"`
+	Model                string                 `json:"model"`
+	OutputFile           NullableString         `json:"output_file,omitempty"`
+	ErrorFile            NullableString         `json:"error_file,omitempty"`
+	Errors               []BatchError           `json:"errors"`
+	Status               BatchJobStatus         `json:"status"`
+	CreatedAt            int32                  `json:"created_at"`
+	TotalRequests        int32                  `json:"total_requests"`
+	CompletedRequests    int32                  `json:"completed_requests"`
+	SucceededRequests    int32                  `json:"succeeded_requests"`
+	FailedRequests       int32                  `json:"failed_requests"`
+	StartedAt            NullableInt32          `json:"started_at,omitempty"`
+	CompletedAt          NullableInt32          `json:"completed_at,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -267,6 +267,7 @@ func (o *BatchJobOut) HasOutputFile() bool {
 func (o *BatchJobOut) SetOutputFile(v string) {
 	o.OutputFile.Set(&v)
 }
+
 // SetOutputFileNil sets the value for OutputFile to be an explicit nil
 func (o *BatchJobOut) SetOutputFileNil() {
 	o.OutputFile.Set(nil)
@@ -309,6 +310,7 @@ func (o *BatchJobOut) HasErrorFile() bool {
 func (o *BatchJobOut) SetErrorFile(v string) {
 	o.ErrorFile.Set(&v)
 }
+
 // SetErrorFileNil sets the value for ErrorFile to be an explicit nil
 func (o *BatchJobOut) SetErrorFileNil() {
 	o.ErrorFile.Set(nil)
@@ -519,6 +521,7 @@ func (o *BatchJobOut) HasStartedAt() bool {
 func (o *BatchJobOut) SetStartedAt(v int32) {
 	o.StartedAt.Set(&v)
 }
+
 // SetStartedAtNil sets the value for StartedAt to be an explicit nil
 func (o *BatchJobOut) SetStartedAtNil() {
 	o.StartedAt.Set(nil)
@@ -561,6 +564,7 @@ func (o *BatchJobOut) HasCompletedAt() bool {
 func (o *BatchJobOut) SetCompletedAt(v int32) {
 	o.CompletedAt.Set(&v)
 }
+
 // SetCompletedAtNil sets the value for CompletedAt to be an explicit nil
 func (o *BatchJobOut) SetCompletedAtNil() {
 	o.CompletedAt.Set(nil)
@@ -572,7 +576,7 @@ func (o *BatchJobOut) UnsetCompletedAt() {
 }
 
 func (o BatchJobOut) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -641,10 +645,10 @@ func (o *BatchJobOut) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -721,5 +725,3 @@ func (v *NullableBatchJobOut) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

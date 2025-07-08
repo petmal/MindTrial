@@ -12,8 +12,8 @@ package mistralai
 
 import (
 	"encoding/json"
-	"time"
 	"fmt"
+	"time"
 )
 
 // checks if the MessageInputEntry type satisfies the MappedNullable interface at compile time
@@ -21,13 +21,13 @@ var _ MappedNullable = &MessageInputEntry{}
 
 // MessageInputEntry Representation of an input message inside the conversation.
 type MessageInputEntry struct {
-	Object *string `json:"object,omitempty"`
-	Type *string `json:"type,omitempty"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	CompletedAt NullableTime `json:"completed_at,omitempty"`
-	Id *string `json:"id,omitempty"`
-	Role string `json:"role"`
-	Content Content `json:"content"`
+	Object               *string      `json:"object,omitempty"`
+	Type                 *string      `json:"type,omitempty"`
+	CreatedAt            *time.Time   `json:"created_at,omitempty"`
+	CompletedAt          NullableTime `json:"completed_at,omitempty"`
+	Id                   *string      `json:"id,omitempty"`
+	Role                 string       `json:"role"`
+	Content              Content      `json:"content"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -188,6 +188,7 @@ func (o *MessageInputEntry) HasCompletedAt() bool {
 func (o *MessageInputEntry) SetCompletedAt(v time.Time) {
 	o.CompletedAt.Set(&v)
 }
+
 // SetCompletedAtNil sets the value for CompletedAt to be an explicit nil
 func (o *MessageInputEntry) SetCompletedAtNil() {
 	o.CompletedAt.Set(nil)
@@ -279,7 +280,7 @@ func (o *MessageInputEntry) SetContent(v Content) {
 }
 
 func (o MessageInputEntry) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -327,10 +328,10 @@ func (o *MessageInputEntry) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -397,5 +398,3 @@ func (v *NullableMessageInputEntry) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-
