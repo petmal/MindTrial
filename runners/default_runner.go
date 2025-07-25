@@ -21,11 +21,15 @@ import (
 
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/providers"
+	"github.com/petmal/mindtrial/validators"
 	"github.com/rs/zerolog"
 )
 
 const unknownLogValue = "<unknown>"
 const asyncEventBufferSize = 3
+
+// explanationSeparator is used to separate answer explanation from validation assessment.
+const explanationSeparator = "\n\n\n"
 
 type eventEmitter interface {
 	emitProgressEvent()
@@ -110,7 +114,7 @@ func (r *asyncResultSet) emitMessageEvent(message string) {
 // NewDefaultRunner creates a new Runner that executes tasks on all configured providers
 // in parallel. The individual runs on a single provider are executed sequentially.
 // It returns an error if any provider initialization fails.
-func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, globalValidationRules config.ValidationRules, logger zerolog.Logger) (Runner, error) {
+func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, globalValidationRules config.ValidationRules, judges []config.JudgeConfig, logger zerolog.Logger) (Runner, error) {
 	targets := make(map[providers.Provider][]config.RunConfig, len(cfg))
 	totalTargetCount := 0
 	for _, providerConfig := range cfg {
@@ -122,10 +126,13 @@ func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, globalVa
 		totalTargetCount += len(providerConfig.Runs)
 	}
 
+	validatorFactory := validators.NewFactory(judges)
+
 	return &defaultRunner{
 		targets:               targets,
 		totalTargetCount:      totalTargetCount,
 		globalValidationRules: globalValidationRules,
+		validatorFactory:      validatorFactory,
 		logger:                logger,
 	}, nil
 }
@@ -134,10 +141,35 @@ type defaultRunner struct {
 	targets               map[providers.Provider][]config.RunConfig // All tasks will be executed against all run configurations of each target provider.
 	totalTargetCount      int
 	globalValidationRules config.ValidationRules
+	validatorFactory      *validators.Factory
 	logger                zerolog.Logger
 }
 
+func (r *defaultRunner) assertCanRun(tasks []config.Task) error {
+	var taskErrors []error
+	for _, task := range tasks {
+		// Resolve validation rules for this task.
+		resolvedValidationRules := r.globalValidationRules.MergeWith(task.ValidationRules)
+
+		// Check that if judge is enabled the configuration exists.
+		if resolvedValidationRules.UseJudge() {
+			if err := r.validatorFactory.AssertExists(resolvedValidationRules.Judge); err != nil {
+				taskErrors = append(taskErrors, fmt.Errorf("task '%s' requires judge '%s' with variant '%s' that does not exist or is disabled: %w", task.Name, resolvedValidationRules.Judge.GetName(), resolvedValidationRules.Judge.GetVariant(), err))
+			}
+		}
+	}
+
+	if len(taskErrors) > 0 {
+		return fmt.Errorf("could not start because:\n%w", errors.Join(taskErrors...))
+	}
+	return nil
+}
+
 func (r *defaultRunner) Start(ctx context.Context, tasks []config.Task) (AsyncResultSet, error) {
+	if err := r.assertCanRun(tasks); err != nil {
+		return nil, err
+	}
+
 	progress := make(chan float32, asyncEventBufferSize)
 	messages := make(chan string, asyncEventBufferSize)
 	var wg sync.WaitGroup
@@ -167,6 +199,10 @@ func (r *defaultRunner) Start(ctx context.Context, tasks []config.Task) (AsyncRe
 }
 
 func (r *defaultRunner) Run(ctx context.Context, tasks []config.Task) (ResultSet, error) {
+	if err := r.assertCanRun(tasks); err != nil {
+		return nil, err
+	}
+
 	result := &resultSet{
 		results: make(Results),
 	}
@@ -236,13 +272,20 @@ func (r *defaultRunner) runTask(ctx context.Context, provider providers.Provider
 	// Resolve validation rules for this task.
 	resolvedValidationRules := r.globalValidationRules.MergeWith(task.ValidationRules)
 
-	// Create validator with resolved rules.
-	validator := provider.Validator(task.ExpectedResult, resolvedValidationRules)
+	// Create validator selected for this this task.
+	validator, err := r.validatorFactory.GetValidator(ctx, resolvedValidationRules.Judge)
+	if err != nil {
+		runResult.Kind = Error
+		runResult.Got = err.Error()
+		return
+	}
 
 	runResult.Task = task.Name
 	runResult.Provider = provider.Name()
 	runResult.Run = run.Name
-	runResult.Want = task.ExpectedResult.Map(validator.ToCanonical)
+	runResult.Want = task.ExpectedResult.Map(func(value string) string {
+		return validator.ToCanonical(resolvedValidationRules, value)
+	})
 	defer func() {
 		if p := recover(); p != nil {
 			runResult.Kind = Error
@@ -266,14 +309,37 @@ func (r *defaultRunner) runTask(ctx context.Context, provider providers.Provider
 		if errors.As(err, &unmarshalErr) {
 			runResult.Details = unmarshalErr.Details()
 		}
-	} else if !validator.IsCorrect(ctx, result) {
-		runResult.Kind = Failure
-		runResult.Got = validator.ToCanonical(result.FinalAnswer)
-		runResult.Details = result.Explain()
 	} else {
-		runResult.Kind = Success
-		runResult.Got = validator.ToCanonical(result.FinalAnswer)
-		runResult.Details = result.Explain()
+		r.logMessage(emitter, r.logger.Debug(), "%s: %s: %s: using %s for response evaluation", provider.Name(), run.Name, task.Name, validator.GetName())
+		validationResult, err := validator.IsCorrect(ctx, resolvedValidationRules, task.ExpectedResult, result, task.Prompt, task.ResponseResultFormat)
+		if err != nil { //nolint:gocritic
+			runResult.Kind = Error
+			runResult.Got = result.FinalAnswer
+			runResult.Details = err.Error()
+		} else {
+			if assessmentResult := validationResult.GetAssessmentResult(); assessmentResult != nil {
+				assessmentUsage := assessmentResult.GetUsage()
+				r.logMessage(emitter, r.logger.Debug(), "%s: %s: %s: response evaluation token usage: [in:%s, out:%s]", provider.Name(), run.Name, task.Name, formatLogInt64(assessmentUsage.InputTokens), formatLogInt64(assessmentUsage.OutputTokens))
+				r.logMessage(emitter, r.logger.Trace(), "%s: %s: %s: response evaluation prompts:\n%s", provider.Name(), run.Name, task.Name, formatLogText(assessmentResult.GetPrompts()))
+				r.logMessage(emitter, r.logger.Debug(), "%s: %s: %s: response evaluation duration: %s", provider.Name(), run.Name, task.Name, assessmentResult.GetDuration())
+			}
+
+			if !validationResult.IsCorrect {
+				runResult.Kind = Failure
+				runResult.Got = validator.ToCanonical(resolvedValidationRules, result.FinalAnswer)
+				runResult.Details = result.Explain()
+				if validationExplanation := validationResult.Explain(); validationExplanation != "" {
+					runResult.Details += explanationSeparator + validationExplanation
+				}
+			} else {
+				runResult.Kind = Success
+				runResult.Got = validator.ToCanonical(resolvedValidationRules, result.FinalAnswer)
+				runResult.Details = result.Explain()
+				if validationExplanation := validationResult.Explain(); validationExplanation != "" {
+					runResult.Details += explanationSeparator + validationExplanation
+				}
+			}
+		}
 	}
 	runResult.Duration = result.GetDuration()
 }
@@ -344,6 +410,9 @@ func (r *defaultRunner) Close(ctx context.Context) {
 		if err := provider.Close(ctx); err != nil {
 			r.logger.Warn().Err(err).Msgf("%s: failed to close provider", provider.Name())
 		}
+	}
+	if err := r.validatorFactory.Close(ctx); err != nil {
+		r.logger.Warn().Err(err).Msg("failed to close validator factory")
 	}
 }
 

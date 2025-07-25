@@ -13,16 +13,22 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/testutils"
-	"github.com/petmal/mindtrial/pkg/utils"
 )
 
-var retryCountRegex = regexp.MustCompile(`^retry_(\d+)$`)
+var (
+	retryPattern  = regexp.MustCompile(`^retry_(\d+)(?:: (.+))?$`)
+	expectedRegex = regexp.MustCompile(`Expected answer\(s\).*?:\n((?:- .+\n?)+)`)
+	answerRegex   = regexp.MustCompile(`(?m)^- (.+)$`)
+	actualRegex   = regexp.MustCompile(`Candidate response:\n(.+?)\n\nValidation flags:`)
+)
 
+// MockProvider provides a test implementation of the Provider interface for testing purposes.
 type MockProvider struct {
 	name    string
 	retries sync.Map
@@ -32,13 +38,34 @@ func (m MockProvider) Name() string {
 	return m.name
 }
 
-func (m MockProvider) Validator(expected utils.StringSet, validationRules config.ValidationRules) Validator {
-	return NewDefaultValidator(expected, validationRules)
+// Run executes a mock task and returns a simulated result based on the configuration and task name.
+//
+// The method supports several modes based on cfg.Name:
+//   - "pass": Always returns success with the first expected answer.
+//   - "mock": Handles special task names (error, not_supported, failure and and retry_N patterns).
+//   - "judge_evaluation": Parses judge prompts and evaluates responses.
+//   - Other: Returns the task name as the final answer.
+func (m *MockProvider) Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error) {
+	result = m.createBaseResult(task.Name)
+
+	switch cfg.Name {
+	case "pass":
+		expectedValidAnswers := task.ExpectedResult.Values()
+		return m.handlePassMode(result, expectedValidAnswers[0]), nil
+	case "mock":
+		return m.handleMockMode(result, cfg, task)
+	case "judge_evaluation":
+		return m.handleJudgeEvaluation(result, cfg, task)
+	default:
+		result.FinalAnswer = task.Name
+		return result, nil
+	}
 }
 
-func (m *MockProvider) Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error) {
-	result = Result{
-		Title: task.Name,
+// createBaseResult creates a base Result with mock data.
+func (m *MockProvider) createBaseResult(taskName string) Result {
+	return Result{
+		Title: taskName,
 		prompts: []string{
 			"Porro laudantium quam voluptas.",
 			"Et magnam velit unde.",
@@ -50,56 +77,148 @@ func (m *MockProvider) Run(ctx context.Context, cfg config.RunConfig, task confi
 		},
 		duration: 7211609999927884 * time.Nanosecond,
 	}
+}
 
-	expectedValidAnswers := task.ExpectedResult.Values()
-	if cfg.Name == "pass" {
-		result.Explanation = "mock pass"
-		result.FinalAnswer = expectedValidAnswers[0]
-	} else if cfg.Name == "mock" {
-		switch task.Name {
-		case "error":
-			return result, fmt.Errorf("mock error")
-		case "not_supported":
-			return result, fmt.Errorf("%w: %s", ErrFeatureNotSupported, "mock not supported")
-		case "failure":
-			result.Explanation = "mock failure"
-			result.FinalAnswer = "Facere aperiam recusandae totam magnam nulla corrupti."
-		default:
-			if cfg.RetryPolicy != nil && cfg.RetryPolicy.MaxRetryAttempts > 0 {
+func (m *MockProvider) handlePassMode(result Result, expectedAnswer string) Result {
+	result.Explanation = "mock pass"
+	result.FinalAnswer = expectedAnswer
+	return result
+}
 
-				// Parse expected retry count from task name if it contains "retry_N".
-				expectedRetries := 0
-				if matches := retryCountRegex.FindStringSubmatch(task.Name); len(matches) > 1 {
-					parsed, parseErr := strconv.Atoi(matches[1])
-					if parseErr != nil {
-						panic(fmt.Sprintf("failed to parse retry count from task name '%s': %v", task.Name, parseErr))
-					}
-					expectedRetries = parsed
-				}
+func (m *MockProvider) handleMockMode(result Result, cfg config.RunConfig, task config.Task) (Result, error) {
+	parsedResponse, retryKey, err := m.parseResponseFromExpression(cfg, task.Name, task.Name)
+	if err != nil {
+		return result, err
+	}
 
-				// Use task name with config name as unique key for retry counting.
-				key := fmt.Sprintf("%s-%s", cfg.Name, task.Name)
-				currentRetryCount := m.addRetryAttempt(key)
-
-				// Return retryable error until we've seen enough retries.
-				if currentRetryCount < expectedRetries {
-					cause := fmt.Errorf("mock transient error (retry %d)", currentRetryCount)
-					return result, WrapErrGenerateResponse(WrapErrRetryable(cause))
-				}
-
-				result.Explanation = fmt.Sprintf("mock success after %d attempts", currentRetryCount+1)
-			} else {
-				result.Explanation = "mock success"
-			}
-			result.FinalAnswer = expectedValidAnswers[0]
-		}
+	if parsedResponse == "failure" {
+		result.Explanation = "mock failure"
+		result.FinalAnswer = "Facere aperiam recusandae totam magnam nulla corrupti."
 	} else {
-		result.FinalAnswer = task.Name
+		result.Explanation = m.getExplanationForRetry(retryKey)
+		expectedValidAnswers := task.ExpectedResult.Values()
+		result.FinalAnswer = expectedValidAnswers[0]
 	}
 
 	return result, nil
 }
 
+func (m *MockProvider) handleJudgeEvaluation(result Result, cfg config.RunConfig, task config.Task) (Result, error) {
+	expectedAnswers := m.extractExpectedAnswers(task.Prompt)
+	actualResponse := m.extractActualResponse(task.Prompt)
+
+	// Handle retry pattern and special cases.
+	parsedResponse, retryKey, err := m.parseResponseFromExpression(cfg, task.Name, actualResponse)
+	if err != nil {
+		return result, err
+	}
+
+	result.Explanation = m.getExplanationForRetry(retryKey)
+	result.FinalAnswer = m.evaluateResponse(parsedResponse, expectedAnswers)
+	return result, nil
+}
+
+// extractExpectedAnswers extracts and parses expected answers from the judge prompt.
+func (m *MockProvider) extractExpectedAnswers(prompt string) []string {
+	expectedMatches := expectedRegex.FindStringSubmatch(prompt)
+	if len(expectedMatches) < 2 {
+		panic("could not find expected answers in judge prompt")
+	}
+
+	answerMatches := answerRegex.FindAllStringSubmatch(expectedMatches[1], -1)
+	answers := make([]string, 0, len(answerMatches))
+	for _, match := range answerMatches {
+		if len(match) > 1 {
+			answers = append(answers, strings.TrimSpace(match[1]))
+		}
+	}
+	return answers
+}
+
+// extractActualResponse extracts the actual response from the judge prompt.
+func (m *MockProvider) extractActualResponse(prompt string) string {
+	actualMatches := actualRegex.FindStringSubmatch(prompt)
+	if len(actualMatches) < 2 {
+		panic("could not find actual response in judge prompt")
+	}
+	return strings.TrimSpace(actualMatches[1])
+}
+
+// evaluateResponse compares the actual response with expected answers and returns "1" for correct, "0" for incorrect.
+func (m *MockProvider) evaluateResponse(actualResponse string, expectedAnswers []string) string {
+	actualTrimmed := strings.TrimSpace(actualResponse)
+	for _, expectedAnswer := range expectedAnswers {
+		if actualTrimmed == strings.TrimSpace(expectedAnswer) {
+			return "1"
+		}
+	}
+	return "0"
+}
+
+// getExplanationForRetry returns an appropriate explanation based on whether retry logic was used.
+func (m *MockProvider) getExplanationForRetry(retryKey string) string {
+	if retryKey != "" {
+		if retryAttempts, ok := m.retries.Load(retryKey); ok {
+			return fmt.Sprintf("mock success after %d attempts", retryAttempts.(int))
+		}
+	}
+	return "mock success"
+}
+
+// parseResponseFromExpression parses expression for special values and retry patterns.
+//
+// It handles:
+//   - Special values: "error", "not_supported"
+//   - Retry patterns: "retry_N" or "retry_N: response"
+//
+// Returns the parsed response value, retry key (if retry logic was used), and any error.
+func (m *MockProvider) parseResponseFromExpression(cfg config.RunConfig, taskName string, expression string) (responseValue string, retryKey string, err error) {
+	responseValue, retryKey, err = m.handleRetryPattern(cfg, taskName, expression)
+
+	// Handle special values.
+	switch responseValue {
+	case "error":
+		return responseValue, retryKey, fmt.Errorf("mock error")
+	case "not_supported":
+		return responseValue, retryKey, fmt.Errorf("%w: %s", ErrFeatureNotSupported, "mock not supported")
+	}
+
+	return
+}
+
+// handleRetryPattern processes retry patterns in the expression.
+func (m *MockProvider) handleRetryPattern(cfg config.RunConfig, taskName string, expression string) (responseValue string, retryKey string, err error) {
+	responseValue = expression
+	matches := retryPattern.FindStringSubmatch(expression)
+	if len(matches) <= 1 {
+		return responseValue, "", nil
+	}
+
+	expectedRetries, parseErr := strconv.Atoi(matches[1])
+	if parseErr != nil {
+		panic(fmt.Sprintf("failed to parse retry count from '%s': %v", expression, parseErr))
+	}
+
+	// Extract actual response if provided.
+	if len(matches) > 2 {
+		responseValue = matches[2]
+	}
+
+	// Handle retry logic if retries are configured and expected.
+	if expectedRetries > 0 && cfg.RetryPolicy != nil && cfg.RetryPolicy.MaxRetryAttempts > 0 {
+		retryKey = fmt.Sprintf("%s-%s", cfg.Name, taskName)
+		currentRetryCount := m.addRetryAttempt(retryKey)
+
+		if currentRetryCount < expectedRetries {
+			cause := fmt.Errorf("mock transient error (retry %d)", currentRetryCount)
+			return responseValue, retryKey, WrapErrGenerateResponse(WrapErrRetryable(cause))
+		}
+	}
+
+	return responseValue, retryKey, nil
+}
+
+// addRetryAttempt atomically increments the retry count for the given key and returns the previous count.
 func (m *MockProvider) addRetryAttempt(key string) int {
 	for {
 		currentVal, loaded := m.retries.LoadOrStore(key, 1)
@@ -114,7 +233,7 @@ func (m *MockProvider) addRetryAttempt(key string) int {
 		if m.retries.CompareAndSwap(key, currentCount, newCount) {
 			return currentCount // successfully incremented, return the previous count
 		}
-		// CompareAndSwap failed because the stored value has changed in the meantime, retry
+		// CompareAndSwap failed because the stored value has changed in the meantime, retry.
 	}
 }
 

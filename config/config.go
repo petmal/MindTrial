@@ -57,6 +57,9 @@ type AppConfig struct {
 	// Providers lists configurations for AI providers whose models will be used
 	// to execute tasks during the trial run.
 	Providers []ProviderConfig `yaml:"providers" validate:"required,dive"`
+
+	// Judges lists LLM configurations for semantic evaluation of open-ended task responses.
+	Judges []JudgeConfig `yaml:"judges" validate:"omitempty,dive"`
 }
 
 // GetProvidersWithEnabledRuns returns providers with their enabled run configurations.
@@ -66,24 +69,27 @@ type AppConfig struct {
 func (ac AppConfig) GetProvidersWithEnabledRuns() []ProviderConfig {
 	providers := make([]ProviderConfig, 0, len(ac.Providers))
 	for _, provider := range ac.Providers {
-		resolvedRuns := provider.GetRunsResolved()
-		enabledRuns := make([]RunConfig, 0, len(resolvedRuns))
-		for _, run := range resolvedRuns {
-			if !*run.Disabled {
-				enabledRuns = append(enabledRuns, run)
-			}
-		}
-		if len(enabledRuns) > 0 {
-			providers = append(providers, ProviderConfig{
-				Name:         provider.Name,
-				ClientConfig: provider.ClientConfig,
-				Runs:         enabledRuns,
-				Disabled:     provider.Disabled,
-				RetryPolicy:  provider.RetryPolicy,
-			})
+		resolved := provider.Resolve(true)
+		if len(resolved.Runs) > 0 {
+			providers = append(providers, resolved)
 		}
 	}
 	return providers
+}
+
+// GetJudgesWithEnabledRuns returns judges with their enabled run variant configurations.
+// Run variant configurations are resolved using GetRunsResolved before filtering.
+// Any disabled run variant configurations are excluded from the results.
+// Judges with no enabled run variant configurations are excluded from the returned list.
+func (ac AppConfig) GetJudgesWithEnabledRuns() []JudgeConfig {
+	judges := make([]JudgeConfig, 0, len(ac.Judges))
+	for _, judge := range ac.Judges {
+		resolved := judge.Resolve(true)
+		if len(resolved.Provider.Runs) > 0 {
+			judges = append(judges, resolved)
+		}
+	}
+	return judges
 }
 
 // ProviderConfig defines settings for an AI provider.
@@ -94,7 +100,7 @@ type ProviderConfig struct {
 	// ClientConfig holds provider-specific client settings.
 	ClientConfig ClientConfig `yaml:"client-config" validate:"required"`
 
-	// Runs lists test run configurations for this provider.
+	// Runs lists run configurations for this provider.
 	Runs []RunConfig `yaml:"runs" validate:"required,dive"`
 
 	// Disabled indicates if all runs should be disabled by default.
@@ -118,6 +124,25 @@ func (pc ProviderConfig) GetRunsResolved() []RunConfig {
 		}
 		resolved = append(resolved, run)
 	}
+	return resolved
+}
+
+// Resolve returns a copy of the provider configuration with runs resolved.
+// If excludeDisabledRuns is true, only enabled runs are included.
+func (pc ProviderConfig) Resolve(excludeDisabledRuns bool) ProviderConfig {
+	resolved := pc
+	resolved.Runs = pc.GetRunsResolved()
+
+	if excludeDisabledRuns {
+		enabledRuns := make([]RunConfig, 0, len(resolved.Runs))
+		for _, run := range resolved.Runs {
+			if !*run.Disabled {
+				enabledRuns = append(enabledRuns, run)
+			}
+		}
+		resolved.Runs = enabledRuns
+	}
+
 	return resolved
 }
 
@@ -158,7 +183,7 @@ type MistralAIClientConfig struct {
 	APIKey string `yaml:"api-key" validate:"required"`
 }
 
-// RunConfig defines settings for a single test configuration.
+// RunConfig defines settings for a single run configuration.
 type RunConfig struct {
 	// Name is a display-friendly identifier shown in results.
 	Name string `yaml:"name" validate:"required"`
@@ -349,6 +374,25 @@ type MistralAIModelParams struct {
 
 	// SafePrompt controls whether to inject a safety prompt before all conversations.
 	SafePrompt *bool `yaml:"safe-prompt" validate:"omitempty"`
+}
+
+// JudgeConfig defines configuration for an LLM judge used for semantic evaluation of complex open-ended task responses.
+// Judges analyze the meaning and quality of answers rather than performing exact text matching,
+// enabling evaluation of subjective or creative tasks where multiple valid interpretations exist.
+type JudgeConfig struct {
+	// Name is the unique identifier for this judge configuration.
+	Name string `yaml:"name" validate:"required"`
+
+	// Provider encapsulates the provider configuration for the judge.
+	Provider ProviderConfig `yaml:"provider" validate:"required"`
+}
+
+// Resolve returns a copy of the judge configuration with run variants resolved.
+// If excludeDisabledRuns is true, only enabled run variants are included.
+func (jc JudgeConfig) Resolve(excludeDisabledRuns bool) JudgeConfig {
+	resolved := jc
+	resolved.Provider = jc.Provider.Resolve(excludeDisabledRuns)
+	return resolved
 }
 
 // UnmarshalYAML implements custom YAML unmarshaling for ProviderConfig.

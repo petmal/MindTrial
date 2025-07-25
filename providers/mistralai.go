@@ -15,7 +15,6 @@ import (
 
 	"github.com/petmal/mindtrial/config"
 	mistralai "github.com/petmal/mindtrial/pkg/mistralai"
-	"github.com/petmal/mindtrial/pkg/utils"
 )
 
 // NewMistralAI creates a new Mistral AI provider instance with the given configuration.
@@ -36,10 +35,6 @@ type MistralAI struct {
 
 func (o MistralAI) Name() string {
 	return config.MISTRALAI
-}
-
-func (o MistralAI) Validator(expected utils.StringSet, validationRules config.ValidationRules) Validator {
-	return NewDefaultValidator(expected, validationRules)
 }
 
 func (o *MistralAI) Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error) {

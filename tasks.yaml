@@ -1069,3 +1069,26 @@ task-config:
         - name: "picture"
           uri: "./taskdata/visual-deduction-v4.png"
           type: "image/png"
+    - name: "subjective - visual reasoning - v1"
+      disabled: true
+      prompt: |-
+        The attached picture contains a plot of September mean maximum temperatures in England during the period from 1884 to 2023.
+        The various horizontal lines mark values of particular interest (e.g., the lowest temperature recorded in the period).
+        It seems like the red-line is missing despite of it being in the plot's legend.
+        Assuming this was not an omission or technical issue, provide the most plausible explanation of why is the red line not visible in the plot.
+      response-result-format: |-
+        Concise explanation of why the red line is not visible.
+      expected-result: |-
+        According to the plot's legend, the red horizontal line marks the maximum value recorded during the period.
+        In this plot that happens to be the last datapoint, which is marked by the brown horizontal line, named 'latest', according to the legend.
+        As the result of the latest datapoint being also the one with the highest recorded value, the two lines (red and brown) overlap.
+        The red line is not visible because it is overlapped by the brown line.
+      files:
+        - name: "picture"
+          uri: "./taskdata/subjective-visual-reasoning-v1.png"
+          type: "image/png"
+      validation-rules:
+        judge:
+          enabled: true
+          name: "default"
+          variant: "reasoning"

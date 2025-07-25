@@ -56,7 +56,36 @@ const (
                   api-key: "63add9c7-3329-4a3e-bd4e-b251256a848c"
                 runs:
                   - name: "p3 run1"
-                    model: "p3-model-1"`
+                    model: "p3-model-1"
+            judges:
+              - name: "semantic-judge"
+                provider:
+                  name: "openai"
+                  client-config:
+                    api-key: "judge-key-1"
+                  runs:
+                    - name: "default"
+                      model: "judge-model-1"
+                      model-parameters:
+                        reasoning-effort: high
+              - name: "disabled-judge"
+                provider:
+                  name: "openai"
+                  disabled: true
+                  client-config:
+                    api-key: "judge-key-2"
+                  runs:
+                    - name: "default"
+                      model: "judge-model-2"
+              - name: "judge-with-disabled-run"
+                provider:
+                  name: "openai"
+                  client-config:
+                    api-key: "judge-key-3"
+                  runs:
+                    - name: "disabled-run"
+                      model: "judge-model-3"
+                      disabled: true`
 	mockTasks = `task-config:
   tasks:
     - name: "unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37"
@@ -157,6 +186,54 @@ func TestRun(t *testing.T) {
 		wantLogContains       []string
 		wantLogNotContains    []string
 	}{
+		{
+			name:   "judge validation with valid judge",
+			config: []byte(mockConfig),
+			tasks: []byte(`task-config:
+                    tasks:
+                      - name: "task-with-valid-judge"
+                        prompt: |-
+                          What is the capital of France?
+                        response-result-format: |-
+                          City name
+                        expected-result: |-
+                          Paris
+                        validation-rules:
+                          judge:
+                            enabled: true
+                            name: "semantic-judge"
+                            variant: "default"`),
+			outputFileBasename: testOutputFileBasename,
+			outputFormats:      allOutputFormatsEnabled,
+			debug:              true,
+			wantStdoutContains: append([]string{
+				"Log messages will be saved to:",
+				"Results in HTML format will be saved to:",
+				"Results in CSV format will be saved to:",
+			}, expectedStdoutMessages...),
+			wantStdoutNotContains: []string{
+				"judge not found",
+				"judge run variant not found",
+			},
+			wantOutputContains: []string{
+				"task-with-valid-judge",
+			},
+			wantLogContains: []string{
+				"all tasks in all configurations have finished on all providers",
+				"openai: p1 run1: task-with-valid-judge: using openai (default) judge for response evaluation",
+				"openai: p1 run2: task-with-valid-judge: using openai (default) judge for response evaluation",
+				"openai: p2 run1: task-with-valid-judge: using openai (default) judge for response evaluation",
+				"openai: p1 run1: task-with-valid-judge: response evaluation token usage: [in:8200209999917998, out:<unknown>]",
+				"openai: p1 run2: task-with-valid-judge: response evaluation token usage: [in:8200209999917998, out:<unknown>]",
+				"openai: p2 run1: task-with-valid-judge: response evaluation token usage: [in:8200209999917998, out:<unknown>]",
+				"openai: p1 run1: task-with-valid-judge: response evaluation duration:",
+				"openai: p1 run2: task-with-valid-judge: response evaluation duration:",
+				"openai: p2 run1: task-with-valid-judge: response evaluation duration:",
+				"openai: p1 run1: task-with-valid-judge: response evaluation prompts:",
+				"openai: p1 run2: task-with-valid-judge: response evaluation prompts:",
+				"openai: p2 run1: task-with-valid-judge: response evaluation prompts:",
+			},
+		},
 		{
 			name: "fail on no enabled targets",
 			config: []byte(`config:

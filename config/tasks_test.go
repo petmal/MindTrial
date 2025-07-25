@@ -888,3 +888,429 @@ func TestValidationRulesResolution(t *testing.T) {
 		})
 	}
 }
+
+func TestValidationRules_IsCaseSensitive(t *testing.T) {
+	tests := []struct {
+		name  string
+		rules ValidationRules
+		want  bool
+	}{
+		{
+			name:  "nil case sensitive - default false",
+			rules: ValidationRules{},
+			want:  false,
+		},
+		{
+			name: "explicitly case sensitive true",
+			rules: ValidationRules{
+				CaseSensitive: testutils.Ptr(true),
+			},
+			want: true,
+		},
+		{
+			name: "explicitly case sensitive false",
+			rules: ValidationRules{
+				CaseSensitive: testutils.Ptr(false),
+			},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.rules.IsCaseSensitive())
+		})
+	}
+}
+
+func TestValidationRules_IsIgnoreWhitespace(t *testing.T) {
+	tests := []struct {
+		name  string
+		rules ValidationRules
+		want  bool
+	}{
+		{
+			name:  "nil ignore whitespace - default false",
+			rules: ValidationRules{},
+			want:  false,
+		},
+		{
+			name: "explicitly ignore whitespace true",
+			rules: ValidationRules{
+				IgnoreWhitespace: testutils.Ptr(true),
+			},
+			want: true,
+		},
+		{
+			name: "explicitly ignore whitespace false",
+			rules: ValidationRules{
+				IgnoreWhitespace: testutils.Ptr(false),
+			},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.rules.IsIgnoreWhitespace())
+		})
+	}
+}
+
+func TestValidationRules_UseJudge(t *testing.T) {
+	tests := []struct {
+		name  string
+		rules ValidationRules
+		want  bool
+	}{
+		{
+			name:  "no judge configuration - default false",
+			rules: ValidationRules{},
+			want:  false,
+		},
+		{
+			name: "judge enabled false",
+			rules: ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(false),
+				},
+			},
+			want: false,
+		},
+		{
+			name: "judge enabled true",
+			rules: ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(true),
+				},
+			},
+			want: true,
+		},
+		{
+			name: "judge enabled nil - default false",
+			rules: ValidationRules{
+				Judge: JudgeSelector{
+					Name:    testutils.Ptr("test-judge"),
+					Variant: testutils.Ptr("default"),
+					// Enabled is nil
+				},
+			},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.rules.UseJudge())
+		})
+	}
+}
+
+func TestValidationRules_MergeWith_JudgeField(t *testing.T) {
+	tests := []struct {
+		name     string
+		base     ValidationRules
+		other    *ValidationRules
+		expected ValidationRules
+	}{
+		{
+			name: "merge judge configurations",
+			base: ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(true),
+					Name:    testutils.Ptr("base-judge"),
+					Variant: testutils.Ptr("base-variant"),
+				},
+			},
+			other: &ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(false),
+					Name:    testutils.Ptr("other-judge"),
+					// Variant not set, should use base
+				},
+			},
+			expected: ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(false),
+					Name:    testutils.Ptr("other-judge"),
+					Variant: testutils.Ptr("base-variant"),
+				},
+			},
+		},
+		{
+			name: "nil other preserves base judge",
+			base: ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(true),
+					Name:    testutils.Ptr("base-judge"),
+					Variant: testutils.Ptr("base-variant"),
+				},
+			},
+			other: nil,
+			expected: ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(true),
+					Name:    testutils.Ptr("base-judge"),
+					Variant: testutils.Ptr("base-variant"),
+				},
+			},
+		},
+		{
+			name: "empty base gets other judge",
+			base: ValidationRules{},
+			other: &ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(true),
+					Name:    testutils.Ptr("other-judge"),
+					Variant: testutils.Ptr("other-variant"),
+				},
+			},
+			expected: ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(true),
+					Name:    testutils.Ptr("other-judge"),
+					Variant: testutils.Ptr("other-variant"),
+				},
+			},
+		},
+		{
+			name: "combine all validation rule fields including judge",
+			base: ValidationRules{
+				CaseSensitive:    testutils.Ptr(false),
+				IgnoreWhitespace: testutils.Ptr(false),
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(true),
+					Name:    testutils.Ptr("base-judge"),
+				},
+			},
+			other: &ValidationRules{
+				CaseSensitive: testutils.Ptr(true),
+				Judge: JudgeSelector{
+					Variant: testutils.Ptr("other-variant"),
+				},
+			},
+			expected: ValidationRules{
+				CaseSensitive:    testutils.Ptr(true),
+				IgnoreWhitespace: testutils.Ptr(false),
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(true),
+					Name:    testutils.Ptr("base-judge"),
+					Variant: testutils.Ptr("other-variant"),
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.base.MergeWith(tt.other)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestJudgeSelector_IsEnabled(t *testing.T) {
+	tests := []struct {
+		name     string
+		selector JudgeSelector
+		want     bool
+	}{
+		{
+			name:     "nil enabled - default false",
+			selector: JudgeSelector{},
+			want:     false,
+		},
+		{
+			name: "explicitly enabled true",
+			selector: JudgeSelector{
+				Enabled: testutils.Ptr(true),
+			},
+			want: true,
+		},
+		{
+			name: "explicitly enabled false",
+			selector: JudgeSelector{
+				Enabled: testutils.Ptr(false),
+			},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.selector.IsEnabled())
+		})
+	}
+}
+
+func TestJudgeSelector_GetName(t *testing.T) {
+	tests := []struct {
+		name     string
+		selector JudgeSelector
+		want     string
+	}{
+		{
+			name:     "nil name - returns empty string",
+			selector: JudgeSelector{},
+			want:     "",
+		},
+		{
+			name: "has name",
+			selector: JudgeSelector{
+				Name: testutils.Ptr("test-judge"),
+			},
+			want: "test-judge",
+		},
+		{
+			name: "empty name",
+			selector: JudgeSelector{
+				Name: testutils.Ptr(""),
+			},
+			want: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.selector.GetName())
+		})
+	}
+}
+
+func TestJudgeSelector_GetVariant(t *testing.T) {
+	tests := []struct {
+		name     string
+		selector JudgeSelector
+		want     string
+	}{
+		{
+			name:     "nil variant - returns empty string",
+			selector: JudgeSelector{},
+			want:     "",
+		},
+		{
+			name: "has variant",
+			selector: JudgeSelector{
+				Variant: testutils.Ptr("fast"),
+			},
+			want: "fast",
+		},
+		{
+			name: "empty variant",
+			selector: JudgeSelector{
+				Variant: testutils.Ptr(""),
+			},
+			want: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.selector.GetVariant())
+		})
+	}
+}
+
+func TestJudgeSelector_MergeWith(t *testing.T) {
+	tests := []struct {
+		name     string
+		base     JudgeSelector
+		other    JudgeSelector
+		expected JudgeSelector
+	}{
+		{
+			name:     "empty base and other",
+			base:     JudgeSelector{},
+			other:    JudgeSelector{},
+			expected: JudgeSelector{},
+		},
+		{
+			name: "base has all fields, other empty",
+			base: JudgeSelector{
+				Enabled: testutils.Ptr(true),
+				Name:    testutils.Ptr("base-judge"),
+				Variant: testutils.Ptr("base-variant"),
+			},
+			other: JudgeSelector{},
+			expected: JudgeSelector{
+				Enabled: testutils.Ptr(true),
+				Name:    testutils.Ptr("base-judge"),
+				Variant: testutils.Ptr("base-variant"),
+			},
+		},
+		{
+			name: "base empty, other has all fields",
+			base: JudgeSelector{},
+			other: JudgeSelector{
+				Enabled: testutils.Ptr(false),
+				Name:    testutils.Ptr("other-judge"),
+				Variant: testutils.Ptr("other-variant"),
+			},
+			expected: JudgeSelector{
+				Enabled: testutils.Ptr(false),
+				Name:    testutils.Ptr("other-judge"),
+				Variant: testutils.Ptr("other-variant"),
+			},
+		},
+		{
+			name: "other overrides base fields",
+			base: JudgeSelector{
+				Enabled: testutils.Ptr(true),
+				Name:    testutils.Ptr("base-judge"),
+				Variant: testutils.Ptr("base-variant"),
+			},
+			other: JudgeSelector{
+				Enabled: testutils.Ptr(false),
+				Name:    testutils.Ptr("other-judge"),
+				Variant: testutils.Ptr("other-variant"),
+			},
+			expected: JudgeSelector{
+				Enabled: testutils.Ptr(false),
+				Name:    testutils.Ptr("other-judge"),
+				Variant: testutils.Ptr("other-variant"),
+			},
+		},
+		{
+			name: "partial override - only some fields in other",
+			base: JudgeSelector{
+				Enabled: testutils.Ptr(true),
+				Name:    testutils.Ptr("base-judge"),
+				Variant: testutils.Ptr("base-variant"),
+			},
+			other: JudgeSelector{
+				Enabled: testutils.Ptr(false),
+				// Name and Variant not set, should preserve base values.
+			},
+			expected: JudgeSelector{
+				Enabled: testutils.Ptr(false),
+				Name:    testutils.Ptr("base-judge"),
+				Variant: testutils.Ptr("base-variant"),
+			},
+		},
+		{
+			name: "partial override - different combination",
+			base: JudgeSelector{
+				Enabled: testutils.Ptr(true),
+				Name:    testutils.Ptr("base-judge"),
+				Variant: testutils.Ptr("base-variant"),
+			},
+			other: JudgeSelector{
+				Name:    testutils.Ptr("other-judge"),
+				Variant: testutils.Ptr("other-variant"),
+				// Enabled not set, should preserve base value.
+			},
+			expected: JudgeSelector{
+				Enabled: testutils.Ptr(true),
+				Name:    testutils.Ptr("other-judge"),
+				Variant: testutils.Ptr("other-variant"),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.base.MergeWith(tt.other)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}

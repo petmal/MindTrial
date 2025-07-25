@@ -14,7 +14,6 @@ import (
 	anthropic "github.com/anthropics/anthropic-sdk-go"
 	anthropicoption "github.com/anthropics/anthropic-sdk-go/option"
 	"github.com/petmal/mindtrial/config"
-	"github.com/petmal/mindtrial/pkg/utils"
 )
 
 const responseFormatterToolName = "record_summary"
@@ -38,10 +37,6 @@ type Anthropic struct {
 
 func (o Anthropic) Name() string {
 	return config.ANTHROPIC
-}
-
-func (o Anthropic) Validator(expected utils.StringSet, validationRules config.ValidationRules) Validator {
-	return NewDefaultValidator(expected, validationRules)
 }
 
 func (o *Anthropic) Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error) {

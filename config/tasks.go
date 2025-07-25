@@ -370,6 +370,51 @@ type Task struct {
 	Files []TaskFile `yaml:"files" validate:"omitempty,unique=Name,dive"`
 }
 
+// JudgeSelector defines settings for using a judge in validation.
+type JudgeSelector struct {
+	// Enabled determines whether judge evaluation is enabled.
+	Enabled *bool `yaml:"enabled" validate:"omitempty"`
+
+	// Name specifies the name of the judge configuration to use.
+	Name *string `yaml:"name" validate:"omitempty"`
+
+	// Variant specifies the run variant name from the judge's provider configuration.
+	Variant *string `yaml:"variant" validate:"omitempty"`
+}
+
+// IsEnabled returns whether judge evaluation is enabled.
+func (js JudgeSelector) IsEnabled() bool {
+	return js.Enabled != nil && *js.Enabled
+}
+
+// GetName returns the judge name, or empty string if not set.
+func (js JudgeSelector) GetName() (name string) {
+	if js.Name != nil {
+		name = *js.Name
+	}
+	return
+}
+
+// GetVariant returns the judge run variant, or empty string if not set.
+func (js JudgeSelector) GetVariant() (variant string) {
+	if js.Variant != nil {
+		variant = *js.Variant
+	}
+	return
+}
+
+// MergeWith merges this judge configuration with another and returns the result.
+// The provided other values override these values if set.
+func (these JudgeSelector) MergeWith(other JudgeSelector) JudgeSelector {
+	resolved := these
+
+	setIfNotNil(&resolved.Enabled, other.Enabled)
+	setIfNotNil(&resolved.Name, other.Name)
+	setIfNotNil(&resolved.Variant, other.Variant)
+
+	return resolved
+}
+
 // ValidationRules represents task validation rules.
 // It controls how model responses should be validated against expected results.
 type ValidationRules struct {
@@ -379,6 +424,11 @@ type ValidationRules struct {
 	// IgnoreWhitespace determines whether all whitespace should be ignored during comparison.
 	// When true, all whitespace characters (spaces, tabs, newlines) are removed before comparison.
 	IgnoreWhitespace *bool `yaml:"ignore-whitespace" validate:"omitempty"`
+
+	// Judge specifies the judge configuration to use for evaluation.
+	// When enabled, an LLM will be used to evaluate the correctness of the response
+	// instead of simple string matching.
+	Judge JudgeSelector `yaml:"judge" validate:"omitempty"`
 }
 
 // IsCaseSensitive returns whether validation should be case sensitive.
@@ -391,6 +441,11 @@ func (vr ValidationRules) IsIgnoreWhitespace() bool {
 	return vr.IgnoreWhitespace != nil && *vr.IgnoreWhitespace
 }
 
+// UseJudge returns whether judge evaluation is enabled.
+func (vr ValidationRules) UseJudge() bool {
+	return vr.Judge.IsEnabled()
+}
+
 // MergeWith merges these validation rules with other rules and returns the result.
 // The provided other values override these values if set.
 func (these ValidationRules) MergeWith(other *ValidationRules) ValidationRules {
@@ -399,6 +454,8 @@ func (these ValidationRules) MergeWith(other *ValidationRules) ValidationRules {
 	if other != nil {
 		setIfNotNil(&resolved.CaseSensitive, other.CaseSensitive)
 		setIfNotNil(&resolved.IgnoreWhitespace, other.IgnoreWhitespace)
+
+		resolved.Judge = resolved.Judge.MergeWith(other.Judge)
 	}
 
 	return resolved

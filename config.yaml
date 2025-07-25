@@ -97,3 +97,23 @@ config:
           max-requests-per-minute: 5
           model-parameters:
             prompt-mode: "reasoning"
+  judges:
+    - name: "default"
+      provider:
+        name: "mistralai"
+        client-config:
+          api-key: ""
+        runs:
+          - name: "fast"
+            model: "mistral-medium-latest"
+            max-requests-per-minute: 30
+            model-parameters:
+              temperature: 0.20
+              random-seed: 847629
+          - name: "reasoning"
+            model: "magistral-medium-latest"
+            max-requests-per-minute: 30
+            model-parameters:
+              prompt-mode: "reasoning"
+              temperature: 0.20
+              random-seed: 847629

@@ -6,7 +6,7 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/petmal/mindtrial)](https://go.dev/)
 [![Go Reference](https://pkg.go.dev/badge/github.com/petmal/mindtrial.svg)](https://pkg.go.dev/github.com/petmal/mindtrial)
 
-**MindTrial** helps you assess and compare the performance of AI language models (LLMs) on tasks that use text prompts, with optional file or image attachments. Use it to evaluate a single model or test multiple models from OpenAI, Google, Anthropic, DeepSeek, and Mistral AI side by side, and get easy-to-read results in HTML and CSV formats.
+**MindTrial** lets you test a single AI language model (LLM) or evaluate multiple models side-by-side. It supports providers like OpenAI, Google, Anthropic, DeepSeek, and Mistral AI. You can create your own custom tasks with text prompts and optional file attachments, validate responses using either exact value matching or an LLM judge for semantic evaluation, and get the results in easy-to-read HTML and CSV formats.
 
 ## Quick Start Guide
 
@@ -30,8 +30,9 @@
 ## Key Features
 
 - Compare multiple AI models at once
-- Create custom test tasks using simple YAML files
+- Create custom evaluation tasks using simple YAML files
 - Attach files or images to prompts for visual tasks
+- Use LLM judges for semantic validation of complex and creative tasks
 - Get results in HTML and CSV formats
 - Easy to extend with new AI models
 - Smart rate limiting to prevent API overload
@@ -77,7 +78,7 @@ Controls how MindTrial operates, including:
 
 ### 2. tasks.yaml - Task Definitions
 
-Defines what you want to test, including:
+Defines what you want to evaluate, including:
 
 - Questions/prompts for the AI
 - Expected answers
@@ -298,6 +299,106 @@ You can set validation rules globally for all tasks in the `task-config` section
 - **validation-rules**: Controls how model responses are validated against expected results.
   - **case-sensitive**: If `true`, comparison is case-sensitive. If `false` (default), comparison ignores case.
   - **ignore-whitespace**: If `true`, all whitespace (spaces, tabs, newlines) is removed before comparison. If `false` (default), only leading/trailing whitespace is trimmed, and internal whitespace is preserved.
+  - **judge**: Optional configuration for LLM-based semantic validation instead of exact value matching.
+    - **enabled**: If `true`, uses an LLM judge to evaluate semantic equivalence. If `false` (default), uses exact value matching.
+    - **name**: The name of the judge configuration defined in the `config.yaml` file.
+    - **variant**: The specific run variant from the judge's provider to use.
+
+#### Judge-Based Validation
+
+For complex or open-ended tasks where exact value matching is insufficient, you can configure LLM judges to evaluate responses semantically. This is particularly useful for creative writing, reasoning tasks, or when multiple valid answer formats exist.
+
+**How it works:** Instead of comparing text exactly, an LLM judge evaluates whether the model's response semantically matches the expected result, considering meaning and intent rather than exact wording.
+
+To use judge validation:
+
+1. **Define and configure judge models in `config.yaml`:**
+
+    ```yaml
+    config:
+      # ... existing configuration ...
+      judges:
+        - name: "mistral-judge"
+          provider:
+            name: "mistralai"
+            client-config:
+              api-key: "<your-api-key>"
+            runs:
+              - name: "fast"
+                model: "mistral-medium-latest"
+                max-requests-per-minute: 30
+                model-parameters:
+                  temperature: 0.20
+                  random-seed: 847629
+              - name: "reasoning"
+                model: "magistral-medium-latest"
+                max-requests-per-minute: 30
+                model-parameters:
+                  prompt-mode: "reasoning"
+                  temperature: 0.20
+                  random-seed: 847629
+        - name: "deepseek-judge"
+          provider:
+            name: "deepseek"
+            client-config:
+              api-key: "<your-api-key>"
+            runs:
+              - name: "fast"
+                model: "deepseek-chat"
+                max-requests-per-minute: 30
+                model-parameters:
+                  temperature: 0.20
+              - name: "reasoning"
+                model: "deepseek-reasoner"
+                max-requests-per-minute: 30
+    ```
+
+2. **Enable judge validation in `tasks.yaml`:**
+
+    ```yaml
+    # Enable globally for all tasks.
+    task-config:
+      validation-rules:
+        judge:
+          enabled: true
+          name: "mistral-judge"
+          variant: "fast"
+      tasks:
+        # ... tasks will use judge validation by default ...
+
+    # Override per-task (inherit global settings and override specific options).
+    task-config:
+      validation-rules:
+        judge:
+          enabled: false  # Default: use exact value matching.
+          name: "mistral-judge"
+          variant: "fast"
+      tasks:
+        - name: "exact matching task"
+          prompt: "What is 2+2?"
+          response-result-format: "single number"
+          expected-result: "4"
+          # Inherits global validation-rules (exact value matching).
+        
+        - name: "creative writing task"
+          prompt: "Write a short story about..."
+          response-result-format: "short story narrative"
+          expected-result: "A creative and engaging short story"
+          validation-rules:
+            judge:
+              enabled: true  # Override: enable judge validation for this task.
+              # Inherits name: "mistral-judge" and variant: "fast" from global config.
+        
+        - name: "complex reasoning task"
+          prompt: "Analyze this philosophical argument..."
+          response-result-format: "structured analysis with reasoning"
+          expected-result: "A thoughtful analysis with logical reasoning"
+          validation-rules:
+            judge:
+              enabled: true
+              variant: "reasoning"  # Override: use reasoning run variant instead of fast.
+              # Inherits name: "mistral-judge" from global config.
+    ```
 
 A sample task from `tasks.yaml`:
 
@@ -353,6 +454,21 @@ task-config:
         - |
           1. GRAPE, PEACH
           2. APRICOT, LEMON
+    - name: "chemistry - observable phenomena - v1"
+      disabled: true
+      prompt: |-
+        What are the primary observable results of mixing household vinegar (an aqueous solution of acetic acid, $CH_3COOH$) with baking soda (sodium bicarbonate, $NaHCO_3$)?
+      response-result-format: |-
+        Provide a bulleted list of the main, directly observable phenomena. Focus on what one would see and hear. Do not include the chemical equation.
+      expected-result: |-
+        The response must correctly identify the two main observable results of the chemical reaction.
+        Crucially, it must mention the production of a gas, described as fizzing, bubbling, or effervescence.
+        It should also note that the solid baking soda dissolves or disappears as it reacts with the vinegar.
+      validation-rules:
+        judge:
+          enabled: true
+          name: "mistral-judge"
+          variant: "reasoning"
 ```
 
 ## Command Reference
@@ -413,6 +529,7 @@ go test -tags=test -race -v ./...
 ├── providers/           # AI model service provider connectors
 ├── runners/             # Task execution and result aggregation
 ├── taskdata/            # Auxiliary files referenced by tasks in tasks.yaml
+├── validators/          # Result validation logic
 └── version/             # Application metadata
 ```
 

@@ -245,8 +245,11 @@ func run(ctx context.Context) (ok bool, err error) {
 	}
 	logger := zerolog.New(zerolog.MultiLevelWriter(logWriters...)).Level(getEnabledLogLevel()).With().Timestamp().Logger()
 
+	// Filter out disabled judges and runs.
+	availableJudges := cfg.Config.GetJudgesWithEnabledRuns()
+
 	// Run tasks.
-	exec, err := runners.NewDefaultRunner(ctx, targetProviders, tasks.TaskConfig.ValidationRules, logger)
+	exec, err := runners.NewDefaultRunner(ctx, targetProviders, tasks.TaskConfig.ValidationRules, availableJudges, logger)
 	if err != nil {
 		return
 	}

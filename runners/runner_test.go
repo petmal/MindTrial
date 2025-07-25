@@ -65,10 +65,24 @@ func TestRunnerRun(t *testing.T) {
 					{
 						Name:           "failure",
 						ExpectedResult: utils.NewStringSet("rerum nam illo", "dolore praesentium non"),
+						ValidationRules: &config.ValidationRules{
+							Judge: config.JudgeSelector{
+								Enabled: testutils.Ptr(true),
+								Name:    testutils.Ptr("test-judge"),
+								Variant: testutils.Ptr("judge_evaluation"),
+							},
+						},
 					},
 					{
 						Name:           "success",
 						ExpectedResult: utils.NewStringSet("corporis et ipsa", "nesciunt sed quia"),
+						ValidationRules: &config.ValidationRules{
+							Judge: config.JudgeSelector{
+								Enabled: testutils.Ptr(true),
+								Name:    testutils.Ptr("test-judge"),
+								Variant: testutils.Ptr("judge_evaluation"),
+							},
+						},
 					},
 				},
 			},
@@ -81,7 +95,7 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "mock",
 						Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
 						Want:     utils.NewStringSet("provident quas tenetur repellat deserunt ut neque culpa."),
-						Details:  "success\n\nmock success",
+						Details:  "success\n\nmock success\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -91,7 +105,7 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "mock",
 						Got:      "facere aperiam recusandae totam magnam nulla corrupti.",
 						Want:     utils.NewStringSet("aperiam assumenda id provident ratione eos molestiae."),
-						Details:  "failure\n\nmock failure",
+						Details:  "failure\n\nmock failure\n\n\nResponse Assessment\n\nResponse does not match any of the accepted answers.\n\nActual response:\nFacere aperiam recusandae totam magnam nulla corrupti.",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -111,7 +125,7 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "mock",
 						Got:      "facere aperiam recusandae totam magnam nulla corrupti.",
 						Want:     utils.NewStringSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
-						Details:  "failure\n\nmock failure",
+						Details:  "failure\n\nmock failure\n\n\nResponse Assessment\n\nResponse does not match any of the accepted answers.\n\nActual response:\nFacere aperiam recusandae totam magnam nulla corrupti.",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -121,7 +135,7 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "mock",
 						Got:      "omnis omnis ea quia et ut est.",
 						Want:     utils.NewStringSet("omnis omnis ea quia et ut est."),
-						Details:  "success\n\nmock success",
+						Details:  "success\n\nmock success\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -139,9 +153,9 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "failure",
 						Provider: "mock provider 1",
 						Run:      "mock",
-						Got:      "facere aperiam recusandae totam magnam nulla corrupti.",
+						Got:      "Facere aperiam recusandae totam magnam nulla corrupti.",
 						Want:     utils.NewStringSet("rerum nam illo", "dolore praesentium non"),
-						Details:  "failure\n\nmock failure",
+						Details:  "failure\n\nmock failure\n\n\nSemantic Assessment\n\nResponse is not semantically equivalent to any of the accepted answers.\n\nActual response:\nFacere aperiam recusandae totam magnam nulla corrupti.\n\nJudge reasoning:\nmock success",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -151,7 +165,7 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "mock",
 						Got:      "corporis et ipsa",
 						Want:     utils.NewStringSet("corporis et ipsa", "nesciunt sed quia"),
-						Details:  "success\n\nmock success",
+						Details:  "success\n\nmock success\n\n\nSemantic Assessment\n\nResponse is semantically equivalent to one of the accepted answers.\n\nJudge reasoning:\nmock success",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -161,7 +175,7 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
 						Want:     utils.NewStringSet("provident quas tenetur repellat deserunt ut neque culpa."),
-						Details:  "success\n\nmock pass",
+						Details:  "success\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -171,7 +185,7 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "aperiam assumenda id provident ratione eos molestiae.",
 						Want:     utils.NewStringSet("aperiam assumenda id provident ratione eos molestiae."),
-						Details:  "failure\n\nmock pass",
+						Details:  "failure\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -181,7 +195,7 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "doloribus quis incidunt velit quia.",
 						Want:     utils.NewStringSet("doloribus quis incidunt velit quia."),
-						Details:  "error\n\nmock pass",
+						Details:  "error\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -191,7 +205,7 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "veritatis aliquid accusantium dolore voluptate optio dolor.",
 						Want:     utils.NewStringSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
-						Details:  "failure\n\nmock pass",
+						Details:  "failure\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -201,7 +215,7 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "omnis omnis ea quia et ut est.",
 						Want:     utils.NewStringSet("omnis omnis ea quia et ut est."),
-						Details:  "success\n\nmock pass",
+						Details:  "success\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -211,7 +225,7 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "unde accusantium sit et enim temporibus qui distinctio assumenda.",
 						Want:     utils.NewStringSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
-						Details:  "not_supported\n\nmock pass",
+						Details:  "not_supported\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -221,7 +235,7 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "rerum nam illo",
 						Want:     utils.NewStringSet("rerum nam illo", "dolore praesentium non"),
-						Details:  "failure\n\nmock pass",
+						Details:  "failure\n\nmock pass\n\n\nSemantic Assessment\n\nResponse is semantically equivalent to one of the accepted answers.\n\nJudge reasoning:\nmock success",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -231,7 +245,7 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "corporis et ipsa",
 						Want:     utils.NewStringSet("corporis et ipsa", "nesciunt sed quia"),
-						Details:  "success\n\nmock pass",
+						Details:  "success\n\nmock pass\n\n\nSemantic Assessment\n\nResponse is semantically equivalent to one of the accepted answers.\n\nJudge reasoning:\nmock success",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 				},
@@ -243,7 +257,7 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
 						Want:     utils.NewStringSet("provident quas tenetur repellat deserunt ut neque culpa."),
-						Details:  "success\n\nmock pass",
+						Details:  "success\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -253,7 +267,7 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "aperiam assumenda id provident ratione eos molestiae.",
 						Want:     utils.NewStringSet("aperiam assumenda id provident ratione eos molestiae."),
-						Details:  "failure\n\nmock pass",
+						Details:  "failure\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -263,7 +277,7 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "doloribus quis incidunt velit quia.",
 						Want:     utils.NewStringSet("doloribus quis incidunt velit quia."),
-						Details:  "error\n\nmock pass",
+						Details:  "error\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -273,7 +287,7 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "veritatis aliquid accusantium dolore voluptate optio dolor.",
 						Want:     utils.NewStringSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
-						Details:  "failure\n\nmock pass",
+						Details:  "failure\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -283,7 +297,7 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "omnis omnis ea quia et ut est.",
 						Want:     utils.NewStringSet("omnis omnis ea quia et ut est."),
-						Details:  "success\n\nmock pass",
+						Details:  "success\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -293,7 +307,7 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "unde accusantium sit et enim temporibus qui distinctio assumenda.",
 						Want:     utils.NewStringSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
-						Details:  "not_supported\n\nmock pass",
+						Details:  "not_supported\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -303,7 +317,7 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "rerum nam illo",
 						Want:     utils.NewStringSet("rerum nam illo", "dolore praesentium non"),
-						Details:  "failure\n\nmock pass",
+						Details:  "failure\n\nmock pass\n\n\nSemantic Assessment\n\nResponse is semantically equivalent to one of the accepted answers.\n\nJudge reasoning:\nmock success",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -313,7 +327,65 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "corporis et ipsa",
 						Want:     utils.NewStringSet("corporis et ipsa", "nesciunt sed quia"),
-						Details:  "success\n\nmock pass",
+						Details:  "success\n\nmock pass\n\n\nSemantic Assessment\n\nResponse is semantically equivalent to one of the accepted answers.\n\nJudge reasoning:\nmock success",
+						Duration: 7211609999927884 * time.Nanosecond,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "test judge evaluation error",
+			r: createMockRunnerFromConfig(t, []config.ProviderConfig{
+				{
+					Name: "mock provider 1",
+					Runs: []config.RunConfig{
+						{
+							Name:  "custom", // uses task name as final answer from mock run
+							Model: "custom-model",
+						},
+					},
+				},
+			}, []config.JudgeConfig{
+				{
+					Name: "test-judge",
+					Provider: config.ProviderConfig{
+						Name: "mock",
+						Runs: []config.RunConfig{
+							{
+								Name:  "judge_evaluation",
+								Model: "judge-model-default",
+							},
+						},
+					},
+				},
+			}, zerolog.Nop()),
+			args: args{
+				context.Background(),
+				[]config.Task{
+					{
+						Name:           "error", // returned as final answer, causing judge to fail
+						ExpectedResult: utils.NewStringSet("Expected answer"),
+						ValidationRules: &config.ValidationRules{
+							Judge: config.JudgeSelector{
+								Enabled: testutils.Ptr(true),
+								Name:    testutils.Ptr("test-judge"),
+								Variant: testutils.Ptr("judge_evaluation"),
+							},
+						},
+					},
+				},
+			},
+			want: Results{
+				"mock provider 1": []RunResult{
+					{
+						Kind:     Error,
+						Task:     "error",
+						Provider: "mock provider 1",
+						Run:      "custom",
+						Got:      "error", // provider returns task name ("error") as response
+						Want:     utils.NewStringSet("Expected answer"),
+						Details:  "judge evaluation failed: mock error",
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 				},
@@ -375,7 +447,7 @@ func TestRunnerRunWithRetry(t *testing.T) {
 						},
 					},
 				},
-			}, zerolog.New(zerolog.NewTestWriter(t)))
+			}, []config.JudgeConfig{}, zerolog.New(zerolog.NewTestWriter(t)))
 
 			tasks := []config.Task{
 				{
@@ -428,11 +500,24 @@ func createMockRunner(t *testing.T) Runner {
 				},
 			},
 		},
+	}, []config.JudgeConfig{
+		{
+			Name: "test-judge",
+			Provider: config.ProviderConfig{
+				Name: "mock",
+				Runs: []config.RunConfig{
+					{
+						Name:  "judge_evaluation",
+						Model: "judge-model-default",
+					},
+				},
+			},
+		},
 	}, zerolog.Nop())
 }
 
-func createMockRunnerFromConfig(t *testing.T, cfg []config.ProviderConfig, logger zerolog.Logger) Runner {
-	runner, err := NewDefaultRunner(context.Background(), cfg, config.ValidationRules{}, logger)
+func createMockRunnerFromConfig(t *testing.T, cfg []config.ProviderConfig, judges []config.JudgeConfig, logger zerolog.Logger) Runner {
+	runner, err := NewDefaultRunner(context.Background(), cfg, config.ValidationRules{}, judges, logger)
 	if err != nil {
 		t.Fatalf("failed to create runner: %v", err)
 	}
@@ -752,7 +837,7 @@ func TestRunnerIntegrationWithValidation(t *testing.T) {
 				{Name: "custom", Model: "test-model"}, // uses task name as answer
 			},
 		},
-	}, globalRules, zerolog.Nop())
+	}, globalRules, []config.JudgeConfig{}, zerolog.Nop())
 	require.NoError(t, err)
 
 	tests := []struct {

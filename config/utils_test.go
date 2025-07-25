@@ -458,6 +458,117 @@ func TestLoadConfigFromFile(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "valid file with judges",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`config:
+    task-source: "tasks.yaml"
+    output-dir: "."
+    providers:
+        - name: openai
+          client-config:
+              api-key: "primary-key"
+          runs:
+              - name: "primary"
+                model: "gpt-4"
+    judges:
+        - name: "semantic-judge"
+          provider:
+              name: openai
+              client-config:
+                  api-key: "judge-key-1"
+              runs:
+                  - name: "default"
+                    model: "gpt-4o"
+                    max-requests-per-minute: 10
+        - name: "strict-judge"
+          provider:
+              name: anthropic
+              disabled: true
+              client-config:
+                  api-key: "judge-key-2"
+              runs:
+                  - name: "claude"
+                    model: "claude-3"
+                    disabled: true
+                  - name: "enabled-claude"
+                    model: "claude-3-opus"
+                    model-parameters:
+                        temperature: 0.1
+`)),
+			},
+			want: &Config{
+				Config: AppConfig{
+					TaskSource: "tasks.yaml",
+					OutputDir:  ".",
+					Providers: []ProviderConfig{
+						{
+							Name: "openai",
+							ClientConfig: OpenAIClientConfig{
+								APIKey: "primary-key",
+							},
+							Runs: []RunConfig{
+								{
+									Name:                 "primary",
+									Model:                "gpt-4",
+									MaxRequestsPerMinute: 0,
+								},
+							},
+							Disabled: false,
+						},
+					},
+					Judges: []JudgeConfig{
+						{
+							Name: "semantic-judge",
+							Provider: ProviderConfig{
+								Name: "openai",
+								ClientConfig: OpenAIClientConfig{
+									APIKey: "judge-key-1",
+								},
+								Runs: []RunConfig{
+									{
+										Name:                 "default",
+										Model:                "gpt-4o",
+										MaxRequestsPerMinute: 10,
+									},
+								},
+								Disabled: false,
+							},
+						},
+						{
+							Name: "strict-judge",
+							Provider: ProviderConfig{
+								Name: "anthropic",
+								ClientConfig: AnthropicClientConfig{
+									APIKey: "judge-key-2",
+								},
+								Runs: []RunConfig{
+									{
+										Name:                 "claude",
+										Model:                "claude-3",
+										MaxRequestsPerMinute: 0,
+										Disabled:             testutils.Ptr(true),
+									},
+									{
+										Name:                 "enabled-claude",
+										Model:                "claude-3-opus",
+										MaxRequestsPerMinute: 0,
+										ModelParams: AnthropicModelParams{
+											Temperature: testutils.Ptr(0.1),
+										},
+									},
+								},
+								Disabled: true,
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -625,6 +736,150 @@ func TestLoadTasksFromFile(t *testing.T) {
 								mockTaskFile(t, "remote-file", "http://example.com/file.txt", "text"),
 							},
 							Disabled: testutils.Ptr(false),
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid file with judge validation rules",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`task-config:
+    tasks:
+        - name: "Task with judge validation"
+          prompt: |-
+              What is the capital of France?
+          response-result-format: |-
+              City name
+          expected-result: |-
+              Paris
+          validation-rules:
+            judge:
+              enabled: true
+              name: "semantic-judge"
+              variant: "default"
+        - name: "Task with disabled judge validation"
+          prompt: |-
+              What is 2 + 2?
+          response-result-format: |-
+              Number
+          expected-result: |-
+              4
+          validation-rules:
+            judge:
+              enabled: false
+              name: "math-judge"
+              variant: "strict"`)),
+			},
+			want: &Tasks{
+				TaskConfig: TaskConfig{
+					Tasks: []Task{
+						{
+							Name:                 "Task with judge validation",
+							Prompt:               "What is the capital of France?",
+							ResponseResultFormat: "City name",
+							ExpectedResult:       utils.NewStringSet("Paris"),
+							ValidationRules: &ValidationRules{
+								Judge: JudgeSelector{
+									Enabled: testutils.Ptr(true),
+									Name:    testutils.Ptr("semantic-judge"),
+									Variant: testutils.Ptr("default"),
+								},
+							},
+						},
+						{
+							Name:                 "Task with disabled judge validation",
+							Prompt:               "What is 2 + 2?",
+							ResponseResultFormat: "Number",
+							ExpectedResult:       utils.NewStringSet("4"),
+							ValidationRules: &ValidationRules{
+								Judge: JudgeSelector{
+									Enabled: testutils.Ptr(false),
+									Name:    testutils.Ptr("math-judge"),
+									Variant: testutils.Ptr("strict"),
+								},
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid file with basic validation rules",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`task-config:
+    tasks:
+        - name: "Task with case-sensitive validation"
+          prompt: |-
+              What is the exact name of the capital city of France?
+          response-result-format: |-
+              City name (exact case)
+          expected-result: |-
+              Paris
+          validation-rules:
+            case-sensitive: true
+            ignore-whitespace: false
+        - name: "Task with whitespace-ignoring validation"
+          prompt: |-
+              What is 2 + 2?
+          response-result-format: |-
+              Number with optional whitespace
+          expected-result: |-
+              4
+          validation-rules:
+            case-sensitive: false
+            ignore-whitespace: true
+        - name: "Task with combined validation rules"
+          prompt: |-
+              What programming language is this project written in?
+          response-result-format: |-
+              Programming language name
+          expected-result: |-
+              Go
+          validation-rules:
+            case-sensitive: true
+            ignore-whitespace: true`)),
+			},
+			want: &Tasks{
+				TaskConfig: TaskConfig{
+					Tasks: []Task{
+						{
+							Name:                 "Task with case-sensitive validation",
+							Prompt:               "What is the exact name of the capital city of France?",
+							ResponseResultFormat: "City name (exact case)",
+							ExpectedResult:       utils.NewStringSet("Paris"),
+							ValidationRules: &ValidationRules{
+								CaseSensitive:    testutils.Ptr(true),
+								IgnoreWhitespace: testutils.Ptr(false),
+							},
+						},
+						{
+							Name:                 "Task with whitespace-ignoring validation",
+							Prompt:               "What is 2 + 2?",
+							ResponseResultFormat: "Number with optional whitespace",
+							ExpectedResult:       utils.NewStringSet("4"),
+							ValidationRules: &ValidationRules{
+								CaseSensitive:    testutils.Ptr(false),
+								IgnoreWhitespace: testutils.Ptr(true),
+							},
+						},
+						{
+							Name:                 "Task with combined validation rules",
+							Prompt:               "What programming language is this project written in?",
+							ResponseResultFormat: "Programming language name",
+							ExpectedResult:       utils.NewStringSet("Go"),
+							ValidationRules: &ValidationRules{
+								CaseSensitive:    testutils.Ptr(true),
+								IgnoreWhitespace: testutils.Ptr(true),
+							},
 						},
 					},
 				},
@@ -1003,6 +1258,164 @@ func TestGetProvidersWithEnabledRuns(t *testing.T) {
 		})
 	}
 }
+
+func TestGetJudgesWithEnabledRuns(t *testing.T) {
+	tests := []struct {
+		name string
+		ac   AppConfig
+		want []JudgeConfig
+	}{
+		{
+			name: "no judges",
+			ac: AppConfig{
+				Judges: []JudgeConfig{},
+			},
+			want: []JudgeConfig{},
+		},
+		{
+			name: "all judges disabled or have no enabled runs",
+			ac: AppConfig{
+				Judges: []JudgeConfig{
+					{
+						Name: "disabled judge",
+						Provider: ProviderConfig{
+							Name:     "openai",
+							Disabled: true,
+							Runs: []RunConfig{
+								{
+									Name:  "judge-run1",
+									Model: "gpt-4",
+								},
+							},
+						},
+					},
+					{
+						Name: "judge with all runs disabled",
+						Provider: ProviderConfig{
+							Name:     "openai",
+							Disabled: false,
+							Runs: []RunConfig{
+								{
+									Name:     "disabled-run",
+									Model:    "gpt-4",
+									Disabled: testutils.Ptr(true),
+								},
+							},
+						},
+					},
+				},
+			},
+			want: []JudgeConfig{},
+		},
+		{
+			name: "judges with some runs enabled",
+			ac: AppConfig{
+				Judges: []JudgeConfig{
+					{
+						Name: "disabled judge",
+						Provider: ProviderConfig{
+							Name:     "openai",
+							Disabled: true,
+							Runs: []RunConfig{
+								{
+									Name:  "judge-run1",
+									Model: "gpt-4",
+								},
+							},
+						},
+					},
+					{
+						Name: "judge with mixed runs",
+						Provider: ProviderConfig{
+							Name:     "openai",
+							Disabled: true,
+							Runs: []RunConfig{
+								{
+									Name:     "disabled-run",
+									Model:    "gpt-4",
+									Disabled: testutils.Ptr(true),
+								},
+								{
+									Name:     "enabled-run",
+									Model:    "gpt-4o",
+									Disabled: testutils.Ptr(false),
+								},
+								{
+									Name:  "default-run",
+									Model: "gpt-4-turbo",
+								},
+							},
+						},
+					},
+					{
+						Name: "judge with all runs enabled",
+						Provider: ProviderConfig{
+							Name:     "google",
+							Disabled: false,
+							Runs: []RunConfig{
+								{
+									Name:     "primary-run",
+									Model:    "gemini-pro",
+									Disabled: testutils.Ptr(false),
+								},
+								{
+									Name:  "secondary-run",
+									Model: "gemini-ultra",
+								},
+							},
+						},
+					},
+				},
+			},
+			want: []JudgeConfig{
+				{
+					Name: "judge with mixed runs",
+					Provider: ProviderConfig{
+						Name:        "openai",
+						Disabled:    true,
+						RetryPolicy: RetryPolicy{},
+						Runs: []RunConfig{
+							{
+								Name:        "enabled-run",
+								Model:       "gpt-4o",
+								Disabled:    testutils.Ptr(false),
+								RetryPolicy: &RetryPolicy{},
+							},
+						},
+					},
+				},
+				{
+					Name: "judge with all runs enabled",
+					Provider: ProviderConfig{
+						Name:        "google",
+						Disabled:    false,
+						RetryPolicy: RetryPolicy{},
+						Runs: []RunConfig{
+							{
+								Name:        "primary-run",
+								Model:       "gemini-pro",
+								Disabled:    testutils.Ptr(false),
+								RetryPolicy: &RetryPolicy{},
+							},
+							{
+								Name:        "secondary-run",
+								Model:       "gemini-ultra",
+								Disabled:    testutils.Ptr(false),
+								RetryPolicy: &RetryPolicy{},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.ac.GetJudgesWithEnabledRuns())
+		})
+	}
+}
+
 func TestResolveFlagOverride(t *testing.T) {
 	type args struct {
 		override    *bool
