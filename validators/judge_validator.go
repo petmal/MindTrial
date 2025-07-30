@@ -8,60 +8,51 @@ package validators
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"text/template"
-	"time"
 
 	"github.com/petmal/mindtrial/config"
+	"github.com/petmal/mindtrial/pkg/logging"
 	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/petmal/mindtrial/providers"
-	"github.com/sethvargo/go-retry"
-	"golang.org/x/time/rate"
+	"github.com/petmal/mindtrial/providers/execution"
 )
 
-const judgeTaskName = "judge_evaluation"
+const judgeTaskName = "response assessment"
 
 // judgeValidator uses an LLM to evaluate the correctness of responses.
 // It provides semantic validation by comparing model responses against expected answers
 // using another AI model as a judge, rather than relying on exact value matching.
 type judgeValidator struct {
-	judge           providers.Provider
-	judgeRunVariant config.RunConfig
-	limiter         *rate.Limiter
+	executor *execution.Executor
+	name     string
 }
 
-// NewJudgeValidator creates a new semantic Validator with the given provider and run variant configuration.
-// The judge provider will be used to evaluate responses for semantic equivalence.
-// Rate limiting is applied based on the run variant configuration's MaxRequestsPerMinute setting.
-func NewJudgeValidator(judge providers.Provider, judgeRunVariant config.RunConfig) Validator {
-	var limiter *rate.Limiter
-	if judgeRunVariant.MaxRequestsPerMinute > 0 {
-		// Allow a burst up to the per-minute limit.
-		limiter = rate.NewLimiter(rate.Every(time.Minute/time.Duration(judgeRunVariant.MaxRequestsPerMinute)), judgeRunVariant.MaxRequestsPerMinute)
+// NewJudgeValidator creates a new semantic Validator with the given judge configuration and run variant.
+// The judge provider will be initialized from the configuration and used to evaluate responses
+// for semantic equivalence.
+func NewJudgeValidator(ctx context.Context, judgeConfig *config.JudgeConfig, judgeRunVariant config.RunConfig) (Validator, error) {
+	judgeProvider, err := providers.NewProvider(ctx, judgeConfig.Provider)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create judge provider: %w", err)
 	}
 
+	executor := execution.NewExecutor(judgeProvider, judgeRunVariant)
+	name := fmt.Sprintf("%s %s judge", judgeRunVariant.Name, judgeConfig.Name)
+
 	return &judgeValidator{
-		judge:           judge,
-		judgeRunVariant: judgeRunVariant,
-		limiter:         limiter,
-	}
+		executor: executor,
+		name:     name,
+	}, nil
 }
 
 // IsCorrect evaluates the response using the judge LLM.
 // The originalPrompt and expectedResponseFormat provide additional context to help the judge
 // make more informed evaluations by understanding the task requirements.
-func (v *judgeValidator) IsCorrect(ctx context.Context, rules config.ValidationRules, expected utils.StringSet, actual providers.Result, originalPrompt string, expectedResponseFormat string) (result ValidationResult, err error) {
-	if err := ctx.Err(); err != nil {
-		return result, err
-	}
-
-	if v.limiter != nil {
-		if err := v.limiter.Wait(ctx); err != nil {
-			return result, err
-		}
-	}
+func (v *judgeValidator) IsCorrect(ctx context.Context, logger logging.Logger, rules config.ValidationRules, expected utils.StringSet, actual providers.Result, originalPrompt string, expectedResponseFormat string) (result ValidationResult, err error) {
+	// Create prefixed logger for judge evaluation, extending the existing prefix.
+	judgeLogger := logger.WithContext(fmt.Sprintf("%s: %s: ", judgeTaskName, v.name))
 
 	// Create a task for the judge to evaluate.
 	prompt, err := v.createJudgePrompt(rules, expected, actual.FinalAnswer, originalPrompt, expectedResponseFormat)
@@ -77,12 +68,21 @@ func (v *judgeValidator) IsCorrect(ctx context.Context, rules config.ValidationR
 	}
 
 	// Execute the judge task and evaluate the response.
-	judgeTaskResult, err := v.executeJudgeTask(ctx, judgeTask)
+	judgeTaskResult, err := v.executor.Execute(ctx, judgeLogger, judgeTask)
 	if err != nil {
+		judgeLogger.Error(ctx, logging.LevelError, err, "finished with error")
 		return result, fmt.Errorf("judge evaluation failed: %w", err)
 	}
 
-	validationResult, err := NewValueMatchValidator().IsCorrect(ctx, config.ValidationRules{}, judgeTask.ExpectedResult, judgeTaskResult, judgeTask.Prompt, judgeTask.ResponseResultFormat)
+	judgeLogger.Message(ctx, logging.LevelTrace, "verdict: %s", judgeTaskResult.FinalAnswer)
+
+	// Log statistics about the judge task execution.
+	usage := judgeTaskResult.GetUsage()
+	judgeLogger.Message(ctx, logging.LevelDebug, "completed in %s", judgeTaskResult.GetDuration())
+	judgeLogger.Message(ctx, logging.LevelDebug, "token usage: [in:%s, out:%s]", logging.FormatLogInt64(usage.InputTokens), logging.FormatLogInt64(usage.OutputTokens))
+	judgeLogger.Message(ctx, logging.LevelTrace, "prompts:\n%s", logging.FormatLogText(judgeTaskResult.GetPrompts()))
+
+	validationResult, err := NewValueMatchValidator().IsCorrect(ctx, judgeLogger, config.ValidationRules{}, judgeTask.ExpectedResult, judgeTaskResult, judgeTask.Prompt, judgeTask.ResponseResultFormat)
 	if err != nil {
 		return result, fmt.Errorf("failed to evaluate judge response: %w", err)
 	}
@@ -98,7 +98,6 @@ func (v *judgeValidator) IsCorrect(ctx context.Context, rules config.ValidationR
 		IsCorrect:   validationResult.IsCorrect,
 		Title:       "Semantic Assessment",
 		Explanation: explanation,
-		assessment:  &judgeTaskResult,
 	}, nil
 }
 
@@ -108,41 +107,11 @@ func (v *judgeValidator) ToCanonical(_ config.ValidationRules, value string) str
 }
 
 func (v *judgeValidator) GetName() string {
-	return fmt.Sprintf("%s (%s) judge", v.judge.Name(), v.judgeRunVariant.Name)
+	return v.name
 }
 
 func (v *judgeValidator) Close(ctx context.Context) error {
-	if v.judge != nil {
-		return v.judge.Close(ctx)
-	}
-	return nil
-}
-
-func (v *judgeValidator) executeJudgeTask(ctx context.Context, task config.Task) (providers.Result, error) {
-	if v.judgeRunVariant.RetryPolicy != nil && v.judgeRunVariant.RetryPolicy.MaxRetryAttempts > 0 { // check if retry is enabled
-		backoff := retry.NewExponential(time.Duration(v.judgeRunVariant.RetryPolicy.InitialDelaySeconds) * time.Second)
-		backoff = retry.WithMaxRetries(uint64(v.judgeRunVariant.RetryPolicy.MaxRetryAttempts), backoff)
-
-		return retry.DoValue(ctx, backoff, func(ctx context.Context) (result providers.Result, err error) {
-			if err := ctx.Err(); err != nil { // canceled or timed out
-				return result, err
-			}
-
-			if v.limiter != nil {
-				if err := v.limiter.Wait(ctx); err != nil {
-					return result, err
-				}
-			}
-
-			result, err = v.judge.Run(ctx, v.judgeRunVariant, task)
-			if errors.Is(err, providers.ErrRetryable) {
-				return result, retry.RetryableError(err)
-			}
-			return result, err
-		})
-	} else {
-		return v.judge.Run(ctx, v.judgeRunVariant, task) // no retries enabled, run only once
-	}
+	return v.executor.Provider.Close(ctx)
 }
 
 // judgePromptTemplate defines the template for judge semantic evaluation prompts.

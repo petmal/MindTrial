@@ -18,6 +18,7 @@ import (
 
 	"github.com/invopop/jsonschema"
 	"github.com/petmal/mindtrial/config"
+	"github.com/petmal/mindtrial/pkg/logging"
 	"golang.org/x/exp/constraints"
 )
 
@@ -57,7 +58,7 @@ type Provider interface {
 	// Name returns the provider's unique identifier.
 	Name() string
 	// Run executes a task using specified configuration and returns the result.
-	Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error)
+	Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error)
 	// Close releases resources when the provider is no longer needed.
 	Close(ctx context.Context) error
 }

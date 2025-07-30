@@ -9,7 +9,6 @@ package validators
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/testutils"
@@ -415,36 +414,12 @@ func TestValidatorIsCorrect(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			validator := NewValueMatchValidator()
-			result, err := validator.IsCorrect(context.Background(), tt.validationRules, tt.expected, tt.actual, "test prompt", "test format")
+			logger := testutils.NewTestLogger(t)
+			result, err := validator.IsCorrect(context.Background(), logger, tt.validationRules, tt.expected, tt.actual, "test prompt", "test format")
 			require.NoError(t, err)
 			assert.Equal(t, tt.want, result.IsCorrect)
-			// Value match validator should not have an assessment result.
-			assert.Nil(t, result.GetAssessmentResult())
 		})
 	}
-}
-
-func TestValidationResultGetAssessmentResult(t *testing.T) {
-	result := ValidationResult{
-		IsCorrect:   true,
-		Title:       "Test",
-		Explanation: "Test explanation",
-	}
-	assert.Nil(t, result.GetAssessmentResult())
-
-	assessmentResult := providers.Result{
-		Title:       "Assessment Title",
-		Explanation: "Assessment Explanation",
-		FinalAnswer: "Assessment Answer",
-	}
-	resultWithAssessment := ValidationResult{
-		IsCorrect:   true,
-		Title:       "Test",
-		Explanation: "Test explanation",
-		assessment:  &assessmentResult,
-	}
-	require.NotNil(t, resultWithAssessment.GetAssessmentResult())
-	assert.Equal(t, &assessmentResult, resultWithAssessment.GetAssessmentResult())
 }
 
 func TestValidatorToCanonical(t *testing.T) {
@@ -795,7 +770,7 @@ func TestValidatorGetName(t *testing.T) {
 
 	judgeValidator, err := factory.GetValidator(context.Background(), rules.Judge)
 	require.NoError(t, err)
-	assert.Equal(t, "mock (test-run) judge", judgeValidator.GetName())
+	assert.Equal(t, "test-run test-judge judge", judgeValidator.GetName())
 }
 
 func TestJudgeValidatorToCanonical(t *testing.T) {
@@ -826,6 +801,16 @@ func TestJudgeValidatorToCanonical(t *testing.T) {
 			input: "",
 			want:  "",
 		},
+		{
+			name:  "trims newlines",
+			input: "\nhello world\n",
+			want:  "hello world",
+		},
+		{
+			name:  "only whitespace",
+			input: "   \r\n\t  ",
+			want:  "",
+		},
 	}
 
 	for _, tt := range tests {
@@ -838,6 +823,29 @@ func TestJudgeValidatorToCanonical(t *testing.T) {
 			assert.Equal(t, tt.want, result)
 		})
 	}
+}
+
+func TestJudgeValidator_NewJudgeValidator_Success(t *testing.T) {
+	ctx := context.Background()
+
+	judgeConfig := &config.JudgeConfig{
+		Name: "test-judge",
+		Provider: config.ProviderConfig{
+			Name:         "mock",
+			ClientConfig: nil,
+			Runs: []config.RunConfig{
+				{Name: "test-run"},
+			},
+		},
+	}
+
+	runVariant := config.RunConfig{Name: "test-run"}
+
+	validator, err := NewJudgeValidator(ctx, judgeConfig, runVariant)
+
+	require.NoError(t, err)
+	require.NotNil(t, validator)
+	assert.Equal(t, "test-run test-judge judge", validator.GetName())
 }
 
 func TestValidatorFactoryClose(t *testing.T) {
@@ -1189,13 +1197,6 @@ func TestJudgeValidatorIsCorrect(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Create a mock judge provider.
-			mockJudgeProvider, err := providers.NewProvider(context.Background(), config.ProviderConfig{
-				Name: "mock-judge",
-			})
-			require.NoError(t, err)
-			defer mockJudgeProvider.Close(context.Background())
-
 			// Create a judge validator with a mock run variant config.
 			judgeRunVariant := config.RunConfig{
 				Name:        tt.judgeConfigName,
@@ -1203,7 +1204,15 @@ func TestJudgeValidatorIsCorrect(t *testing.T) {
 				RetryPolicy: tt.retryPolicy,
 			}
 
-			validator := NewJudgeValidator(mockJudgeProvider, judgeRunVariant)
+			judgeConfig := &config.JudgeConfig{
+				Name: "mock-judge",
+				Provider: config.ProviderConfig{
+					Name: "mock-judge",
+				},
+			}
+
+			validator, err := NewJudgeValidator(context.Background(), judgeConfig, judgeRunVariant)
+			require.NoError(t, err)
 
 			// Create original task expectedTaskValues result set.
 			expectedTaskValues := utils.NewStringSet(tt.originalTaskExpectedResult)
@@ -1215,7 +1224,8 @@ func TestJudgeValidatorIsCorrect(t *testing.T) {
 				FinalAnswer: tt.originalTaskActualResponse,
 			}
 
-			result, err := validator.IsCorrect(context.Background(), config.ValidationRules{}, expectedTaskValues, actualTaskResult, tt.originalPrompt, "json")
+			logger := testutils.NewTestLogger(t)
+			result, err := validator.IsCorrect(context.Background(), logger, config.ValidationRules{}, expectedTaskValues, actualTaskResult, tt.originalPrompt, "json")
 
 			if tt.expectError {
 				require.Error(t, err)
@@ -1225,20 +1235,6 @@ func TestJudgeValidatorIsCorrect(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.Equal(t, tt.expectCorrect, result.IsCorrect)
-
-			// Verify that assessment result is populated.
-			assessmentResult := result.GetAssessmentResult()
-			require.NotNil(t, assessmentResult, "Assessment result should not be nil for judge validator")
-
-			// Verify assessment result contains expected mock data.
-			assert.Contains(t, assessmentResult.Explanation, tt.expectedJudgeResp)
-			assert.NotEmpty(t, assessmentResult.GetPrompts())
-			assert.Equal(t, 7211609999927884*time.Nanosecond, assessmentResult.GetDuration())
-
-			// Verify token usage is populated.
-			usage := assessmentResult.GetUsage()
-			assert.NotNil(t, usage.InputTokens)
-			assert.Equal(t, int64(8200209999917998), *usage.InputTokens)
 		})
 	}
 }

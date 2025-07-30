@@ -14,6 +14,7 @@ import (
 	anthropic "github.com/anthropics/anthropic-sdk-go"
 	anthropicoption "github.com/anthropics/anthropic-sdk-go/option"
 	"github.com/petmal/mindtrial/config"
+	"github.com/petmal/mindtrial/pkg/logging"
 )
 
 const responseFormatterToolName = "record_summary"
@@ -39,7 +40,7 @@ func (o Anthropic) Name() string {
 	return config.ANTHROPIC
 }
 
-func (o *Anthropic) Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (o *Anthropic) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
 	request := anthropic.MessageNewParams{
 		MaxTokens: defaultMaxTokens,
 		Model:     anthropic.Model(cfg.Model),

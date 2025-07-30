@@ -13,6 +13,7 @@ import (
 
 	genai "github.com/google/generative-ai-go/genai"
 	"github.com/petmal/mindtrial/config"
+	"github.com/petmal/mindtrial/pkg/logging"
 	"github.com/petmal/mindtrial/pkg/utils"
 	gapioption "google.golang.org/api/option"
 )
@@ -38,7 +39,7 @@ func (o GoogleAI) Name() string {
 	return config.GOOGLE
 }
 
-func (o *GoogleAI) Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (o *GoogleAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
 	model := o.client.GenerativeModel(cfg.Model)
 	model.ResponseMIMEType = "application/json"
 	model.SetCandidateCount(1) // generate only one candidate response

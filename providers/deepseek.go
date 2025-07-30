@@ -12,6 +12,7 @@ import (
 
 	deepseek "github.com/cohesion-org/deepseek-go"
 	"github.com/petmal/mindtrial/config"
+	"github.com/petmal/mindtrial/pkg/logging"
 	"golang.org/x/exp/constraints"
 )
 
@@ -39,7 +40,7 @@ func (o Deepseek) Name() string {
 	return config.DEEPSEEK
 }
 
-func (o *Deepseek) Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (o *Deepseek) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
 	responseFormatInstruction := result.recordPrompt(DefaultResponseFormatInstruction()) // NOTE: required with JSONMode
 	answerFormatInstruction := result.recordPrompt(DefaultAnswerFormatInstruction(task))
 

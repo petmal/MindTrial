@@ -14,6 +14,7 @@ import (
 	"sync"
 
 	"github.com/petmal/mindtrial/config"
+	"github.com/petmal/mindtrial/pkg/logging"
 	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/petmal/mindtrial/providers"
 )
@@ -36,7 +37,7 @@ func NewValueMatchValidator() Validator {
 	return valueMatchValidatorInstance()
 }
 
-func (v valueMatchValidator) IsCorrect(ctx context.Context, rules config.ValidationRules, expected utils.StringSet, actual providers.Result, _ string, _ string) (ValidationResult, error) {
+func (v valueMatchValidator) IsCorrect(ctx context.Context, _ logging.Logger, rules config.ValidationRules, expected utils.StringSet, actual providers.Result, _ string, _ string) (ValidationResult, error) {
 	isCorrect := expected.Any(func(expectedAnswer string) bool {
 		return v.ToCanonical(rules, expectedAnswer) == v.ToCanonical(rules, actual.FinalAnswer)
 	})

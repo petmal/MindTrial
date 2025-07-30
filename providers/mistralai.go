@@ -14,6 +14,7 @@ import (
 	"slices"
 
 	"github.com/petmal/mindtrial/config"
+	"github.com/petmal/mindtrial/pkg/logging"
 	mistralai "github.com/petmal/mindtrial/pkg/mistralai"
 )
 
@@ -37,7 +38,7 @@ func (o MistralAI) Name() string {
 	return config.MISTRALAI
 }
 
-func (o *MistralAI) Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (o *MistralAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
 	if len(task.Files) > 0 {
 		if !o.isFileUploadSupported(cfg.Model) {
 			return result, ErrFileUploadNotSupported

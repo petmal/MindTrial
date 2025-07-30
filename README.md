@@ -527,6 +527,7 @@ go test -tags=test -race -v ./...
 ├── formatters/          # Output formatting for results
 ├── pkg/                 # Shared packages and utilities
 ├── providers/           # AI model service provider connectors
+│   └── execution/       # Provider run execution utilities and coordination
 ├── runners/             # Task execution and result aggregation
 ├── taskdata/            # Auxiliary files referenced by tasks in tasks.yaml
 ├── validators/          # Result validation logic

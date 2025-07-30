@@ -11,6 +11,7 @@ import (
 	"fmt"
 
 	"github.com/petmal/mindtrial/config"
+	"github.com/petmal/mindtrial/pkg/logging"
 	"github.com/petmal/mindtrial/pkg/utils"
 	openai "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/jsonschema"
@@ -32,7 +33,7 @@ func (o OpenAI) Name() string {
 	return config.OPENAI
 }
 
-func (o *OpenAI) Run(ctx context.Context, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (o *OpenAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
 	schema, err := jsonschema.GenerateSchemaForType(&result)
 	if err != nil {
 		return result, fmt.Errorf("%w: %v", ErrCompileSchema, err)

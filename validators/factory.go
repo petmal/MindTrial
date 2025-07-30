@@ -13,7 +13,6 @@ import (
 	"sync"
 
 	"github.com/petmal/mindtrial/config"
-	"github.com/petmal/mindtrial/providers"
 )
 
 const valueMatchValidatorCacheKey = "value_match_validator"
@@ -125,14 +124,11 @@ func (f *Factory) getJudgeValidator(ctx context.Context, judge config.JudgeSelec
 		return nil, err
 	}
 
-	// Create judge provider.
-	judgeProvider, err := providers.NewProvider(ctx, judgeConfig.Provider)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create judge provider: %w", err)
-	}
-
 	// Create judge validator.
-	validator := NewJudgeValidator(judgeProvider, *judgeRunVariant)
+	validator, err := NewJudgeValidator(ctx, judgeConfig, *judgeRunVariant)
+	if err != nil {
+		return nil, err
+	}
 
 	actual, _ := f.cache.LoadOrStore(key, validator)
 	return actual.(Validator), nil

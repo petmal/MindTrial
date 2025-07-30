@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at <https://mozilla.org/MPL/2.0/>.
 
-// Package testutils provides utilities for capturing output, managing test files, and making assertions in tests.
+// Package testutils provides utilities for capturing output, managing test files, logging, and making assertions in tests.
 package testutils
 
 import (
