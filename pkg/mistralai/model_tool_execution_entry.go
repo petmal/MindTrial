@@ -27,6 +27,7 @@ type ToolExecutionEntry struct {
 	CompletedAt          NullableTime           `json:"completed_at,omitempty"`
 	Id                   *string                `json:"id,omitempty"`
 	Name                 BuiltInConnectors      `json:"name"`
+	Arguments            string                 `json:"arguments"`
 	Info                 map[string]interface{} `json:"info,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
@@ -37,13 +38,14 @@ type _ToolExecutionEntry ToolExecutionEntry
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewToolExecutionEntry(name BuiltInConnectors) *ToolExecutionEntry {
+func NewToolExecutionEntry(name BuiltInConnectors, arguments string) *ToolExecutionEntry {
 	this := ToolExecutionEntry{}
 	var object string = "entry"
 	this.Object = &object
 	var type_ string = "tool.execution"
 	this.Type = &type_
 	this.Name = name
+	this.Arguments = arguments
 	return &this
 }
 
@@ -254,6 +256,30 @@ func (o *ToolExecutionEntry) SetName(v BuiltInConnectors) {
 	o.Name = v
 }
 
+// GetArguments returns the Arguments field value
+func (o *ToolExecutionEntry) GetArguments() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Arguments
+}
+
+// GetArgumentsOk returns a tuple with the Arguments field value
+// and a boolean to check if the value has been set.
+func (o *ToolExecutionEntry) GetArgumentsOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Arguments, true
+}
+
+// SetArguments sets field value
+func (o *ToolExecutionEntry) SetArguments(v string) {
+	o.Arguments = v
+}
+
 // GetInfo returns the Info field value if set, zero value otherwise.
 func (o *ToolExecutionEntry) GetInfo() map[string]interface{} {
 	if o == nil || IsNil(o.Info) {
@@ -312,6 +338,7 @@ func (o ToolExecutionEntry) ToMap() (map[string]interface{}, error) {
 		toSerialize["id"] = o.Id
 	}
 	toSerialize["name"] = o.Name
+	toSerialize["arguments"] = o.Arguments
 	if !IsNil(o.Info) {
 		toSerialize["info"] = o.Info
 	}
@@ -329,6 +356,7 @@ func (o *ToolExecutionEntry) UnmarshalJSON(data []byte) (err error) {
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
 		"name",
+		"arguments",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -364,6 +392,7 @@ func (o *ToolExecutionEntry) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "completed_at")
 		delete(additionalProperties, "id")
 		delete(additionalProperties, "name")
+		delete(additionalProperties, "arguments")
 		delete(additionalProperties, "info")
 		o.AdditionalProperties = additionalProperties
 	}

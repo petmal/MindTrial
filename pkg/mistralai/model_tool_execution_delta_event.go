@@ -16,11 +16,11 @@ import (
 	"time"
 )
 
-// checks if the ToolExecutionStartedEvent type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &ToolExecutionStartedEvent{}
+// checks if the ToolExecutionDeltaEvent type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &ToolExecutionDeltaEvent{}
 
-// ToolExecutionStartedEvent struct for ToolExecutionStartedEvent
-type ToolExecutionStartedEvent struct {
+// ToolExecutionDeltaEvent struct for ToolExecutionDeltaEvent
+type ToolExecutionDeltaEvent struct {
 	Type                 *string           `json:"type,omitempty"`
 	CreatedAt            *time.Time        `json:"created_at,omitempty"`
 	OutputIndex          *int32            `json:"output_index,omitempty"`
@@ -30,15 +30,15 @@ type ToolExecutionStartedEvent struct {
 	AdditionalProperties map[string]interface{}
 }
 
-type _ToolExecutionStartedEvent ToolExecutionStartedEvent
+type _ToolExecutionDeltaEvent ToolExecutionDeltaEvent
 
-// NewToolExecutionStartedEvent instantiates a new ToolExecutionStartedEvent object
+// NewToolExecutionDeltaEvent instantiates a new ToolExecutionDeltaEvent object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewToolExecutionStartedEvent(id string, name BuiltInConnectors, arguments string) *ToolExecutionStartedEvent {
-	this := ToolExecutionStartedEvent{}
-	var type_ string = "tool.execution.started"
+func NewToolExecutionDeltaEvent(id string, name BuiltInConnectors, arguments string) *ToolExecutionDeltaEvent {
+	this := ToolExecutionDeltaEvent{}
+	var type_ string = "tool.execution.delta"
 	this.Type = &type_
 	var outputIndex int32 = 0
 	this.OutputIndex = &outputIndex
@@ -48,12 +48,12 @@ func NewToolExecutionStartedEvent(id string, name BuiltInConnectors, arguments s
 	return &this
 }
 
-// NewToolExecutionStartedEventWithDefaults instantiates a new ToolExecutionStartedEvent object
+// NewToolExecutionDeltaEventWithDefaults instantiates a new ToolExecutionDeltaEvent object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewToolExecutionStartedEventWithDefaults() *ToolExecutionStartedEvent {
-	this := ToolExecutionStartedEvent{}
-	var type_ string = "tool.execution.started"
+func NewToolExecutionDeltaEventWithDefaults() *ToolExecutionDeltaEvent {
+	this := ToolExecutionDeltaEvent{}
+	var type_ string = "tool.execution.delta"
 	this.Type = &type_
 	var outputIndex int32 = 0
 	this.OutputIndex = &outputIndex
@@ -61,7 +61,7 @@ func NewToolExecutionStartedEventWithDefaults() *ToolExecutionStartedEvent {
 }
 
 // GetType returns the Type field value if set, zero value otherwise.
-func (o *ToolExecutionStartedEvent) GetType() string {
+func (o *ToolExecutionDeltaEvent) GetType() string {
 	if o == nil || IsNil(o.Type) {
 		var ret string
 		return ret
@@ -71,7 +71,7 @@ func (o *ToolExecutionStartedEvent) GetType() string {
 
 // GetTypeOk returns a tuple with the Type field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ToolExecutionStartedEvent) GetTypeOk() (*string, bool) {
+func (o *ToolExecutionDeltaEvent) GetTypeOk() (*string, bool) {
 	if o == nil || IsNil(o.Type) {
 		return nil, false
 	}
@@ -79,7 +79,7 @@ func (o *ToolExecutionStartedEvent) GetTypeOk() (*string, bool) {
 }
 
 // HasType returns a boolean if a field has been set.
-func (o *ToolExecutionStartedEvent) HasType() bool {
+func (o *ToolExecutionDeltaEvent) HasType() bool {
 	if o != nil && !IsNil(o.Type) {
 		return true
 	}
@@ -88,12 +88,12 @@ func (o *ToolExecutionStartedEvent) HasType() bool {
 }
 
 // SetType gets a reference to the given string and assigns it to the Type field.
-func (o *ToolExecutionStartedEvent) SetType(v string) {
+func (o *ToolExecutionDeltaEvent) SetType(v string) {
 	o.Type = &v
 }
 
 // GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
-func (o *ToolExecutionStartedEvent) GetCreatedAt() time.Time {
+func (o *ToolExecutionDeltaEvent) GetCreatedAt() time.Time {
 	if o == nil || IsNil(o.CreatedAt) {
 		var ret time.Time
 		return ret
@@ -103,7 +103,7 @@ func (o *ToolExecutionStartedEvent) GetCreatedAt() time.Time {
 
 // GetCreatedAtOk returns a tuple with the CreatedAt field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ToolExecutionStartedEvent) GetCreatedAtOk() (*time.Time, bool) {
+func (o *ToolExecutionDeltaEvent) GetCreatedAtOk() (*time.Time, bool) {
 	if o == nil || IsNil(o.CreatedAt) {
 		return nil, false
 	}
@@ -111,7 +111,7 @@ func (o *ToolExecutionStartedEvent) GetCreatedAtOk() (*time.Time, bool) {
 }
 
 // HasCreatedAt returns a boolean if a field has been set.
-func (o *ToolExecutionStartedEvent) HasCreatedAt() bool {
+func (o *ToolExecutionDeltaEvent) HasCreatedAt() bool {
 	if o != nil && !IsNil(o.CreatedAt) {
 		return true
 	}
@@ -120,12 +120,12 @@ func (o *ToolExecutionStartedEvent) HasCreatedAt() bool {
 }
 
 // SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
-func (o *ToolExecutionStartedEvent) SetCreatedAt(v time.Time) {
+func (o *ToolExecutionDeltaEvent) SetCreatedAt(v time.Time) {
 	o.CreatedAt = &v
 }
 
 // GetOutputIndex returns the OutputIndex field value if set, zero value otherwise.
-func (o *ToolExecutionStartedEvent) GetOutputIndex() int32 {
+func (o *ToolExecutionDeltaEvent) GetOutputIndex() int32 {
 	if o == nil || IsNil(o.OutputIndex) {
 		var ret int32
 		return ret
@@ -135,7 +135,7 @@ func (o *ToolExecutionStartedEvent) GetOutputIndex() int32 {
 
 // GetOutputIndexOk returns a tuple with the OutputIndex field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ToolExecutionStartedEvent) GetOutputIndexOk() (*int32, bool) {
+func (o *ToolExecutionDeltaEvent) GetOutputIndexOk() (*int32, bool) {
 	if o == nil || IsNil(o.OutputIndex) {
 		return nil, false
 	}
@@ -143,7 +143,7 @@ func (o *ToolExecutionStartedEvent) GetOutputIndexOk() (*int32, bool) {
 }
 
 // HasOutputIndex returns a boolean if a field has been set.
-func (o *ToolExecutionStartedEvent) HasOutputIndex() bool {
+func (o *ToolExecutionDeltaEvent) HasOutputIndex() bool {
 	if o != nil && !IsNil(o.OutputIndex) {
 		return true
 	}
@@ -152,12 +152,12 @@ func (o *ToolExecutionStartedEvent) HasOutputIndex() bool {
 }
 
 // SetOutputIndex gets a reference to the given int32 and assigns it to the OutputIndex field.
-func (o *ToolExecutionStartedEvent) SetOutputIndex(v int32) {
+func (o *ToolExecutionDeltaEvent) SetOutputIndex(v int32) {
 	o.OutputIndex = &v
 }
 
 // GetId returns the Id field value
-func (o *ToolExecutionStartedEvent) GetId() string {
+func (o *ToolExecutionDeltaEvent) GetId() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -168,7 +168,7 @@ func (o *ToolExecutionStartedEvent) GetId() string {
 
 // GetIdOk returns a tuple with the Id field value
 // and a boolean to check if the value has been set.
-func (o *ToolExecutionStartedEvent) GetIdOk() (*string, bool) {
+func (o *ToolExecutionDeltaEvent) GetIdOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -176,12 +176,12 @@ func (o *ToolExecutionStartedEvent) GetIdOk() (*string, bool) {
 }
 
 // SetId sets field value
-func (o *ToolExecutionStartedEvent) SetId(v string) {
+func (o *ToolExecutionDeltaEvent) SetId(v string) {
 	o.Id = v
 }
 
 // GetName returns the Name field value
-func (o *ToolExecutionStartedEvent) GetName() BuiltInConnectors {
+func (o *ToolExecutionDeltaEvent) GetName() BuiltInConnectors {
 	if o == nil {
 		var ret BuiltInConnectors
 		return ret
@@ -192,7 +192,7 @@ func (o *ToolExecutionStartedEvent) GetName() BuiltInConnectors {
 
 // GetNameOk returns a tuple with the Name field value
 // and a boolean to check if the value has been set.
-func (o *ToolExecutionStartedEvent) GetNameOk() (*BuiltInConnectors, bool) {
+func (o *ToolExecutionDeltaEvent) GetNameOk() (*BuiltInConnectors, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -200,12 +200,12 @@ func (o *ToolExecutionStartedEvent) GetNameOk() (*BuiltInConnectors, bool) {
 }
 
 // SetName sets field value
-func (o *ToolExecutionStartedEvent) SetName(v BuiltInConnectors) {
+func (o *ToolExecutionDeltaEvent) SetName(v BuiltInConnectors) {
 	o.Name = v
 }
 
 // GetArguments returns the Arguments field value
-func (o *ToolExecutionStartedEvent) GetArguments() string {
+func (o *ToolExecutionDeltaEvent) GetArguments() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -216,7 +216,7 @@ func (o *ToolExecutionStartedEvent) GetArguments() string {
 
 // GetArgumentsOk returns a tuple with the Arguments field value
 // and a boolean to check if the value has been set.
-func (o *ToolExecutionStartedEvent) GetArgumentsOk() (*string, bool) {
+func (o *ToolExecutionDeltaEvent) GetArgumentsOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -224,11 +224,11 @@ func (o *ToolExecutionStartedEvent) GetArgumentsOk() (*string, bool) {
 }
 
 // SetArguments sets field value
-func (o *ToolExecutionStartedEvent) SetArguments(v string) {
+func (o *ToolExecutionDeltaEvent) SetArguments(v string) {
 	o.Arguments = v
 }
 
-func (o ToolExecutionStartedEvent) MarshalJSON() ([]byte, error) {
+func (o ToolExecutionDeltaEvent) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -236,7 +236,7 @@ func (o ToolExecutionStartedEvent) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o ToolExecutionStartedEvent) ToMap() (map[string]interface{}, error) {
+func (o ToolExecutionDeltaEvent) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
@@ -258,7 +258,7 @@ func (o ToolExecutionStartedEvent) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-func (o *ToolExecutionStartedEvent) UnmarshalJSON(data []byte) (err error) {
+func (o *ToolExecutionDeltaEvent) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
@@ -282,15 +282,15 @@ func (o *ToolExecutionStartedEvent) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varToolExecutionStartedEvent := _ToolExecutionStartedEvent{}
+	varToolExecutionDeltaEvent := _ToolExecutionDeltaEvent{}
 
-	err = json.Unmarshal(data, &varToolExecutionStartedEvent)
+	err = json.Unmarshal(data, &varToolExecutionDeltaEvent)
 
 	if err != nil {
 		return err
 	}
 
-	*o = ToolExecutionStartedEvent(varToolExecutionStartedEvent)
+	*o = ToolExecutionDeltaEvent(varToolExecutionDeltaEvent)
 
 	additionalProperties := make(map[string]interface{})
 
@@ -307,38 +307,38 @@ func (o *ToolExecutionStartedEvent) UnmarshalJSON(data []byte) (err error) {
 	return err
 }
 
-type NullableToolExecutionStartedEvent struct {
-	value *ToolExecutionStartedEvent
+type NullableToolExecutionDeltaEvent struct {
+	value *ToolExecutionDeltaEvent
 	isSet bool
 }
 
-func (v NullableToolExecutionStartedEvent) Get() *ToolExecutionStartedEvent {
+func (v NullableToolExecutionDeltaEvent) Get() *ToolExecutionDeltaEvent {
 	return v.value
 }
 
-func (v *NullableToolExecutionStartedEvent) Set(val *ToolExecutionStartedEvent) {
+func (v *NullableToolExecutionDeltaEvent) Set(val *ToolExecutionDeltaEvent) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableToolExecutionStartedEvent) IsSet() bool {
+func (v NullableToolExecutionDeltaEvent) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableToolExecutionStartedEvent) Unset() {
+func (v *NullableToolExecutionDeltaEvent) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableToolExecutionStartedEvent(val *ToolExecutionStartedEvent) *NullableToolExecutionStartedEvent {
-	return &NullableToolExecutionStartedEvent{value: val, isSet: true}
+func NewNullableToolExecutionDeltaEvent(val *ToolExecutionDeltaEvent) *NullableToolExecutionDeltaEvent {
+	return &NullableToolExecutionDeltaEvent{value: val, isSet: true}
 }
 
-func (v NullableToolExecutionStartedEvent) MarshalJSON() ([]byte, error) {
+func (v NullableToolExecutionDeltaEvent) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableToolExecutionStartedEvent) UnmarshalJSON(src []byte) error {
+func (v *NullableToolExecutionDeltaEvent) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

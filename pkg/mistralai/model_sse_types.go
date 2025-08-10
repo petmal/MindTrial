@@ -25,6 +25,7 @@ const (
 	CONVERSATION_RESPONSE_ERROR   SSETypes = "conversation.response.error"
 	MESSAGE_OUTPUT_DELTA          SSETypes = "message.output.delta"
 	TOOL_EXECUTION_STARTED        SSETypes = "tool.execution.started"
+	TOOL_EXECUTION_DELTA          SSETypes = "tool.execution.delta"
 	TOOL_EXECUTION_DONE           SSETypes = "tool.execution.done"
 	AGENT_HANDOFF_STARTED         SSETypes = "agent.handoff.started"
 	AGENT_HANDOFF_DONE            SSETypes = "agent.handoff.done"
@@ -38,6 +39,7 @@ var AllowedSSETypesEnumValues = []SSETypes{
 	"conversation.response.error",
 	"message.output.delta",
 	"tool.execution.started",
+	"tool.execution.delta",
 	"tool.execution.done",
 	"agent.handoff.started",
 	"agent.handoff.done",

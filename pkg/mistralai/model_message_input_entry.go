@@ -28,6 +28,7 @@ type MessageInputEntry struct {
 	Id                   *string      `json:"id,omitempty"`
 	Role                 string       `json:"role"`
 	Content              Content      `json:"content"`
+	Prefix               *bool        `json:"prefix,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -45,6 +46,8 @@ func NewMessageInputEntry(role string, content Content) *MessageInputEntry {
 	this.Type = &type_
 	this.Role = role
 	this.Content = content
+	var prefix bool = false
+	this.Prefix = &prefix
 	return &this
 }
 
@@ -57,6 +60,8 @@ func NewMessageInputEntryWithDefaults() *MessageInputEntry {
 	this.Object = &object
 	var type_ string = "message.input"
 	this.Type = &type_
+	var prefix bool = false
+	this.Prefix = &prefix
 	return &this
 }
 
@@ -279,6 +284,38 @@ func (o *MessageInputEntry) SetContent(v Content) {
 	o.Content = v
 }
 
+// GetPrefix returns the Prefix field value if set, zero value otherwise.
+func (o *MessageInputEntry) GetPrefix() bool {
+	if o == nil || IsNil(o.Prefix) {
+		var ret bool
+		return ret
+	}
+	return *o.Prefix
+}
+
+// GetPrefixOk returns a tuple with the Prefix field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *MessageInputEntry) GetPrefixOk() (*bool, bool) {
+	if o == nil || IsNil(o.Prefix) {
+		return nil, false
+	}
+	return o.Prefix, true
+}
+
+// HasPrefix returns a boolean if a field has been set.
+func (o *MessageInputEntry) HasPrefix() bool {
+	if o != nil && !IsNil(o.Prefix) {
+		return true
+	}
+
+	return false
+}
+
+// SetPrefix gets a reference to the given bool and assigns it to the Prefix field.
+func (o *MessageInputEntry) SetPrefix(v bool) {
+	o.Prefix = &v
+}
+
 func (o MessageInputEntry) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -306,6 +343,9 @@ func (o MessageInputEntry) ToMap() (map[string]interface{}, error) {
 	}
 	toSerialize["role"] = o.Role
 	toSerialize["content"] = o.Content
+	if !IsNil(o.Prefix) {
+		toSerialize["prefix"] = o.Prefix
+	}
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -357,6 +397,7 @@ func (o *MessageInputEntry) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "id")
 		delete(additionalProperties, "role")
 		delete(additionalProperties, "content")
+		delete(additionalProperties, "prefix")
 		o.AdditionalProperties = additionalProperties
 	}
 

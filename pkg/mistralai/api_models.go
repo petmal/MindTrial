@@ -98,7 +98,7 @@ type ModelsAPI interface {
 	/*
 		RetrieveModelV1ModelsModelIdGet Retrieve Model
 
-		Retrieve a model information.
+		Retrieve information about a model.
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 		@param modelId The ID of the model to retrieve.
@@ -674,7 +674,7 @@ func (r ApiRetrieveModelV1ModelsModelIdGetRequest) Execute() (*ResponseRetrieveM
 /*
 RetrieveModelV1ModelsModelIdGet Retrieve Model
 
-Retrieve a model information.
+Retrieve information about a model.
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@param modelId The ID of the model to retrieve.

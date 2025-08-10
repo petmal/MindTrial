@@ -25,6 +25,7 @@ type Data struct {
 	ResponseDoneEvent         *ResponseDoneEvent
 	ResponseErrorEvent        *ResponseErrorEvent
 	ResponseStartedEvent      *ResponseStartedEvent
+	ToolExecutionDeltaEvent   *ToolExecutionDeltaEvent
 	ToolExecutionDoneEvent    *ToolExecutionDoneEvent
 	ToolExecutionStartedEvent *ToolExecutionStartedEvent
 }
@@ -75,6 +76,13 @@ func ResponseErrorEventAsData(v *ResponseErrorEvent) Data {
 func ResponseStartedEventAsData(v *ResponseStartedEvent) Data {
 	return Data{
 		ResponseStartedEvent: v,
+	}
+}
+
+// ToolExecutionDeltaEventAsData is a convenience function that returns ToolExecutionDeltaEvent wrapped in Data
+func ToolExecutionDeltaEventAsData(v *ToolExecutionDeltaEvent) Data {
+	return Data{
+		ToolExecutionDeltaEvent: v,
 	}
 }
 
@@ -215,6 +223,23 @@ func (dst *Data) UnmarshalJSON(data []byte) error {
 		dst.ResponseStartedEvent = nil
 	}
 
+	// try to unmarshal data into ToolExecutionDeltaEvent
+	err = newStrictDecoder(data).Decode(&dst.ToolExecutionDeltaEvent)
+	if err == nil {
+		jsonToolExecutionDeltaEvent, _ := json.Marshal(dst.ToolExecutionDeltaEvent)
+		if string(jsonToolExecutionDeltaEvent) == "{}" { // empty struct
+			dst.ToolExecutionDeltaEvent = nil
+		} else {
+			if err = validator.Validate(dst.ToolExecutionDeltaEvent); err != nil {
+				dst.ToolExecutionDeltaEvent = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.ToolExecutionDeltaEvent = nil
+	}
+
 	// try to unmarshal data into ToolExecutionDoneEvent
 	err = newStrictDecoder(data).Decode(&dst.ToolExecutionDoneEvent)
 	if err == nil {
@@ -258,6 +283,7 @@ func (dst *Data) UnmarshalJSON(data []byte) error {
 		dst.ResponseDoneEvent = nil
 		dst.ResponseErrorEvent = nil
 		dst.ResponseStartedEvent = nil
+		dst.ToolExecutionDeltaEvent = nil
 		dst.ToolExecutionDoneEvent = nil
 		dst.ToolExecutionStartedEvent = nil
 
@@ -297,6 +323,10 @@ func (src Data) MarshalJSON() ([]byte, error) {
 
 	if src.ResponseStartedEvent != nil {
 		return json.Marshal(&src.ResponseStartedEvent)
+	}
+
+	if src.ToolExecutionDeltaEvent != nil {
+		return json.Marshal(&src.ToolExecutionDeltaEvent)
 	}
 
 	if src.ToolExecutionDoneEvent != nil {
@@ -343,6 +373,10 @@ func (obj *Data) GetActualInstance() interface{} {
 		return obj.ResponseStartedEvent
 	}
 
+	if obj.ToolExecutionDeltaEvent != nil {
+		return obj.ToolExecutionDeltaEvent
+	}
+
 	if obj.ToolExecutionDoneEvent != nil {
 		return obj.ToolExecutionDoneEvent
 	}
@@ -383,6 +417,10 @@ func (obj Data) GetActualInstanceValue() interface{} {
 
 	if obj.ResponseStartedEvent != nil {
 		return *obj.ResponseStartedEvent
+	}
+
+	if obj.ToolExecutionDeltaEvent != nil {
+		return *obj.ToolExecutionDeltaEvent
 	}
 
 	if obj.ToolExecutionDoneEvent != nil {

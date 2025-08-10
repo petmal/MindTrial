@@ -24,7 +24,8 @@ type ToolReferenceChunk struct {
 	Tool                 BuiltInConnectors `json:"tool"`
 	Title                string            `json:"title"`
 	Url                  NullableString    `json:"url,omitempty"`
-	Source               NullableString    `json:"source,omitempty"`
+	Favicon              NullableString    `json:"favicon,omitempty"`
+	Description          NullableString    `json:"description,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -176,47 +177,90 @@ func (o *ToolReferenceChunk) UnsetUrl() {
 	o.Url.Unset()
 }
 
-// GetSource returns the Source field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ToolReferenceChunk) GetSource() string {
-	if o == nil || IsNil(o.Source.Get()) {
+// GetFavicon returns the Favicon field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ToolReferenceChunk) GetFavicon() string {
+	if o == nil || IsNil(o.Favicon.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.Source.Get()
+	return *o.Favicon.Get()
 }
 
-// GetSourceOk returns a tuple with the Source field value if set, nil otherwise
+// GetFaviconOk returns a tuple with the Favicon field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 // NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ToolReferenceChunk) GetSourceOk() (*string, bool) {
+func (o *ToolReferenceChunk) GetFaviconOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return o.Source.Get(), o.Source.IsSet()
+	return o.Favicon.Get(), o.Favicon.IsSet()
 }
 
-// HasSource returns a boolean if a field has been set.
-func (o *ToolReferenceChunk) HasSource() bool {
-	if o != nil && o.Source.IsSet() {
+// HasFavicon returns a boolean if a field has been set.
+func (o *ToolReferenceChunk) HasFavicon() bool {
+	if o != nil && o.Favicon.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetSource gets a reference to the given NullableString and assigns it to the Source field.
-func (o *ToolReferenceChunk) SetSource(v string) {
-	o.Source.Set(&v)
+// SetFavicon gets a reference to the given NullableString and assigns it to the Favicon field.
+func (o *ToolReferenceChunk) SetFavicon(v string) {
+	o.Favicon.Set(&v)
 }
 
-// SetSourceNil sets the value for Source to be an explicit nil
-func (o *ToolReferenceChunk) SetSourceNil() {
-	o.Source.Set(nil)
+// SetFaviconNil sets the value for Favicon to be an explicit nil
+func (o *ToolReferenceChunk) SetFaviconNil() {
+	o.Favicon.Set(nil)
 }
 
-// UnsetSource ensures that no value is present for Source, not even an explicit nil
-func (o *ToolReferenceChunk) UnsetSource() {
-	o.Source.Unset()
+// UnsetFavicon ensures that no value is present for Favicon, not even an explicit nil
+func (o *ToolReferenceChunk) UnsetFavicon() {
+	o.Favicon.Unset()
+}
+
+// GetDescription returns the Description field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ToolReferenceChunk) GetDescription() string {
+	if o == nil || IsNil(o.Description.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Description.Get()
+}
+
+// GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ToolReferenceChunk) GetDescriptionOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Description.Get(), o.Description.IsSet()
+}
+
+// HasDescription returns a boolean if a field has been set.
+func (o *ToolReferenceChunk) HasDescription() bool {
+	if o != nil && o.Description.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetDescription gets a reference to the given NullableString and assigns it to the Description field.
+func (o *ToolReferenceChunk) SetDescription(v string) {
+	o.Description.Set(&v)
+}
+
+// SetDescriptionNil sets the value for Description to be an explicit nil
+func (o *ToolReferenceChunk) SetDescriptionNil() {
+	o.Description.Set(nil)
+}
+
+// UnsetDescription ensures that no value is present for Description, not even an explicit nil
+func (o *ToolReferenceChunk) UnsetDescription() {
+	o.Description.Unset()
 }
 
 func (o ToolReferenceChunk) MarshalJSON() ([]byte, error) {
@@ -237,8 +281,11 @@ func (o ToolReferenceChunk) ToMap() (map[string]interface{}, error) {
 	if o.Url.IsSet() {
 		toSerialize["url"] = o.Url.Get()
 	}
-	if o.Source.IsSet() {
-		toSerialize["source"] = o.Source.Get()
+	if o.Favicon.IsSet() {
+		toSerialize["favicon"] = o.Favicon.Get()
+	}
+	if o.Description.IsSet() {
+		toSerialize["description"] = o.Description.Get()
 	}
 
 	for key, value := range o.AdditionalProperties {
@@ -288,7 +335,8 @@ func (o *ToolReferenceChunk) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "tool")
 		delete(additionalProperties, "title")
 		delete(additionalProperties, "url")
-		delete(additionalProperties, "source")
+		delete(additionalProperties, "favicon")
+		delete(additionalProperties, "description")
 		o.AdditionalProperties = additionalProperties
 	}
 

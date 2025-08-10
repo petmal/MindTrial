@@ -21,19 +21,20 @@ var _ MappedNullable = &BaseModelCard{}
 
 // BaseModelCard struct for BaseModelCard
 type BaseModelCard struct {
-	Id                      string            `json:"id"`
-	Object                  *string           `json:"object,omitempty"`
-	Created                 *int32            `json:"created,omitempty"`
-	OwnedBy                 *string           `json:"owned_by,omitempty"`
-	Capabilities            ModelCapabilities `json:"capabilities"`
-	Name                    NullableString    `json:"name,omitempty"`
-	Description             NullableString    `json:"description,omitempty"`
-	MaxContextLength        *int32            `json:"max_context_length,omitempty"`
-	Aliases                 []string          `json:"aliases,omitempty"`
-	Deprecation             NullableTime      `json:"deprecation,omitempty"`
-	DefaultModelTemperature NullableFloat32   `json:"default_model_temperature,omitempty"`
-	Type                    *string           `json:"type,omitempty"`
-	AdditionalProperties    map[string]interface{}
+	Id                          string            `json:"id"`
+	Object                      *string           `json:"object,omitempty"`
+	Created                     *int32            `json:"created,omitempty"`
+	OwnedBy                     *string           `json:"owned_by,omitempty"`
+	Capabilities                ModelCapabilities `json:"capabilities"`
+	Name                        NullableString    `json:"name,omitempty"`
+	Description                 NullableString    `json:"description,omitempty"`
+	MaxContextLength            *int32            `json:"max_context_length,omitempty"`
+	Aliases                     []string          `json:"aliases,omitempty"`
+	Deprecation                 NullableTime      `json:"deprecation,omitempty"`
+	DeprecationReplacementModel NullableString    `json:"deprecation_replacement_model,omitempty"`
+	DefaultModelTemperature     NullableFloat32   `json:"default_model_temperature,omitempty"`
+	Type                        *string           `json:"type,omitempty"`
+	AdditionalProperties        map[string]interface{}
 }
 
 type _BaseModelCard BaseModelCard
@@ -410,6 +411,49 @@ func (o *BaseModelCard) UnsetDeprecation() {
 	o.Deprecation.Unset()
 }
 
+// GetDeprecationReplacementModel returns the DeprecationReplacementModel field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BaseModelCard) GetDeprecationReplacementModel() string {
+	if o == nil || IsNil(o.DeprecationReplacementModel.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.DeprecationReplacementModel.Get()
+}
+
+// GetDeprecationReplacementModelOk returns a tuple with the DeprecationReplacementModel field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BaseModelCard) GetDeprecationReplacementModelOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.DeprecationReplacementModel.Get(), o.DeprecationReplacementModel.IsSet()
+}
+
+// HasDeprecationReplacementModel returns a boolean if a field has been set.
+func (o *BaseModelCard) HasDeprecationReplacementModel() bool {
+	if o != nil && o.DeprecationReplacementModel.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetDeprecationReplacementModel gets a reference to the given NullableString and assigns it to the DeprecationReplacementModel field.
+func (o *BaseModelCard) SetDeprecationReplacementModel(v string) {
+	o.DeprecationReplacementModel.Set(&v)
+}
+
+// SetDeprecationReplacementModelNil sets the value for DeprecationReplacementModel to be an explicit nil
+func (o *BaseModelCard) SetDeprecationReplacementModelNil() {
+	o.DeprecationReplacementModel.Set(nil)
+}
+
+// UnsetDeprecationReplacementModel ensures that no value is present for DeprecationReplacementModel, not even an explicit nil
+func (o *BaseModelCard) UnsetDeprecationReplacementModel() {
+	o.DeprecationReplacementModel.Unset()
+}
+
 // GetDefaultModelTemperature returns the DefaultModelTemperature field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *BaseModelCard) GetDefaultModelTemperature() float32 {
 	if o == nil || IsNil(o.DefaultModelTemperature.Get()) {
@@ -521,6 +565,9 @@ func (o BaseModelCard) ToMap() (map[string]interface{}, error) {
 	if o.Deprecation.IsSet() {
 		toSerialize["deprecation"] = o.Deprecation.Get()
 	}
+	if o.DeprecationReplacementModel.IsSet() {
+		toSerialize["deprecation_replacement_model"] = o.DeprecationReplacementModel.Get()
+	}
 	if o.DefaultModelTemperature.IsSet() {
 		toSerialize["default_model_temperature"] = o.DefaultModelTemperature.Get()
 	}
@@ -581,6 +628,7 @@ func (o *BaseModelCard) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "max_context_length")
 		delete(additionalProperties, "aliases")
 		delete(additionalProperties, "deprecation")
+		delete(additionalProperties, "deprecation_replacement_model")
 		delete(additionalProperties, "default_model_temperature")
 		delete(additionalProperties, "type")
 		o.AdditionalProperties = additionalProperties

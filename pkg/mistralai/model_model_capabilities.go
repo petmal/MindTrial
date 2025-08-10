@@ -24,6 +24,7 @@ type ModelCapabilities struct {
 	FunctionCalling      *bool `json:"function_calling,omitempty"`
 	FineTuning           *bool `json:"fine_tuning,omitempty"`
 	Vision               *bool `json:"vision,omitempty"`
+	Classification       *bool `json:"classification,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -45,6 +46,8 @@ func NewModelCapabilities() *ModelCapabilities {
 	this.FineTuning = &fineTuning
 	var vision bool = false
 	this.Vision = &vision
+	var classification bool = false
+	this.Classification = &classification
 	return &this
 }
 
@@ -63,6 +66,8 @@ func NewModelCapabilitiesWithDefaults() *ModelCapabilities {
 	this.FineTuning = &fineTuning
 	var vision bool = false
 	this.Vision = &vision
+	var classification bool = false
+	this.Classification = &classification
 	return &this
 }
 
@@ -226,6 +231,38 @@ func (o *ModelCapabilities) SetVision(v bool) {
 	o.Vision = &v
 }
 
+// GetClassification returns the Classification field value if set, zero value otherwise.
+func (o *ModelCapabilities) GetClassification() bool {
+	if o == nil || IsNil(o.Classification) {
+		var ret bool
+		return ret
+	}
+	return *o.Classification
+}
+
+// GetClassificationOk returns a tuple with the Classification field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelCapabilities) GetClassificationOk() (*bool, bool) {
+	if o == nil || IsNil(o.Classification) {
+		return nil, false
+	}
+	return o.Classification, true
+}
+
+// HasClassification returns a boolean if a field has been set.
+func (o *ModelCapabilities) HasClassification() bool {
+	if o != nil && !IsNil(o.Classification) {
+		return true
+	}
+
+	return false
+}
+
+// SetClassification gets a reference to the given bool and assigns it to the Classification field.
+func (o *ModelCapabilities) SetClassification(v bool) {
+	o.Classification = &v
+}
+
 func (o ModelCapabilities) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -250,6 +287,9 @@ func (o ModelCapabilities) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.Vision) {
 		toSerialize["vision"] = o.Vision
+	}
+	if !IsNil(o.Classification) {
+		toSerialize["classification"] = o.Classification
 	}
 
 	for key, value := range o.AdditionalProperties {
@@ -278,6 +318,7 @@ func (o *ModelCapabilities) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "function_calling")
 		delete(additionalProperties, "fine_tuning")
 		delete(additionalProperties, "vision")
+		delete(additionalProperties, "classification")
 		o.AdditionalProperties = additionalProperties
 	}
 

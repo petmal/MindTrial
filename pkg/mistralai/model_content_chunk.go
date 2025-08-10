@@ -19,6 +19,7 @@ import (
 // ContentChunk - struct for ContentChunk
 type ContentChunk struct {
 	DocumentURLChunk *DocumentURLChunk
+	FileChunk        *FileChunk
 	ImageURLChunk    *ImageURLChunk
 	ReferenceChunk   *ReferenceChunk
 	TextChunk        *TextChunk
@@ -28,6 +29,13 @@ type ContentChunk struct {
 func DocumentURLChunkAsContentChunk(v *DocumentURLChunk) ContentChunk {
 	return ContentChunk{
 		DocumentURLChunk: v,
+	}
+}
+
+// FileChunkAsContentChunk is a convenience function that returns FileChunk wrapped in ContentChunk
+func FileChunkAsContentChunk(v *FileChunk) ContentChunk {
+	return ContentChunk{
+		FileChunk: v,
 	}
 }
 
@@ -71,6 +79,23 @@ func (dst *ContentChunk) UnmarshalJSON(data []byte) error {
 		}
 	} else {
 		dst.DocumentURLChunk = nil
+	}
+
+	// try to unmarshal data into FileChunk
+	err = newStrictDecoder(data).Decode(&dst.FileChunk)
+	if err == nil {
+		jsonFileChunk, _ := json.Marshal(dst.FileChunk)
+		if string(jsonFileChunk) == "{}" { // empty struct
+			dst.FileChunk = nil
+		} else {
+			if err = validator.Validate(dst.FileChunk); err != nil {
+				dst.FileChunk = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.FileChunk = nil
 	}
 
 	// try to unmarshal data into ImageURLChunk
@@ -127,6 +152,7 @@ func (dst *ContentChunk) UnmarshalJSON(data []byte) error {
 	if match > 1 { // more than 1 match
 		// reset to nil
 		dst.DocumentURLChunk = nil
+		dst.FileChunk = nil
 		dst.ImageURLChunk = nil
 		dst.ReferenceChunk = nil
 		dst.TextChunk = nil
@@ -143,6 +169,10 @@ func (dst *ContentChunk) UnmarshalJSON(data []byte) error {
 func (src ContentChunk) MarshalJSON() ([]byte, error) {
 	if src.DocumentURLChunk != nil {
 		return json.Marshal(&src.DocumentURLChunk)
+	}
+
+	if src.FileChunk != nil {
+		return json.Marshal(&src.FileChunk)
 	}
 
 	if src.ImageURLChunk != nil {
@@ -169,6 +199,10 @@ func (obj *ContentChunk) GetActualInstance() interface{} {
 		return obj.DocumentURLChunk
 	}
 
+	if obj.FileChunk != nil {
+		return obj.FileChunk
+	}
+
 	if obj.ImageURLChunk != nil {
 		return obj.ImageURLChunk
 	}
@@ -189,6 +223,10 @@ func (obj *ContentChunk) GetActualInstance() interface{} {
 func (obj ContentChunk) GetActualInstanceValue() interface{} {
 	if obj.DocumentURLChunk != nil {
 		return *obj.DocumentURLChunk
+	}
+
+	if obj.FileChunk != nil {
+		return *obj.FileChunk
 	}
 
 	if obj.ImageURLChunk != nil {

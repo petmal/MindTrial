@@ -28,7 +28,7 @@
       "options": {
         "cwd": "${workspaceFolder}${/}pkg${/}mistralai",
         "env": {
-          "GO_POST_PROCESS_FILE": "gofmt -w"
+          "GO_POST_PROCESS_FILE": "gofmt -s -w"
         }
       },
       "problemMatcher": []

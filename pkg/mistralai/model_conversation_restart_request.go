@@ -25,9 +25,9 @@ type ConversationRestartRequest struct {
 	// Whether to store the results into our servers or not.
 	Store            *bool   `json:"store,omitempty"`
 	HandoffExecution *string `json:"handoff_execution,omitempty"`
-	FromEntryId      string  `json:"from_entry_id"`
 	// Completion arguments that will be used to generate assistant responses. Can be overridden at each message request.
 	CompletionArgs       *CompletionArgs `json:"completion_args,omitempty"`
+	FromEntryId          string          `json:"from_entry_id"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -184,30 +184,6 @@ func (o *ConversationRestartRequest) SetHandoffExecution(v string) {
 	o.HandoffExecution = &v
 }
 
-// GetFromEntryId returns the FromEntryId field value
-func (o *ConversationRestartRequest) GetFromEntryId() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.FromEntryId
-}
-
-// GetFromEntryIdOk returns a tuple with the FromEntryId field value
-// and a boolean to check if the value has been set.
-func (o *ConversationRestartRequest) GetFromEntryIdOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.FromEntryId, true
-}
-
-// SetFromEntryId sets field value
-func (o *ConversationRestartRequest) SetFromEntryId(v string) {
-	o.FromEntryId = v
-}
-
 // GetCompletionArgs returns the CompletionArgs field value if set, zero value otherwise.
 func (o *ConversationRestartRequest) GetCompletionArgs() CompletionArgs {
 	if o == nil || IsNil(o.CompletionArgs) {
@@ -240,6 +216,30 @@ func (o *ConversationRestartRequest) SetCompletionArgs(v CompletionArgs) {
 	o.CompletionArgs = &v
 }
 
+// GetFromEntryId returns the FromEntryId field value
+func (o *ConversationRestartRequest) GetFromEntryId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.FromEntryId
+}
+
+// GetFromEntryIdOk returns a tuple with the FromEntryId field value
+// and a boolean to check if the value has been set.
+func (o *ConversationRestartRequest) GetFromEntryIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.FromEntryId, true
+}
+
+// SetFromEntryId sets field value
+func (o *ConversationRestartRequest) SetFromEntryId(v string) {
+	o.FromEntryId = v
+}
+
 func (o ConversationRestartRequest) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -260,10 +260,10 @@ func (o ConversationRestartRequest) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.HandoffExecution) {
 		toSerialize["handoff_execution"] = o.HandoffExecution
 	}
-	toSerialize["from_entry_id"] = o.FromEntryId
 	if !IsNil(o.CompletionArgs) {
 		toSerialize["completion_args"] = o.CompletionArgs
 	}
+	toSerialize["from_entry_id"] = o.FromEntryId
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -312,8 +312,8 @@ func (o *ConversationRestartRequest) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "stream")
 		delete(additionalProperties, "store")
 		delete(additionalProperties, "handoff_execution")
-		delete(additionalProperties, "from_entry_id")
 		delete(additionalProperties, "completion_args")
+		delete(additionalProperties, "from_entry_id")
 		o.AdditionalProperties = additionalProperties
 	}
 

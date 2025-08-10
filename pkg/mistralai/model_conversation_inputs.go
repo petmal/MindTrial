@@ -17,24 +17,24 @@ import (
 
 // ConversationInputs struct for ConversationInputs
 type ConversationInputs struct {
-	ArrayOfInputEntriesInner *[]InputEntriesInner
-	String                   *string
+	ArrayOfConversationHistoryEntriesInner *[]ConversationHistoryEntriesInner
+	String                                 *string
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
 func (dst *ConversationInputs) UnmarshalJSON(data []byte) error {
 	var err error
-	// try to unmarshal JSON data into ArrayOfInputEntriesInner
-	err = json.Unmarshal(data, &dst.ArrayOfInputEntriesInner)
+	// try to unmarshal JSON data into ArrayOfConversationHistoryEntriesInner
+	err = json.Unmarshal(data, &dst.ArrayOfConversationHistoryEntriesInner)
 	if err == nil {
-		jsonArrayOfInputEntriesInner, _ := json.Marshal(dst.ArrayOfInputEntriesInner)
-		if string(jsonArrayOfInputEntriesInner) == "{}" { // empty struct
-			dst.ArrayOfInputEntriesInner = nil
+		jsonArrayOfConversationHistoryEntriesInner, _ := json.Marshal(dst.ArrayOfConversationHistoryEntriesInner)
+		if string(jsonArrayOfConversationHistoryEntriesInner) == "{}" { // empty struct
+			dst.ArrayOfConversationHistoryEntriesInner = nil
 		} else {
-			return nil // data stored in dst.ArrayOfInputEntriesInner, return on the first match
+			return nil // data stored in dst.ArrayOfConversationHistoryEntriesInner, return on the first match
 		}
 	} else {
-		dst.ArrayOfInputEntriesInner = nil
+		dst.ArrayOfConversationHistoryEntriesInner = nil
 	}
 
 	// try to unmarshal JSON data into String
@@ -55,8 +55,8 @@ func (dst *ConversationInputs) UnmarshalJSON(data []byte) error {
 
 // Marshal data from the first non-nil pointers in the struct to JSON
 func (src ConversationInputs) MarshalJSON() ([]byte, error) {
-	if src.ArrayOfInputEntriesInner != nil {
-		return json.Marshal(&src.ArrayOfInputEntriesInner)
+	if src.ArrayOfConversationHistoryEntriesInner != nil {
+		return json.Marshal(&src.ArrayOfConversationHistoryEntriesInner)
 	}
 
 	if src.String != nil {

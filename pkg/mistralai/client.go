@@ -56,6 +56,12 @@ type APIClient struct {
 
 	BetaConversationsAPI BetaConversationsAPI
 
+	BetaLibrariesAPI BetaLibrariesAPI
+
+	BetaLibrariesAccessesAPI BetaLibrariesAccessesAPI
+
+	BetaLibrariesDocumentsAPI BetaLibrariesDocumentsAPI
+
 	ChatAPI ChatAPI
 
 	ClassifiersAPI ClassifiersAPI
@@ -93,6 +99,9 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.BatchAPI = (*BatchAPIService)(&c.common)
 	c.BetaAgentsAPI = (*BetaAgentsAPIService)(&c.common)
 	c.BetaConversationsAPI = (*BetaConversationsAPIService)(&c.common)
+	c.BetaLibrariesAPI = (*BetaLibrariesAPIService)(&c.common)
+	c.BetaLibrariesAccessesAPI = (*BetaLibrariesAccessesAPIService)(&c.common)
+	c.BetaLibrariesDocumentsAPI = (*BetaLibrariesDocumentsAPIService)(&c.common)
 	c.ChatAPI = (*ChatAPIService)(&c.common)
 	c.ClassifiersAPI = (*ClassifiersAPIService)(&c.common)
 	c.EmbeddingsAPI = (*EmbeddingsAPIService)(&c.common)

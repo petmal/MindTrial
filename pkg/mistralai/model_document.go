@@ -18,6 +18,7 @@ import (
 // Document Document to run OCR on
 type Document struct {
 	DocumentURLChunk *DocumentURLChunk
+	FileChunk        *FileChunk
 	ImageURLChunk    *ImageURLChunk
 }
 
@@ -35,6 +36,19 @@ func (dst *Document) UnmarshalJSON(data []byte) error {
 		}
 	} else {
 		dst.DocumentURLChunk = nil
+	}
+
+	// try to unmarshal JSON data into FileChunk
+	err = json.Unmarshal(data, &dst.FileChunk)
+	if err == nil {
+		jsonFileChunk, _ := json.Marshal(dst.FileChunk)
+		if string(jsonFileChunk) == "{}" { // empty struct
+			dst.FileChunk = nil
+		} else {
+			return nil // data stored in dst.FileChunk, return on the first match
+		}
+	} else {
+		dst.FileChunk = nil
 	}
 
 	// try to unmarshal JSON data into ImageURLChunk
@@ -57,6 +71,10 @@ func (dst *Document) UnmarshalJSON(data []byte) error {
 func (src Document) MarshalJSON() ([]byte, error) {
 	if src.DocumentURLChunk != nil {
 		return json.Marshal(&src.DocumentURLChunk)
+	}
+
+	if src.FileChunk != nil {
+		return json.Marshal(&src.FileChunk)
 	}
 
 	if src.ImageURLChunk != nil {

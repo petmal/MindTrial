@@ -803,6 +803,9 @@ func (a *FilesAPIService) FilesApiRoutesUploadFileExecute(r ApiFilesApiRoutesUpl
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
+	if r.purpose != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "purpose", r.purpose, "", "")
+	}
 	var fileLocalVarFormFileName string
 	var fileLocalVarFileName string
 	var fileLocalVarFileBytes []byte
@@ -817,9 +820,6 @@ func (a *FilesAPIService) FilesApiRoutesUploadFileExecute(r ApiFilesApiRoutesUpl
 		fileLocalVarFileName = fileLocalVarFile.Name()
 		fileLocalVarFile.Close()
 		formFiles = append(formFiles, formFile{fileBytes: fileLocalVarFileBytes, fileName: fileLocalVarFileName, formFileName: fileLocalVarFormFileName})
-	}
-	if r.purpose != nil {
-		parameterAddToHeaderOrQuery(localVarFormParams, "purpose", r.purpose, "", "")
 	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
