@@ -19,12 +19,32 @@ config:
           max-requests-per-minute: 3
         - name: "o1-mini - latest"
           model: "o1-mini"
-          max-requests-per-minute: 3
+          max-requests-per-minute: 20
           model-parameters:
             text-response-format: true
         - name: "o3-mini - latest (high reasoning)"
           model: "o3-mini"
-          max-requests-per-minute: 3
+          max-requests-per-minute: 20
+          model-parameters:
+            reasoning-effort: "high"
+        - name: "o4-mini - latest (high reasoning)"
+          model: "o4-mini"
+          max-requests-per-minute: 20
+          model-parameters:
+            reasoning-effort: "high"
+        - name: "o3 - latest (high reasoning)"
+          model: "o3"
+          max-requests-per-minute: 20
+          model-parameters:
+            reasoning-effort: "high"
+        - name: "GPT-5 mini - latest (high reasoning)"
+          model: "gpt-5-mini"
+          max-requests-per-minute: 20
+          model-parameters:
+            reasoning-effort: "high"
+        - name: "GPT-5 - latest (high reasoning)"
+          model: "gpt-5"
+          max-requests-per-minute: 20
           model-parameters:
             reasoning-effort: "high"
     - name: google
@@ -42,6 +62,12 @@ config:
           max-requests-per-minute: 10
           model-parameters:
             text-response-format: true
+        - name: "Gemini 2.5 Flash - latest"
+          model: "gemini-2.5-flash"
+          max-requests-per-minute: 3
+        - name: "Gemini 2.5 Pro - latest"
+          model: "gemini-2.5-pro"
+          max-requests-per-minute: 3
     - name: anthropic
       client-config:
         api-key: ""
@@ -69,10 +95,16 @@ config:
           model-parameters:
             max-tokens: 8192
             thinking-budget-tokens: 2048
+        - name: "Claude 4.1 Opus - latest (extended thinking)"
+          model: "claude-opus-4-1"
+          max-requests-per-minute: 10
+          model-parameters:
+            max-tokens: 8192
+            thinking-budget-tokens: 2048
     - name: deepseek
       client-config:
         api-key: ""
-        request-timeout: 10m
+        request-timeout: 15m
       runs:
         - name: "DeepSeek-R1 - latest"
           model: "deepseek-reasoner"
