@@ -24,9 +24,6 @@ import (
 
 const asyncEventBufferSize = 3
 
-// explanationSeparator is used to separate answer explanation from validation assessment.
-const explanationSeparator = "\n\n\n"
-
 type eventEmitter interface {
 	emitProgressEvent()
 	emitMessageEvent(message string)
@@ -258,6 +255,10 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 	if err != nil {
 		runResult.Kind = Error
 		runResult.Got = err.Error()
+		runResult.Details.Error = ErrorDetails{
+			Title:   "Configuration Error",
+			Message: runResult.Got,
+		}
 		return
 	}
 
@@ -271,6 +272,10 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 		if p := recover(); p != nil {
 			runResult.Kind = Error
 			runResult.Got = fmt.Sprintf("%v", p)
+			runResult.Details.Error = ErrorDetails{
+				Title:   "Execution Error",
+				Message: runResult.Got,
+			}
 		}
 	}()
 
@@ -281,14 +286,29 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 	if err != nil { //nolint:gocritic
 		runResult.Kind = Error
 		runResult.Got = err.Error()
-		if errors.Is(err, providers.ErrFeatureNotSupported) {
-			runResult.Kind = NotSupported
-		} else {
-			taskLogger.Error(ctx, logging.LevelError, err, "task finished with error")
-		}
 		var unmarshalErr *providers.ErrUnmarshalResponse
-		if errors.As(err, &unmarshalErr) {
-			runResult.Details = unmarshalErr.Details()
+		switch {
+		case errors.Is(err, providers.ErrFeatureNotSupported):
+			runResult.Kind = NotSupported
+			runResult.Details.Error = ErrorDetails{
+				Title:   "Feature Not Supported",
+				Message: err.Error(),
+			}
+		case errors.As(err, &unmarshalErr):
+			runResult.Details.Error = ErrorDetails{
+				Title:   "Response Parsing Error",
+				Message: unmarshalErr.Cause.Error(),
+				Details: map[string][]string{
+					"Stop Reason":  {string(unmarshalErr.StopReason)},
+					"Raw Response": splitLines(string(unmarshalErr.RawMessage)),
+				},
+			}
+		default:
+			runResult.Details.Error = ErrorDetails{
+				Title:   "Execution Error",
+				Message: err.Error(),
+			}
+			taskLogger.Error(ctx, logging.LevelError, err, "task finished with error")
 		}
 	} else {
 		taskLogger.Message(ctx, logging.LevelDebug, "using %s for response evaluation", validator.GetName())
@@ -297,23 +317,29 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 		if err != nil { //nolint:gocritic
 			runResult.Kind = Error
 			runResult.Got = result.FinalAnswer
-			runResult.Details = err.Error()
+			runResult.Details.Error = ErrorDetails{
+				Title:   "Validation Error",
+				Message: err.Error(),
+			}
 		} else {
 			if !validationResult.IsCorrect {
 				runResult.Kind = Failure
-				runResult.Got = validator.ToCanonical(resolvedValidationRules, result.FinalAnswer)
-				runResult.Details = result.Explain()
-				if validationExplanation := validationResult.Explain(); validationExplanation != "" {
-					runResult.Details += explanationSeparator + validationExplanation
-				}
 			} else {
 				runResult.Kind = Success
-				runResult.Got = validator.ToCanonical(resolvedValidationRules, result.FinalAnswer)
-				runResult.Details = result.Explain()
-				if validationExplanation := validationResult.Explain(); validationExplanation != "" {
-					runResult.Details += explanationSeparator + validationExplanation
-				}
 			}
+
+			runResult.Got = validator.ToCanonical(resolvedValidationRules, result.FinalAnswer)
+			runResult.Details.Validation = ValidationDetails{
+				Title:       validationResult.Title,
+				Explanation: splitLines(validationResult.Explanation),
+			}
+		}
+
+		runResult.Details.Answer = AnswerDetails{
+			Title:          result.Title,
+			Explanation:    splitLines(result.Explanation),
+			ActualAnswer:   splitLines(result.FinalAnswer),
+			ExpectedAnswer: toLines(task.ExpectedResult),
 		}
 	}
 	runResult.Duration = result.GetDuration()

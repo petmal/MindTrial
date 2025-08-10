@@ -32,6 +32,7 @@ const (
 const runResultIDPrefix = "run"
 
 var validIDCharMatcher = regexp.MustCompile(`[^a-zA-Z0-9_-]`)
+var newlineMatcher = regexp.MustCompile(`\r?\n`)
 
 // ResultKind represents the task execution result status.
 type ResultKind int
@@ -102,8 +103,8 @@ type RunResult struct {
 	Got string
 	// Want are the accepted valid answer(s) for the task.
 	Want utils.StringSet
-	// Details contains additional information about the task result.
-	Details string
+	// Details contains comprehensive information about the generated response and validation assessment.
+	Details Details
 	// Duration represents the time taken to generate the response.
 	Duration time.Duration
 }
@@ -116,4 +117,61 @@ func (r RunResult) GetID() (sanitizedTaskID string) {
 	sanitizedTaskID = strings.ReplaceAll(uniqueTaskID, " ", "-")
 	sanitizedTaskID = validIDCharMatcher.ReplaceAllString(sanitizedTaskID, "_")
 	return sanitizedTaskID
+}
+
+// Details encapsulates comprehensive information about task execution and validation.
+type Details struct {
+	// Answer contains details about the AI model's response and reasoning process.
+	Answer AnswerDetails
+	// Validation contains details about the answer verification and assessment.
+	Validation ValidationDetails
+	// Error contains details about any errors that occurred during task execution.
+	Error ErrorDetails
+}
+
+// AnswerDetails defines structured information about the AI model's response to a task.
+type AnswerDetails struct {
+	// Title is a descriptive header for the response produced by the target AI model.
+	Title string
+	// Explanation of the answer produced by the target AI model.
+	Explanation []string
+	// ActualAnswer is the raw answer from the target AI model split into lines.
+	ActualAnswer []string
+	// ExpectedAnswer is a set of all acceptable correct answers, each being an array of lines.
+	ExpectedAnswer [][]string
+}
+
+// ValidationDetails defines structured information about answer verification and correctness assessment.
+type ValidationDetails struct {
+	// Title identifies the type of validation assessment performed.
+	Title string
+	// Explanation contains detailed analysis of why the validation succeeded or failed.
+	Explanation []string
+}
+
+// ErrorDetails defines structured information about errors that occurred during execution.
+type ErrorDetails struct {
+	// Title provides a summary description of the error.
+	Title string
+	// Message contains the primary error message.
+	Message string
+	// Details contains any additional error information in a generic structure.
+	Details map[string][]string
+}
+
+// toLines converts a StringSet to [][]string where each value is split into lines.
+func toLines(stringSet utils.StringSet) [][]string {
+	values := stringSet.Values()
+	result := make([][]string, 0, len(values))
+	for _, value := range values {
+		result = append(result, splitLines(value))
+	}
+	return result
+}
+
+func splitLines(text string) []string {
+	if text == "" {
+		return []string{}
+	}
+	return newlineMatcher.Split(text, -1)
 }

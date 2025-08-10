@@ -14,5 +14,7 @@ provider-name |run-failure-multiple-answers |task-name |Failed |3m0.8s |@@ -1,48
 -Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui
 +Ipsam ea et optio explicabo eius et
  .            |
-provider-name |run-error         |task-name |Error   |0s    |error message                              |
-provider-name |run-not-supported |task-name |Skipped |500ms |Sequi molestiae iusto sit sit dolorum aut. |
+provider-name |run-error            |task-name |Error   |0s        |error message                              |
+provider-name |run-not-supported    |task-name |Skipped |500ms     |Sequi molestiae iusto sit sit dolorum aut. |
+provider-name |run-validation-error |task-name |Error   |2s        |Adipiscing elit sed do eiusmod tempor.     |
+provider-name |run-parsing-error    |task-name |Error   |5m14.159s |Invalid JSON: {broken                      |

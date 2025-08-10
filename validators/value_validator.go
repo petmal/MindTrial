@@ -8,7 +8,6 @@ package validators
 
 import (
 	"context"
-	"fmt"
 	"regexp"
 	"strings"
 	"sync"
@@ -46,7 +45,7 @@ func (v valueMatchValidator) IsCorrect(ctx context.Context, _ logging.Logger, ru
 	if isCorrect {
 		explanation = "Response matches one of the accepted answers."
 	} else {
-		explanation = fmt.Sprintf("Response does not match any of the accepted answers.\n\nActual response:\n%s", actual.FinalAnswer)
+		explanation = "Response does not match any of the accepted answers."
 	}
 
 	return ValidationResult{

@@ -12,6 +12,7 @@ import (
 	"html/template"
 	"io"
 	"path/filepath"
+	"strings"
 
 	"github.com/petmal/mindtrial/runners"
 	"github.com/petmal/mindtrial/version"
@@ -49,10 +50,13 @@ func NewHTMLFormatter() Formatter {
 		"TotalDuration":           TotalDuration,
 		"RoundToMS":               RoundToMS,
 		"Timestamp":               Timestamp,
-		"TextToHTML":              TextToHTML,
 		"SafeHTML": func(s string) template.HTML {
 			return template.HTML(s) //nolint:gosec
 		},
+		"ToLower":         strings.ToLower,
+		"Join":            strings.Join,
+		"UniqueRuns":      UniqueRuns,
+		"GroupParagraphs": GroupParagraphs,
 	}).ParseFS(templatesFS, templateFile))
 	return &htmlFormatter{
 		templ: templ,

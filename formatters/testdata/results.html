@@ -5,135 +5,239 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>MindTrial - Run Results</title>
     <style>
-         
+        :root {
+            --primary-color: #4a90e2;
+            --background-color: #f7f7f7;
+            --text-color: #333;
+            --header-color: #444;
+            --table-bg: #fff;
+            --table-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            --row-hover-bg: #f1f9ff;
+            --row-even-bg: #f2f2f2;
+            --row-odd-bg: #ffffff;
+            --success-bg: #d4edda;
+            --success-text: #155724;
+            --failure-bg: #fff3cd;
+            --failure-text: #856404;
+            --error-bg: #f8d7da;
+            --error-text: #721c24;
+            --skipped-bg: #e2e3e5;
+            --skipped-text: #383d41;
+            --border-color: #e0e0e0;
+        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f7f7f7;
-            color: #333;
+            background-color: var(--background-color);
+            color: var(--text-color);
             margin: 0;
             padding: 1em;
         }
         h1, h2 {
             text-align: center;
-            color: #444;
+            color: var(--header-color);
         }
-        h1 {
-            margin-bottom: 0.2em;
-        }
-        h2 {
-            margin-top: 1.5em;
-        }
-         
+        h1 { margin-bottom: 0.2em; }
+        h2 { margin-top: 1.5em; }
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 2em;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            background-color: #fff;
+            box-shadow: var(--table-shadow);
+            background-color: var(--table-bg);
             border-radius: 8px;
             overflow: hidden;
         }
         th, td {
             padding: 12px 15px;
             text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
         }
         thead th {
-            background-color: #4a90e2;
+            background-color: var(--primary-color);
             color: #fff;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.03em;
+            position: relative;
         }
-        tbody tr {
-            transition: background-color 0.3s ease;
-        }
-        tbody tr:hover {
-            background-color: #f1f9ff;
-        }
-         
-        tbody tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        tbody tr:nth-child(odd) {
-            background-color: #ffffff;
-        }
-         
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-            font-weight: bold;
-        }
-        .failure {
-            background-color: #fff3cd;
-            color: #856404;
-            font-weight: bold;
-        }
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-            font-weight: bold;
-        }
-        .skipped {
-            background-color: #e2e3e5;
-            color: #383d41;
-            font-weight: bold;
-        }
-         
-        .details {
-            cursor: pointer;
-            color: #4a90e2;
-            font-weight: 600;
-            text-decoration: underline;
-            background: none;
-            border: none;
-            padding: 0;
-            font-size: 1em;
-        }
-        .details:focus {
-            outline: 2px solid #4a90e2;
-        }
-        .details-content {
-            display: none;
-            background-color: #fafafa;
-            border: 1px solid #e0e0e0;
-            margin-top: 8px;
-            padding: 8px;
-            font-size: 0.95em;
-        }
-         
-        .answer-list {
-            margin: 0;
-            padding-left: 1.5em;
-        }
-        .answer-list li {
-            margin-bottom: 1em;
-        }
-        .answer-list.single {
-            list-style-type: none;
-            padding-left: 0;
-        }
-        .answer-list.single li {
-            margin-bottom: 0;
-        }
-         
-        @media (max-width: 768px) {
-            th, td { padding: 10px; }
-        }
-         
-        footer {
-            text-align: center;
-            font-size: 0.85em;
-            color: #777;
-            margin-top: 2em;
-            border-top: 1px solid #e0e0e0;
-            padding-top: 1em;
-        }
+    thead th .filter-sort-controls span { white-space: nowrap; }
+    thead th .filter-sort-controls span .sort-btn { margin-left:4px; }
+        tbody tr:nth-child(even) { background-color: var(--row-even-bg); }
+        tbody tr:nth-child(odd) { background-color: var(--row-odd-bg); }
+        tbody tr:hover { background-color: var(--row-hover-bg); }
+        .status-passed { background-color: var(--success-bg); color: var(--success-text); font-weight: bold; }
+        .status-failed { background-color: var(--failure-bg); color: var(--failure-text); font-weight: bold; }
+        .status-error { background-color: var(--error-bg); color: var(--error-text); font-weight: bold; }
+        .status-skipped { background-color: var(--skipped-bg); color: var(--skipped-text); font-weight: bold; }
+    .details { cursor: pointer; color: var(--primary-color); font-weight: 600; text-decoration: underline; background: none; border: none; padding: 0; font-size: 0.95em; }
+        .details:focus { outline: 2px solid var(--primary-color); }
+    .details-content { display: none; background-color: #fafafa; border: 1px solid var(--border-color); margin-top: 8px; padding: 14px 16px; font-size: 0.95em; border-radius:6px; max-width:900px; }
+    .details-content section { margin-top: 1.1em; }
+    .details-content section:first-of-type { margin-top: 0; }
+    .details-content h4 { margin: 0 0 0.35em 0; color: var(--header-color); font-size: 1.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+     
+    .details-content summary { white-space: nowrap; cursor: pointer; }
+    .details-content details { margin: 0.4em 0; }
+      
+     .details-content details summary { list-style:none; cursor:pointer; position:relative; padding-left:1.1em; }
+     .details-content details summary::-webkit-details-marker { display:none; }
+    .details-content details summary:before { content:'▶'; position:absolute; left:0; top:0.12em; font-size:0.92em; line-height:1; }
+     .details-content details[open] summary:before { content:'▼'; }
+      
+     .details-content details.explanation { padding-left:1.1em; }
+     .details-content details.explanation summary { padding-left:0; }
+     .details-content details.explanation summary:before { left:-1.1em; }
+     .details-content details.explanation .explanation-body { margin-left:0; }
+     
+    .details-content ol.expected-answers { margin-left:1.2em; }
+    .details-content ol.expected-answers li::marker { font-weight:700; font-size:0.8em; color:#555; }
+    .section-answer { border-left: 4px solid var(--primary-color); padding-left: 10px; }
+    .section-validation { border-left: 4px solid #28a745; padding-left: 10px; }
+    .section-error { border-left: 4px solid #c0392b; padding-left: 10px; background: #fff6f6; }
+    .section-error h4 { color: #a1271c; }
+    .details-content pre { background:#fff; border:1px solid var(--border-color); padding:6px 8px; overflow:auto; border-radius:4px; max-height:300px; white-space:pre-wrap; word-break:break-word; }
+    .details-content code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 0.85em; }
+    .details-content dl { margin:0.5em 0 0 0; }
+    .details-content dt { font-weight:600; margin-top:0.6em; font-size:0.85em; }
+     .details-content dd { margin:0.2em 0 0.6em 0.8em; font-size:0.85em; }
+      
+     .details-content dl.tech-details { padding-left:1.2em; }
+     .details-content dl.tech-details dt { margin-left:-1.2em; }
+     .details-content dl.tech-details dd { margin:0.2em 0 0.6em 0; }
+     
+    td.details-toggle-cell { min-width:130px; vertical-align: top; text-align:right; }
+    td.details-toggle-cell .details { white-space:nowrap; }
+    td.details-toggle-cell .details-content { margin-top:8px; text-align:left; }
+    .answer-list { margin: 0; padding-left: 1.5em; }
+        .answer-list li { margin-bottom: 1em; }
+        .answer-list.single { list-style-type: none; padding-left: 0; }
+        .answer-list.single li { margin-bottom: 0; }
+        .filter-container { display: flex; gap: 10px; margin-bottom: 10px; max-width: 800px; align-items: center; }
+        .filter-sort-controls { display: flex; flex-direction: column; gap: 5px; }
+        .filter-sort-controls input, .filter-sort-controls select { width: 100%; box-sizing: border-box; }
+        .sort-btn { cursor: pointer; margin-left: 5px; }
+        .clickable { cursor: pointer; }
+    footer { text-align: center; font-size: 0.85em; color: #777; margin-top: 2em; border-top: 1px solid var(--border-color); padding-top: 1em; }
+    .para { margin:0 0 0.7em 0; }
+    .para:last-child { margin-bottom:0; }
+    .visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+    th.details-header { text-align:right; min-width:130px; }
     </style>
     <script>
-        function toggleDetails(id) {
-            var element = document.getElementById(id);
-            element.style.display = (element.style.display === "none" || element.style.display === "") ? "block" : "none";
+        function toggleDetails(id, btn) {
+            const element = document.getElementById(id);
+            const show = (element.style.display === "none" || element.style.display === "");
+            element.style.display = show ? "block" : "none";
+            if (btn) {
+                btn.setAttribute('aria-expanded', show ? 'true' : 'false');
+                btn.textContent = show ? 'Hide Details' : 'Show Details';
+            }
         }
+
+        function filterAndSortTable() {
+            const table = document.getElementById('results-table');
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            const filters = {
+                provider: document.getElementById('provider-filter').value.toLowerCase(),
+                run: document.getElementById('run-filter').value.toLowerCase(),
+                task: document.getElementById('task-filter').value.toLowerCase(),
+                status: document.getElementById('status-filter').value.toLowerCase(),
+                search: document.getElementById('search-filter').value.toLowerCase()
+            };
+
+            rows.forEach(row => {
+                const provider = row.dataset.provider.toLowerCase();
+                const run = row.dataset.run.toLowerCase();
+                const task = row.dataset.task.toLowerCase();
+                const status = row.dataset.status.toLowerCase();
+
+                const searchMatch = (provider.includes(filters.search) || run.includes(filters.search) || task.includes(filters.search));
+
+                const show = (filters.provider === '' || provider === filters.provider) &&
+                             (filters.run === '' || run === filters.run) &&
+                             task.includes(filters.task) &&
+                             (filters.status === '' || status === filters.status) &&
+                             (filters.search === '' || searchMatch);
+                
+                row.style.display = show ? '' : 'none';
+            });
+        }
+
+        function sortTable(tableId, column, direction) {
+            const table = document.getElementById(tableId);
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            rows.sort((a, b) => {
+                let valA, valB;
+                if (column.startsWith('duration') || column.startsWith('passed') || column.startsWith('failed') || column.startsWith('error') || column.startsWith('skipped')) {
+                    valA = parseFloat(a.dataset[column]);
+                    valB = parseFloat(b.dataset[column]);
+                } else {
+                    valA = a.dataset[column].toLowerCase();
+                    valB = b.dataset[column].toLowerCase();
+                }
+
+                if (valA < valB) return direction === 'asc' ? -1 : 1;
+                if (valA > valB) return direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        function setupSortButtons() {
+            document.querySelectorAll('.sort-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const tableId = button.closest('table').id;
+                    const column = button.dataset.column;
+                    const direction = button.dataset.direction || 'asc';
+                    
+                    document.querySelectorAll(`#${tableId} .sort-btn`).forEach(btn => {
+                        if (btn !== button) {
+                            btn.innerHTML = '↕️';
+                            delete btn.dataset.direction;
+                        }
+                    });
+
+                    sortTable(tableId, column, direction);
+                    button.innerHTML = direction === 'asc' ? '🔼' : '🔽';
+                    button.dataset.direction = direction === 'asc' ? 'desc' : 'asc';
+                });
+            });
+        }
+        
+        function setupClickableFilters() {
+            document.querySelectorAll('.clickable-filter').forEach(element => {
+                element.addEventListener('click', () => {
+                    const filterType = element.dataset.filterType;
+                    const filterValue = element.dataset.filterValue;
+                    document.getElementById(`${filterType}-filter`).value = filterValue;
+                    filterAndSortTable();
+                });
+            });
+        }
+
+        function clearFilters() {
+            document.getElementById('provider-filter').value = '';
+            document.getElementById('run-filter').value = '';
+            document.getElementById('task-filter').value = '';
+            document.getElementById('status-filter').value = '';
+            document.getElementById('search-filter').value = '';
+            filterAndSortTable();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.filter-sort-controls input, .filter-sort-controls select, #search-filter').forEach(input => {
+                input.addEventListener('input', filterAndSortTable);
+            });
+             document.querySelectorAll('.filter-sort-controls select').forEach(select => {
+                select.addEventListener('change', filterAndSortTable);
+            });
+            setupSortButtons();
+            setupClickableFilters();
+        });
     </script>
 </head>
 <body itemscope itemtype="https://schema.org/WebPage">
@@ -145,267 +249,596 @@
             <h2 id="runsummary" itemprop="headline">Summary</h2>
             <meta itemprop="alternativeHeadline" content="AI Model Evaluation Run Summary">
             <meta itemprop="description" content="Summary of success, failure, error, and skipped counts, along with total duration for each AI provider and run configuration.">
-            <table>
+            <table id="summary-table">
+                <caption class="visually-hidden">Run result summary by provider and run.</caption>
                 <thead>
                     <tr>
-                        <th scope="col">Provider</th>
-                        <th scope="col">Run</th>
-                        <th scope="col">Passed</th>
-                        <th scope="col">Failed</th>
-                        <th scope="col">Error</th>
-                        <th scope="col">Skipped</th>
-                        <th scope="col">Total Duration</th>
+                        <th scope="col">Provider <span class="sort-btn" data-column="provider" data-direction="asc">↕️</span></th>
+                        <th scope="col">Run <span class="sort-btn" data-column="run" data-direction="asc">↕️</span></th>
+                        <th scope="col">Passed <span class="sort-btn" data-column="passed" data-direction="asc">↕️</span></th>
+                        <th scope="col">Failed <span class="sort-btn" data-column="failed" data-direction="asc">↕️</span></th>
+                        <th scope="col">Error <span class="sort-btn" data-column="error" data-direction="asc">↕️</span></th>
+                        <th scope="col">Skipped <span class="sort-btn" data-column="skipped" data-direction="asc">↕️</span></th>
+                        <th scope="col">Total Duration <span class="sort-btn" data-column="duration" data-direction="asc">↕️</span></th>
                     </tr>
                 </thead>
-                <tbody><tr itemscope itemtype="https://schema.org/Observation">
-                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization">
+                <tbody>
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-error" data-passed="0" data-failed="0" data-error="1" data-skipped="0" data-duration="0">
+                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name">
                             <span itemprop="name">provider-name</span>
                         </td>
-                        <td itemprop="identifier">run-error</td>
-                        <td itemprop="measuredProperty" content="Passed">0</td>
-                        <td itemprop="measuredProperty" content="Failed">0</td>
-                        <td itemprop="measuredProperty" content="Error">1</td>
-                        <td itemprop="measuredProperty" content="Skipped">0</td>
-                        <td itemprop="observationPeriod">0s</td>
-                    </tr><tr itemscope itemtype="https://schema.org/Observation">
-                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization">
-                            <span itemprop="name">provider-name</span>
+                        <td itemprop="identifier" class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-error" title="Filter by run: run-error">run-error</td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Passed"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Failed"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error"><span itemprop="value">1</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Skipped"><span itemprop="value">0</span></td>
+                        <td><time itemprop="observationPeriod" datetime="PT0.000S">0s</time>
                         </td>
-                        <td itemprop="identifier">run-failure</td>
-                        <td itemprop="measuredProperty" content="Passed">0</td>
-                        <td itemprop="measuredProperty" content="Failed">1</td>
-                        <td itemprop="measuredProperty" content="Error">0</td>
-                        <td itemprop="measuredProperty" content="Skipped">0</td>
-                        <td itemprop="observationPeriod">10s</td>
-                    </tr><tr itemscope itemtype="https://schema.org/Observation">
-                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization">
-                            <span itemprop="name">provider-name</span>
-                        </td>
-                        <td itemprop="identifier">run-failure-multiple-answers</td>
-                        <td itemprop="measuredProperty" content="Passed">0</td>
-                        <td itemprop="measuredProperty" content="Failed">1</td>
-                        <td itemprop="measuredProperty" content="Error">0</td>
-                        <td itemprop="measuredProperty" content="Skipped">0</td>
-                        <td itemprop="observationPeriod">3m0.8s</td>
-                    </tr><tr itemscope itemtype="https://schema.org/Observation">
-                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization">
-                            <span itemprop="name">provider-name</span>
-                        </td>
-                        <td itemprop="identifier">run-not-supported</td>
-                        <td itemprop="measuredProperty" content="Passed">0</td>
-                        <td itemprop="measuredProperty" content="Failed">0</td>
-                        <td itemprop="measuredProperty" content="Error">0</td>
-                        <td itemprop="measuredProperty" content="Skipped">1</td>
-                        <td itemprop="observationPeriod">500ms</td>
-                    </tr><tr itemscope itemtype="https://schema.org/Observation">
-                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization">
-                            <span itemprop="name">provider-name</span>
-                        </td>
-                        <td itemprop="identifier">run-success</td>
-                        <td itemprop="measuredProperty" content="Passed">1</td>
-                        <td itemprop="measuredProperty" content="Failed">0</td>
-                        <td itemprop="measuredProperty" content="Error">0</td>
-                        <td itemprop="measuredProperty" content="Skipped">0</td>
-                        <td itemprop="observationPeriod">1m35s</td>
-                    </tr><tr itemscope itemtype="https://schema.org/Observation">
-                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization">
-                            <span itemprop="name">provider-name</span>
-                        </td>
-                        <td itemprop="identifier">run-success-multiple-answers</td>
-                        <td itemprop="measuredProperty" content="Passed">1</td>
-                        <td itemprop="measuredProperty" content="Failed">0</td>
-                        <td itemprop="measuredProperty" content="Error">0</td>
-                        <td itemprop="measuredProperty" content="Skipped">0</td>
-                        <td itemprop="observationPeriod">17s</td>
                     </tr>
-                </tbody>
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-failure" data-passed="0" data-failed="1" data-error="0" data-skipped="0" data-duration="10000">
+                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name">
+                            <span itemprop="name">provider-name</span>
+                        </td>
+                        <td itemprop="identifier" class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-failure" title="Filter by run: run-failure">run-failure</td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Passed"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Failed"><span itemprop="value">1</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Skipped"><span itemprop="value">0</span></td>
+                        <td><time itemprop="observationPeriod" datetime="PT10.000S">10s</time>
+                        </td>
+                    </tr>
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-failure-multiple-answers" data-passed="0" data-failed="1" data-error="0" data-skipped="0" data-duration="180800">
+                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name">
+                            <span itemprop="name">provider-name</span>
+                        </td>
+                        <td itemprop="identifier" class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-failure-multiple-answers" title="Filter by run: run-failure-multiple-answers">run-failure-multiple-answers</td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Passed"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Failed"><span itemprop="value">1</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Skipped"><span itemprop="value">0</span></td>
+                        <td><time itemprop="observationPeriod" datetime="PT180.800S">3m0.8s</time>
+                        </td>
+                    </tr>
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-not-supported" data-passed="0" data-failed="0" data-error="0" data-skipped="1" data-duration="500">
+                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name">
+                            <span itemprop="name">provider-name</span>
+                        </td>
+                        <td itemprop="identifier" class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-not-supported" title="Filter by run: run-not-supported">run-not-supported</td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Passed"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Failed"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Skipped"><span itemprop="value">1</span></td>
+                        <td><time itemprop="observationPeriod" datetime="PT0.500S">500ms</time>
+                        </td>
+                    </tr>
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-parsing-error" data-passed="0" data-failed="0" data-error="1" data-skipped="0" data-duration="314159">
+                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name">
+                            <span itemprop="name">provider-name</span>
+                        </td>
+                        <td itemprop="identifier" class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-parsing-error" title="Filter by run: run-parsing-error">run-parsing-error</td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Passed"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Failed"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error"><span itemprop="value">1</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Skipped"><span itemprop="value">0</span></td>
+                        <td><time itemprop="observationPeriod" datetime="PT314.159S">5m14.159s</time>
+                        </td>
+                    </tr>
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-success" data-passed="1" data-failed="0" data-error="0" data-skipped="0" data-duration="95000">
+                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name">
+                            <span itemprop="name">provider-name</span>
+                        </td>
+                        <td itemprop="identifier" class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-success" title="Filter by run: run-success">run-success</td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Passed"><span itemprop="value">1</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Failed"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Skipped"><span itemprop="value">0</span></td>
+                        <td><time itemprop="observationPeriod" datetime="PT95.000S">1m35s</time>
+                        </td>
+                    </tr>
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-success-multiple-answers" data-passed="1" data-failed="0" data-error="0" data-skipped="0" data-duration="17000">
+                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name">
+                            <span itemprop="name">provider-name</span>
+                        </td>
+                        <td itemprop="identifier" class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-success-multiple-answers" title="Filter by run: run-success-multiple-answers">run-success-multiple-answers</td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Passed"><span itemprop="value">1</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Failed"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Skipped"><span itemprop="value">0</span></td>
+                        <td><time itemprop="observationPeriod" datetime="PT17.000S">17s</time>
+                        </td>
+                    </tr>
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-validation-error" data-passed="0" data-failed="0" data-error="1" data-skipped="0" data-duration="2000">
+                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name">
+                            <span itemprop="name">provider-name</span>
+                        </td>
+                        <td itemprop="identifier" class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-validation-error" title="Filter by run: run-validation-error">run-validation-error</td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Passed"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Failed"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error"><span itemprop="value">1</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Skipped"><span itemprop="value">0</span></td>
+                        <td><time itemprop="observationPeriod" datetime="PT2.000S">2s</time>
+                        </td>
+                    </tr></tbody>
             </table>
         </section>
         <section aria-labelledby="detailedresults" itemscope itemtype="https://schema.org/Table" itemprop="hasPart">
             <h2 id="detailedresults" itemprop="headline">Task Results</h2>
             <meta itemprop="alternativeHeadline" content="AI Model Evaluation Task Results">
             <meta itemprop="description" content="Detailed results for each task, including provider, run configuration, task name, status, duration, answer, and details.">
-            <table>
+            <div class="filter-container">
+                <input id="search-filter" type="text" placeholder="Search..." class="filter-sort-controls">
+                <button onclick="clearFilters()">Clear Filters</button>
+            </div>
+            <table id="results-table">
+                <caption class="visually-hidden">Detailed task evaluation results.</caption>
                 <thead>
                     <tr>
-                        <th scope="col">Provider</th>
-                        <th scope="col">Run</th>
-                        <th scope="col">Task</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Duration</th>
-                        <th scope="col">Answer</th>
-                        <th scope="col">Details</th>
+                        <th>
+                            <div class="filter-sort-controls">
+                                <span>Provider <span class="sort-btn" data-column="provider" data-direction="asc">↕️</span></span>
+                                <select id="provider-filter">
+                                    <option value="">All</option>
+                                    <option value="provider-name">provider-name</option>
+                                </select>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="filter-sort-controls">
+                                <span>Run <span class="sort-btn" data-column="run" data-direction="asc">↕️</span></span>
+                                <select id="run-filter">
+                                    <option value="">All</option>
+                                    <option value="run-error">run-error</option>
+                                    <option value="run-failure">run-failure</option>
+                                    <option value="run-failure-multiple-answers">run-failure-multiple-answers</option>
+                                    <option value="run-not-supported">run-not-supported</option>
+                                    <option value="run-parsing-error">run-parsing-error</option>
+                                    <option value="run-success">run-success</option>
+                                    <option value="run-success-multiple-answers">run-success-multiple-answers</option>
+                                    <option value="run-validation-error">run-validation-error</option>
+                                </select>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="filter-sort-controls">
+                                <span>Task <span class="sort-btn" data-column="task" data-direction="asc">↕️</span></span>
+                                <input id="task-filter" type="text" placeholder="Filter...">
+                            </div>
+                        </th>
+                        <th>
+                            <div class="filter-sort-controls">
+                                <span>Status <span class="sort-btn" data-column="status" data-direction="asc">↕️</span></span>
+                                <select id="status-filter">
+                                    <option value="">All</option>
+                                    <option value="passed">Passed</option>
+                                    <option value="failed">Failed</option>
+                                    <option value="error">Error</option>
+                                    <option value="skipped">Skipped</option>
+                                </select>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="filter-sort-controls">
+                                <span>Duration <span class="sort-btn" data-column="duration" data-direction="asc">↕️</span></span>
+                            </div>
+                        </th>
+                        <th>Answer</th>
+                        <th class="details-header">Details</th>
                     </tr>
                 </thead>
-                <tbody><tr itemscope itemtype="https://schema.org/Question">
-                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-                            <span itemprop="name">provider-name</span>
+                <tbody>
+                    <tr id="run-provider-name-run-success-task-name" itemscope itemtype="https://schema.org/Question" data-provider="provider-name" data-run="run-success" data-task="task-name" data-status="passed" data-duration="95000">
+                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name"><span itemprop="name">provider-name</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-success" title="Filter by run: run-success"><span itemprop="identifier">run-success</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="task" data-filter-value="task-name" title="Filter by task: task-name"><span itemprop="name">task-name</span></td>
+                        <td class="status-passed clickable-filter clickable" data-filter-type="status" data-filter-value="passed" title="Filter by status: Passed">
+                            <span itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty">
+                                <meta itemprop="name" content="status">
+                                <span itemprop="value">Passed</span>
+                            </span>
                         </td>
-                        <td itemprop="identifier">run-success</td>
-                        <td itemprop="name">task-name</td>
-                        <td class="success" itemprop="additionalProperty">
-                            Passed
+                        <td><time itemprop="timeRequired" datetime="PT95.000S">1m35s</time>
                         </td>
-                        <td itemprop="timeRequired">1m35s</td>
-                        <td><ol class="answer-list single">
-                                    <li itemprop="suggestedAnswer" itemscope itemtype="https://schema.org/Answer" itemref="details-run-provider-name-run-success-task-name">
-                                        <span itemprop="text">Quos aut rerum quaerat qui ad culpa.</span>
-                                    </li>
+                        <td class="details-cell">
+                            <ol class="answer-list single">
+                                <li>Quos aut rerum quaerat qui ad culpa.</li>
                             </ol>
                         </td>
-                        <td>
-                            <button type="button" class="details" aria-expanded="false"
-                                aria-controls="details-run-provider-name-run-success-task-name"
-                                        onclick="toggleDetails('details-run-provider-name-run-success-task-name'); this.setAttribute('aria-expanded', (this.getAttribute('aria-expanded')==='true' ? 'false' : 'true'));">
-                                        Show Details
-                            </button>
-                            <div id="details-run-provider-name-run-success-task-name" itemprop="answerExplanation" itemscope itemtype="https://schema.org/WebContent" class="details-content">
-                                <span itemprop="text">Quis ea voluptatem non.<br>Aperiam dolor est alias odit enim fugiat vitae aliquam dolor.</span>
-                            </div>
-                        </td>
-                    </tr><tr itemscope itemtype="https://schema.org/Question">
-                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-                            <span itemprop="name">provider-name</span>
-                        </td>
-                        <td itemprop="identifier">run-failure</td>
-                        <td itemprop="name">task-name</td>
-                        <td class="failure" itemprop="additionalProperty">
-                            Failed
-                        </td>
-                        <td itemprop="timeRequired">10s</td>
-                        <td><ol class="answer-list single">
-                                    <li itemprop="suggestedAnswer" itemscope itemtype="https://schema.org/Answer" itemref="details-run-provider-name-run-failure-task-name">
-                                        <span itemprop="text"><!-- [html-validate-disable-block no-inline-style: generated by go-diff] --><del style="background:#ffe6e6;">Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui</del><ins style="background:#e6ffe6;">Ipsam ea et optio explicabo eius et</ins><span>.</span></span>
-                                    </li>
-                            </ol>
-                        </td>
-                        <td>
-                            <button type="button" class="details" aria-expanded="false"
-                                aria-controls="details-run-provider-name-run-failure-task-name"
-                                        onclick="toggleDetails('details-run-provider-name-run-failure-task-name'); this.setAttribute('aria-expanded', (this.getAttribute('aria-expanded')==='true' ? 'false' : 'true'));">
-                                        Show Details
-                            </button>
-                            <div id="details-run-provider-name-run-failure-task-name" itemprop="answerExplanation" itemscope itemtype="https://schema.org/WebContent" class="details-content">
-                                <span itemprop="text">Ut eos eius modi nihil voluptatem error.<br><br>Veniam omnis at possimus aliquid.<br>Ut voluptatem ullam et ea non beatae eos adipisci incidunt. Saepe atque occaecati. Tempore animi magni sequi modi omnis.<br>Consequatur hic sint laboriosam maiores unde vero ipsum.<br></span>
-                            </div>
-                        </td>
-                    </tr><tr itemscope itemtype="https://schema.org/Question">
-                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-                            <span itemprop="name">provider-name</span>
-                        </td>
-                        <td itemprop="identifier">run-success-multiple-answers</td>
-                        <td itemprop="name">task-name</td>
-                        <td class="success" itemprop="additionalProperty">
-                            Passed
-                        </td>
-                        <td itemprop="timeRequired">17s</td>
-                        <td><ol class="answer-list single">
-                                    <li itemprop="suggestedAnswer" itemscope itemtype="https://schema.org/Answer" itemref="details-run-provider-name-run-success-multiple-answers-task-name">
-                                        <span itemprop="text">Quos aut rerum quaerat qui ad culpa.</span>
-                                    </li>
-                            </ol>
-                        </td>
-                        <td>
-                            <button type="button" class="details" aria-expanded="false"
-                                aria-controls="details-run-provider-name-run-success-multiple-answers-task-name"
-                                        onclick="toggleDetails('details-run-provider-name-run-success-multiple-answers-task-name'); this.setAttribute('aria-expanded', (this.getAttribute('aria-expanded')==='true' ? 'false' : 'true'));">
-                                        Show Details
-                            </button>
-                            <div id="details-run-provider-name-run-success-multiple-answers-task-name" itemprop="answerExplanation" itemscope itemtype="https://schema.org/WebContent" class="details-content">
-                                <span itemprop="text">Quis ea voluptatem non.<br>Aperiam dolor est alias odit enim fugiat vitae aliquam dolor.</span>
-                            </div>
-                        </td>
-                    </tr><tr itemscope itemtype="https://schema.org/Question">
-                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-                            <span itemprop="name">provider-name</span>
-                        </td>
-                        <td itemprop="identifier">run-failure-multiple-answers</td>
-                        <td itemprop="name">task-name</td>
-                        <td class="failure" itemprop="additionalProperty">
-                            Failed
-                        </td>
-                        <td itemprop="timeRequired">3m0.8s</td>
-                        <td><ol class="answer-list">
-                                    <li itemprop="suggestedAnswer" itemscope itemtype="https://schema.org/Answer" itemref="details-run-provider-name-run-failure-multiple-answers-task-name">
-                                        <span itemprop="text"><!-- [html-validate-disable-block no-inline-style: generated by go-diff] --><del style="background:#ffe6e6;">Dolores saepe ad sed rerum autem iure minima</del><ins style="background:#e6ffe6;">Ipsam ea et optio explicabo eius</ins><span> et.</span></span>
-                                    </li>
-                                    <li itemprop="suggestedAnswer" itemscope itemtype="https://schema.org/Answer" itemref="details-run-provider-name-run-failure-multiple-answers-task-name">
-                                        <span itemprop="text"><!-- [html-validate-disable-block no-inline-style: generated by go-diff] --><del style="background:#ffe6e6;">Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui</del><ins style="background:#e6ffe6;">Ipsam ea et optio explicabo eius et</ins><span>.</span></span>
-                                    </li>
-                            </ol>
-                        </td>
-                        <td>
-                            <button type="button" class="details" aria-expanded="false"
-                                aria-controls="details-run-provider-name-run-failure-multiple-answers-task-name"
-                                        onclick="toggleDetails('details-run-provider-name-run-failure-multiple-answers-task-name'); this.setAttribute('aria-expanded', (this.getAttribute('aria-expanded')==='true' ? 'false' : 'true'));">
-                                        Show Details
-                            </button>
-                            <div id="details-run-provider-name-run-failure-multiple-answers-task-name" itemprop="answerExplanation" itemscope itemtype="https://schema.org/WebContent" class="details-content">
-                                <span itemprop="text">Ut eos eius modi nihil voluptatem error.<br><br>Veniam omnis at possimus aliquid.<br>Ut voluptatem ullam et ea non beatae eos adipisci incidunt. Saepe atque occaecati. Tempore animi magni sequi modi omnis.<br>Consequatur hic sint laboriosam maiores unde vero ipsum.<br></span>
-                            </div>
-                        </td>
-                    </tr><tr itemscope itemtype="https://schema.org/Question">
-                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-                            <span itemprop="name">provider-name</span>
-                        </td>
-                        <td itemprop="identifier">run-error</td>
-                        <td itemprop="name">task-name</td>
-                        <td class="error" itemprop="additionalProperty">
-                            Error
-                        </td>
-                        <td itemprop="timeRequired">0s</td>
-                        <td><ol class="answer-list single">
-                                    <li itemprop="suggestedAnswer" itemscope itemtype="https://schema.org/Answer" itemref="details-run-provider-name-run-error-task-name">
-                                        <span itemprop="text">error message</span>
-                                    </li>
-                            </ol>
-                        </td>
-                        <td>
-                            <button type="button" class="details" aria-expanded="false"
-                                aria-controls="details-run-provider-name-run-error-task-name"
-                                        onclick="toggleDetails('details-run-provider-name-run-error-task-name'); this.setAttribute('aria-expanded', (this.getAttribute('aria-expanded')==='true' ? 'false' : 'true'));">
-                                        Show Details
-                            </button>
-                            <div id="details-run-provider-name-run-error-task-name" itemprop="answerExplanation" itemscope itemtype="https://schema.org/WebContent" class="details-content">
-                                <span itemprop="text">Pariatur rem dolores corporis voluptas aut eum repellat pariatur.</span>
-                            </div>
-                        </td>
-                    </tr><tr itemscope itemtype="https://schema.org/Question">
-                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-                            <span itemprop="name">provider-name</span>
-                        </td>
-                        <td itemprop="identifier">run-not-supported</td>
-                        <td itemprop="name">task-name</td>
-                        <td class="skipped" itemprop="additionalProperty">
-                            Skipped
-                        </td>
-                        <td itemprop="timeRequired">500ms</td>
-                        <td><ol class="answer-list single">
-                                    <li itemprop="suggestedAnswer" itemscope itemtype="https://schema.org/Answer" itemref="details-run-provider-name-run-not-supported-task-name">
-                                        <span itemprop="text">Sequi molestiae iusto sit sit dolorum aut.</span>
-                                    </li>
-                            </ol>
-                        </td>
-                        <td>
-                            <button type="button" class="details" aria-expanded="false"
-                                aria-controls="details-run-provider-name-run-not-supported-task-name"
-                                        onclick="toggleDetails('details-run-provider-name-run-not-supported-task-name'); this.setAttribute('aria-expanded', (this.getAttribute('aria-expanded')==='true' ? 'false' : 'true'));">
-                                        Show Details
-                            </button>
-                            <div id="details-run-provider-name-run-not-supported-task-name" itemprop="answerExplanation" itemscope itemtype="https://schema.org/WebContent" class="details-content">
-                                <span itemprop="text">Placeat itaque voluptatem. Impedit aut quia velit. Libero ducimus tenetur vel et quibusdam. Et fugiat culpa. Tenetur iste aut mollitia corrupti et suscipit quia. Voluptatem incidunt aut et aliquam unde autem deleniti ea ea.</span>
+                        <td class="details-toggle-cell">
+                            <button class="details" onclick="toggleDetails('details-provider-name-0', this)" aria-expanded="false" aria-controls="details-provider-name-0">Show Details</button>
+                            <div id="details-provider-name-0" class="details-content">
+                                <section class="section-answer">
+                                    <div itemscope itemtype="https://schema.org/Answer" itemprop="suggestedAnswer" itemref="validation-run-provider-name-run-success-task-name">
+                                        <h4 itemprop="name">Responsio Bona</h4>
+                                        <details class="explanation" open itemprop="answerExplanation" itemscope itemtype="https://schema.org/Comment">
+                                            <summary>Answer Explanation</summary>
+                                            <div class="explanation-body" style="margin-top:0.5em;" itemprop="text">
+                                                <p class="para">Quis ea voluptatem non aperiam dolor est. Alias odit enim fugiat vitae aliquam dolor quo ratione.</p>
+                                            </div>
+                                        </details>
+                                        <details open>
+                                            <summary>Actual Answer</summary>
+                                            <ol style="margin:0.5em 0 0 1.2em; list-style:none; padding:0;">
+                                                <li style="margin:0;">
+                                                    <pre><code itemprop="text">Quos aut rerum quaerat qui ad culpa.
+</code></pre>
+                                                </li>
+                                            </ol>
+                                        </details>
+                                    </div>
+                                    <details>
+                                        <summary>Expected Acceptable Answer(s)</summary>
+                                        <ol class="expected-answers" style="margin:0.5em 0 0 1.2em; padding:0;">
+                                            <li itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer"><pre><code itemprop="text">Quos aut rerum quaerat qui ad culpa.
+</code></pre></li>
+                                        </ol>
+                                    </details>
+                                </section>
+                                <section id="validation-run-provider-name-run-success-task-name" class="section-validation" itemscope itemtype="https://schema.org/Comment" itemprop="comment">
+                                    <h4>Validatio Perfecta</h4>
+                                    <details class="explanation" open>
+                                        <summary>Validation Explanation</summary>
+                                        <div class="explanation-body" style="margin-top:0.5em;" itemprop="text">
+                                            <p class="para">Sed ut perspiciatis unde omnis iste natus error sit voluptatem.</p>
+                                        </div>
+                                    </details>
+                                </section>
                             </div>
                         </td>
                     </tr>
-                </tbody>
+                    <tr id="run-provider-name-run-failure-task-name" itemscope itemtype="https://schema.org/Question" data-provider="provider-name" data-run="run-failure" data-task="task-name" data-status="failed" data-duration="10000">
+                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name"><span itemprop="name">provider-name</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-failure" title="Filter by run: run-failure"><span itemprop="identifier">run-failure</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="task" data-filter-value="task-name" title="Filter by task: task-name"><span itemprop="name">task-name</span></td>
+                        <td class="status-failed clickable-filter clickable" data-filter-type="status" data-filter-value="failed" title="Filter by status: Failed">
+                            <span itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty">
+                                <meta itemprop="name" content="status">
+                                <span itemprop="value">Failed</span>
+                            </span>
+                        </td>
+                        <td><time itemprop="timeRequired" datetime="PT10.000S">10s</time>
+                        </td>
+                        <td class="details-cell">
+                            <ol class="answer-list single">
+                                <li><!-- [html-validate-disable-block no-inline-style: generated by go-diff] --><del style="background:#ffe6e6;">Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui</del><ins style="background:#e6ffe6;">Ipsam ea et optio explicabo eius et</ins><span>.</span></li>
+                            </ol>
+                        </td>
+                        <td class="details-toggle-cell">
+                            <button class="details" onclick="toggleDetails('details-provider-name-1', this)" aria-expanded="false" aria-controls="details-provider-name-1">Show Details</button>
+                            <div id="details-provider-name-1" class="details-content">
+                                <section class="section-answer">
+                                    <div itemscope itemtype="https://schema.org/Answer" itemprop="suggestedAnswer" itemref="validation-run-provider-name-run-failure-task-name">
+                                        <h4 itemprop="name">Generatio Responsi</h4>
+                                        <details class="explanation" open itemprop="answerExplanation" itemscope itemtype="https://schema.org/Comment">
+                                            <summary>Answer Explanation</summary>
+                                            <div class="explanation-body" style="margin-top:0.5em;" itemprop="text">
+                                                <p class="para">Ut eos eius modi nihil voluptatem error. Veniam omnis at possimus aliquid tempore. Ut voluptatem ullam et ea non beatae eos adipisci incidunt. Consequatur hic sint laboriosam maiores unde vero ipsum magnam.</p>
+                                            </div>
+                                        </details>
+                                        <details open>
+                                            <summary>Actual Answer</summary>
+                                            <ol style="margin:0.5em 0 0 1.2em; list-style:none; padding:0;">
+                                                <li style="margin:0;">
+                                                    <pre><code itemprop="text">Ipsam ea et optio explicabo eius et.
+</code></pre>
+                                                </li>
+                                            </ol>
+                                        </details>
+                                    </div>
+                                    <details>
+                                        <summary>Expected Acceptable Answer(s)</summary>
+                                        <ol class="expected-answers" style="margin:0.5em 0 0 1.2em; padding:0;">
+                                            <li itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer"><pre><code itemprop="text">Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui.
+</code></pre></li>
+                                        </ol>
+                                    </details>
+                                </section>
+                                <section id="validation-run-provider-name-run-failure-task-name" class="section-validation" itemscope itemtype="https://schema.org/Comment" itemprop="comment">
+                                    <h4>Validatio Defecit</h4>
+                                    <details class="explanation" open>
+                                        <summary>Validation Explanation</summary>
+                                        <div class="explanation-body" style="margin-top:0.5em;" itemprop="text">
+                                            <p class="para">At vero eos et accusamus et iusto odio dignissimos ducimus qui.</p>
+                                        </div>
+                                    </details>
+                                </section>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="run-provider-name-run-success-multiple-answers-task-name" itemscope itemtype="https://schema.org/Question" data-provider="provider-name" data-run="run-success-multiple-answers" data-task="task-name" data-status="passed" data-duration="17000">
+                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name"><span itemprop="name">provider-name</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-success-multiple-answers" title="Filter by run: run-success-multiple-answers"><span itemprop="identifier">run-success-multiple-answers</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="task" data-filter-value="task-name" title="Filter by task: task-name"><span itemprop="name">task-name</span></td>
+                        <td class="status-passed clickable-filter clickable" data-filter-type="status" data-filter-value="passed" title="Filter by status: Passed">
+                            <span itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty">
+                                <meta itemprop="name" content="status">
+                                <span itemprop="value">Passed</span>
+                            </span>
+                        </td>
+                        <td><time itemprop="timeRequired" datetime="PT17.000S">17s</time>
+                        </td>
+                        <td class="details-cell">
+                            <ol class="answer-list single">
+                                <li>Quos aut rerum quaerat qui ad culpa.</li>
+                            </ol>
+                        </td>
+                        <td class="details-toggle-cell">
+                            <button class="details" onclick="toggleDetails('details-provider-name-2', this)" aria-expanded="false" aria-controls="details-provider-name-2">Show Details</button>
+                            <div id="details-provider-name-2" class="details-content">
+                                <section class="section-answer">
+                                    <div itemscope itemtype="https://schema.org/Answer" itemprop="suggestedAnswer" itemref="validation-run-provider-name-run-success-multiple-answers-task-name">
+                                        <h4 itemprop="name">Multiplex Responsio</h4>
+                                        <details class="explanation" open itemprop="answerExplanation" itemscope itemtype="https://schema.org/Comment">
+                                            <summary>Answer Explanation</summary>
+                                            <div class="explanation-body" style="margin-top:0.5em;" itemprop="text">
+                                                <p class="para">Quis ea voluptatem non aperiam. Dolor est alias odit enim fugiat vitae aliquam dolore ratione.</p>
+                                            </div>
+                                        </details>
+                                        <details open>
+                                            <summary>Actual Answer</summary>
+                                            <ol style="margin:0.5em 0 0 1.2em; list-style:none; padding:0;">
+                                                <li style="margin:0;">
+                                                    <pre><code itemprop="text">Quos aut rerum quaerat qui ad culpa.
+</code></pre>
+                                                </li>
+                                            </ol>
+                                        </details>
+                                    </div>
+                                    <details>
+                                        <summary>Expected Acceptable Answer(s)</summary>
+                                        <ol class="expected-answers" style="margin:0.5em 0 0 1.2em; padding:0;">
+                                            <li itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer"><pre><code itemprop="text">Deserunt quo sint minus eos officiis et.
+</code></pre></li>
+                                            <li itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer"><pre><code itemprop="text">Quos aut rerum quaerat qui ad culpa.
+</code></pre></li>
+                                        </ol>
+                                    </details>
+                                </section>
+                                <section id="validation-run-provider-name-run-success-multiple-answers-task-name" class="section-validation" itemscope itemtype="https://schema.org/Comment" itemprop="comment">
+                                    <h4>Selectio Validata</h4>
+                                    <details class="explanation" open>
+                                        <summary>Validation Explanation</summary>
+                                        <div class="explanation-body" style="margin-top:0.5em;" itemprop="text">
+                                            <p class="para">Blanditiis praesentium voluptatum deleniti atque corrupti quos dolores. Et quas molestias excepturi sint occaecati cupiditate non provident. Similique sunt in culpa qui officia deserunt mollitia animi.</p>
+                                        </div>
+                                    </details>
+                                </section>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="run-provider-name-run-failure-multiple-answers-task-name" itemscope itemtype="https://schema.org/Question" data-provider="provider-name" data-run="run-failure-multiple-answers" data-task="task-name" data-status="failed" data-duration="180800">
+                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name"><span itemprop="name">provider-name</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-failure-multiple-answers" title="Filter by run: run-failure-multiple-answers"><span itemprop="identifier">run-failure-multiple-answers</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="task" data-filter-value="task-name" title="Filter by task: task-name"><span itemprop="name">task-name</span></td>
+                        <td class="status-failed clickable-filter clickable" data-filter-type="status" data-filter-value="failed" title="Filter by status: Failed">
+                            <span itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty">
+                                <meta itemprop="name" content="status">
+                                <span itemprop="value">Failed</span>
+                            </span>
+                        </td>
+                        <td><time itemprop="timeRequired" datetime="PT180.800S">3m0.8s</time>
+                        </td>
+                        <td class="details-cell">
+                            <ol class="answer-list ">
+                                <li><!-- [html-validate-disable-block no-inline-style: generated by go-diff] --><del style="background:#ffe6e6;">Dolores saepe ad sed rerum autem iure minima</del><ins style="background:#e6ffe6;">Ipsam ea et optio explicabo eius</ins><span> et.</span></li>
+                                <li><!-- [html-validate-disable-block no-inline-style: generated by go-diff] --><del style="background:#ffe6e6;">Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui</del><ins style="background:#e6ffe6;">Ipsam ea et optio explicabo eius et</ins><span>.</span></li>
+                            </ol>
+                        </td>
+                        <td class="details-toggle-cell">
+                            <button class="details" onclick="toggleDetails('details-provider-name-3', this)" aria-expanded="false" aria-controls="details-provider-name-3">Show Details</button>
+                            <div id="details-provider-name-3" class="details-content">
+                                <section class="section-answer">
+                                    <div itemscope itemtype="https://schema.org/Answer" itemprop="suggestedAnswer" itemref="validation-run-provider-name-run-failure-multiple-answers-task-name">
+                                        <h4 itemprop="name">Responsum Generatum</h4>
+                                        <details class="explanation" open itemprop="answerExplanation" itemscope itemtype="https://schema.org/Comment">
+                                            <summary>Answer Explanation</summary>
+                                            <div class="explanation-body" style="margin-top:0.5em;" itemprop="text">
+                                                <p class="para">Ut eos eius modi nihil voluptatem error quidem. Veniam omnis at possimus aliquid corporis. Ut voluptatem ullam et ea non beatae eos adipisci incidunt tempore. Consequatur hic sint laboriosam maiores unde vero ipsum dolorem.</p>
+                                            </div>
+                                        </details>
+                                        <details open>
+                                            <summary>Actual Answer</summary>
+                                            <ol style="margin:0.5em 0 0 1.2em; list-style:none; padding:0;">
+                                                <li style="margin:0;">
+                                                    <pre><code itemprop="text">Ipsam ea et optio explicabo eius et.
+</code></pre>
+                                                </li>
+                                            </ol>
+                                        </details>
+                                    </div>
+                                    <details>
+                                        <summary>Expected Acceptable Answer(s)</summary>
+                                        <ol class="expected-answers" style="margin:0.5em 0 0 1.2em; padding:0;">
+                                            <li itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer"><pre><code itemprop="text">Dolores saepe ad sed rerum autem iure minima et.
+</code></pre></li>
+                                            <li itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer"><pre><code itemprop="text">Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui.
+</code></pre></li>
+                                        </ol>
+                                    </details>
+                                </section>
+                                <section id="validation-run-provider-name-run-failure-multiple-answers-task-name" class="section-validation" itemscope itemtype="https://schema.org/Comment" itemprop="comment">
+                                    <h4>Selectio Rejicienda</h4>
+                                    <details class="explanation" open>
+                                        <summary>Validation Explanation</summary>
+                                        <div class="explanation-body" style="margin-top:0.5em;" itemprop="text">
+                                            <p class="para">Et harum quidem rerum facilis est et expedita distinctio nam libero.</p>
+                                        </div>
+                                    </details>
+                                </section>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="run-provider-name-run-error-task-name" itemscope itemtype="https://schema.org/Question" data-provider="provider-name" data-run="run-error" data-task="task-name" data-status="error" data-duration="0">
+                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name"><span itemprop="name">provider-name</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-error" title="Filter by run: run-error"><span itemprop="identifier">run-error</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="task" data-filter-value="task-name" title="Filter by task: task-name"><span itemprop="name">task-name</span></td>
+                        <td class="status-error clickable-filter clickable" data-filter-type="status" data-filter-value="error" title="Filter by status: Error">
+                            <span itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty">
+                                <meta itemprop="name" content="status">
+                                <span itemprop="value">Error</span>
+                            </span>
+                        </td>
+                        <td><time itemprop="timeRequired" datetime="PT0.000S">0s</time>
+                        </td>
+                        <td class="details-cell">
+                            <ol class="answer-list single">
+                                <li>error message</li>
+                            </ol>
+                        </td>
+                        <td class="details-toggle-cell">
+                            <button class="details" onclick="toggleDetails('details-provider-name-4', this)" aria-expanded="false" aria-controls="details-provider-name-4">Show Details</button>
+                            <div id="details-provider-name-4" class="details-content">
+                                <section class="section-error">
+                                    <h4>Errorem Executionis</h4>
+                                    <p class="para" style="margin:0 0 0.6em 0;">Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus.</p>
+                                </section>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="run-provider-name-run-not-supported-task-name" itemscope itemtype="https://schema.org/Question" data-provider="provider-name" data-run="run-not-supported" data-task="task-name" data-status="skipped" data-duration="500">
+                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name"><span itemprop="name">provider-name</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-not-supported" title="Filter by run: run-not-supported"><span itemprop="identifier">run-not-supported</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="task" data-filter-value="task-name" title="Filter by task: task-name"><span itemprop="name">task-name</span></td>
+                        <td class="status-skipped clickable-filter clickable" data-filter-type="status" data-filter-value="skipped" title="Filter by status: Skipped">
+                            <span itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty">
+                                <meta itemprop="name" content="status">
+                                <span itemprop="value">Skipped</span>
+                            </span>
+                        </td>
+                        <td><time itemprop="timeRequired" datetime="PT0.500S">500ms</time>
+                        </td>
+                        <td class="details-cell">
+                            <ol class="answer-list single">
+                                <li>Sequi molestiae iusto sit sit dolorum aut.</li>
+                            </ol>
+                        </td>
+                        <td class="details-toggle-cell">
+                            <button class="details" onclick="toggleDetails('details-provider-name-5', this)" aria-expanded="false" aria-controls="details-provider-name-5">Show Details</button>
+                            <div id="details-provider-name-5" class="details-content">
+                                <section class="section-error">
+                                    <h4>Functio Non Supporta</h4>
+                                    <p class="para" style="margin:0 0 0.6em 0;">Voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+                                    <details open>
+                                        <summary>Technical Details</summary>
+                                        <dl class="tech-details">
+                                            <dt>Feature Type</dt>
+                                            <dd><pre><code>advanced-reasoning
+</code></pre></dd>
+                                            <dt>Provider</dt>
+                                            <dd><pre><code>legacy-model-v1
+</code></pre></dd>
+                                            <dt>Suggestion</dt>
+                                            <dd><pre><code>Excepteur sint occaecat cupidatat non proident.
+Sunt in culpa qui officia deserunt mollit anim.
+</code></pre></dd>
+                                        </dl>
+                                    </details>
+                                </section>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="run-provider-name-run-validation-error-task-name" itemscope itemtype="https://schema.org/Question" data-provider="provider-name" data-run="run-validation-error" data-task="task-name" data-status="error" data-duration="2000">
+                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name"><span itemprop="name">provider-name</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-validation-error" title="Filter by run: run-validation-error"><span itemprop="identifier">run-validation-error</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="task" data-filter-value="task-name" title="Filter by task: task-name"><span itemprop="name">task-name</span></td>
+                        <td class="status-error clickable-filter clickable" data-filter-type="status" data-filter-value="error" title="Filter by status: Error">
+                            <span itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty">
+                                <meta itemprop="name" content="status">
+                                <span itemprop="value">Error</span>
+                            </span>
+                        </td>
+                        <td><time itemprop="timeRequired" datetime="PT2.000S">2s</time>
+                        </td>
+                        <td class="details-cell">
+                            <ol class="answer-list single">
+                                <li>Adipiscing elit sed do eiusmod tempor.</li>
+                            </ol>
+                        </td>
+                        <td class="details-toggle-cell">
+                            <button class="details" onclick="toggleDetails('details-provider-name-6', this)" aria-expanded="false" aria-controls="details-provider-name-6">Show Details</button>
+                            <div id="details-provider-name-6" class="details-content">
+                                <section class="section-error">
+                                    <h4>Validatio Deficiens</h4>
+                                    <p class="para" style="margin:0 0 0.6em 0;">Ut enim ad minim veniam quis nostrud exercitation ullamco laboris.</p>
+                                    <details open>
+                                        <summary>Technical Details</summary>
+                                        <dl class="tech-details">
+                                            <dt>Diagnostic</dt>
+                                            <dd><pre><code>Nemo enim ipsam voluptatem quia voluptas sit
+</code></pre></dd>
+                                            <dt>Endpoint</dt>
+                                            <dd><pre><code>validate-response
+</code></pre></dd>
+                                            <dt>Raw Response</dt>
+                                            <dd><pre><code>Excepteur sint occaecat cupidatat non proident
+Sunt in culpa qui officia deserunt mollit anim
+Id est laborum et dolorum fuga
+</code></pre></dd>
+                                            <dt>Service</dt>
+                                            <dd><pre><code>validation-service-v2
+</code></pre></dd>
+                                        </dl>
+                                    </details>
+                                </section>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="run-provider-name-run-parsing-error-task-name" itemscope itemtype="https://schema.org/Question" data-provider="provider-name" data-run="run-parsing-error" data-task="task-name" data-status="error" data-duration="314159">
+                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name"><span itemprop="name">provider-name</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-parsing-error" title="Filter by run: run-parsing-error"><span itemprop="identifier">run-parsing-error</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="task" data-filter-value="task-name" title="Filter by task: task-name"><span itemprop="name">task-name</span></td>
+                        <td class="status-error clickable-filter clickable" data-filter-type="status" data-filter-value="error" title="Filter by status: Error">
+                            <span itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty">
+                                <meta itemprop="name" content="status">
+                                <span itemprop="value">Error</span>
+                            </span>
+                        </td>
+                        <td><time itemprop="timeRequired" datetime="PT314.159S">5m14.159s</time>
+                        </td>
+                        <td class="details-cell">
+                            <ol class="answer-list single">
+                                <li>Invalid JSON: {broken</li>
+                            </ol>
+                        </td>
+                        <td class="details-toggle-cell">
+                            <button class="details" onclick="toggleDetails('details-provider-name-7', this)" aria-expanded="false" aria-controls="details-provider-name-7">Show Details</button>
+                            <div id="details-provider-name-7" class="details-content">
+                                <section class="section-error">
+                                    <h4>Parsing Errorem Responsi</h4>
+                                    <p class="para" style="margin:0 0 0.6em 0;">Duis aute irure dolor in reprehenderit in voluptate velit esse.</p>
+                                    <details open>
+                                        <summary>Technical Details</summary>
+                                        <dl class="tech-details">
+                                            <dt>Error Position</dt>
+                                            <dd><pre><code>line 3, column 25
+</code></pre></dd>
+                                            <dt>Parser State</dt>
+                                            <dd><pre><code>Expected: closing quote or brace
+Found: end of input
+Context: within object literal
+</code></pre></dd>
+                                            <dt>Raw Response</dt>
+                                            <dd><pre><code>Invalid JSON: {broken
+  &#34;field1&#34;: &#34;value1&#34;,
+  &#34;field2&#34;: incomplete...
+} // missing closing brace
+</code></pre></dd>
+                                            <dt>Recovery</dt>
+                                            <dd><pre><code>Cillum dolore eu fugiat nulla pariatur.
+</code></pre></dd>
+                                        </dl>
+                                    </details>
+                                </section>
+                            </div>
+                        </td>
+                    </tr></tbody>
             </table>
         </section>
     </main>
     <footer>
-        Generated by <span itemprop="creator" itemscope itemtype="https://schema.org/SoftwareApplication">
-        	<a href="https://github.com/petmal/mindtrial" target="_blank"
-            title="Visit MindTrial source repository" itemprop="downloadUrl releaseNotes discussionUrl url"><span itemprop="name">MindTrial</span></a>
-            <span itemprop="softwareVersion">(testing)</span></span> on <span itemprop="dateCreated">1985-03-04T22:10:00</span>.
+          Generated by <span itemprop="creator" itemscope itemtype="https://schema.org/SoftwareApplication">
+                <a href="https://github.com/petmal/mindtrial" target="_blank"
+                    title="Visit MindTrial source repository" itemprop="downloadUrl releaseNotes discussionUrl url"><span itemprop="name">MindTrial</span></a>
+                <span itemprop="softwareVersion">(testing)</span></span> on <span itemprop="dateCreated">1985-03-04T22:10:00</span>.
     </footer>
 </body>
 </html>

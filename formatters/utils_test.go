@@ -500,44 +500,6 @@ func TestRoundToMS(t *testing.T) {
 	}
 }
 
-func TestTextToHTML(t *testing.T) {
-	tests := []struct {
-		name  string
-		input string
-		want  string
-	}{
-		{
-			name:  "empty string",
-			input: "",
-			want:  "",
-		},
-		{
-			name:  "single newline",
-			input: "Hello\nWorld",
-			want:  "Hello<br>World",
-		},
-		{
-			name:  "carriage return and newline",
-			input: "Hello\r\nWorld",
-			want:  "Hello<br>World",
-		},
-		{
-			name:  "multiple newlines",
-			input: "Hello\nWorld \r\nTest\n",
-			want:  "Hello<br>World <br>Test<br>",
-		},
-		{
-			name:  "no newlines",
-			input: "Hello World",
-			want:  "Hello World",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, TextToHTML(tt.input))
-		})
-	}
-}
 func TestTimestamp(t *testing.T) {
 	want := time.Now()
 	got := Timestamp()
@@ -546,4 +508,107 @@ func TestTimestamp(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.WithinDuration(t, want, parsedTime, time.Second)
+}
+
+func TestGroupParagraphs(t *testing.T) {
+	tests := []struct {
+		name  string
+		lines []string
+		want  [][]string
+	}{
+		{
+			name:  "empty slice",
+			lines: []string{},
+			want:  [][]string{},
+		},
+		{
+			name:  "only blank lines",
+			lines: []string{"", " ", "\t", ""},
+			want:  [][]string{},
+		},
+		{
+			name:  "single line",
+			lines: []string{"Line 1"},
+			want:  [][]string{{"Line 1"}},
+		},
+		{
+			name:  "multiple lines single paragraph",
+			lines: []string{"Line 1", "Line 2", "Line 3"},
+			want:  [][]string{{"Line 1", "Line 2", "Line 3"}},
+		},
+		{
+			name:  "two paragraphs separated by blank",
+			lines: []string{"Line 1", "Line 2", "", "Line 3"},
+			want:  [][]string{{"Line 1", "Line 2"}, {"Line 3"}},
+		},
+		{
+			name:  "leading and trailing blanks trimmed",
+			lines: []string{"", "Line 1", "Line 2", ""},
+			want:  [][]string{{"Line 1", "Line 2"}},
+		},
+		{
+			name:  "consecutive blank lines collapse",
+			lines: []string{"P1L1", "", "", "P2L1"},
+			want:  [][]string{{"P1L1"}, {"P2L1"}},
+		},
+		{
+			name:  "whitespace-only lines each end paragraph",
+			lines: []string{"P1L1", "   ", "\t", "P2L1", " ", "P2L2"},
+			want:  [][]string{{"P1L1"}, {"P2L1"}, {"P2L2"}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, GroupParagraphs(tt.lines))
+		})
+	}
+}
+
+func TestUniqueRuns(t *testing.T) {
+	tests := []struct {
+		name  string
+		input runners.Results
+		want  []string
+	}{
+		{
+			name:  "empty results",
+			input: runners.Results{},
+			want:  []string{},
+		},
+		{
+			name: "single run single provider",
+			input: runners.Results{
+				"provA": {{Run: "run1"}},
+			},
+			want: []string{"run1"},
+		},
+		{
+			name: "duplicate runs different providers",
+			input: runners.Results{
+				"provA": {{Run: "run1"}, {Run: "run2"}},
+				"provB": {{Run: "run2"}, {Run: "run3"}},
+			},
+			want: []string{"run1", "run2", "run3"},
+		},
+		{
+			name: "already sorted",
+			input: runners.Results{
+				"provA": {{Run: "a"}, {Run: "b"}},
+			},
+			want: []string{"a", "b"},
+		},
+		{
+			name: "unsorted with repeats",
+			input: runners.Results{
+				"provA": {{Run: "z"}, {Run: "a"}},
+				"provB": {{Run: "m"}, {Run: "a"}, {Run: "z"}},
+			},
+			want: []string{"a", "m", "z"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, UniqueRuns(tt.input))
+		})
+	}
 }

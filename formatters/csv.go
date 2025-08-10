@@ -8,6 +8,7 @@ package formatters
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"io"
 
@@ -36,7 +37,11 @@ func (f csvFormatter) Write(results runners.Results, out io.Writer) error {
 
 	return ForEachOrdered(results, func(_ string, runResults []runners.RunResult) error {
 		for _, result := range runResults {
-			row := []string{result.Provider, result.Run, result.Task, ToStatus(result.Kind), RoundToMS(result.Duration).String(), formatAnswerText(result), result.Details}
+			detailsJSON, err := json.Marshal(result.Details)
+			if err != nil {
+				return fmt.Errorf("%w: %v", ErrPrintResults, err)
+			}
+			row := []string{result.Provider, result.Run, result.Task, ToStatus(result.Kind), RoundToMS(result.Duration).String(), formatAnswerText(result), string(detailsJSON)}
 			if err := writer.Write(row); err != nil {
 				return fmt.Errorf("%w: %v", ErrPrintResults, err)
 			}

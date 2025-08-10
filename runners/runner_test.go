@@ -95,7 +95,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "mock",
 						Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
 						Want:     utils.NewStringSet("provident quas tenetur repellat deserunt ut neque culpa."),
-						Details:  "success\n\nmock success\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "success",
+								Explanation:    []string{"mock success"},
+								ActualAnswer:   []string{"Provident quas tenetur repellat deserunt ut neque culpa."},
+								ExpectedAnswer: [][]string{{"Provident quas tenetur repellat deserunt ut neque culpa."}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -105,7 +117,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "mock",
 						Got:      "facere aperiam recusandae totam magnam nulla corrupti.",
 						Want:     utils.NewStringSet("aperiam assumenda id provident ratione eos molestiae."),
-						Details:  "failure\n\nmock failure\n\n\nResponse Assessment\n\nResponse does not match any of the accepted answers.\n\nActual response:\nFacere aperiam recusandae totam magnam nulla corrupti.",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "failure",
+								Explanation:    []string{"mock failure"},
+								ActualAnswer:   []string{"Facere aperiam recusandae totam magnam nulla corrupti."},
+								ExpectedAnswer: [][]string{{"Aperiam assumenda id provident ratione eos molestiae."}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response does not match any of the accepted answers."},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -115,7 +139,14 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "mock",
 						Got:      "mock error",
 						Want:     utils.NewStringSet("doloribus quis incidunt velit quia."),
-						Details:  "",
+						Details: Details{
+							Answer:     AnswerDetails{},
+							Validation: ValidationDetails{},
+							Error: ErrorDetails{
+								Title:   "Execution Error",
+								Message: "mock error",
+							},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -125,7 +156,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "mock",
 						Got:      "facere aperiam recusandae totam magnam nulla corrupti.",
 						Want:     utils.NewStringSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
-						Details:  "failure\n\nmock failure\n\n\nResponse Assessment\n\nResponse does not match any of the accepted answers.\n\nActual response:\nFacere aperiam recusandae totam magnam nulla corrupti.",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "failure",
+								Explanation:    []string{"mock failure"},
+								ActualAnswer:   []string{"Facere aperiam recusandae totam magnam nulla corrupti."},
+								ExpectedAnswer: [][]string{{"Veritatis aliquid accusantium dolore voluptate optio dolor."}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response does not match any of the accepted answers."},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -135,7 +178,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "mock",
 						Got:      "omnis omnis ea quia et ut est.",
 						Want:     utils.NewStringSet("omnis omnis ea quia et ut est."),
-						Details:  "success\n\nmock success\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "success",
+								Explanation:    []string{"mock success"},
+								ActualAnswer:   []string{"Omnis omnis ea quia et ut est."},
+								ExpectedAnswer: [][]string{{"Omnis omnis ea quia et ut est."}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -145,7 +200,14 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "mock",
 						Got:      "feature not supported by provider: mock not supported",
 						Want:     utils.NewStringSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
-						Details:  "",
+						Details: Details{
+							Answer:     AnswerDetails{},
+							Validation: ValidationDetails{},
+							Error: ErrorDetails{
+								Title:   "Feature Not Supported",
+								Message: "feature not supported by provider: mock not supported",
+							},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -155,7 +217,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "mock",
 						Got:      "Facere aperiam recusandae totam magnam nulla corrupti.",
 						Want:     utils.NewStringSet("rerum nam illo", "dolore praesentium non"),
-						Details:  "failure\n\nmock failure\n\n\nSemantic Assessment\n\nResponse is not semantically equivalent to any of the accepted answers.\n\nActual response:\nFacere aperiam recusandae totam magnam nulla corrupti.\n\nJudge reasoning:\nmock success",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "failure",
+								Explanation:    []string{"mock failure"},
+								ActualAnswer:   []string{"Facere aperiam recusandae totam magnam nulla corrupti."},
+								ExpectedAnswer: [][]string{{"rerum nam illo"}, {"dolore praesentium non"}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Semantic Assessment",
+								Explanation: []string{"Response is not semantically equivalent to any of the accepted answers.", "", "Judge reasoning:", "mock success"},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -165,7 +239,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "mock",
 						Got:      "corporis et ipsa",
 						Want:     utils.NewStringSet("corporis et ipsa", "nesciunt sed quia"),
-						Details:  "success\n\nmock success\n\n\nSemantic Assessment\n\nResponse is semantically equivalent to one of the accepted answers.\n\nJudge reasoning:\nmock success",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "success",
+								Explanation:    []string{"mock success"},
+								ActualAnswer:   []string{"corporis et ipsa"},
+								ExpectedAnswer: [][]string{{"corporis et ipsa"}, {"nesciunt sed quia"}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Semantic Assessment",
+								Explanation: []string{"Response is semantically equivalent to one of the accepted answers.", "", "Judge reasoning:", "mock success"},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -175,7 +261,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
 						Want:     utils.NewStringSet("provident quas tenetur repellat deserunt ut neque culpa."),
-						Details:  "success\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "success",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"Provident quas tenetur repellat deserunt ut neque culpa."},
+								ExpectedAnswer: [][]string{{"Provident quas tenetur repellat deserunt ut neque culpa."}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -185,7 +283,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "aperiam assumenda id provident ratione eos molestiae.",
 						Want:     utils.NewStringSet("aperiam assumenda id provident ratione eos molestiae."),
-						Details:  "failure\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "failure",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"Aperiam assumenda id provident ratione eos molestiae."},
+								ExpectedAnswer: [][]string{{"Aperiam assumenda id provident ratione eos molestiae."}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -195,7 +305,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "doloribus quis incidunt velit quia.",
 						Want:     utils.NewStringSet("doloribus quis incidunt velit quia."),
-						Details:  "error\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "error",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"Doloribus quis incidunt velit quia."},
+								ExpectedAnswer: [][]string{{"Doloribus quis incidunt velit quia."}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -205,7 +327,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "veritatis aliquid accusantium dolore voluptate optio dolor.",
 						Want:     utils.NewStringSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
-						Details:  "failure\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "failure",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"Veritatis aliquid accusantium dolore voluptate optio dolor."},
+								ExpectedAnswer: [][]string{{"Veritatis aliquid accusantium dolore voluptate optio dolor."}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -215,7 +349,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "omnis omnis ea quia et ut est.",
 						Want:     utils.NewStringSet("omnis omnis ea quia et ut est."),
-						Details:  "success\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "success",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"Omnis omnis ea quia et ut est."},
+								ExpectedAnswer: [][]string{{"Omnis omnis ea quia et ut est."}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -225,7 +371,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "unde accusantium sit et enim temporibus qui distinctio assumenda.",
 						Want:     utils.NewStringSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
-						Details:  "not_supported\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "not_supported",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"Unde accusantium sit et enim temporibus qui distinctio assumenda."},
+								ExpectedAnswer: [][]string{{"Unde accusantium sit et enim temporibus qui distinctio assumenda."}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -235,7 +393,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "rerum nam illo",
 						Want:     utils.NewStringSet("rerum nam illo", "dolore praesentium non"),
-						Details:  "failure\n\nmock pass\n\n\nSemantic Assessment\n\nResponse is semantically equivalent to one of the accepted answers.\n\nJudge reasoning:\nmock success",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "failure",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"rerum nam illo"},
+								ExpectedAnswer: [][]string{{"rerum nam illo"}, {"dolore praesentium non"}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Semantic Assessment",
+								Explanation: []string{"Response is semantically equivalent to one of the accepted answers.", "", "Judge reasoning:", "mock success"},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -245,7 +415,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "corporis et ipsa",
 						Want:     utils.NewStringSet("corporis et ipsa", "nesciunt sed quia"),
-						Details:  "success\n\nmock pass\n\n\nSemantic Assessment\n\nResponse is semantically equivalent to one of the accepted answers.\n\nJudge reasoning:\nmock success",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "success",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"corporis et ipsa"},
+								ExpectedAnswer: [][]string{{"corporis et ipsa"}, {"nesciunt sed quia"}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Semantic Assessment",
+								Explanation: []string{"Response is semantically equivalent to one of the accepted answers.", "", "Judge reasoning:", "mock success"},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 				},
@@ -257,7 +439,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
 						Want:     utils.NewStringSet("provident quas tenetur repellat deserunt ut neque culpa."),
-						Details:  "success\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "success",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"Provident quas tenetur repellat deserunt ut neque culpa."},
+								ExpectedAnswer: [][]string{{"Provident quas tenetur repellat deserunt ut neque culpa."}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -267,7 +461,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "aperiam assumenda id provident ratione eos molestiae.",
 						Want:     utils.NewStringSet("aperiam assumenda id provident ratione eos molestiae."),
-						Details:  "failure\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "failure",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"Aperiam assumenda id provident ratione eos molestiae."},
+								ExpectedAnswer: [][]string{{"Aperiam assumenda id provident ratione eos molestiae."}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -277,7 +483,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "doloribus quis incidunt velit quia.",
 						Want:     utils.NewStringSet("doloribus quis incidunt velit quia."),
-						Details:  "error\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "error",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"Doloribus quis incidunt velit quia."},
+								ExpectedAnswer: [][]string{{"Doloribus quis incidunt velit quia."}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -287,7 +505,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "veritatis aliquid accusantium dolore voluptate optio dolor.",
 						Want:     utils.NewStringSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
-						Details:  "failure\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "failure",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"Veritatis aliquid accusantium dolore voluptate optio dolor."},
+								ExpectedAnswer: [][]string{{"Veritatis aliquid accusantium dolore voluptate optio dolor."}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -297,7 +527,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "omnis omnis ea quia et ut est.",
 						Want:     utils.NewStringSet("omnis omnis ea quia et ut est."),
-						Details:  "success\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "success",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"Omnis omnis ea quia et ut est."},
+								ExpectedAnswer: [][]string{{"Omnis omnis ea quia et ut est."}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -307,7 +549,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "unde accusantium sit et enim temporibus qui distinctio assumenda.",
 						Want:     utils.NewStringSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
-						Details:  "not_supported\n\nmock pass\n\n\nResponse Assessment\n\nResponse matches one of the accepted answers.",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "not_supported",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"Unde accusantium sit et enim temporibus qui distinctio assumenda."},
+								ExpectedAnswer: [][]string{{"Unde accusantium sit et enim temporibus qui distinctio assumenda."}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -317,7 +571,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "rerum nam illo",
 						Want:     utils.NewStringSet("rerum nam illo", "dolore praesentium non"),
-						Details:  "failure\n\nmock pass\n\n\nSemantic Assessment\n\nResponse is semantically equivalent to one of the accepted answers.\n\nJudge reasoning:\nmock success",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "failure",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"rerum nam illo"},
+								ExpectedAnswer: [][]string{{"rerum nam illo"}, {"dolore praesentium non"}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Semantic Assessment",
+								Explanation: []string{"Response is semantically equivalent to one of the accepted answers.", "", "Judge reasoning:", "mock success"},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
@@ -327,7 +593,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "pass",
 						Got:      "corporis et ipsa",
 						Want:     utils.NewStringSet("corporis et ipsa", "nesciunt sed quia"),
-						Details:  "success\n\nmock pass\n\n\nSemantic Assessment\n\nResponse is semantically equivalent to one of the accepted answers.\n\nJudge reasoning:\nmock success",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "success",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"corporis et ipsa"},
+								ExpectedAnswer: [][]string{{"corporis et ipsa"}, {"nesciunt sed quia"}},
+							},
+							Validation: ValidationDetails{
+								Title:       "Semantic Assessment",
+								Explanation: []string{"Response is semantically equivalent to one of the accepted answers.", "", "Judge reasoning:", "mock success"},
+							},
+							Error: ErrorDetails{},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 				},
@@ -385,7 +663,19 @@ func TestRunnerRun(t *testing.T) {
 						Run:      "custom",
 						Got:      "error", // provider returns task name ("error") as response
 						Want:     utils.NewStringSet("Expected answer"),
-						Details:  "judge evaluation failed: mock error",
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "error",
+								Explanation:    []string{},
+								ActualAnswer:   []string{"error"},
+								ExpectedAnswer: [][]string{{"Expected answer"}},
+							},
+							Validation: ValidationDetails{},
+							Error: ErrorDetails{
+								Title:   "Validation Error",
+								Message: "judge evaluation failed: mock error",
+							},
+						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 				},
@@ -424,11 +714,12 @@ func TestRunnerRunWithRetry(t *testing.T) {
 			expectedInDetails: "mock success after 3 attempts",
 		},
 		{
-			name:             "retry exhausted - max attempts reached",
-			maxRetryAttempts: uint(2),
-			taskName:         "retry_5",
-			expectedKind:     Error,
-			expectedGot:      "failed to generate response: retryable error: mock transient error (retry 2)",
+			name:              "retry exhausted - max attempts reached",
+			maxRetryAttempts:  uint(2),
+			taskName:          "retry_5",
+			expectedKind:      Error,
+			expectedGot:       "failed to generate response: retryable error: mock transient error (retry 2)",
+			expectedInDetails: "mock transient error (retry 2)",
 		},
 	}
 
@@ -470,7 +761,19 @@ func TestRunnerRunWithRetry(t *testing.T) {
 			assert.Equal(t, tt.taskName, result.Task)
 			assert.Equal(t, tt.expectedKind, result.Kind)
 			assert.Equal(t, tt.expectedGot, result.Got)
-			assert.Contains(t, result.Details, tt.expectedInDetails)
+
+			switch tt.expectedKind {
+			case Success:
+				assert.NotZero(t, result.Details.Answer, "Success should have Answer details")
+				assert.NotZero(t, result.Details.Validation, "Success should have Validation details")
+				assert.Zero(t, result.Details.Error, "Success should not have Error details")
+				assert.Contains(t, result.Details.Answer.Explanation, tt.expectedInDetails)
+			case Error:
+				assert.Zero(t, result.Details.Answer, "Error should not have Answer details")
+				assert.Zero(t, result.Details.Validation, "Error should not have Validation details")
+				assert.NotZero(t, result.Details.Error, "Error should have Error details")
+				assert.Contains(t, result.Details.Error.Message, tt.expectedInDetails)
+			}
 		})
 	}
 }
@@ -534,7 +837,17 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 				Provider: "mock provider 1",
 				Run:      "p1r1",
 				Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
-				Details:  "success\n\nmock success",
+				Details: Details{
+					Answer: AnswerDetails{
+						Title:       "success",
+						Explanation: []string{"mock success"},
+					},
+					Validation: ValidationDetails{
+						Title:       "validation success",
+						Explanation: []string{"mock validation pass"},
+					},
+					Error: ErrorDetails{},
+				},
 			},
 			{
 				Kind:     Failure,
@@ -542,7 +855,17 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 				Provider: "mock provider 1",
 				Run:      "p1r1",
 				Got:      "aperiam assumenda id provident ratione eos molestiae.",
-				Details:  "failure\n\nmock failure",
+				Details: Details{
+					Answer: AnswerDetails{
+						Title:       "success",
+						Explanation: []string{"mock success"},
+					},
+					Validation: ValidationDetails{
+						Title:       "validation failed",
+						Explanation: []string{"mock validation fail"},
+					},
+					Error: ErrorDetails{},
+				},
 			},
 			{
 				Kind:     Success,
@@ -550,7 +873,17 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 				Provider: "mock provider 1",
 				Run:      "p1r1",
 				Got:      "autem aspernatur pariatur iure accusamus.",
-				Details:  "success\n\nmock success",
+				Details: Details{
+					Answer: AnswerDetails{
+						Title:       "success",
+						Explanation: []string{"mock success"},
+					},
+					Validation: ValidationDetails{
+						Title:       "validation success",
+						Explanation: []string{"mock validation pass"},
+					},
+					Error: ErrorDetails{},
+				},
 			},
 			{
 				Kind:     Success,
@@ -558,7 +891,17 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 				Provider: "mock provider 1",
 				Run:      "p1r2",
 				Got:      "provident aperiam quaerat.",
-				Details:  "success\n\nmock success",
+				Details: Details{
+					Answer: AnswerDetails{
+						Title:       "success",
+						Explanation: []string{"mock success"},
+					},
+					Validation: ValidationDetails{
+						Title:       "validation success",
+						Explanation: []string{"mock validation pass"},
+					},
+					Error: ErrorDetails{},
+				},
 			},
 		},
 		"mock provider 2": []RunResult{
@@ -567,8 +910,15 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 				Task:     "error",
 				Provider: "mock provider 2",
 				Run:      "p2r1",
-				Got:      "est expedita id sequi provident aut aut.",
-				Details:  "error\n\nmock error",
+				Got:      "mock error",
+				Details: Details{
+					Answer:     AnswerDetails{},
+					Validation: ValidationDetails{},
+					Error: ErrorDetails{
+						Title:   "error",
+						Message: "mock error",
+					},
+				},
 			},
 			{
 				Kind:     Failure,
@@ -576,7 +926,17 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 				Provider: "mock provider 2",
 				Run:      "p2r1",
 				Got:      "saepe aperiam culpa voluptatem est.",
-				Details:  "failure\n\nmock failure",
+				Details: Details{
+					Answer: AnswerDetails{
+						Title:       "success",
+						Explanation: []string{"mock success"},
+					},
+					Validation: ValidationDetails{
+						Title:       "validation failed",
+						Explanation: []string{"mock validation fail"},
+					},
+					Error: ErrorDetails{},
+				},
 			},
 			{
 				Kind:     Success,
@@ -584,15 +944,32 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 				Provider: "mock provider 2",
 				Run:      "p2r1",
 				Got:      "aliquam nesciunt et laboriosam.",
-				Details:  "success\n\nmock success",
+				Details: Details{
+					Answer: AnswerDetails{
+						Title:       "success",
+						Explanation: []string{"mock success"},
+					},
+					Validation: ValidationDetails{
+						Title:       "validation success",
+						Explanation: []string{"mock validation pass"},
+					},
+					Error: ErrorDetails{},
+				},
 			},
 			{
 				Kind:     NotSupported,
 				Task:     "not_supported",
 				Provider: "mock provider 2",
 				Run:      "p2r1",
-				Got:      "Deleniti alias non.",
-				Details:  "not_supported\n\nmock not supported",
+				Got:      "feature not supported by provider: mock not supported",
+				Details: Details{
+					Answer:     AnswerDetails{},
+					Validation: ValidationDetails{},
+					Error: ErrorDetails{
+						Title:   "not_supported",
+						Message: "mock not supported",
+					},
+				},
 			},
 		},
 		"mock provider 3": []RunResult{
@@ -602,7 +979,17 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 				Provider: "mock provider 3",
 				Run:      "p3r2",
 				Got:      "consectetur doloremque sit quibusdam.",
-				Details:  "success\n\nmock success",
+				Details: Details{
+					Answer: AnswerDetails{
+						Title:       "success",
+						Explanation: []string{"mock success"},
+					},
+					Validation: ValidationDetails{
+						Title:       "validation success",
+						Explanation: []string{"mock validation pass"},
+					},
+					Error: ErrorDetails{},
+				},
 			},
 		},
 		"mock provider 4": []RunResult{},
@@ -631,7 +1018,17 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 							Provider: "mock provider 1",
 							Run:      "p1r1",
 							Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
-							Details:  "success\n\nmock success",
+							Details: Details{
+								Answer: AnswerDetails{
+									Title:       "success",
+									Explanation: []string{"mock success"},
+								},
+								Validation: ValidationDetails{
+									Title:       "validation success",
+									Explanation: []string{"mock validation pass"},
+								},
+								Error: ErrorDetails{},
+							},
 						},
 						{
 							Kind:     Success,
@@ -639,7 +1036,17 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 							Provider: "mock provider 1",
 							Run:      "p1r1",
 							Got:      "autem aspernatur pariatur iure accusamus.",
-							Details:  "success\n\nmock success",
+							Details: Details{
+								Answer: AnswerDetails{
+									Title:       "success",
+									Explanation: []string{"mock success"},
+								},
+								Validation: ValidationDetails{
+									Title:       "validation success",
+									Explanation: []string{"mock validation pass"},
+								},
+								Error: ErrorDetails{},
+							},
 						},
 					},
 					Failure: {
@@ -649,7 +1056,17 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 							Provider: "mock provider 1",
 							Run:      "p1r1",
 							Got:      "aperiam assumenda id provident ratione eos molestiae.",
-							Details:  "failure\n\nmock failure",
+							Details: Details{
+								Answer: AnswerDetails{
+									Title:       "success",
+									Explanation: []string{"mock success"},
+								},
+								Validation: ValidationDetails{
+									Title:       "validation failed",
+									Explanation: []string{"mock validation fail"},
+								},
+								Error: ErrorDetails{},
+							},
 						},
 					},
 				},
@@ -661,7 +1078,17 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 							Provider: "mock provider 1",
 							Run:      "p1r2",
 							Got:      "provident aperiam quaerat.",
-							Details:  "success\n\nmock success",
+							Details: Details{
+								Answer: AnswerDetails{
+									Title:       "success",
+									Explanation: []string{"mock success"},
+								},
+								Validation: ValidationDetails{
+									Title:       "validation success",
+									Explanation: []string{"mock validation pass"},
+								},
+								Error: ErrorDetails{},
+							},
 						},
 					},
 				},
@@ -681,8 +1108,15 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 							Task:     "error",
 							Provider: "mock provider 2",
 							Run:      "p2r1",
-							Got:      "est expedita id sequi provident aut aut.",
-							Details:  "error\n\nmock error",
+							Got:      "mock error",
+							Details: Details{
+								Answer:     AnswerDetails{},
+								Validation: ValidationDetails{},
+								Error: ErrorDetails{
+									Title:   "error",
+									Message: "mock error",
+								},
+							},
 						},
 					},
 					Failure: {
@@ -692,7 +1126,17 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 							Provider: "mock provider 2",
 							Run:      "p2r1",
 							Got:      "saepe aperiam culpa voluptatem est.",
-							Details:  "failure\n\nmock failure",
+							Details: Details{
+								Answer: AnswerDetails{
+									Title:       "success",
+									Explanation: []string{"mock success"},
+								},
+								Validation: ValidationDetails{
+									Title:       "validation failed",
+									Explanation: []string{"mock validation fail"},
+								},
+								Error: ErrorDetails{},
+							},
 						},
 					},
 					Success: {
@@ -702,7 +1146,17 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 							Provider: "mock provider 2",
 							Run:      "p2r1",
 							Got:      "aliquam nesciunt et laboriosam.",
-							Details:  "success\n\nmock success",
+							Details: Details{
+								Answer: AnswerDetails{
+									Title:       "success",
+									Explanation: []string{"mock success"},
+								},
+								Validation: ValidationDetails{
+									Title:       "validation success",
+									Explanation: []string{"mock validation pass"},
+								},
+								Error: ErrorDetails{},
+							},
 						},
 					},
 					NotSupported: {
@@ -711,8 +1165,15 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 							Task:     "not_supported",
 							Provider: "mock provider 2",
 							Run:      "p2r1",
-							Got:      "Deleniti alias non.",
-							Details:  "not_supported\n\nmock not supported",
+							Got:      "feature not supported by provider: mock not supported",
+							Details: Details{
+								Answer:     AnswerDetails{},
+								Validation: ValidationDetails{},
+								Error: ErrorDetails{
+									Title:   "not_supported",
+									Message: "mock not supported",
+								},
+							},
 						},
 					},
 				},
@@ -733,7 +1194,17 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 							Provider: "mock provider 3",
 							Run:      "p3r2",
 							Got:      "consectetur doloremque sit quibusdam.",
-							Details:  "success\n\nmock success",
+							Details: Details{
+								Answer: AnswerDetails{
+									Title:       "success",
+									Explanation: []string{"mock success"},
+								},
+								Validation: ValidationDetails{
+									Title:       "validation success",
+									Explanation: []string{"mock validation pass"},
+								},
+								Error: ErrorDetails{},
+							},
 						},
 					},
 				},
@@ -902,6 +1373,83 @@ func TestRunnerIntegrationWithValidation(t *testing.T) {
 			assert.Equal(t, tt.wantResultKind, result.Kind, "Result kind should match expected")
 			assert.Equal(t, "custom", result.Run, "Should use custom run")
 			assert.Equal(t, tt.task.Name, result.Task, "Task name should match")
+		})
+	}
+}
+
+func TestToLines(t *testing.T) {
+	tests := []struct {
+		name string
+		set  utils.StringSet
+		want [][]string
+	}{
+		{
+			name: "empty set",
+			set:  utils.NewStringSet(),
+			want: [][]string{},
+		},
+		{
+			name: "single string",
+			set:  utils.NewStringSet("single line"),
+			want: [][]string{{"single line"}},
+		},
+		{
+			name: "multiple lines",
+			set:  utils.NewStringSet("first line\r\nsecond line\nthird line"),
+			want: [][]string{{"first line", "second line", "third line"}},
+		},
+		{
+			name: "double newlines",
+			set:  utils.NewStringSet("alpha\n\nbeta", "gamma\r\n\r\ndelta"),
+			want: [][]string{{"alpha", "", "beta"}, {"gamma", "", "delta"}},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := toLines(tt.set)
+			assert.ElementsMatch(t, tt.want, got)
+		})
+	}
+}
+
+func TestSplitLines(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  []string
+	}{
+		{
+			name:  "empty string",
+			input: "",
+			want:  []string{},
+		},
+		{
+			name:  "single line",
+			input: "single line",
+			want:  []string{"single line"},
+		},
+		{
+			name:  "multiple lines",
+			input: "first line\r\nsecond line\nthird line",
+			want:  []string{"first line", "second line", "third line"},
+		},
+		{
+			name:  "double newlines",
+			input: "first line\n\nsecond line\r\n\r\nthird line",
+			want:  []string{"first line", "", "second line", "", "third line"},
+		},
+		{
+			name:  "multiple newlines",
+			input: "first line\n\r\n\nsecond line\n\r\n\r\n\r\nthird line",
+			want:  []string{"first line", "", "", "second line", "", "", "", "third line"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := splitLines(tt.input)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

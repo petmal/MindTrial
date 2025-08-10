@@ -91,7 +91,7 @@ func (v *judgeValidator) IsCorrect(ctx context.Context, logger logging.Logger, r
 	if validationResult.IsCorrect {
 		explanation = fmt.Sprintf("Response is semantically equivalent to one of the accepted answers.\n\nJudge reasoning:\n%s", judgeTaskResult.Explanation)
 	} else {
-		explanation = fmt.Sprintf("Response is not semantically equivalent to any of the accepted answers.\n\nActual response:\n%s\n\nJudge reasoning:\n%s", actual.FinalAnswer, judgeTaskResult.Explanation)
+		explanation = fmt.Sprintf("Response is not semantically equivalent to any of the accepted answers.\n\nJudge reasoning:\n%s", judgeTaskResult.Explanation)
 	}
 
 	return ValidationResult{

@@ -29,6 +29,8 @@ type Formatter interface {
 	Write(results runners.Results, out io.Writer) error
 }
 
+// formatAnswerText returns a single plain text block containing all possible formatted answers separated by a separator
+// for CSV and other text-based outputs.
 func formatAnswerText(result runners.RunResult) string {
 	return strings.TrimSpace(strings.Join(FormatAnswer(result, false), textAnswerSeparator))
 }
