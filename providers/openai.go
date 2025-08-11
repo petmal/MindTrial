@@ -8,7 +8,10 @@ package providers
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
+	"slices"
 
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
@@ -96,7 +99,11 @@ func (o *OpenAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig
 		})
 
 	resp, err := timed(func() (openai.ChatCompletionResponse, error) {
-		return o.client.CreateChatCompletion(ctx, request)
+		response, err := o.client.CreateChatCompletion(ctx, request)
+		if err != nil && o.isTransientResponse(err) {
+			return response, WrapErrRetryable(err)
+		}
+		return response, err
 	}, &result.duration)
 	if err != nil {
 		return result, fmt.Errorf("%w: %v", ErrGenerateResponse, err)
@@ -156,6 +163,18 @@ func (o *OpenAI) createPromptMessage(ctx context.Context, promptText string, fil
 	}
 
 	return message, nil
+}
+
+func (o *OpenAI) isTransientResponse(err error) bool {
+	var apiError *openai.APIError
+	if errors.As(err, &apiError) {
+		return slices.Contains([]int{
+			http.StatusTooManyRequests,
+			http.StatusInternalServerError,
+			http.StatusServiceUnavailable,
+		}, apiError.HTTPStatusCode)
+	}
+	return false
 }
 
 func (o *OpenAI) Close(ctx context.Context) error {

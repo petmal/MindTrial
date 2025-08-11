@@ -11,6 +11,9 @@ config:
   task-source: "./tasks.yaml"
   providers:
     - name: openai
+      retry-policy:
+        max-retry-attempts: 5
+        initial-delay-seconds: 30
       client-config:
         api-key: ""
       runs:

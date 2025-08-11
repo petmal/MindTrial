@@ -9,7 +9,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/invopop/jsonschema v0.13.0
 	github.com/kaptinlin/jsonrepair v0.2.2
-	github.com/sashabaranov/go-openai v1.40.5
+	github.com/sashabaranov/go-openai v1.41.0
 	github.com/sethvargo/go-retry v0.3.0
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/time v0.12.0
