@@ -21,6 +21,11 @@ import (
 )
 
 func TestRunnerRun(t *testing.T) {
+	expectedUsage := TokenUsage{
+		InputTokens:  testutils.Ptr(int64(8200209999917998)),
+		OutputTokens: nil,
+	}
+
 	type args struct {
 		ctx   context.Context
 		tasks []config.Task
@@ -101,6 +106,7 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock success"},
 								ActualAnswer:   []string{"Provident quas tenetur repellat deserunt ut neque culpa."},
 								ExpectedAnswer: [][]string{{"Provident quas tenetur repellat deserunt ut neque culpa."}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
@@ -123,6 +129,7 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock failure"},
 								ActualAnswer:   []string{"Facere aperiam recusandae totam magnam nulla corrupti."},
 								ExpectedAnswer: [][]string{{"Aperiam assumenda id provident ratione eos molestiae."}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
@@ -145,6 +152,7 @@ func TestRunnerRun(t *testing.T) {
 							Error: ErrorDetails{
 								Title:   "Execution Error",
 								Message: "mock error",
+								Usage:   expectedUsage,
 							},
 						},
 						Duration: 7211609999927884 * time.Nanosecond,
@@ -162,6 +170,7 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock failure"},
 								ActualAnswer:   []string{"Facere aperiam recusandae totam magnam nulla corrupti."},
 								ExpectedAnswer: [][]string{{"Veritatis aliquid accusantium dolore voluptate optio dolor."}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
@@ -184,6 +193,7 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock success"},
 								ActualAnswer:   []string{"Omnis omnis ea quia et ut est."},
 								ExpectedAnswer: [][]string{{"Omnis omnis ea quia et ut est."}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
@@ -206,6 +216,7 @@ func TestRunnerRun(t *testing.T) {
 							Error: ErrorDetails{
 								Title:   "Feature Not Supported",
 								Message: "feature not supported by provider: mock not supported",
+								Usage:   expectedUsage,
 							},
 						},
 						Duration: 7211609999927884 * time.Nanosecond,
@@ -223,10 +234,12 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock failure"},
 								ActualAnswer:   []string{"Facere aperiam recusandae totam magnam nulla corrupti."},
 								ExpectedAnswer: [][]string{{"rerum nam illo"}, {"dolore praesentium non"}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Semantic Assessment",
 								Explanation: []string{"Response is not semantically equivalent to any of the accepted answers.", "", "Judge reasoning:", "mock success"},
+								Usage:       expectedUsage,
 							},
 							Error: ErrorDetails{},
 						},
@@ -245,10 +258,12 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock success"},
 								ActualAnswer:   []string{"corporis et ipsa"},
 								ExpectedAnswer: [][]string{{"corporis et ipsa"}, {"nesciunt sed quia"}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Semantic Assessment",
 								Explanation: []string{"Response is semantically equivalent to one of the accepted answers.", "", "Judge reasoning:", "mock success"},
+								Usage:       expectedUsage,
 							},
 							Error: ErrorDetails{},
 						},
@@ -267,6 +282,7 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock pass"},
 								ActualAnswer:   []string{"Provident quas tenetur repellat deserunt ut neque culpa."},
 								ExpectedAnswer: [][]string{{"Provident quas tenetur repellat deserunt ut neque culpa."}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
@@ -289,6 +305,7 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock pass"},
 								ActualAnswer:   []string{"Aperiam assumenda id provident ratione eos molestiae."},
 								ExpectedAnswer: [][]string{{"Aperiam assumenda id provident ratione eos molestiae."}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
@@ -311,6 +328,7 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock pass"},
 								ActualAnswer:   []string{"Doloribus quis incidunt velit quia."},
 								ExpectedAnswer: [][]string{{"Doloribus quis incidunt velit quia."}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
@@ -333,6 +351,7 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock pass"},
 								ActualAnswer:   []string{"Veritatis aliquid accusantium dolore voluptate optio dolor."},
 								ExpectedAnswer: [][]string{{"Veritatis aliquid accusantium dolore voluptate optio dolor."}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
@@ -355,6 +374,7 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock pass"},
 								ActualAnswer:   []string{"Omnis omnis ea quia et ut est."},
 								ExpectedAnswer: [][]string{{"Omnis omnis ea quia et ut est."}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
@@ -377,6 +397,7 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock pass"},
 								ActualAnswer:   []string{"Unde accusantium sit et enim temporibus qui distinctio assumenda."},
 								ExpectedAnswer: [][]string{{"Unde accusantium sit et enim temporibus qui distinctio assumenda."}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
@@ -399,10 +420,12 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock pass"},
 								ActualAnswer:   []string{"rerum nam illo"},
 								ExpectedAnswer: [][]string{{"rerum nam illo"}, {"dolore praesentium non"}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Semantic Assessment",
 								Explanation: []string{"Response is semantically equivalent to one of the accepted answers.", "", "Judge reasoning:", "mock success"},
+								Usage:       expectedUsage,
 							},
 							Error: ErrorDetails{},
 						},
@@ -421,10 +444,12 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock pass"},
 								ActualAnswer:   []string{"corporis et ipsa"},
 								ExpectedAnswer: [][]string{{"corporis et ipsa"}, {"nesciunt sed quia"}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Semantic Assessment",
 								Explanation: []string{"Response is semantically equivalent to one of the accepted answers.", "", "Judge reasoning:", "mock success"},
+								Usage:       expectedUsage,
 							},
 							Error: ErrorDetails{},
 						},
@@ -445,6 +470,7 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock pass"},
 								ActualAnswer:   []string{"Provident quas tenetur repellat deserunt ut neque culpa."},
 								ExpectedAnswer: [][]string{{"Provident quas tenetur repellat deserunt ut neque culpa."}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
@@ -467,6 +493,7 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock pass"},
 								ActualAnswer:   []string{"Aperiam assumenda id provident ratione eos molestiae."},
 								ExpectedAnswer: [][]string{{"Aperiam assumenda id provident ratione eos molestiae."}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
@@ -489,6 +516,7 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock pass"},
 								ActualAnswer:   []string{"Doloribus quis incidunt velit quia."},
 								ExpectedAnswer: [][]string{{"Doloribus quis incidunt velit quia."}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
@@ -511,6 +539,7 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock pass"},
 								ActualAnswer:   []string{"Veritatis aliquid accusantium dolore voluptate optio dolor."},
 								ExpectedAnswer: [][]string{{"Veritatis aliquid accusantium dolore voluptate optio dolor."}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
@@ -533,6 +562,7 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock pass"},
 								ActualAnswer:   []string{"Omnis omnis ea quia et ut est."},
 								ExpectedAnswer: [][]string{{"Omnis omnis ea quia et ut est."}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
@@ -555,6 +585,7 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock pass"},
 								ActualAnswer:   []string{"Unde accusantium sit et enim temporibus qui distinctio assumenda."},
 								ExpectedAnswer: [][]string{{"Unde accusantium sit et enim temporibus qui distinctio assumenda."}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
@@ -577,10 +608,12 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock pass"},
 								ActualAnswer:   []string{"rerum nam illo"},
 								ExpectedAnswer: [][]string{{"rerum nam illo"}, {"dolore praesentium non"}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Semantic Assessment",
 								Explanation: []string{"Response is semantically equivalent to one of the accepted answers.", "", "Judge reasoning:", "mock success"},
+								Usage:       expectedUsage,
 							},
 							Error: ErrorDetails{},
 						},
@@ -599,10 +632,12 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{"mock pass"},
 								ActualAnswer:   []string{"corporis et ipsa"},
 								ExpectedAnswer: [][]string{{"corporis et ipsa"}, {"nesciunt sed quia"}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{
 								Title:       "Semantic Assessment",
 								Explanation: []string{"Response is semantically equivalent to one of the accepted answers.", "", "Judge reasoning:", "mock success"},
+								Usage:       expectedUsage,
 							},
 							Error: ErrorDetails{},
 						},
@@ -669,11 +704,13 @@ func TestRunnerRun(t *testing.T) {
 								Explanation:    []string{},
 								ActualAnswer:   []string{"error"},
 								ExpectedAnswer: [][]string{{"Expected answer"}},
+								Usage:          expectedUsage,
 							},
 							Validation: ValidationDetails{},
 							Error: ErrorDetails{
 								Title:   "Validation Error",
 								Message: "judge evaluation failed: mock error",
+								Usage:   expectedUsage,
 							},
 						},
 						Duration: 7211609999927884 * time.Nanosecond,
@@ -1409,47 +1446,6 @@ func TestToLines(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := toLines(tt.set)
 			assert.ElementsMatch(t, tt.want, got)
-		})
-	}
-}
-
-func TestSplitLines(t *testing.T) {
-	tests := []struct {
-		name  string
-		input string
-		want  []string
-	}{
-		{
-			name:  "empty string",
-			input: "",
-			want:  []string{},
-		},
-		{
-			name:  "single line",
-			input: "single line",
-			want:  []string{"single line"},
-		},
-		{
-			name:  "multiple lines",
-			input: "first line\r\nsecond line\nthird line",
-			want:  []string{"first line", "second line", "third line"},
-		},
-		{
-			name:  "double newlines",
-			input: "first line\n\nsecond line\r\n\r\nthird line",
-			want:  []string{"first line", "", "second line", "", "third line"},
-		},
-		{
-			name:  "multiple newlines",
-			input: "first line\n\r\n\nsecond line\n\r\n\r\n\r\nthird line",
-			want:  []string{"first line", "", "", "second line", "", "", "", "third line"},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := splitLines(tt.input)
-			assert.Equal(t, tt.want, got)
 		})
 	}
 }

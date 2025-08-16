@@ -380,6 +380,71 @@ func TestValidatorIsCorrect(t *testing.T) {
 			want:            true, // should match when ignoring whitespace
 		},
 
+		// TrimLines rule tests (per-line edge trimming; preserves internal spaces; normalizes CRLF to \n).
+		{
+			name:            "trim-lines - trailing spaces per line",
+			expected:        utils.NewStringSet("1. a)\n2. b)\n3. c)"),
+			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
+			actual:          createMockResult("1. a)\n2. b) \n3. c)"),
+			want:            true,
+		},
+		{
+			name:            "trim-lines - leading spaces per line",
+			expected:        utils.NewStringSet("A\nB\nC"),
+			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
+			actual:          createMockResult(" A\n  B\n   C"),
+			want:            true,
+		},
+		{
+			name:            "trim-lines with CRLF",
+			expected:        utils.NewStringSet("row1\nrow2\nrow3"),
+			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
+			actual:          createMockResult("row1\r\nrow2 \r\n row3"),
+			want:            true,
+		},
+		{
+			name:            "trim-lines does not remove internal spaces",
+			expected:        utils.NewStringSet("1) a b"),
+			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
+			actual:          createMockResult("1)  a b "),
+			want:            false,
+		},
+		{
+			name:            "trim-lines - preserves internal blank lines",
+			expected:        utils.NewStringSet("A\n\nB"),
+			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
+			actual:          createMockResult(" A \r\n \r\n B "),
+			want:            true,
+		},
+		{
+			name:            "trim-lines - removes leading and trailing blank lines",
+			expected:        utils.NewStringSet("A\nB"),
+			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
+			actual:          createMockResult("\r\n A \n B \n"),
+			want:            true,
+		},
+		{
+			name:            "trim-lines + ignore whitespace - trim-lines ignored",
+			expected:        utils.NewStringSet("AB"),
+			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true), IgnoreWhitespace: testutils.Ptr(true)},
+			actual:          createMockResult(" A \n B "),
+			want:            true,
+		},
+		{
+			name:            "trim-lines - tabs inside line are preserved",
+			expected:        utils.NewStringSet("a b c"),
+			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
+			actual:          createMockResult("a\t b \t c"),
+			want:            false,
+		},
+		{
+			name:            "trim-lines - whitespace-only becomes empty",
+			expected:        utils.NewStringSet(""),
+			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
+			actual:          createMockResult(" \r\n "),
+			want:            true,
+		},
+
 		// Complex combinations with multiple expected values.
 		{
 			name:            "multiple expected with case sensitivity",
@@ -557,6 +622,56 @@ func TestValidatorToCanonical(t *testing.T) {
 			value:           "line1\nline2\nline3",
 			validationRules: config.ValidationRules{IgnoreWhitespace: testutils.Ptr(true)},
 			want:            "line1line2line3",
+		},
+
+		// TrimLines coverage
+		{
+			name:            "trim-lines - trims per line leading/trailing",
+			value:           "\t a \n\t  b  \n c \t ",
+			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
+			want:            "a\nb\nc",
+		},
+		{
+			name:            "trim-lines - preserves internal spaces",
+			value:           "  a  b  ",
+			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
+			want:            "a  b",
+		},
+		{
+			name:            "trim-lines - CRLF normalization and trim",
+			value:           " row1 \r\n row2  \r\n  row3 ",
+			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
+			want:            "row1\nrow2\nrow3",
+		},
+		{
+			name:            "trim-lines - leading and trailing blank lines removed by final TrimSpace",
+			value:           "\n a \n b \n",
+			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
+			want:            "a\nb",
+		},
+		{
+			name:            "trim-lines + ignore whitespace - ignore dominates",
+			value:           " a \n b ",
+			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true), IgnoreWhitespace: testutils.Ptr(true)},
+			want:            "ab",
+		},
+		{
+			name:            "trim-lines + case insensitive default",
+			value:           "  A \n B ",
+			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
+			want:            "a\nb",
+		},
+		{
+			name:            "trim-lines + case sensitive",
+			value:           "  A \n B ",
+			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true), CaseSensitive: testutils.Ptr(true)},
+			want:            "A\nB",
+		},
+		{
+			name:            "trim-lines - whitespace-only becomes empty",
+			value:           " \r\n \r\n ",
+			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
+			want:            "",
 		},
 	}
 

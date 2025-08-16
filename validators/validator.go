@@ -26,6 +26,8 @@ type ValidationResult struct {
 	Title string
 	// Explanation provides an optional explanation of the validation result.
 	Explanation string
+	// Usage contains token usage statistics for the validation step when available.
+	Usage providers.Usage
 }
 
 // Explain returns a formatted explanation of the validation result.

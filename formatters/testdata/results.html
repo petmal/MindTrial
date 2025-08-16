@@ -135,33 +135,47 @@
             }
         }
 
+        function updateVisibleCount(table) {
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            const visible = rows.filter(r => r.style.display !== 'none').length;
+            const counter = document.getElementById('visible-count');
+            if (counter) counter.textContent = visible;
+        }
+
         function filterAndSortTable() {
             const table = document.getElementById('results-table');
             const rows = Array.from(table.querySelectorAll('tbody tr'));
             const filters = {
                 provider: document.getElementById('provider-filter').value.toLowerCase(),
                 run: document.getElementById('run-filter').value.toLowerCase(),
-                task: document.getElementById('task-filter').value.toLowerCase(),
+                task: document.getElementById('task-filter').value,
                 status: document.getElementById('status-filter').value.toLowerCase(),
-                search: document.getElementById('search-filter').value.toLowerCase()
+                search: document.getElementById('search-filter').value
             };
-
+            let taskRegex = null, searchRegex = null;
+            if (filters.task) {
+                try { taskRegex = new RegExp(filters.task, 'i'); } catch (e) { taskRegex = null; }
+            }
+            if (filters.search) {
+                try { searchRegex = new RegExp(filters.search, 'i'); } catch (e) { searchRegex = null; }
+            }
             rows.forEach(row => {
                 const provider = row.dataset.provider.toLowerCase();
                 const run = row.dataset.run.toLowerCase();
-                const task = row.dataset.task.toLowerCase();
+                const task = row.dataset.task;
                 const status = row.dataset.status.toLowerCase();
 
-                const searchMatch = (provider.includes(filters.search) || run.includes(filters.search) || task.includes(filters.search));
+                const searchMatch = searchRegex ? (searchRegex.test(provider) || searchRegex.test(run) || searchRegex.test(task)) : (!filters.search || provider.includes(filters.search.toLowerCase()) || run.includes(filters.search.toLowerCase()) || task.toLowerCase().includes(filters.search.toLowerCase()));
 
                 const show = (filters.provider === '' || provider === filters.provider) &&
                              (filters.run === '' || run === filters.run) &&
-                             task.includes(filters.task) &&
+                             (!taskRegex || taskRegex.test(task)) &&
                              (filters.status === '' || status === filters.status) &&
                              (filters.search === '' || searchMatch);
                 
                 row.style.display = show ? '' : 'none';
             });
+            updateVisibleCount(table);
         }
 
         function sortTable(tableId, column, direction) {
@@ -237,6 +251,8 @@
             });
             setupSortButtons();
             setupClickableFilters();
+            
+            filterAndSortTable();
         });
     </script>
 </head>
@@ -366,8 +382,9 @@
             <meta itemprop="alternativeHeadline" content="AI Model Evaluation Task Results">
             <meta itemprop="description" content="Detailed results for each task, including provider, run configuration, task name, status, duration, answer, and details.">
             <div class="filter-container">
-                <input id="search-filter" type="text" placeholder="Search..." class="filter-sort-controls">
+                <input id="search-filter" type="text" placeholder="Search (regexp)..." title="Supports regular expressions, e.g. hello|world, ^start, end$, ^(?!visual\s*-\s*).*" class="filter-sort-controls">
                 <button onclick="clearFilters()">Clear Filters</button>
+                <div>Visible rows: <span id="visible-count" aria-live="polite"></span></div>
             </div>
             <table id="results-table">
                 <caption class="visually-hidden">Detailed task evaluation results.</caption>
@@ -401,7 +418,7 @@
                         <th>
                             <div class="filter-sort-controls">
                                 <span>Task <span class="sort-btn" data-column="task" data-direction="asc">↕️</span></span>
-                                <input id="task-filter" type="text" placeholder="Filter...">
+                                <input id="task-filter" type="text" placeholder="Filter (regexp)..." title="Supports regular expressions, e.g. task-(one|two), ^task, ^(?!visual\s*-\s*).*">
                             </div>
                         </th>
                         <th>
@@ -472,6 +489,10 @@
 </code></pre></li>
                                         </ol>
                                     </details>
+                                        <details>
+                                            <summary>Token Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;"><dt>Input</dt><dd>9876543210</dd><dt>Output</dt><dd>1234567890</dd></dl>
+                                        </details>
                                 </section>
                                 <section id="validation-run-provider-name-run-success-task-name" class="section-validation" itemscope itemtype="https://schema.org/Comment" itemprop="comment">
                                     <h4>Validatio Perfecta</h4>
@@ -481,6 +502,10 @@
                                             <p class="para">Sed ut perspiciatis unde omnis iste natus error sit voluptatem.</p>
                                         </div>
                                     </details>
+                                        <details>
+                                            <summary>Token Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;"><dt>Input</dt><dd>11</dd><dt>Output</dt><dd>5</dd></dl>
+                                        </details>
                                 </section>
                             </div>
                         </td>
@@ -531,6 +556,10 @@
 </code></pre></li>
                                         </ol>
                                     </details>
+                                        <details>
+                                            <summary>Token Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;"><dt>Input</dt><dd>200</dd></dl>
+                                        </details>
                                 </section>
                                 <section id="validation-run-provider-name-run-failure-task-name" class="section-validation" itemscope itemtype="https://schema.org/Comment" itemprop="comment">
                                     <h4>Validatio Defecit</h4>
@@ -663,6 +692,10 @@
                                             <p class="para">Et harum quidem rerum facilis est et expedita distinctio nam libero.</p>
                                         </div>
                                     </details>
+                                        <details>
+                                            <summary>Token Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;"><dt>Input</dt><dd>500</dd><dt>Output</dt><dd>150</dd></dl>
+                                        </details>
                                 </section>
                             </div>
                         </td>
@@ -690,6 +723,10 @@
                                 <section class="section-error">
                                     <h4>Errorem Executionis</h4>
                                     <p class="para" style="margin:0 0 0.6em 0;">Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus.</p>
+                                        <details>
+                                            <summary>Token Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;"><dt>Input</dt><dd>0</dd><dt>Output</dt><dd>0</dd></dl>
+                                        </details>
                                 </section>
                             </div>
                         </td>
@@ -732,6 +769,10 @@ Sunt in culpa qui officia deserunt mollit anim.
 </code></pre></dd>
                                         </dl>
                                     </details>
+                                        <details>
+                                            <summary>Token Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;"><dt>Input</dt><dd>10</dd><dt>Output</dt><dd>0</dd></dl>
+                                        </details>
                                 </section>
                             </div>
                         </td>
@@ -778,6 +819,10 @@ Id est laborum et dolorum fuga
 </code></pre></dd>
                                         </dl>
                                     </details>
+                                        <details>
+                                            <summary>Token Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;"><dt>Input</dt><dd>1234</dd><dt>Output</dt><dd>5678</dd></dl>
+                                        </details>
                                 </section>
                             </div>
                         </td>
@@ -827,6 +872,10 @@ Context: within object literal
 </code></pre></dd>
                                         </dl>
                                     </details>
+                                        <details>
+                                            <summary>Token Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;"><dt>Output</dt><dd>333</dd></dl>
+                                        </details>
                                 </section>
                             </div>
                         </td>

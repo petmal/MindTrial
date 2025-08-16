@@ -69,22 +69,22 @@ func (v *judgeValidator) IsCorrect(ctx context.Context, logger logging.Logger, r
 
 	// Execute the judge task and evaluate the response.
 	judgeTaskResult, err := v.executor.Execute(ctx, judgeLogger, judgeTask)
+	usage := judgeTaskResult.GetUsage()
 	if err != nil {
 		judgeLogger.Error(ctx, logging.LevelError, err, "finished with error")
-		return result, fmt.Errorf("judge evaluation failed: %w", err)
+		return ValidationResult{Usage: usage}, fmt.Errorf("judge evaluation failed: %w", err)
 	}
 
 	judgeLogger.Message(ctx, logging.LevelTrace, "verdict: %s", judgeTaskResult.FinalAnswer)
 
 	// Log statistics about the judge task execution.
-	usage := judgeTaskResult.GetUsage()
 	judgeLogger.Message(ctx, logging.LevelDebug, "completed in %s", judgeTaskResult.GetDuration())
 	judgeLogger.Message(ctx, logging.LevelDebug, "token usage: [in:%s, out:%s]", logging.FormatLogInt64(usage.InputTokens), logging.FormatLogInt64(usage.OutputTokens))
 	judgeLogger.Message(ctx, logging.LevelTrace, "prompts:\n%s", logging.FormatLogText(judgeTaskResult.GetPrompts()))
 
 	validationResult, err := NewValueMatchValidator().IsCorrect(ctx, judgeLogger, config.ValidationRules{}, judgeTask.ExpectedResult, judgeTaskResult, judgeTask.Prompt, judgeTask.ResponseResultFormat)
 	if err != nil {
-		return result, fmt.Errorf("failed to evaluate judge response: %w", err)
+		return ValidationResult{Usage: usage}, fmt.Errorf("failed to evaluate judge response: %w", err)
 	}
 
 	var explanation string
@@ -98,6 +98,7 @@ func (v *judgeValidator) IsCorrect(ctx context.Context, logger logging.Logger, r
 		IsCorrect:   validationResult.IsCorrect,
 		Title:       "Semantic Assessment",
 		Explanation: explanation,
+		Usage:       usage,
 	}, nil
 }
 

@@ -58,6 +58,15 @@ func (v valueMatchValidator) IsCorrect(ctx context.Context, _ logging.Logger, ru
 func (v valueMatchValidator) ToCanonical(rules config.ValidationRules, value string) string {
 	canonical := value
 
+	// Trim each line's leading/trailing whitespace.
+	if rules.IsTrimLines() && !rules.IsIgnoreWhitespace() {
+		lines := utils.SplitLines(canonical)
+		for i := range lines {
+			lines[i] = strings.TrimSpace(lines[i])
+		}
+		canonical = strings.Join(lines, "\n")
+	}
+
 	// Handle whitespace.
 	if rules.IsIgnoreWhitespace() {
 		canonical = whitespaceRegex.ReplaceAllString(canonical, "")

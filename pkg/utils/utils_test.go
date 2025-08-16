@@ -230,3 +230,43 @@ func TestStringSet_YAMLMarshal(t *testing.T) {
 	assert.Contains(t, string(marshaled), "b")
 	assert.Contains(t, string(marshaled), "c")
 }
+
+func TestSplitLines(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  []string
+	}{
+		{
+			name:  "empty string",
+			input: "",
+			want:  []string{},
+		},
+		{
+			name:  "single line",
+			input: "single line",
+			want:  []string{"single line"},
+		},
+		{
+			name:  "multiple lines",
+			input: "first line\r\nsecond line\nthird line",
+			want:  []string{"first line", "second line", "third line"},
+		},
+		{
+			name:  "double newlines",
+			input: "first line\n\nsecond line\r\n\r\nthird line",
+			want:  []string{"first line", "", "second line", "", "third line"},
+		},
+		{
+			name:  "multiple newlines",
+			input: "first line\n\r\n\nsecond line\n\r\n\r\n\r\nthird line",
+			want:  []string{"first line", "", "", "second line", "", "", "", "third line"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := SplitLines(tt.input)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}

@@ -32,7 +32,6 @@ const (
 const runResultIDPrefix = "run"
 
 var validIDCharMatcher = regexp.MustCompile(`[^a-zA-Z0-9_-]`)
-var newlineMatcher = regexp.MustCompile(`\r?\n`)
 
 // ResultKind represents the task execution result status.
 type ResultKind int
@@ -139,6 +138,8 @@ type AnswerDetails struct {
 	ActualAnswer []string
 	// ExpectedAnswer is a set of all acceptable correct answers, each being an array of lines.
 	ExpectedAnswer [][]string
+	// Usage contains token usage statistics for generating the answer.
+	Usage TokenUsage
 }
 
 // ValidationDetails defines structured information about answer verification and correctness assessment.
@@ -147,6 +148,9 @@ type ValidationDetails struct {
 	Title string
 	// Explanation contains detailed analysis of why the validation succeeded or failed.
 	Explanation []string
+	// Usage contains token usage statistics for the response validation step.
+	// This is typically populated when using an LLM judge validator.
+	Usage TokenUsage
 }
 
 // ErrorDetails defines structured information about errors that occurred during execution.
@@ -157,6 +161,18 @@ type ErrorDetails struct {
 	Message string
 	// Details contains any additional error information in a generic structure.
 	Details map[string][]string
+	// Usage contains token usage statistics if available even in error scenarios.
+	// This is typically populated if the error occurs when parsing the generated response.
+	Usage TokenUsage
+}
+
+// TokenUsage represents token usage consumed by an LLM request.
+// Values are optional and may be nil if not available.
+type TokenUsage struct {
+	// InputTokens is the number of tokens consumed by the prompt/input.
+	InputTokens *int64 `json:"InputTokens,omitempty"`
+	// OutputTokens is the number of tokens generated in the completion/output.
+	OutputTokens *int64 `json:"OutputTokens,omitempty"`
 }
 
 // toLines converts a StringSet to [][]string where each value is split into lines.
@@ -164,14 +180,7 @@ func toLines(stringSet utils.StringSet) [][]string {
 	values := stringSet.Values()
 	result := make([][]string, 0, len(values))
 	for _, value := range values {
-		result = append(result, splitLines(value))
+		result = append(result, utils.SplitLines(value))
 	}
 	return result
-}
-
-func splitLines(text string) []string {
-	if text == "" {
-		return []string{}
-	}
-	return newlineMatcher.Split(text, -1)
 }

@@ -34,10 +34,18 @@ var mockResults = runners.Results{
 					Explanation:    []string{"Quis ea voluptatem non aperiam dolor est.", "Alias odit enim fugiat vitae aliquam dolor quo ratione."},
 					ActualAnswer:   []string{"Quos aut rerum quaerat qui ad culpa."},
 					ExpectedAnswer: [][]string{{"Quos aut rerum quaerat qui ad culpa."}},
+					Usage: runners.TokenUsage{
+						InputTokens:  testutils.Ptr(int64(9876543210)),
+						OutputTokens: testutils.Ptr(int64(1234567890)),
+					},
 				},
 				Validation: runners.ValidationDetails{
 					Title:       "Validatio Perfecta",
 					Explanation: []string{"Sed ut perspiciatis unde omnis iste natus error sit voluptatem."},
+					Usage: runners.TokenUsage{
+						InputTokens:  testutils.Ptr(int64(11)),
+						OutputTokens: testutils.Ptr(int64(5)),
+					},
 				},
 				Error: runners.ErrorDetails{},
 			},
@@ -56,6 +64,9 @@ var mockResults = runners.Results{
 					Explanation:    []string{"Ut eos eius modi nihil voluptatem error.", "Veniam omnis at possimus aliquid tempore.", "Ut voluptatem ullam et ea non beatae eos adipisci incidunt.", "Consequatur hic sint laboriosam maiores unde vero ipsum magnam."},
 					ActualAnswer:   []string{"Ipsam ea et optio explicabo eius et."},
 					ExpectedAnswer: [][]string{{"Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui."}},
+					Usage: runners.TokenUsage{
+						InputTokens: testutils.Ptr(int64(200)),
+					},
 				},
 				Validation: runners.ValidationDetails{
 					Title:       "Validatio Defecit",
@@ -108,6 +119,10 @@ var mockResults = runners.Results{
 				Validation: runners.ValidationDetails{
 					Title:       "Selectio Rejicienda",
 					Explanation: []string{"Et harum quidem rerum facilis est et expedita distinctio nam libero."},
+					Usage: runners.TokenUsage{
+						InputTokens:  testutils.Ptr(int64(500)),
+						OutputTokens: testutils.Ptr(int64(150)),
+					},
 				},
 				Error: runners.ErrorDetails{},
 			},
@@ -127,6 +142,10 @@ var mockResults = runners.Results{
 					Title:   "Errorem Executionis",
 					Message: "Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus.",
 					Details: nil,
+					Usage: runners.TokenUsage{
+						InputTokens:  testutils.Ptr(int64(0)),
+						OutputTokens: testutils.Ptr(int64(0)),
+					},
 				},
 			},
 		},
@@ -151,6 +170,10 @@ var mockResults = runners.Results{
 							"Excepteur sint occaecat cupidatat non proident.",
 							"Sunt in culpa qui officia deserunt mollit anim.",
 						},
+					},
+					Usage: runners.TokenUsage{
+						InputTokens:  testutils.Ptr(int64(10)),
+						OutputTokens: testutils.Ptr(int64(0)),
 					},
 				},
 			},
@@ -180,6 +203,10 @@ var mockResults = runners.Results{
 						"Diagnostic": {
 							"Nemo enim ipsam voluptatem quia voluptas sit",
 						},
+					},
+					Usage: runners.TokenUsage{
+						InputTokens:  testutils.Ptr(int64(1234)),
+						OutputTokens: testutils.Ptr(int64(5678)),
 					},
 				},
 			},
@@ -214,6 +241,9 @@ var mockResults = runners.Results{
 						"Recovery": {
 							"Cillum dolore eu fugiat nulla pariatur.",
 						},
+					},
+					Usage: runners.TokenUsage{
+						OutputTokens: testutils.Ptr(int64(333)),
 					},
 				},
 			},

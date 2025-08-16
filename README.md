@@ -299,6 +299,7 @@ You can set validation rules globally for all tasks in the `task-config` section
 - **validation-rules**: Controls how model responses are validated against expected results.
   - **case-sensitive**: If `true`, comparison is case-sensitive. If `false` (default), comparison ignores case.
   - **ignore-whitespace**: If `true`, all whitespace (spaces, tabs, newlines) is removed before comparison. If `false` (default), only leading/trailing whitespace is trimmed, and internal whitespace is preserved.
+  - **trim-lines**: If `true`, trims leading and trailing whitespace from each line before comparison while preserving internal spaces within lines. CRLF line endings are normalized to LF. This option is ignored when `ignore-whitespace` is enabled. If `false` (default), lines are not individually trimmed.
   - **judge**: Optional configuration for LLM-based semantic validation instead of exact value matching.
     - **enabled**: If `true`, uses an LLM judge to evaluate semantic equivalence. If `false` (default), uses exact value matching.
     - **name**: The name of the judge configuration defined in the `config.yaml` file.

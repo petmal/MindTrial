@@ -141,33 +141,47 @@
             }
         }
 
+        function updateVisibleCount(table) {
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            const visible = rows.filter(r => r.style.display !== 'none').length;
+            const counter = document.getElementById('visible-count');
+            if (counter) counter.textContent = visible;
+        }
+
         function filterAndSortTable() {
             const table = document.getElementById('results-table');
             const rows = Array.from(table.querySelectorAll('tbody tr'));
             const filters = {
                 provider: document.getElementById('provider-filter').value.toLowerCase(),
                 run: document.getElementById('run-filter').value.toLowerCase(),
-                task: document.getElementById('task-filter').value.toLowerCase(),
+                task: document.getElementById('task-filter').value,
                 status: document.getElementById('status-filter').value.toLowerCase(),
-                search: document.getElementById('search-filter').value.toLowerCase()
+                search: document.getElementById('search-filter').value
             };
-
+            let taskRegex = null, searchRegex = null;
+            if (filters.task) {
+                try { taskRegex = new RegExp(filters.task, 'i'); } catch (e) { taskRegex = null; }
+            }
+            if (filters.search) {
+                try { searchRegex = new RegExp(filters.search, 'i'); } catch (e) { searchRegex = null; }
+            }
             rows.forEach(row => {
                 const provider = row.dataset.provider.toLowerCase();
                 const run = row.dataset.run.toLowerCase();
-                const task = row.dataset.task.toLowerCase();
+                const task = row.dataset.task;
                 const status = row.dataset.status.toLowerCase();
 
-                const searchMatch = (provider.includes(filters.search) || run.includes(filters.search) || task.includes(filters.search));
+                const searchMatch = searchRegex ? (searchRegex.test(provider) || searchRegex.test(run) || searchRegex.test(task)) : (!filters.search || provider.includes(filters.search.toLowerCase()) || run.includes(filters.search.toLowerCase()) || task.toLowerCase().includes(filters.search.toLowerCase()));
 
                 const show = (filters.provider === '' || provider === filters.provider) &&
                              (filters.run === '' || run === filters.run) &&
-                             task.includes(filters.task) &&
+                             (!taskRegex || taskRegex.test(task)) &&
                              (filters.status === '' || status === filters.status) &&
                              (filters.search === '' || searchMatch);
                 
                 row.style.display = show ? '' : 'none';
             });
+            updateVisibleCount(table);
         }
 
         function sortTable(tableId, column, direction) {
@@ -243,6 +257,8 @@
             });
             setupSortButtons();
             setupClickableFilters();
+            // Initialize counter once DOM is ready
+            filterAndSortTable();
         });
     </script>
 </head>
@@ -298,8 +314,9 @@
             <meta itemprop="alternativeHeadline" content="AI Model Evaluation Task Results">
             <meta itemprop="description" content="Detailed results for each task, including provider, run configuration, task name, status, duration, answer, and details.">
             <div class="filter-container">
-                <input id="search-filter" type="text" placeholder="Search..." class="filter-sort-controls">
+                <input id="search-filter" type="text" placeholder="Search (regexp)..." title="Supports regular expressions, e.g. hello|world, ^start, end$, ^(?!visual\s*-\s*).*" class="filter-sort-controls">
                 <button onclick="clearFilters()">Clear Filters</button>
+                <div>Visible rows: <span id="visible-count" aria-live="polite"></span></div>
             </div>
             <table id="results-table">
                 <caption class="visually-hidden">Detailed task evaluation results.</caption>
@@ -330,7 +347,7 @@
                         <th>
                             <div class="filter-sort-controls">
                                 <span>Task <span class="sort-btn" data-column="task" data-direction="asc">↕️</span></span>
-                                <input id="task-filter" type="text" placeholder="Filter...">
+                                <input id="task-filter" type="text" placeholder="Filter (regexp)..." title="Supports regular expressions, e.g. task-(one|two), ^task, ^(?!visual\s*-\s*).*">
                             </div>
                         </th>
                         <th>
@@ -422,6 +439,17 @@
                                         </ol>
                                     </details>
                                     {{- end }}
+                                    {{- with $u := $ad.Usage }}
+                                        {{- if or $u.InputTokens $u.OutputTokens }}
+                                        <details>
+                                            <summary>Token Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;">
+                                                {{- with $u.InputTokens }}<dt>Input</dt><dd>{{.}}</dd>{{ end -}}
+                                                {{- with $u.OutputTokens }}<dt>Output</dt><dd>{{.}}</dd>{{ end -}}
+                                            </dl>
+                                        </details>
+                                        {{- end }}
+                                    {{- end }}
                                 </section>
                                 {{- end -}}
                                 {{- end -}}
@@ -437,6 +465,17 @@
                                             {{- end }}
                                         </div>
                                     </details>
+                                    {{- with $vu := $vd.Usage }}
+                                        {{- if or $vu.InputTokens $vu.OutputTokens }}
+                                        <details>
+                                            <summary>Token Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;">
+                                                {{- with $vu.InputTokens }}<dt>Input</dt><dd>{{.}}</dd>{{ end -}}
+                                                {{- with $vu.OutputTokens }}<dt>Output</dt><dd>{{.}}</dd>{{ end -}}
+                                            </dl>
+                                        </details>
+                                        {{- end }}
+                                    {{- end }}
                                 </section>
                                 {{- end -}}
                                 {{- end -}}
@@ -456,6 +495,17 @@
                                             {{- end }}
                                         </dl>
                                     </details>
+                                    {{- end }}
+                                    {{- with $eu := $ed.Usage }}
+                                        {{- if or $eu.InputTokens $eu.OutputTokens }}
+                                        <details>
+                                            <summary>Token Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;">
+                                                {{- with $eu.InputTokens }}<dt>Input</dt><dd>{{.}}</dd>{{ end -}}
+                                                {{- with $eu.OutputTokens }}<dt>Output</dt><dd>{{.}}</dd>{{ end -}}
+                                            </dl>
+                                        </details>
+                                        {{- end }}
                                     {{- end }}
                                 </section>
                                 {{- end -}}

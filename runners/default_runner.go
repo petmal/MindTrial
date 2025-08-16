@@ -16,6 +16,7 @@ import (
 
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
+	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/petmal/mindtrial/providers"
 	"github.com/petmal/mindtrial/providers/execution"
 	"github.com/petmal/mindtrial/validators"
@@ -293,6 +294,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 			runResult.Details.Error = ErrorDetails{
 				Title:   "Feature Not Supported",
 				Message: err.Error(),
+				Usage:   toTokenUsage(usage),
 			}
 		case errors.As(err, &unmarshalErr):
 			runResult.Details.Error = ErrorDetails{
@@ -300,13 +302,15 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 				Message: unmarshalErr.Cause.Error(),
 				Details: map[string][]string{
 					"Stop Reason":  {string(unmarshalErr.StopReason)},
-					"Raw Response": splitLines(string(unmarshalErr.RawMessage)),
+					"Raw Response": utils.SplitLines(string(unmarshalErr.RawMessage)),
 				},
+				Usage: toTokenUsage(usage),
 			}
 		default:
 			runResult.Details.Error = ErrorDetails{
 				Title:   "Execution Error",
 				Message: err.Error(),
+				Usage:   toTokenUsage(usage),
 			}
 			taskLogger.Error(ctx, logging.LevelError, err, "task finished with error")
 		}
@@ -320,6 +324,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 			runResult.Details.Error = ErrorDetails{
 				Title:   "Validation Error",
 				Message: err.Error(),
+				Usage:   toTokenUsage(validationResult.Usage),
 			}
 		} else {
 			if !validationResult.IsCorrect {
@@ -331,15 +336,17 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 			runResult.Got = validator.ToCanonical(resolvedValidationRules, result.FinalAnswer)
 			runResult.Details.Validation = ValidationDetails{
 				Title:       validationResult.Title,
-				Explanation: splitLines(validationResult.Explanation),
+				Explanation: utils.SplitLines(validationResult.Explanation),
+				Usage:       toTokenUsage(validationResult.Usage),
 			}
 		}
 
 		runResult.Details.Answer = AnswerDetails{
 			Title:          result.Title,
-			Explanation:    splitLines(result.Explanation),
-			ActualAnswer:   splitLines(result.FinalAnswer),
+			Explanation:    utils.SplitLines(result.Explanation),
+			ActualAnswer:   utils.SplitLines(result.FinalAnswer),
 			ExpectedAnswer: toLines(task.ExpectedResult),
+			Usage:          toTokenUsage(usage),
 		}
 	}
 	runResult.Duration = result.GetDuration()
@@ -373,4 +380,8 @@ func pluralize(tokens ...any) []interface{} {
 	}
 
 	return pluralized
+}
+
+func toTokenUsage(u providers.Usage) TokenUsage {
+	return TokenUsage{InputTokens: u.InputTokens, OutputTokens: u.OutputTokens}
 }

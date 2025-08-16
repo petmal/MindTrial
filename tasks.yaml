@@ -8,6 +8,7 @@ task-config:
   validation-rules:
     case-sensitive: false
     ignore-whitespace: false
+    trim-lines: false
   tasks:
     - name: "reasoning - section, color and number - v1"
       prompt: |-

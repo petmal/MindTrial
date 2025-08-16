@@ -24,6 +24,8 @@ var (
 	ErrCouldNotRepairJSON = errors.New("malformed JSON could not be repaired")
 
 	jsonMarkdownMatcher = regexp.MustCompile("(?s)```json\\s*(\\{.*?\\})\\s*```")
+
+	newlineMatcher = regexp.MustCompile(`\r?\n`)
 )
 
 // NoPanic executes the provided function and recovers from any panic by converting it to error if that occurs.
@@ -58,4 +60,13 @@ func JSONFromMarkdown(content string) string {
 		return found[1]
 	}
 	return content
+}
+
+// SplitLines splits text by newlines supporting both \n and \r\n and preserves empty lines.
+// Returns an empty slice for empty input.
+func SplitLines(text string) []string {
+	if text == "" {
+		return []string{}
+	}
+	return newlineMatcher.Split(text, -1)
 }

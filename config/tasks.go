@@ -425,6 +425,10 @@ type ValidationRules struct {
 	// When true, all whitespace characters (spaces, tabs, newlines) are removed before comparison.
 	IgnoreWhitespace *bool `yaml:"ignore-whitespace" validate:"omitempty"`
 
+	// TrimLines determines whether to trim leading and trailing whitespace of each line
+	// before comparison.
+	TrimLines *bool `yaml:"trim-lines" validate:"omitempty"`
+
 	// Judge specifies the judge configuration to use for evaluation.
 	// When enabled, an LLM will be used to evaluate the correctness of the response
 	// instead of simple string matching.
@@ -441,6 +445,11 @@ func (vr ValidationRules) IsIgnoreWhitespace() bool {
 	return vr.IgnoreWhitespace != nil && *vr.IgnoreWhitespace
 }
 
+// IsTrimLines returns whether each line should be trimmed before validation.
+func (vr ValidationRules) IsTrimLines() bool {
+	return vr.TrimLines != nil && *vr.TrimLines
+}
+
 // UseJudge returns whether judge evaluation is enabled.
 func (vr ValidationRules) UseJudge() bool {
 	return vr.Judge.IsEnabled()
@@ -454,6 +463,7 @@ func (these ValidationRules) MergeWith(other *ValidationRules) ValidationRules {
 	if other != nil {
 		setIfNotNil(&resolved.CaseSensitive, other.CaseSensitive)
 		setIfNotNil(&resolved.IgnoreWhitespace, other.IgnoreWhitespace)
+		setIfNotNil(&resolved.TrimLines, other.TrimLines)
 
 		resolved.Judge = resolved.Judge.MergeWith(other.Judge)
 	}
