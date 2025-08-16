@@ -110,6 +110,8 @@ task-config:
           3. c) 10
           4. c) 25
           5. a) 8
+      validation-rules:
+        trim-lines: true
     - name: "quiz - analogies"
       prompt: |-
         Complete the analogy by replacing [???] with a word that is not yet present in the sentence:
@@ -135,8 +137,11 @@ task-config:
         [???] is to uncle as niece is to aunt.
       response-result-format: |-
         list of words in the order of appearance separated by ", "
-      expected-result: |-
-        foot, bee, floor, Car, girl, Door, eat, books, bottom, Green, waist, pilot, read, tree, eye, Night, December, cub, Nephew
+      expected-result:
+        - |
+          foot, bee, floor, Car, girl, Door, eat, books, bottom, Green, waist, pilot, read, tree, eye, Night, December, cub, Nephew
+        - |
+          foot, bee, floor, Car, girl, Door, food, books, bottom, Green, waist, pilot, read, tree, eye, Night, December, cub, Nephew
     - name: "riddle - anagram - v1"
       prompt: |-
         Two words (each individual word is a mode of transport) have been combined and their letters arranged in alphabetical order forming a single group.
@@ -565,9 +570,12 @@ task-config:
         Group 3: NOOK, BAKE, TINE, PEEK, SUMP
         Group 4: SON, CRATE, ETCH, STEM, ORE
       response-result-format: |-
-        <new first letter for each group separated by ", ">: <3-letter word formed by rearranging the new first letters>
-      expected-result: |-
-        B, G, L, I: GLIB
+        <new first letter for each group separated by ", ">: <4-letter word formed by rearranging the new first letters>
+      expected-result:
+        - |
+          B, G, L, I: GLIB
+        - |
+          B, R, L, I: BIRL
     - name: "riddle - symbols to numbers - v1"
       prompt: |-
         Each symbol in the following grid represents a number.
