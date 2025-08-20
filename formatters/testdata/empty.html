@@ -24,6 +24,10 @@
             --skipped-bg: #e2e3e5;
             --skipped-text: #383d41;
             --border-color: #e0e0e0;
+             
+            --matrix-header-size: 120px;  
+            --matrix-header-fudge: 4px;   
+            --matrix-cell-size: 60px;    
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -63,9 +67,10 @@
         }
     thead th .filter-sort-controls span { white-space: nowrap; }
     thead th .filter-sort-controls span .sort-btn { margin-left:4px; }
-        tbody tr:nth-child(even) { background-color: var(--row-even-bg); }
-        tbody tr:nth-child(odd) { background-color: var(--row-odd-bg); }
-        tbody tr:hover { background-color: var(--row-hover-bg); }
+     
+    table:not(.matrix-table) tbody tr:nth-child(even) { background-color: var(--row-even-bg); }
+    table:not(.matrix-table) tbody tr:nth-child(odd) { background-color: var(--row-odd-bg); }
+    table:not(.matrix-table) tbody tr:hover { background-color: var(--row-hover-bg); }
         .status-passed { background-color: var(--success-bg); color: var(--success-text); font-weight: bold; }
         .status-failed { background-color: var(--failure-bg); color: var(--failure-text); font-weight: bold; }
         .status-error { background-color: var(--error-bg); color: var(--error-text); font-weight: bold; }
@@ -123,6 +128,116 @@
     .para:last-child { margin-bottom:0; }
     .visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
     th.details-header { text-align:right; min-width:130px; }
+    
+     
+    .matrix-container { 
+        padding: 20px;  
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: calc(100% - 40px);  
+        max-width: max-content;
+        margin: 0 auto;
+        box-sizing: border-box;
+    }
+    .matrix-table { 
+        border-collapse: collapse; 
+        border-spacing: 0; 
+        margin: 10px auto; 
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        width: auto;  
+        max-width: max-content;  
+        table-layout: fixed;  
+    }
+    .matrix-table th, .matrix-table td { border: 1px solid #ddd; text-align: center; vertical-align: middle; box-sizing: border-box; }
+    .matrix-table th { 
+        background-color: var(--primary-color); 
+        color: white; 
+        font-weight: 600; 
+        padding: 4px 2px; 
+        font-size: 0.7em;
+        text-transform: none;
+        line-height: 1.1;
+    }
+    .matrix-table .matrix-header { 
+        writing-mode: vertical-lr; 
+        text-orientation: mixed; 
+        min-width: 30px; 
+        max-width: 40px;  
+    width: 30px;
+    height: calc(var(--matrix-header-size) + var(--matrix-header-fudge));
+    max-height: 200px;  
+        white-space: normal; 
+        overflow: hidden; 
+        overflow-wrap: break-word;
+        word-break: break-word;
+        padding: 4px 1px; 
+        font-size: 0.65em;
+        font-weight: 600;
+        line-height: 1.0;
+        text-transform: none;
+    box-sizing: border-box;  
+    }
+    .matrix-table .matrix-row-header { 
+        background-color: var(--primary-color); 
+        color: white; 
+        font-weight: 600; 
+    padding: 4px 1px; 
+        text-align: center; 
+    width: var(--matrix-header-size);
+    max-width: 200px;  
+        white-space: normal; 
+        overflow: hidden; 
+        font-size: 0.65em;
+        line-height: 1.0;
+        word-break: break-all;
+        text-transform: none;
+    box-sizing: border-box;  
+    }
+    .matrix-cell { 
+    width: var(--matrix-cell-size); 
+    height: var(--matrix-cell-size); 
+        padding: 2px; 
+        position: relative; 
+        cursor: default;
+        transition: background-color 0.2s ease;
+    box-sizing: border-box;
+    }
+     
+    .matrix-cell.mirror-cell {
+        background: transparent !important;
+        cursor: default;
+        pointer-events: none;
+    }
+    .matrix-cell.diagonal { font-weight: bold; }
+    .matrix-cell-content { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; font-size: 0.8em; }
+    .matrix-percentage { font-weight: bold; margin-bottom: 1px; font-size: 0.9em; }
+    .matrix-details { font-size: 0.7em; opacity: 0.9; }
+    .matrix-legend { 
+        margin: 10px 0; 
+        padding: 8px 12px; 
+        background-color: #f8f9fa; 
+        border-radius: 4px; 
+        font-size: 0.85em;
+        width: 100%;  
+        box-sizing: border-box;  
+    }
+    .matrix-legend h3 { margin: 0 0 8px 0; color: var(--header-color); font-size: 1em; }
+    .matrix-legend-items { 
+        display: flex; 
+        flex-wrap: wrap; 
+        gap: 15px; 
+        margin-bottom: 5px; 
+        justify-content: flex-start;  
+    }
+    .matrix-legend-item { display: flex; align-items: center; }
+    .matrix-legend-color { display: inline-block; width: 16px; height: 12px; margin-right: 5px; border: 1px solid #ccc; }
+    .matrix-legend p { margin: 5px 0 0 0; font-size: 0.8em; color: #666; }
+     
+    #summary-table { margin-bottom: 10px; }
+    
+    #compare-selected-btn:disabled { opacity: 0.6; cursor: not-allowed; }
     </style>
     <script>
         function toggleDetails(id, btn) {
@@ -242,6 +357,326 @@
             filterAndSortTable();
         }
 
+        function updateCompareButton() {
+            const checkboxes = document.querySelectorAll('.run-compare-checkbox:checked');
+            const button = document.getElementById('compare-selected-btn');
+            const counter = document.getElementById('selected-count');
+            
+            button.disabled = checkboxes.length < 2;
+            counter.textContent = checkboxes.length > 0 ? `${checkboxes.length} selected` : '';
+        }
+
+        function compareSelectedRuns() {
+            const checkboxes = document.querySelectorAll('.run-compare-checkbox:checked');
+            if (checkboxes.length < 2) return;
+
+            const selectedRuns = Array.from(checkboxes).map(cb => ({
+                provider: cb.dataset.provider,
+                run: cb.dataset.run,
+                key: `${cb.dataset.provider}-${cb.dataset.run}`
+            }));
+
+            const matrix = generateComparisonMatrix(selectedRuns);
+            openMatrixWindow(matrix, selectedRuns);
+        }
+
+        function generateComparisonMatrix(runs) {
+            const matrix = {};
+            const results = getResultsData();
+
+            for (let i = 0; i < runs.length; i++) {
+                for (let j = 0; j < runs.length; j++) {
+                    const runA = runs[i];
+                    const runB = runs[j];
+                    const key = `${runA.key}-${runB.key}`;
+                    
+                    if (i === j) {
+                        
+                        const data = results[runA.key] || {};
+                        const tasks = Object.keys(data).filter(task => data[task] !== 'skipped');
+                        const breakdown = {};
+                        tasks.forEach(task => {
+                            const status = data[task];
+                            breakdown[status] = (breakdown[status] || 0) + 1;
+                        });
+                        matrix[key] = { 
+                            percentage: 100, 
+                            identical: true, 
+                            breakdown: breakdown,
+                            total: tasks.length,
+                            common: tasks.length
+                        };
+                    } else {
+                        matrix[key] = calculateOverlap(runA, runB, results);
+                    }
+                }
+            }
+
+            return matrix;
+        }
+
+        function getResultsData() {
+            const results = {};
+            const rows = document.querySelectorAll('#results-table tbody tr');
+            
+            rows.forEach(row => {
+                const provider = row.dataset.provider;
+                const run = row.dataset.run;
+                const task = row.dataset.task;
+                const status = row.dataset.status;
+                
+                const key = `${provider}-${run}`;
+                if (!results[key]) results[key] = {};
+                results[key][task] = status;
+            });
+            
+            return results;
+        }
+
+        function calculateOverlap(runA, runB, results) {
+            const dataA = results[runA.key] || {};
+            const dataB = results[runB.key] || {};
+            
+            const commonTasks = Object.keys(dataA).filter(task => task in dataB);
+            const nonSkippedTasks = commonTasks.filter(task => 
+                dataA[task] !== 'skipped' && dataB[task] !== 'skipped'
+            );
+            
+            if (nonSkippedTasks.length === 0) {
+                return { percentage: 0, breakdown: {}, total: 0, common: 0 };
+            }
+            
+            const matching = nonSkippedTasks.filter(task => dataA[task] === dataB[task]);
+            const percentage = Math.round((matching.length / nonSkippedTasks.length) * 100);
+            
+            const breakdown = {};
+            matching.forEach(task => {
+                const status = dataA[task];
+                breakdown[status] = (breakdown[status] || 0) + 1;
+            });
+            
+            return {
+                percentage,
+                breakdown,
+                total: nonSkippedTasks.length,
+                common: matching.length
+            };
+        }
+
+        function generateMatrixColor(overlap) {
+            if (overlap.percentage === 0) return 'transparent';
+            
+            const saturation = overlap.percentage / 100;
+            const total = overlap.common;
+            
+            if (total === 0) return 'transparent';
+            
+            const passed = overlap.breakdown.passed || 0;
+            const failed = overlap.breakdown.failed || 0;
+            const error = overlap.breakdown.error || 0;
+            
+            const passedRatio = passed / total;
+            const failedRatio = failed / total;
+            const errorRatio = error / total;
+            
+            const r = Math.round(155 * passedRatio + 255 * failedRatio + 255 * errorRatio);
+            const g = Math.round(255 * passedRatio + 255 * failedRatio + 100 * errorRatio);
+            const b = Math.round(155 * passedRatio + 100 * failedRatio + 100 * errorRatio);
+            
+            return `rgba(${r}, ${g}, ${b}, ${saturation})`;
+        }
+
+        function openMatrixWindow(matrix, runs) {
+            const html = generateMatrixHTML(matrix, runs);
+            
+            const cellWidth = 60;      
+            const headerWidth = 120;   
+            const padding = 80;
+            const titleHeight = 60;    
+            const legendHeight = 120;  
+            const headerRowHeight = 120; 
+            const containerPadding = 30; 
+            const tableMargins = 40;   
+            const extraBuffer = 60;    
+            const minWidth = 600; 
+            const minHeight = 500;     
+            
+            
+            const tableWidth = headerWidth + (runs.length * cellWidth) + padding + 50;
+            const legendMinWidth = 450; 
+            const calculatedWidth = Math.max(tableWidth, legendMinWidth);
+            const matrixRowsHeight = Math.max(runs.length * 60, 180); 
+            const tableHeight = titleHeight + legendHeight + headerRowHeight + containerPadding + 
+                              tableMargins + matrixRowsHeight + extraBuffer;
+            
+            const width = Math.max(minWidth, Math.min(1400, calculatedWidth));
+            const height = Math.max(minHeight, Math.min(1000, tableHeight));
+            
+            const newWindow = window.open('', '_blank', `width=${width},height=${height},scrollbars=yes,resizable=yes`);
+            newWindow.document.write(html);
+            newWindow.document.close();
+        }
+
+        function generateMatrixHTML(matrix, runs) {
+            
+            function escapeHtml(s) {
+                return String(s).replace(/[&<>"']/g, c => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                })[c] || c);
+            }
+            let html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Run Comparison Matrix</title>
+    <style>
+        ${document.querySelector('style').textContent}
+    </style>
+    \x3Cscript>
+        function setupMatrixHover() {
+            const table = document.querySelector('.matrix-table');
+            const cells = table.querySelectorAll('.matrix-cell');
+            
+            cells.forEach((cell, index) => {
+                const row = Math.floor(index / ${runs.length});
+                const col = index % ${runs.length};
+                
+                cell.addEventListener('mouseenter', () => {
+                    // Highlight row
+                    const rowCells = table.querySelectorAll(\`tbody tr:nth-child(\${row + 1}) .matrix-cell\`);
+                    rowCells.forEach(c => c.classList.add('row-highlight'));
+                    
+                    // Highlight column
+                    const colCells = table.querySelectorAll(\`tbody tr .matrix-cell:nth-child(\${col + 2})\`);
+                    colCells.forEach(c => c.classList.add('col-highlight'));
+                });
+                
+                cell.addEventListener('mouseleave', () => {
+                    // Remove all highlights
+                    cells.forEach(c => {
+                        c.classList.remove('row-highlight', 'col-highlight');
+                    });
+                });
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', setupMatrixHover);
+        function equalizeMatrixHeaderSizes() {
+            const rowHeaders = Array.from(document.querySelectorAll('.matrix-row-header'));
+            if (rowHeaders.length === 0) return;
+            
+            // Calculate target width but apply reasonable limits
+            const currentWidths = rowHeaders.map(h => h.getBoundingClientRect().width);
+            const maxCurrentWidth = Math.max(...currentWidths);
+            
+            // Limit growth: don't exceed 200px or grow more than 50% beyond original
+            const originalWidth = 120; // var(--matrix-header-size)
+            const maxAllowedWidth = Math.min(200, originalWidth * 1.5);
+            const targetWidth = Math.min(maxCurrentWidth, maxAllowedWidth);
+            
+            // Only adjust column header height if it makes sense (avoid excessive growth)
+            const targetHeight = Math.min(targetWidth + 4, 200); // +4 for fudge, max 200px
+            
+            document.querySelectorAll('.matrix-header').forEach(h => {
+                h.style.height = targetHeight + 'px';
+                // Don't change width - keep column headers narrow
+            });
+        }
+        document.addEventListener('DOMContentLoaded', equalizeMatrixHeaderSizes);
+        window.addEventListener('resize', equalizeMatrixHeaderSizes);
+    \x3C/script>
+    <style>
+        .matrix-cell.row-highlight {
+            box-shadow: inset 0 0 0 2px rgba(74, 144, 226, 0.4) !important;
+        }
+        .matrix-cell.col-highlight {
+            box-shadow: inset 0 0 0 2px rgba(74, 144, 226, 0.4) !important;
+        }
+        .matrix-cell.row-highlight.col-highlight {
+            box-shadow: inset 0 0 0 3px rgba(74, 144, 226, 0.6) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="matrix-container">
+        <h1>Run Comparison Matrix</h1>
+        <div class="matrix-legend">
+            <h3>Legend</h3>
+            <div class="matrix-legend-items">
+                <div class="matrix-legend-item">
+                    <span class="matrix-legend-color" style="background-color: rgba(155, 255, 155, 0.8);"></span>
+                    <span>Passed</span>
+                </div>
+                <div class="matrix-legend-item">
+                    <span class="matrix-legend-color" style="background-color: rgba(255, 255, 100, 0.8);"></span>
+                    <span>Failed</span>
+                </div>
+                <div class="matrix-legend-item">
+                    <span class="matrix-legend-color" style="background-color: rgba(255, 100, 100, 0.8);"></span>
+                    <span>Error</span>
+                </div>
+            </div>
+            <p>Color saturation = overlap %, Color hue = distribution of overlapping results</p>
+            <p>Only the lower triangle is shown (matrix is symmetric). The diagonal shows per-run result distribution.</p>
+        </div>
+        <table class="matrix-table">
+            <thead>
+                <tr>
+                    <th></th>`;
+            
+            runs.forEach(run => {
+                html += `<th class="matrix-header" title="${escapeHtml(run.provider)} - ${escapeHtml(run.run)}">${escapeHtml(run.run)}</th>`;
+            });
+            
+            html += `</tr></thead><tbody>`;
+            
+            runs.forEach((runA, i) => {
+                html += `<tr><th class="matrix-row-header" title="${escapeHtml(runA.provider)} - ${escapeHtml(runA.run)}">${escapeHtml(runA.run)}</th>`;
+                
+                runs.forEach((runB, j) => {
+                    
+                    if (j > i) {
+                        html += `<td class="matrix-cell mirror-cell" aria-hidden="true"></td>`;
+                        return;
+                    }
+                    const key = `${runA.key}-${runB.key}`;
+                    const overlap = matrix[key];
+                    const color = generateMatrixColor(overlap);
+                    const isIdentical = i === j;
+                    const p = overlap.breakdown.passed || 0;
+                    const f = overlap.breakdown.failed || 0;
+                    const e = overlap.breakdown.error || 0;
+                    let titleText = '';
+                    if (isIdentical) {
+                        
+                        titleText = `Run distribution: Passed ${p}, Failed ${f}, Error ${e}`;
+                    } else if (!overlap.total) {
+                        titleText = 'No comparable tasks (all skipped or none in common)';
+                    } else {
+                        titleText = `Overlap: ${overlap.percentage}% (${overlap.common}/${overlap.total}) | Passed ${p}, Failed ${f}, Error ${e}`;
+                    }
+
+                    html += `<td class="matrix-cell ${isIdentical ? 'diagonal' : ''}" 
+                             style="background-color: ${color};" 
+                             title="${titleText}">
+                        <div class="matrix-cell-content">
+                            <div class="matrix-percentage">${overlap.percentage}%</div>
+                            <div class="matrix-details">${isIdentical ? overlap.total + ' tasks' : overlap.common + '/' + overlap.total}</div>
+                        </div>
+                    </td>`;
+                });
+                
+                html += '</tr>';
+            });
+            
+            html += `</tbody></table></div></body></html>`;
+            return html;
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.filter-sort-controls input, .filter-sort-controls select, #search-filter').forEach(input => {
                 input.addEventListener('input', filterAndSortTable);
@@ -251,6 +686,35 @@
             });
             setupSortButtons();
             setupClickableFilters();
+            
+            
+            document.querySelectorAll('.run-compare-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', updateCompareButton);
+            });
+            
+            
+            const selectAllCheckbox = document.getElementById('select-all-runs');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    const runCheckboxes = document.querySelectorAll('.run-compare-checkbox');
+                    runCheckboxes.forEach(checkbox => {
+                        checkbox.checked = this.checked;
+                    });
+                    updateCompareButton();
+                });
+                
+                
+                document.querySelectorAll('.run-compare-checkbox').forEach(checkbox => {
+                    checkbox.addEventListener('change', function() {
+                        const runCheckboxes = document.querySelectorAll('.run-compare-checkbox');
+                        const checkedBoxes = document.querySelectorAll('.run-compare-checkbox:checked');
+                        selectAllCheckbox.checked = runCheckboxes.length === checkedBoxes.length;
+                        selectAllCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < runCheckboxes.length;
+                    });
+                });
+            }
+            updateCompareButton();
+            
             
             filterAndSortTable();
         });
@@ -269,6 +733,9 @@
                 <caption class="visually-hidden">Run result summary by provider and run.</caption>
                 <thead>
                     <tr>
+                        <th scope="col" style="width: 30px; padding: 8px 4px; text-align: center; vertical-align: middle;">
+                            <input type="checkbox" id="select-all-runs" title="Select/Deselect All Runs" style="margin: 0; vertical-align: middle;">
+                        </th>
                         <th scope="col">Provider <span class="sort-btn" data-column="provider" data-direction="asc">↕️</span></th>
                         <th scope="col">Run <span class="sort-btn" data-column="run" data-direction="asc">↕️</span></th>
                         <th scope="col">Passed <span class="sort-btn" data-column="passed" data-direction="asc">↕️</span></th>
@@ -280,6 +747,10 @@
                 </thead>
                 <tbody></tbody>
             </table>
+            <div style="margin-top: 0;">
+                <button id="compare-selected-btn" onclick="compareSelectedRuns()" disabled>Compare Selected Runs</button>
+                <span id="selected-count" style="margin-left: 10px; font-size: 0.9em; color: #666;"></span>
+            </div>
         </section>
         <section aria-labelledby="detailedresults" itemscope itemtype="https://schema.org/Table" itemprop="hasPart">
             <h2 id="detailedresults" itemprop="headline">Task Results</h2>
@@ -288,7 +759,7 @@
             <div class="filter-container">
                 <input id="search-filter" type="text" placeholder="Search (regexp)..." title="Supports regular expressions, e.g. hello|world, ^start, end$, ^(?!visual\s*-\s*).*" class="filter-sort-controls">
                 <button onclick="clearFilters()">Clear Filters</button>
-                <div>Visible rows: <span id="visible-count" aria-live="polite"></span></div>
+                <div><span id="visible-count" aria-live="polite"></span> visible</div>
             </div>
             <table id="results-table">
                 <caption class="visually-hidden">Detailed task evaluation results.</caption>
@@ -343,7 +814,7 @@
     </main>
     <footer>
           Generated by <span itemprop="creator" itemscope itemtype="https://schema.org/SoftwareApplication">
-                <a href="https://github.com/petmal/mindtrial" target="_blank"
+                <a href="https://github.com/petmal/mindtrial" target="_blank" rel="noopener"
                     title="Visit MindTrial source repository" itemprop="downloadUrl releaseNotes discussionUrl url"><span itemprop="name">MindTrial</span></a>
                 <span itemprop="softwareVersion">(testing)</span></span> on <span itemprop="dateCreated">1985-03-04T22:10:00</span>.
     </footer>
