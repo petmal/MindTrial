@@ -521,7 +521,7 @@ task-config:
         <left-to-right diagonal word>, <right-to-left diagonal word>
       expected-result: |-
         PEACH, GRAPE
-    - name: "riddle - split words - v3"
+    - name: "riddle - split words - v4"
       prompt: |-
         There are four 8-letter words (occupations) that have been split into 2-letter pieces.
         Find these four words by putting appropriate pieces back together:
