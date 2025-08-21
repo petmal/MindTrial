@@ -100,7 +100,7 @@ This file defines the tool's settings and target model configurations evaluated 
   - **name**: Name of the LLM provider (e.g. *openai*).
   - **client-config**: Configuration for this provider's client (e.g. *API key*).
   - **runs**: List of runs (i.e. model configurations) for this provider. Unless disabled, all configurations will be trialed.
-    - **name**: Display-friendly name to be shown in the results.
+    - **name**: A unique display-friendly name to be shown in the results.
     - **model**: Model name must be exactly as defined by the backend service's API (e.g. *gpt-4o-mini*).
 
 > [!IMPORTANT]
@@ -266,7 +266,7 @@ config:
 
 This file defines the tasks to be executed on all enabled run configurations. Each task must define the following four properties:
 
-- **name**: Display-friendly name to be shown in the results.
+- **name**: A unique display-friendly name to be shown in the results.
 - **prompt**: The prompt (i.e. task) that will be sent to the AI model.
 - **response-result-format**: Defines how the AI should format the final answer to the prompt. This is important because the final answer will be compared to the `expected-result` and it needs to consistently follow the same format.
 - **expected-result**: This defines the accepted valid answer(s) to the prompt. It can be a string if there is only a single valid answer or a list of strings if there are multiple possible correct answers.
@@ -319,7 +319,7 @@ To use judge validation:
     config:
       # ... existing configuration ...
       judges:
-        - name: "mistral-judge"
+        - name: "mistral-judge"  # A unique name for the judge configuration.
           provider:
             name: "mistralai"
             client-config:

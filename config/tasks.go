@@ -148,7 +148,7 @@ type Tasks struct {
 // TaskConfig represents task definitions and global settings.
 type TaskConfig struct {
 	// Tasks is a list of tasks to be executed.
-	Tasks []Task `yaml:"tasks" validate:"required,dive"`
+	Tasks []Task `yaml:"tasks" validate:"required,unique=Name,dive"`
 
 	// Disabled indicates whether all tasks should be disabled by default.
 	// Individual tasks can override this setting.

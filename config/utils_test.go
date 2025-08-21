@@ -124,6 +124,28 @@ func TestLoadConfigFromFile(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "provider with duplicate run names",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`config:
+    task-source: "tasks.yaml"
+    output-dir: "."
+    providers:
+        - name: openai
+          client-config:
+              api-key: "a8b159e5-ee58-47c6-93d2-f31dcf068e8a"
+          runs:
+              - name: "Duplicate Run"
+                model: "gpt-4"
+              - name: "Duplicate Run"
+                model: "gpt-3.5-turbo"
+`)),
+			},
+			wantErr: true,
+		},
+		{
 			name: "valid file with multiple providers",
 			args: args{
 				ctx: context.Background(),
@@ -459,6 +481,43 @@ func TestLoadConfigFromFile(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "config with duplicate judge names",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`config:
+    task-source: "tasks.yaml"
+    output-dir: "."
+    providers:
+        - name: openai
+          client-config:
+              api-key: "primary-key"
+          runs:
+              - name: "primary"
+                model: "gpt-4"
+    judges:
+        - name: "duplicate-judge"
+          provider:
+              name: openai
+              client-config:
+                  api-key: "judge-key-1"
+              runs:
+                  - name: "default"
+                    model: "gpt-4o"
+        - name: "duplicate-judge"
+          provider:
+              name: openai
+              client-config:
+                  api-key: "judge-key-2"
+              runs:
+                  - name: "default"
+                    model: "gpt-4o"
+`)),
+			},
+			wantErr: true,
+		},
+		{
 			name: "valid file with judges",
 			args: args{
 				ctx: context.Background(),
@@ -648,6 +707,25 @@ func TestLoadTasksFromFile(t *testing.T) {
               url: "path/to/file.txt"
             - name: "file"
               url: "http://example.com/file.txt"`)),
+			},
+			wantErr: true,
+		},
+		{
+			name: "task with duplicate task names",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`task-config:
+    tasks:
+        - name: "Duplicate Task"
+          prompt: "First task prompt"
+          response-result-format: "Result format"
+          expected-result: "Result"
+        - name: "Duplicate Task"
+          prompt: "Second task prompt"
+          response-result-format: "Result format"
+          expected-result: "Result"`)),
 			},
 			wantErr: true,
 		},

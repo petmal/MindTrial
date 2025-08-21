@@ -59,7 +59,7 @@ type AppConfig struct {
 	Providers []ProviderConfig `yaml:"providers" validate:"required,dive"`
 
 	// Judges lists LLM configurations for semantic evaluation of open-ended task responses.
-	Judges []JudgeConfig `yaml:"judges" validate:"omitempty,dive"`
+	Judges []JudgeConfig `yaml:"judges" validate:"omitempty,unique=Name,dive"`
 }
 
 // GetProvidersWithEnabledRuns returns providers with their enabled run configurations.
@@ -101,7 +101,7 @@ type ProviderConfig struct {
 	ClientConfig ClientConfig `yaml:"client-config" validate:"required"`
 
 	// Runs lists run configurations for this provider.
-	Runs []RunConfig `yaml:"runs" validate:"required,dive"`
+	Runs []RunConfig `yaml:"runs" validate:"required,unique=Name,dive"`
 
 	// Disabled indicates if all runs should be disabled by default.
 	Disabled bool `yaml:"disabled" validate:"omitempty"`
