@@ -59,7 +59,7 @@
         }
         thead th {
             background-color: var(--primary-color);
-            color: #fff;
+            color: white;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.03em;
@@ -244,6 +244,109 @@
     #summary-table { margin-bottom: 10px; }
     
     #compare-selected-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    
+    .matrix-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+    }
+    .matrix-modal-content {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        max-width: 500px;
+        max-height: 70vh;
+        overflow-y: auto;
+        position: relative;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        margin: 20px;
+    }
+    .matrix-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #eee;
+    }
+    .matrix-modal-title {
+        margin: 0;
+        font-size: 1.1em;
+        color: var(--header-color);
+    }
+    .matrix-modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5em;
+        cursor: pointer;
+        color: #666;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+    }
+    .matrix-modal-close:hover {
+        background: #f5f5f5;
+        color: #333;
+    }
+    .matrix-modal-summary {
+        margin: 0 0 16px 0;
+        font-size: 0.95em;
+        color: #666;
+    }
+    .matrix-modal .status-group {
+        margin-bottom: 16px;
+    }
+    .matrix-modal .status-group:last-child {
+        margin-bottom: 0;
+    }
+    .matrix-modal .status-title {
+        font-weight: 600;
+        margin-bottom: 8px;
+        text-transform: capitalize;
+        font-size: 1em;
+    }
+    .matrix-modal .status-title.passed { color: var(--success-text); }
+    .matrix-modal .status-title.failed { color: var(--failure-text); }
+    .matrix-modal .status-title.error { color: var(--error-text); }
+    .matrix-modal .task-list {
+        background: #f8f9fa;
+        border-radius: 4px;
+        padding: 8px 12px;
+        margin: 0;
+        font-size: 0.9em;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    .matrix-modal .task-item {
+        margin-bottom: 4px;
+        padding: 2px 0;
+        word-break: break-word;
+        user-select: text;
+        cursor: text;
+    }
+    .matrix-modal .task-item:last-child {
+        margin-bottom: 0;
+    }
+    .empty-task-message {
+        color: #666;
+        font-style: italic;
+    }
+    .selected-count {
+        margin-left: 10px;
+        font-size: 0.9em;
+        color: #666;
+    }
     </style>
     <script>
         function toggleDetails(id, btn) {
@@ -400,15 +503,18 @@
                         // For diagonal, calculate the run's own breakdown
                         const data = results[runA.key] || {};
                         const tasks = Object.keys(data).filter(task => data[task] !== 'skipped');
-                        const breakdown = {};
+                        const tasksByStatus = {};
                         tasks.forEach(task => {
                             const status = data[task];
-                            breakdown[status] = (breakdown[status] || 0) + 1;
+                            if (!tasksByStatus[status]) {
+                                tasksByStatus[status] = [];
+                            }
+                            tasksByStatus[status].push(task);
                         });
                         matrix[key] = { 
                             percentage: 100, 
                             identical: true, 
-                            breakdown: breakdown,
+                            tasksByStatus: tasksByStatus,
                             total: tasks.length,
                             common: tasks.length
                         };
@@ -449,23 +555,26 @@
             );
             
             if (nonSkippedTasks.length === 0) {
-                return { percentage: 0, breakdown: {}, total: 0, common: 0 };
+                return { percentage: 0, total: 0, common: 0, tasksByStatus: {} };
             }
             
             const matching = nonSkippedTasks.filter(task => dataA[task] === dataB[task]);
             const percentage = Math.round((matching.length / nonSkippedTasks.length) * 100);
             
-            const breakdown = {};
+            const tasksByStatus = {};
             matching.forEach(task => {
                 const status = dataA[task];
-                breakdown[status] = (breakdown[status] || 0) + 1;
+                if (!tasksByStatus[status]) {
+                    tasksByStatus[status] = [];
+                }
+                tasksByStatus[status].push(task);
             });
             
             return {
                 percentage,
-                breakdown,
                 total: nonSkippedTasks.length,
-                common: matching.length
+                common: matching.length,
+                tasksByStatus
             };
         }
 
@@ -477,9 +586,9 @@
             
             if (total === 0) return 'transparent';
             
-            const passed = overlap.breakdown.passed || 0;
-            const failed = overlap.breakdown.failed || 0;
-            const error = overlap.breakdown.error || 0;
+            const passed = overlap.tasksByStatus.passed ? overlap.tasksByStatus.passed.length : 0;
+            const failed = overlap.tasksByStatus.failed ? overlap.tasksByStatus.failed.length : 0;
+            const error = overlap.tasksByStatus.error ? overlap.tasksByStatus.error.length : 0;
             
             const passedRatio = passed / total;
             const failedRatio = failed / total;
@@ -570,7 +679,84 @@
             });
         }
         
-        document.addEventListener('DOMContentLoaded', setupMatrixHover);
+        function setupMatrixModal() {
+            // Create modal element
+            const modal = document.createElement('div');
+            modal.className = 'matrix-modal';
+            modal.innerHTML = \`
+                <div class="matrix-modal-content">
+                    <div class="matrix-modal-header">
+                        <h3 class="matrix-modal-title"></h3>
+                        <button class="matrix-modal-close" title="Close">&times;</button>
+                    </div>
+                    <p class="matrix-modal-summary"></p>
+                    <div class="matrix-modal-body"></div>
+                </div>
+            \`;
+            document.body.appendChild(modal);
+            
+            const modalContent = modal.querySelector('.matrix-modal-content');
+            const title = modal.querySelector('.matrix-modal-title');
+            const summary = modal.querySelector('.matrix-modal-summary');
+            const body = modal.querySelector('.matrix-modal-body');
+            const closeBtn = modal.querySelector('.matrix-modal-close');
+            
+            // Close modal handlers
+            const closeModal = () => {
+                modal.style.display = 'none';
+            };
+            
+            closeBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal.style.display === 'flex') {
+                    closeModal();
+                }
+            });
+            
+            // Add click handlers to matrix cells
+            document.querySelectorAll('.matrix-cell[data-modal]').forEach(cell => {
+                cell.style.cursor = 'pointer';
+                cell.addEventListener('click', (e) => {
+                    const data = JSON.parse(e.currentTarget.getAttribute('data-modal'));
+                    
+                    title.textContent = data.title;
+                    summary.textContent = data.summary;
+                    
+                    body.innerHTML = generateModalContent(data.tasksByStatus);
+                    
+                    modal.style.display = 'flex';
+                });
+            });
+        }
+        
+        function generateModalContent(tasksByStatus) {
+            if (Object.keys(tasksByStatus).length === 0) {
+                return '<p class="empty-task-message">No tasks to display</p>';
+            }
+            
+            let content = '';
+            const statusOrder = ['passed', 'failed', 'error'];
+            
+            statusOrder.forEach(status => {
+                if (tasksByStatus[status] && tasksByStatus[status].length > 0) {
+                    content += \`
+                        <div class="status-group">
+                            <div class="status-title \${status}">\${status.charAt(0).toUpperCase() + status.slice(1)} (\${tasksByStatus[status].length}):</div>
+                            <div class="task-list">\`;
+                    tasksByStatus[status].forEach(task => {
+                        content += \`<div class="task-item">\${task}</div>\`;
+                    });
+                    content += \`</div></div>\`;
+                }
+            });
+            
+            return content;
+        }
+        
         function equalizeMatrixHeaderSizes() {
             const rowHeaders = Array.from(document.querySelectorAll('.matrix-row-header'));
             if (rowHeaders.length === 0) return;
@@ -592,7 +778,12 @@
                 // Don't change width - keep column headers narrow
             });
         }
-        document.addEventListener('DOMContentLoaded', equalizeMatrixHeaderSizes);
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            setupMatrixHover();
+            setupMatrixModal();
+            equalizeMatrixHeaderSizes();
+        });
         window.addEventListener('resize', equalizeMatrixHeaderSizes);
     </script>
     <style>
@@ -653,22 +844,38 @@
                     const overlap = matrix[key];
                     const color = generateMatrixColor(overlap);
                     const isIdentical = i === j;
-                    const p = overlap.breakdown.passed || 0;
-                    const f = overlap.breakdown.failed || 0;
-                    const e = overlap.breakdown.error || 0;
-                    let titleText = '';
+                    const p = overlap.tasksByStatus.passed ? overlap.tasksByStatus.passed.length : 0;
+                    const f = overlap.tasksByStatus.failed ? overlap.tasksByStatus.failed.length : 0;
+                    const e = overlap.tasksByStatus.error ? overlap.tasksByStatus.error.length : 0;
+                    
+                    let tooltipText, modalData;
                     if (isIdentical) {
-                        // Diagonal: per-run distribution across non-skipped tasks (total already shown in cell)
-                        titleText = `Run distribution: Passed ${p}, Failed ${f}, Error ${e}`;
+                        tooltipText = `Run distribution: Passed ${p}, Failed ${f}, Error ${e}`;
+                        modalData = {
+                            title: `${escapeHtml(runA.run)}`,
+                            summary: `${overlap.total} tasks total`,
+                            tasksByStatus: overlap.tasksByStatus
+                        };
                     } else if (!overlap.total) {
-                        titleText = 'No comparable tasks (all skipped or none in common)';
+                        tooltipText = 'No comparable tasks (all skipped or none in common)';
+                        modalData = {
+                            title: `${escapeHtml(runA.run)} vs ${escapeHtml(runB.run)}`,
+                            summary: 'All tasks were skipped or none in common',
+                            tasksByStatus: {}
+                        };
                     } else {
-                        titleText = `Overlap: ${overlap.percentage}% (${overlap.common}/${overlap.total}) | Passed ${p}, Failed ${f}, Error ${e}`;
+                        tooltipText = `Overlap: ${overlap.percentage}% (${overlap.common}/${overlap.total}) | Passed ${p}, Failed ${f}, Error ${e}`;
+                        modalData = {
+                            title: `${escapeHtml(runA.run)} vs ${escapeHtml(runB.run)}`,
+                            summary: `${overlap.percentage}% overlap (${overlap.common}/${overlap.total} tasks)`,
+                            tasksByStatus: overlap.tasksByStatus
+                        };
                     }
 
                     html += `<td class="matrix-cell ${isIdentical ? 'diagonal' : ''}" 
                              style="background-color: ${color};" 
-                             title="${titleText}">
+                             title="${tooltipText}"
+                             data-modal='${JSON.stringify(modalData).replace(/'/g, "&#39;")}'>
                         <div class="matrix-cell-content">
                             <div class="matrix-percentage">${overlap.percentage}%</div>
                             <div class="matrix-details">${isIdentical ? overlap.total + ' tasks' : overlap.common + '/' + overlap.total}</div>
@@ -780,7 +987,7 @@
             </table>
             <div style="margin-top: 0;">
                 <button id="compare-selected-btn" onclick="compareSelectedRuns()" disabled>Compare Selected Runs</button>
-                <span id="selected-count" style="margin-left: 10px; font-size: 0.9em; color: #666;"></span>
+                <span id="selected-count" class="selected-count"></span>
             </div>
         </section>
         <section aria-labelledby="detailedresults" itemscope itemtype="https://schema.org/Table" itemprop="hasPart">
