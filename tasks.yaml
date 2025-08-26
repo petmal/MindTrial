@@ -96,7 +96,7 @@ task-config:
       response-result-format: |-
         1. <answer letter>)
         2. <answer letter>)
-        etc.
+        etc. one answer per line
       expected-result:
         - |
           1. b)
@@ -588,7 +588,7 @@ task-config:
         H  H  H  H ?
         Z  X  S  X 32
       response-result-format: |-
-        <H>, <S>, <X>, <Z>, <?>
+        values separated by ", " in the following order: H, S, X, Z, ?
       expected-result:
         - |
           17, 7, 11, 3, 68
@@ -621,7 +621,7 @@ task-config:
            35          20          30          ?
         28    21    16    12    24    18    12    9
       response-result-format: |-
-        <missing number>
+        number
       expected-result: |-
         15
     - name: "riddle - transformation pattern - v1"
