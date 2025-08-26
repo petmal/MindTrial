@@ -109,8 +109,11 @@ config:
         api-key: ""
         request-timeout: 15m
       runs:
-        - name: "DeepSeek-R1 - latest"
+        - name: "DeepSeek-V3.1 - latest (thinking mode)"
           model: "deepseek-reasoner"
+          max-requests-per-minute: 15
+        - name: "DeepSeek-V3.1 - latest (non-thinking mode)"
+          model: "deepseek-chat"
           max-requests-per-minute: 15
     - name: mistralai
       retry-policy:
