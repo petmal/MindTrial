@@ -77,11 +77,11 @@ func (e *ErrUnmarshalResponse) Error() string {
 	return fmt.Sprintf("failed to unmarshal the response: %v", e.Cause)
 }
 
-// Details returns a formatted string containing the stop reason and raw message
-// from the ErrUnmarshalResponse error. This provides additional context for
-// debugging and understanding the error.
-func (e *ErrUnmarshalResponse) Details() string {
-	return fmt.Sprintf("Raw response (stop-reason='%s'):\n\n%s", e.StopReason, e.RawMessage)
+func (e *ErrUnmarshalResponse) Unwrap() error {
+	if e == nil {
+		return nil
+	}
+	return e.Cause
 }
 
 // NewErrUnmarshalResponse creates a new ErrUnmarshalResponse instance.
@@ -91,6 +91,31 @@ func NewErrUnmarshalResponse(cause error, rawMessage []byte, stopReason []byte) 
 		RawMessage: rawMessage,
 		StopReason: stopReason,
 	}
+}
+
+// ErrAPIResponse holds additional information about an API error returned
+// by a provider, including the raw HTTP response body when available.
+type ErrAPIResponse struct {
+	// Cause is the underlying error that caused the API call to fail.
+	Cause error
+	// Body contains the raw HTTP response body returned by the provider API when available.
+	Body []byte
+}
+
+func (e *ErrAPIResponse) Error() string {
+	return e.Cause.Error()
+}
+
+func (e *ErrAPIResponse) Unwrap() error {
+	if e == nil {
+		return nil
+	}
+	return e.Cause
+}
+
+// NewErrAPIResponse creates a new ErrAPIResponse instance.
+func NewErrAPIResponse(cause error, body []byte) *ErrAPIResponse {
+	return &ErrAPIResponse{Cause: cause, Body: body}
 }
 
 // WrapErrRetryable wraps an error as retryable, preserving the original error chain.

@@ -29,6 +29,8 @@ func NewProvider(ctx context.Context, cfg config.ProviderConfig) (Provider, erro
 		return NewDeepseek(cfg.ClientConfig.(config.DeepseekClientConfig))
 	case config.MISTRALAI:
 		return NewMistralAI(cfg.ClientConfig.(config.MistralAIClientConfig))
+	case config.XAI:
+		return NewXAI(cfg.ClientConfig.(config.XAIClientConfig))
 	}
 	return nil, fmt.Errorf("%w: %s", ErrUnknownProviderName, cfg.Name)
 }

@@ -29,6 +29,8 @@ const (
 	DEEPSEEK string = "deepseek"
 	// MISTRALAI identifies the Mistral AI provider.
 	MISTRALAI string = "mistralai"
+	// XAI identifies the xAI provider.
+	XAI string = "xai"
 )
 
 // ErrInvalidConfigProperty indicates invalid configuration.
@@ -95,7 +97,7 @@ func (ac AppConfig) GetJudgesWithEnabledRuns() []JudgeConfig {
 // ProviderConfig defines settings for an AI provider.
 type ProviderConfig struct {
 	// Name specifies unique identifier of the provider.
-	Name string `yaml:"name" validate:"required,oneof=openai google anthropic deepseek mistralai"`
+	Name string `yaml:"name" validate:"required,oneof=openai google anthropic deepseek mistralai xai"`
 
 	// ClientConfig holds provider-specific client settings.
 	ClientConfig ClientConfig `yaml:"client-config" validate:"required"`
@@ -180,6 +182,12 @@ type DeepseekClientConfig struct {
 // MistralAIClientConfig represents Mistral AI provider settings.
 type MistralAIClientConfig struct {
 	// APIKey is the API key for the Mistral AI generative models provider.
+	APIKey string `yaml:"api-key" validate:"required"`
+}
+
+// XAIClientConfig represents xAI provider settings.
+type XAIClientConfig struct {
+	// APIKey is the API key for the xAI provider.
 	APIKey string `yaml:"api-key" validate:"required"`
 }
 
@@ -376,6 +384,43 @@ type MistralAIModelParams struct {
 	SafePrompt *bool `yaml:"safe-prompt" validate:"omitempty"`
 }
 
+// XAIModelParams represents xAI model-specific settings.
+type XAIModelParams struct {
+	// Temperature controls the randomness or "creativity" of the model's outputs.
+	// Notes: Higher values (e.g. 0.8) make outputs more random; lower values
+	// (e.g. 0.2) make outputs more focused and deterministic.
+	// Valid range: 0.0 — 2.0. Default: 1.0.
+	Temperature *float32 `yaml:"temperature" validate:"omitempty,min=0,max=2"`
+
+	// TopP controls diversity via nucleus sampling (probability mass cutoff).
+	// Notes: Use either Temperature or TopP, not both, for sampling control.
+	// Valid range: (0.0, 1.0]. Default: 1.0.
+	TopP *float32 `yaml:"top-p" validate:"omitempty,min=0,max=1"`
+
+	// MaxCompletionTokens controls the maximum number of tokens to generate in the completion.
+	MaxCompletionTokens *int32 `yaml:"max-completion-tokens" validate:"omitempty,min=0"`
+
+	// PresencePenalty penalizes new tokens based on whether they appear in the text so far.
+	// Notes: Positive values encourage the model to introduce new topics.
+	// Valid range: -2.0 — 2.0. Default: 0.0.
+	PresencePenalty *float32 `yaml:"presence-penalty" validate:"omitempty,min=-2,max=2"`
+
+	// FrequencyPenalty penalizes new tokens based on their frequency in the text so far.
+	// Notes: Positive values discourage repetition.
+	// Valid range: -2.0 — 2.0. Default: 0.0.
+	FrequencyPenalty *float32 `yaml:"frequency-penalty" validate:"omitempty,min=-2,max=2"`
+
+	// ReasoningEffort constrains how much "reasoning" budget to spend for reasoning-capable models.
+	// Notes: Not all reasoning models support this option.
+	// Valid values: "low", "high".
+	ReasoningEffort *string `yaml:"reasoning-effort" validate:"omitempty,oneof=low high"`
+
+	// Seed requests deterministic sampling when possible.
+	// No guaranteed determinism — xAI makes a best-effort to return
+	// repeatable outputs for identical inputs when `seed` and other parameters are the same.
+	Seed *int32 `yaml:"seed" validate:"omitempty"`
+}
+
 // JudgeConfig defines configuration for an LLM judge used for semantic evaluation of complex open-ended task responses.
 // Judges analyze the meaning and quality of answers rather than performing exact text matching,
 // enabling evaluation of subjective or creative tasks where multiple valid interpretations exist.
@@ -449,6 +494,12 @@ func (pc *ProviderConfig) UnmarshalYAML(value *yaml.Node) error {
 			return err
 		}
 		pc.ClientConfig = cfg
+	case XAI:
+		cfg := XAIClientConfig{}
+		if err := temp.ClientConfig.Decode(&cfg); err != nil {
+			return err
+		}
+		pc.ClientConfig = cfg
 	default:
 		return fmt.Errorf("%w: unknown client-config for provider: %s", ErrInvalidConfigProperty, temp.Name)
 	}
@@ -506,6 +557,12 @@ func decodeRuns(provider string, value *yaml.Node, out *[]RunConfig) error {
 				(*out)[i].ModelParams = params
 			case MISTRALAI:
 				params := MistralAIModelParams{}
+				if err := temp[i].ModelParams.Decode(&params); err != nil {
+					return err
+				}
+				(*out)[i].ModelParams = params
+			case XAI:
+				params := XAIModelParams{}
 				if err := temp[i].ModelParams.Decode(&params); err != nil {
 					return err
 				}

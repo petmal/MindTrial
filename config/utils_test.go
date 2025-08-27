@@ -152,39 +152,45 @@ func TestLoadConfigFromFile(t *testing.T) {
 				path: createMockFile(t,
 					[]byte(
 						`config:
-    task-source: "tasks.yaml"
-    output-dir: "`+strings.ReplaceAll(mockDirPathWithPlaceholders, `\`, `\\`)+`"
-    providers:
-        - name: openai
-          client-config:
-              api-key: "09eca6f7-d51e-45bd-bc5d-2023c624c428"
-          runs:
-              - name: "Avon"
-                model: "protocol"
-        - name: google
-          client-config:
-              api-key: "df2270f9-d4e1-4761-b809-bee219390d00"
-          runs:
-              - name: "didactic"
-                model: "connecting"
-        - name: anthropic
-          client-config:
-              api-key: "c86be894-ad2e-4c7f-b0bd-4397df9f234f"
-          runs:
-              - name: "innovative"
-                model: "Nevada"
-        - name: deepseek
-          client-config:
-              api-key: "b8d40c7c-b169-49a9-9a5c-291741e86daa"
-          runs:
-              - name: "Afghani"
-                model: "Euro"
-        - name: mistralai
-          client-config:
-              api-key: "f1a2b3c4-d5e6-7f8g-9h0i-j1k2l3m4n5o6"
-          runs:
-              - name: "bypass"
-                model: "impactful"
+ task-source: "tasks.yaml"
+ output-dir: "`+strings.ReplaceAll(mockDirPathWithPlaceholders, `\`, `\\`)+`"
+ providers:
+    - name: openai
+      client-config:
+          api-key: "09eca6f7-d51e-45bd-bc5d-2023c624c428"
+      runs:
+        - name: "Avon"
+          model: "protocol"
+    - name: google
+      client-config:
+          api-key: "df2270f9-d4e1-4761-b809-bee219390d00"
+      runs:
+        - name: "didactic"
+          model: "connecting"
+    - name: anthropic
+      client-config:
+          api-key: "c86be894-ad2e-4c7f-b0bd-4397df9f234f"
+      runs:
+          - name: "innovative"
+            model: "Nevada"
+    - name: deepseek
+      client-config:
+          api-key: "b8d40c7c-b169-49a9-9a5c-291741e86daa"
+      runs:
+          - name: "Afghani"
+            model: "Euro"
+    - name: mistralai
+      client-config:
+          api-key: "f1a2b3c4-d5e6-7f8g-9h0i-j1k2l3m4n5o6"
+      runs:
+          - name: "bypass"
+            model: "impactful"
+    - name: xai
+      client-config:
+          api-key: "49bdde73-d1bf-4a69-8bf6-a73c80fc8008"
+      runs:
+          - name: "Vision"
+            model: "interface"
 `)),
 			},
 			want: &Config{
@@ -257,6 +263,20 @@ func TestLoadConfigFromFile(t *testing.T) {
 								{
 									Name:                 "bypass",
 									Model:                "impactful",
+									MaxRequestsPerMinute: 0,
+								},
+							},
+							Disabled: false,
+						},
+						{
+							Name: "xai",
+							ClientConfig: XAIClientConfig{
+								APIKey: "49bdde73-d1bf-4a69-8bf6-a73c80fc8008",
+							},
+							Runs: []RunConfig{
+								{
+									Name:                 "Vision",
+									Model:                "interface",
 									MaxRequestsPerMinute: 0,
 								},
 							},
@@ -350,6 +370,20 @@ func TestLoadConfigFromFile(t *testing.T) {
                 retry-policy:
                     max-retry-attempts: 3
                     initial-delay-seconds: 1
+        - name: xai
+          client-config:
+              api-key: "b990bc70-169c-4de8-8dd1-fd4253527046"
+          runs:
+              - name: "Grok 4"
+                model: "grok4-latest"
+                model-parameters:
+                    temperature: 0.5
+                    top-p: 0.9
+                    max-completion-tokens: 1024
+                    presence-penalty: 0.1
+                    frequency-penalty: 0.2
+                    reasoning-effort: low
+                    seed: 42
 `)),
 			},
 			want: &Config{
@@ -470,6 +504,29 @@ func TestLoadConfigFromFile(t *testing.T) {
 									RetryPolicy: &RetryPolicy{
 										MaxRetryAttempts:    3,
 										InitialDelaySeconds: 1,
+									},
+								},
+							},
+							Disabled: false,
+						},
+						{
+							Name: "xai",
+							ClientConfig: XAIClientConfig{
+								APIKey: "b990bc70-169c-4de8-8dd1-fd4253527046",
+							},
+							Runs: []RunConfig{
+								{
+									Name:                 "Grok 4",
+									Model:                "grok4-latest",
+									MaxRequestsPerMinute: 0,
+									ModelParams: XAIModelParams{
+										Temperature:         testutils.Ptr(float32(0.5)),
+										TopP:                testutils.Ptr(float32(0.9)),
+										MaxCompletionTokens: testutils.Ptr(int32(1024)),
+										PresencePenalty:     testutils.Ptr(float32(0.1)),
+										FrequencyPenalty:    testutils.Ptr(float32(0.2)),
+										ReasoningEffort:     testutils.Ptr("low"),
+										Seed:                testutils.Ptr(int32(42)),
 									},
 								},
 							},

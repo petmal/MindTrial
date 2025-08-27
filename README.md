@@ -6,7 +6,7 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/petmal/mindtrial)](https://go.dev/)
 [![Go Reference](https://pkg.go.dev/badge/github.com/petmal/mindtrial.svg)](https://pkg.go.dev/github.com/petmal/mindtrial)
 
-**MindTrial** lets you test a single AI language model (LLM) or evaluate multiple models side-by-side. It supports providers like OpenAI, Google, Anthropic, DeepSeek, and Mistral AI. You can create your own custom tasks with text prompts and optional file attachments, validate responses using either exact value matching or an LLM judge for semantic evaluation, and get the results in easy-to-read HTML and CSV formats.
+**MindTrial** lets you test a single AI language model (LLM) or evaluate multiple models side-by-side. It supports providers like OpenAI, Google, Anthropic, DeepSeek, Mistral AI, and xAI. You can create your own custom tasks with text prompts and optional file attachments, validate responses using either exact value matching or an LLM judge for semantic evaluation, and get the results in easy-to-read HTML and CSV formats.
 
 ## Quick Start Guide
 
@@ -111,6 +111,7 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **anthropic**: Anthropic Claude models
 > - **deepseek**: DeepSeek open-source models
 > - **mistralai**: Mistral AI models
+> - **xai**: xAI (Grok) models
 
 > [!NOTE]
 > **Anthropic** and **DeepSeek** providers support configurable request timeout in the `client-config` section:
@@ -162,6 +163,16 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **random-seed**: Provides the seed to use for random sampling. If set, requests will generate deterministic results.
 > - **prompt-mode**: When set to "reasoning", instructs the model to reason if supported.
 > - **safe-prompt**: Enables content filtering to ensure outputs comply with usage policies.
+
+> Currently supported parameters for **xAI** models include:
+>
+> - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 2.0, default: 1.0). Lower values produce more focused and deterministic outputs.
+> - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0, default: 1.0). Lower values produce more focused outputs.
+> - **max-completion-tokens**: Controls the maximum number of tokens available to the model for generating a response.
+> - **presence-penalty**: Penalizes new tokens based on their presence in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use new tokens.
+> - **frequency-penalty**: Penalizes new tokens based on their frequency in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use less frequent tokens.
+> - **reasoning-effort**: Controls effort on reasoning for supported reasoning-capable models (values: `low`, `high`). Not all xAI reasoning models (i.e. Grok 4) accept this parameter.
+> - **seed**: Integer seed to request deterministic sampling when possible. Determinism is best-effort. xAI makes a best-effort to return repeatable outputs for identical inputs when `seed` and other parameters are the same.
 
 > [!NOTE]
 > The results will be saved to `<output-dir>/<output-basename>.<format>`. If the result output file already exists, it will be replaced. If the log file already exists, it will be appended to.
@@ -247,7 +258,7 @@ config:
         api-key: "<your-api-key>"
         request-timeout: 10m
       runs:
-        - name: "DeepSeek-R1 - latest"
+        - name: "DeepSeek-V3.1 - latest (thinking mode)"
           model: "deepseek-reasoner"
           max-requests-per-minute: 15
     - name: mistralai

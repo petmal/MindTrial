@@ -32,6 +32,35 @@
         }
       },
       "problemMatcher": []
+    },
+    {
+      "label": "Generate xAI Go Client",
+      "type": "shell",
+      "command": "openapi-generator-cli",
+      "args": [
+        "generate",
+        "-i", "https://api.x.ai/api-docs/openapi.json",
+        "-g", "go",
+        "-o", ".",
+        "--git-host", "github.com",
+        "--git-user-id", "petmal",
+        "--git-repo-id", "mindtrial",
+        "--skip-validate-spec",
+        "--minimal-update",
+        "--enable-post-process-file",
+        "--additional-properties packageName=xai",
+        "--additional-properties isGoSubmodule=true",
+        "--additional-properties disallowAdditionalPropertiesIfNotPresent=false",
+        "--additional-properties generateInterfaces=true"
+      ],
+      "group": "build",
+      "options": {
+        "cwd": "${workspaceFolder}${/}pkg${/}xai",
+        "env": {
+          "GO_POST_PROCESS_FILE": "gofmt -s -w"
+        }
+      },
+      "problemMatcher": []
     }
   ]
 }

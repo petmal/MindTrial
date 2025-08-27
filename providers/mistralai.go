@@ -9,6 +9,7 @@ package providers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"slices"
@@ -86,8 +87,14 @@ func (o *MistralAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunCon
 
 	resp, err := timed(func() (*mistralai.ChatCompletionResponse, error) {
 		response, httpResponse, err := o.client.ChatAPI.ChatCompletionV1ChatCompletionsPost(ctx).ChatCompletionRequest(*request).Execute()
-		if err != nil && o.isTransientResponse(httpResponse) {
-			return response, WrapErrRetryable(err)
+		if err != nil {
+			var apiErr *mistralai.GenericOpenAPIError
+			switch {
+			case o.isTransientResponse(httpResponse):
+				return response, WrapErrRetryable(err)
+			case errors.As(err, &apiErr):
+				return response, NewErrAPIResponse(err, apiErr.Body())
+			}
 		}
 		return response, err
 	}, &result.duration)

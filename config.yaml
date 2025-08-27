@@ -135,6 +135,16 @@ config:
           max-requests-per-minute: 5
           model-parameters:
             prompt-mode: "reasoning"
+    - name: xai
+      retry-policy:
+        max-retry-attempts: 5
+        initial-delay-seconds: 30
+      client-config:
+        api-key: ""
+      runs:
+        - name: "Grok 4 - latest (reasoning)"
+          model: "grok-4-latest"
+          max-requests-per-minute: 30
   judges:
     - name: "default"
       provider:

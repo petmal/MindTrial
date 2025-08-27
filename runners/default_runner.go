@@ -312,6 +312,13 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 				Message: err.Error(),
 				Usage:   toTokenUsage(usage),
 			}
+			// If this is an API error that carries response body, expose it.
+			var apiErr *providers.ErrAPIResponse
+			if errors.As(err, &apiErr) && apiErr.Body != nil {
+				runResult.Details.Error.Details = map[string][]string{
+					"HTTP Response": utils.SplitLines(string(apiErr.Body)),
+				}
+			}
 			taskLogger.Error(ctx, logging.LevelError, err, "task finished with error")
 		}
 	} else {
