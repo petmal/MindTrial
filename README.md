@@ -24,7 +24,7 @@
 
 ### Prerequisites
 
-- [Go 1.23](https://golang.org/dl/)
+- [Go 1.24](https://golang.org/dl/)
 - API keys from your chosen AI providers
 
 ## Key Features
@@ -163,7 +163,7 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **random-seed**: Provides the seed to use for random sampling. If set, requests will generate deterministic results.
 > - **prompt-mode**: When set to "reasoning", instructs the model to reason if supported.
 > - **safe-prompt**: Enables content filtering to ensure outputs comply with usage policies.
-
+>
 > Currently supported parameters for **xAI** models include:
 >
 > - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 2.0, default: 1.0). Lower values produce more focused and deterministic outputs.
