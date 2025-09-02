@@ -65,8 +65,7 @@
             letter-spacing: 0.03em;
             position: relative;
         }
-    thead th .filter-sort-controls span { white-space: nowrap; }
-    thead th .filter-sort-controls span .sort-btn { margin-left:4px; }
+    
      
     table:not(.matrix-table) tbody tr:nth-child(even) { background-color: var(--row-even-bg); }
     table:not(.matrix-table) tbody tr:nth-child(odd) { background-color: var(--row-odd-bg); }
@@ -203,12 +202,6 @@
         cursor: default;
         transition: background-color 0.2s ease;
     box-sizing: border-box;
-    }
-     
-    .matrix-cell.mirror-cell {
-        background: transparent !important;
-        cursor: default;
-        pointer-events: none;
     }
     .matrix-cell.diagonal { font-weight: bold; }
     .matrix-cell-content { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; font-size: 0.8em; }
@@ -483,7 +476,7 @@
             openMatrixWindow(matrix, selectedRuns);
         }
 
-        function generateComparisonMatrix(runs) {
+    function generateComparisonMatrix(runs) {
             const matrix = {};
             const results = getResultsData();
 
@@ -500,20 +493,27 @@
                         const tasksByStatus = {};
                         tasks.forEach(task => {
                             const status = data[task];
-                            if (!tasksByStatus[status]) {
-                                tasksByStatus[status] = [];
-                            }
+                            if (!tasksByStatus[status]) tasksByStatus[status] = [];
                             tasksByStatus[status].push(task);
                         });
-                        matrix[key] = { 
-                            percentage: 100, 
-                            identical: true, 
-                            tasksByStatus: tasksByStatus,
-                            total: tasks.length,
-                            common: tasks.length
+                        matrix[key] = {
+                            agree: {
+                                percentage: 100,
+                                identical: true,
+                                tasksByStatus,
+                                total: tasks.length,
+                                common: tasks.length
+                            },
+                            disagree: {
+                                percentage: 0,
+                                identical: false,
+                                tasksByStatus: {},
+                                total: tasks.length,
+                                common: 0
+                            }
                         };
                     } else {
-                        matrix[key] = calculateOverlap(runA, runB, results);
+                        matrix[key] = calculateAgreementDisagreement(runA, runB, results);
                     }
                 }
             }
@@ -539,36 +539,48 @@
             return results;
         }
 
-        function calculateOverlap(runA, runB, results) {
+        
+
+        function calculateAgreementDisagreement(runA, runB, results) {
             const dataA = results[runA.key] || {};
             const dataB = results[runB.key] || {};
-            
+
             const commonTasks = Object.keys(dataA).filter(task => task in dataB);
             const nonSkippedTasks = commonTasks.filter(task => 
                 dataA[task] !== 'skipped' && dataB[task] !== 'skipped'
             );
-            
+
             if (nonSkippedTasks.length === 0) {
-                return { percentage: 0, total: 0, common: 0, tasksByStatus: {} };
+                return {
+                    agree: { percentage: 0, total: 0, common: 0, tasksByStatus: {} },
+                    disagree: { percentage: 0, total: 0, common: 0, tasksByStatus: {} }
+                };
             }
-            
-            const matching = nonSkippedTasks.filter(task => dataA[task] === dataB[task]);
-            const percentage = Math.round((matching.length / nonSkippedTasks.length) * 100);
-            
-            const tasksByStatus = {};
-            matching.forEach(task => {
-                const status = dataA[task];
-                if (!tasksByStatus[status]) {
-                    tasksByStatus[status] = [];
+
+            const agreeByStatus = {};
+            const disagreeList = [];
+            let agreeCount = 0;
+
+            nonSkippedTasks.forEach(task => {
+                const a = dataA[task];
+                const b = dataB[task];
+                if (a === b) {
+                    if (!agreeByStatus[a]) agreeByStatus[a] = [];
+                    agreeByStatus[a].push(task);
+                    agreeCount += 1;
+                } else {
+                    disagreeList.push(task);
                 }
-                tasksByStatus[status].push(task);
             });
-            
+
+            const total = nonSkippedTasks.length;
+            const agreePct = Math.round((agreeCount / total) * 100);
+            const disagreeCount = total - agreeCount;
+            const disagreePct = 100 - agreePct;
+
             return {
-                percentage,
-                total: nonSkippedTasks.length,
-                common: matching.length,
-                tasksByStatus
+                agree: { percentage: agreePct, total, common: agreeCount, tasksByStatus: agreeByStatus },
+                disagree: { percentage: disagreePct, total, common: disagreeCount, tasksByStatus: { tasks: disagreeList } }
             };
         }
 
@@ -592,6 +604,14 @@
             const g = Math.round(255 * passedRatio + 255 * failedRatio + 100 * errorRatio);
             const b = Math.round(155 * passedRatio + 100 * failedRatio + 100 * errorRatio);
             
+            return `rgba(${r}, ${g}, ${b}, ${saturation})`;
+        }
+
+        function generateDisagreementColor(dis) {
+            if (dis.percentage === 0) return 'transparent';
+            const saturation = dis.percentage / 100;
+            
+            const r = 176, g = 186, b = 196;
             return `rgba(${r}, ${g}, ${b}, ${saturation})`;
         }
 
@@ -733,15 +753,22 @@
             }
             
             let content = '';
-            const statusOrder = ['passed', 'failed', 'error'];
+            const keys = Object.keys(tasksByStatus);
+            const defaultOrder = ['passed', 'failed', 'error'];
+            const isDefault = keys.every(k => defaultOrder.includes(k));
+            const order = keys.length === 1 && keys[0] === 'tasks'
+                ? ['tasks']
+                : (isDefault ? defaultOrder.filter(k => keys.includes(k)) : keys.sort());
             
-            statusOrder.forEach(status => {
-                if (tasksByStatus[status] && tasksByStatus[status].length > 0) {
+            order.forEach(status => {
+                const items = tasksByStatus[status];
+                if (items && items.length > 0) {
+                    const title = status === 'tasks' ? 'Tasks' : (status.charAt(0).toUpperCase() + status.slice(1));
                     content += \`
                         <div class="status-group">
-                            <div class="status-title \${status}">\${status.charAt(0).toUpperCase() + status.slice(1)} (\${tasksByStatus[status].length}):</div>
+                            <div class="status-title \${status}">\${title} (\${items.length}):</div>
                             <div class="task-list">\`;
-                    tasksByStatus[status].forEach(task => {
+                    items.forEach(task => {
                         content += \`<div class="task-item">\${task}</div>\`;
                     });
                     content += \`</div></div>\`;
@@ -811,8 +838,15 @@
                     <span>Error</span>
                 </div>
             </div>
+            <div class="matrix-legend-items">
+                <div class="matrix-legend-item">
+                    <span class="matrix-legend-color" style="background-color: rgba(176, 186, 196, 0.8);"></span>
+                    <span>Disagreement</span>
+                </div>
+            </div>
             <p>Color saturation = overlap %, Color hue = distribution of overlapping results</p>
-            <p>Only the lower triangle is shown (matrix is symmetric). The diagonal shows per-run result distribution.</p>
+            <p>Disagreement saturation = disagreement %</p>
+            <p>The matrix is symmetrical. Lower triangle shows overlap; upper triangle shows disagreement. Diagonal shows per-run distribution.</p>
         </div>
         <table class="matrix-table">
             <thead>
@@ -829,50 +863,59 @@
                 html += `<tr><th class="matrix-row-header" title="${escapeHtml(runA.provider)} - ${escapeHtml(runA.run)}">${escapeHtml(runA.run)}</th>`;
                 
                 runs.forEach((runB, j) => {
-                    
-                    if (j > i) {
-                        html += `<td class="matrix-cell mirror-cell" aria-hidden="true"></td>`;
+                    const key = `${runA.key}-${runB.key}`;
+                    if (i === j) {
+                        const diag = matrix[key].agree;
+                        const p = diag.tasksByStatus.passed ? diag.tasksByStatus.passed.length : 0;
+                        const f = diag.tasksByStatus.failed ? diag.tasksByStatus.failed.length : 0;
+                        const e = diag.tasksByStatus.error ? diag.tasksByStatus.error.length : 0;
+                        const tooltipText = `Run distribution: Passed ${p}, Failed ${f}, Error ${e}`;
+                        const modalData = { title: `${escapeHtml(runA.run)}`, summary: `${diag.total} tasks total`, tasksByStatus: diag.tasksByStatus };
+                        const color = generateMatrixColor(diag);
+                        html += `<td class="matrix-cell diagonal" style="background-color: ${color};" title="${tooltipText}" data-modal='${JSON.stringify(modalData).replace(/'/g, "&#39;")}'>
+                            <div class="matrix-cell-content">
+                                <div class="matrix-percentage">${diag.percentage}%</div>
+                                <div class="matrix-details">${diag.total} tasks</div>
+                            </div>
+                        </td>`;
                         return;
                     }
-                    const key = `${runA.key}-${runB.key}`;
-                    const overlap = matrix[key];
-                    const color = generateMatrixColor(overlap);
-                    const isIdentical = i === j;
-                    const p = overlap.tasksByStatus.passed ? overlap.tasksByStatus.passed.length : 0;
-                    const f = overlap.tasksByStatus.failed ? overlap.tasksByStatus.failed.length : 0;
-                    const e = overlap.tasksByStatus.error ? overlap.tasksByStatus.error.length : 0;
-                    
-                    let tooltipText, modalData;
-                    if (isIdentical) {
-                        tooltipText = `Run distribution: Passed ${p}, Failed ${f}, Error ${e}`;
-                        modalData = {
-                            title: `${escapeHtml(runA.run)}`,
-                            summary: `${overlap.total} tasks total`,
-                            tasksByStatus: overlap.tasksByStatus
-                        };
-                    } else if (!overlap.total) {
-                        tooltipText = 'No comparable tasks (all skipped or none in common)';
-                        modalData = {
-                            title: `${escapeHtml(runA.run)} vs ${escapeHtml(runB.run)}`,
-                            summary: 'All tasks were skipped or none in common',
-                            tasksByStatus: {}
-                        };
-                    } else {
-                        tooltipText = `Overlap: ${overlap.percentage}% (${overlap.common}/${overlap.total}) | Passed ${p}, Failed ${f}, Error ${e}`;
-                        modalData = {
-                            title: `${escapeHtml(runA.run)} vs ${escapeHtml(runB.run)}`,
-                            summary: `${overlap.percentage}% overlap (${overlap.common}/${overlap.total} tasks)`,
-                            tasksByStatus: overlap.tasksByStatus
-                        };
+                    if (j < i) {
+                        const overlap = matrix[key].agree;
+                        const color = generateMatrixColor(overlap);
+                        const p = overlap.tasksByStatus.passed ? overlap.tasksByStatus.passed.length : 0;
+                        const f = overlap.tasksByStatus.failed ? overlap.tasksByStatus.failed.length : 0;
+                        const e = overlap.tasksByStatus.error ? overlap.tasksByStatus.error.length : 0;
+                        let tooltipText, modalData;
+                        if (!overlap.total) {
+                            tooltipText = 'No comparable tasks (all skipped or none in common)';
+                            modalData = { title: `${escapeHtml(runA.run)} = ${escapeHtml(runB.run)}`, summary: 'All tasks were skipped or none in common', tasksByStatus: {} };
+                        } else {
+                            tooltipText = `Overlap: ${overlap.percentage}% (${overlap.common}/${overlap.total}) | Passed ${p}, Failed ${f}, Error ${e}`;
+                            modalData = { title: `${escapeHtml(runA.run)} = ${escapeHtml(runB.run)}`, summary: `${overlap.percentage}% overlap (${overlap.common}/${overlap.total} tasks)`, tasksByStatus: overlap.tasksByStatus };
+                        }
+                        html += `<td class="matrix-cell" style="background-color: ${color};" title="${tooltipText}" data-modal='${JSON.stringify(modalData).replace(/'/g, "&#39;")}'>
+                            <div class="matrix-cell-content">
+                                <div class="matrix-percentage">${overlap.percentage}%</div>
+                                <div class="matrix-details">${overlap.common}/${overlap.total}</div>
+                            </div>
+                        </td>`;
+                        return;
                     }
-
-                    html += `<td class="matrix-cell ${isIdentical ? 'diagonal' : ''}" 
-                             style="background-color: ${color};" 
-                             title="${tooltipText}"
-                             data-modal='${JSON.stringify(modalData).replace(/'/g, "&#39;")}'>
+                    const dis = matrix[key].disagree;
+                    const color = generateDisagreementColor(dis);
+                    let tooltipText, modalData;
+                    if (!dis.total) {
+                        tooltipText = 'No comparable tasks (all skipped or none in common)';
+                        modalData = { title: `${escapeHtml(runA.run)} ≠ ${escapeHtml(runB.run)}`, summary: 'All tasks were skipped or none in common', tasksByStatus: {} };
+                    } else {
+                        tooltipText = `Disagreement: ${dis.percentage}% (${dis.common}/${dis.total})`;
+                        modalData = { title: `${escapeHtml(runA.run)} ≠ ${escapeHtml(runB.run)}`, summary: `${dis.percentage}% disagreement (${dis.common}/${dis.total} tasks)`, tasksByStatus: dis.tasksByStatus };
+                    }
+                    html += `<td class="matrix-cell" style="background-color: ${color};" title="${tooltipText}" data-modal='${JSON.stringify(modalData).replace(/'/g, "&#39;")}'>
                         <div class="matrix-cell-content">
-                            <div class="matrix-percentage">${overlap.percentage}%</div>
-                            <div class="matrix-details">${isIdentical ? overlap.total + ' tasks' : overlap.common + '/' + overlap.total}</div>
+                            <div class="matrix-percentage">${dis.percentage}%</div>
+                            <div class="matrix-details">${dis.common}/${dis.total}</div>
                         </div>
                     </td>`;
                 });
