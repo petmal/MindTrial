@@ -17,6 +17,8 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
+	"text/template"
 	"time"
 
 	"github.com/petmal/mindtrial/pkg/utils"
@@ -145,6 +147,33 @@ type Tasks struct {
 	TaskConfig TaskConfig `yaml:"task-config" validate:"required"`
 }
 
+// SystemPrompt represents a system prompt configuration.
+type SystemPrompt struct {
+	// Template is the template string for the system prompt.
+	// It can reference `{{.ResponseResultFormat}}` to include the task's response format.
+	Template *string `yaml:"template" validate:"omitempty"`
+}
+
+// GetTemplate returns the template string and true if it is set and not blank.
+func (s SystemPrompt) GetTemplate() (template string, ok bool) {
+	if ok = s.Template != nil && IsNotBlank(*s.Template); ok {
+		template = *s.Template
+	}
+	return
+}
+
+// MergeWith merges this system prompt with another and returns the result.
+// The provided other values override these values if set.
+func (these SystemPrompt) MergeWith(other *SystemPrompt) SystemPrompt {
+	resolved := these
+
+	if other != nil {
+		setIfNotNil(&resolved.Template, other.Template)
+	}
+
+	return resolved
+}
+
 // TaskConfig represents task definitions and global settings.
 type TaskConfig struct {
 	// Tasks is a list of tasks to be executed.
@@ -157,6 +186,10 @@ type TaskConfig struct {
 	// ValidationRules are default validation settings for all tasks.
 	// Individual tasks can override these settings.
 	ValidationRules ValidationRules `yaml:"validation-rules" validate:"omitempty"`
+
+	// SystemPrompt is the default system prompt configuration for all tasks.
+	// Individual tasks can override this configuration.
+	SystemPrompt SystemPrompt `yaml:"system-prompt" validate:"omitempty"`
 }
 
 // GetEnabledTasks returns a filtered list of tasks that are not disabled.
@@ -364,10 +397,44 @@ type Task struct {
 	// If set, overrides the global TaskConfig.ValidationRules values.
 	ValidationRules *ValidationRules `yaml:"validation-rules" validate:"omitempty"`
 
+	// SystemPrompt is the system prompt configuration for this specific task.
+	// If set, overrides the global TaskConfig.SystemPrompt values.
+	SystemPrompt *SystemPrompt `yaml:"system-prompt" validate:"omitempty"`
+
 	// Files is a list of files to be included with the prompt.
 	// This is primarily used for images but can support other file types
 	// depending on the provider's capabilities.
 	Files []TaskFile `yaml:"files" validate:"omitempty,unique=Name,dive"`
+
+	// resolvedSystemPrompt is the resolved system prompt template for this task.
+	resolvedSystemPrompt string
+}
+
+// GetResolvedSystemPrompt returns the resolved system prompt template for this task and true if it is not blank.
+func (t Task) GetResolvedSystemPrompt() (prompt string, ok bool) {
+	return t.resolvedSystemPrompt, IsNotBlank(t.resolvedSystemPrompt)
+}
+
+// ResolveSystemPrompt resolves the system prompt template for this task using the provided default.
+// The resolved template can be retrieved using GetResolvedSystemPrompt().
+func (t *Task) ResolveSystemPrompt(defaultConfig SystemPrompt) error {
+	resolvedTemplate := defaultConfig.MergeWith(t.SystemPrompt)
+
+	if templateValue, ok := resolvedTemplate.GetTemplate(); ok {
+		tmpl, err := template.New("system-prompt").Option("missingkey=error").Parse(templateValue)
+		if err != nil {
+			return fmt.Errorf("failed to parse system prompt template: %w", err)
+		}
+		var buf strings.Builder
+		if err := tmpl.Execute(&buf, map[string]interface{}{
+			"ResponseResultFormat": t.ResponseResultFormat,
+		}); err != nil {
+			return fmt.Errorf("failed to execute system prompt template: %w", err)
+		}
+		t.resolvedSystemPrompt = buf.String()
+	}
+
+	return nil
 }
 
 // JudgeSelector defines settings for using a judge in validation.

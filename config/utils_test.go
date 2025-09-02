@@ -1021,6 +1021,44 @@ func TestLoadTasksFromFile(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "valid file with system prompt",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`task-config:
+    system-prompt:
+        template: "You are a helpful assistant. {{.ResponseResultFormat}}"
+    tasks:
+        - name: "Task with custom system prompt"
+          prompt: "How many legs does a dog have?"
+          response-result-format: "Greeting"
+          system-prompt:
+              template: "Hello, {{.ResponseResultFormat}}"
+          expected-result: "4"`)),
+			},
+			want: &Tasks{
+				TaskConfig: TaskConfig{
+					SystemPrompt: SystemPrompt{
+						Template: testutils.Ptr("You are a helpful assistant. {{.ResponseResultFormat}}"),
+					},
+					Tasks: []Task{
+						{
+							Name:                 "Task with custom system prompt",
+							Prompt:               "How many legs does a dog have?",
+							ResponseResultFormat: "Greeting",
+							ExpectedResult:       utils.NewStringSet("4"),
+							SystemPrompt: &SystemPrompt{
+								Template: testutils.Ptr("Hello, {{.ResponseResultFormat}}"),
+							},
+							resolvedSystemPrompt: "Hello, Greeting",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

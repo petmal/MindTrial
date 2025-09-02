@@ -300,6 +300,19 @@ Optionally, a task can include a list of `files` to be sent along with the promp
 > To disable all tasks by default, set `disabled: true` in the `task-config` section.
 > An individual task can override this by setting `disabled: false` (e.g. to enable just that one task).
 
+#### System Prompt
+
+The system prompt controls how the response format instruction is presented to the AI model.
+
+You can customize this template globally for all tasks in the `task-config` section, and override it for individual tasks if needed. The template uses Go's template syntax and can reference `{{.ResponseResultFormat}}` to include the task's `response-result-format`.
+
+Default system prompt for all tasks is:
+
+> Provide the final answer in exactly this format: {{.ResponseResultFormat}}
+
+- **system-prompt**: A configuration section for the system prompt.
+  - **template**: The template string for the system prompt instruction. If not specified, uses the default.
+
 #### Validation Rules
 
 These rules control how the validator compares the model's answer to the expected results.
@@ -418,6 +431,12 @@ A sample task from `tasks.yaml`:
 # tasks.yaml
 task-config:
   disabled: true
+  system-prompt:
+    template: |
+      Provide the final answer in exactly this format: {{.ResponseResultFormat}}
+      Treat every substring enclosed in `<` and `>` as a variable placeholder.
+      Substitute only the raw value in place of `<variable name>`, removing the `<` and `>` characters.
+      Do not add any extra words, punctuation, quotes, or whitespace beyond what the format string shows.
   validation-rules:
     case-sensitive: false
     ignore-whitespace: false
@@ -431,6 +450,8 @@ task-config:
         RR TE KA DG EH AN SQ EL UI OO HE LO AR PE NG OG
       response-result-format: |-
         list of words in alphabetical order separated by ", "
+      system-prompt:
+        template: "Provide the final answer in exactly this format: {{.ResponseResultFormat}}"
       expected-result: |-
         ANTELOPE, HEDGEHOG, KANGAROO, SQUIRREL
     - name: "visual - shapes - v1"

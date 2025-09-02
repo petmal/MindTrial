@@ -163,6 +163,9 @@ var DefaultResponseFormatInstruction = sync.OnceValue(func() string {
 
 // DefaultAnswerFormatInstruction generates default answer formatting instruction for a given task to be passed to the AI model.
 func DefaultAnswerFormatInstruction(task config.Task) string {
+	if resolvedTemplate, ok := task.GetResolvedSystemPrompt(); ok {
+		return resolvedTemplate
+	}
 	return fmt.Sprintf("Provide the final answer in exactly this format: %s", task.ResponseResultFormat)
 }
 

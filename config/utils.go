@@ -10,13 +10,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"html/template"
 	"io"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
+	"text/template"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -72,6 +72,13 @@ func LoadTasksFromFile(ctx context.Context, path string) (*Tasks, error) {
 
 	if err := validate.Struct(cfg); err != nil {
 		return cfg, fmt.Errorf("invalid task definition: %w", err)
+	}
+
+	// Resolve system prompt templates for all tasks.
+	for i, task := range cfg.TaskConfig.Tasks {
+		if err := cfg.TaskConfig.Tasks[i].ResolveSystemPrompt(cfg.TaskConfig.SystemPrompt); err != nil {
+			return cfg, fmt.Errorf("invalid system prompt configuration for task '%s': %w", task.Name, err)
+		}
 	}
 
 	return cfg, nil

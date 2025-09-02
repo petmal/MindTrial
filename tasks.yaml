@@ -9,6 +9,20 @@ task-config:
     case-sensitive: false
     ignore-whitespace: false
     trim-lines: false
+  system-prompt:
+    template: |-
+      Your final answer must strictly follow the format definition below. Do not add extra words, punctuation, quotes, or whitespace beyond what the format specifies.
+
+      ---
+      FORMAT DEFINITION:
+      {{.ResponseResultFormat}}
+      ---
+
+      RULES:
+      1. The format definition above describes the required structure for your answer.
+      2. If it contains placeholders like `<variable>`, substitute them with the correct raw value, removing the `<` and `>` characters.
+      3. Adhere to all described structural rules, such as list numbering, ordering, separators, and newlines.
+      4. If the format provides specific word choices (e.g., "true or false"), your answer must be one of those exact words.
   tasks:
     - name: "reasoning - section, color and number - v1"
       prompt: |-

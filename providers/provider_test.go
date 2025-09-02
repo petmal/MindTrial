@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -113,6 +114,41 @@ func TestResultGetUsage(t *testing.T) {
 			result := Result{usage: tt.init}
 			recordUsage(tt.inputTokens, tt.outputTokens, &result.usage)
 			assert.Equal(t, tt.want, result.GetUsage())
+		})
+	}
+}
+
+func TestDefaultAnswerFormatInstruction(t *testing.T) {
+	tests := []struct {
+		name     string
+		task     config.Task
+		expected string
+	}{
+		{
+			name: "default format",
+			task: config.Task{
+				ResponseResultFormat: "<answer>",
+			},
+			expected: "Provide the final answer in exactly this format: <answer>",
+		},
+		{
+			name: "custom system prompt",
+			task: config.Task{
+				ResponseResultFormat: "<answer>",
+				SystemPrompt: &config.SystemPrompt{
+					Template: testutils.Ptr("You are a helpful assistant. Always respond with clear answers."),
+				},
+			},
+			expected: "You are a helpful assistant. Always respond with clear answers.",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := tt.task.ResolveSystemPrompt(config.SystemPrompt{}); err != nil {
+				t.Fatalf("failed to resolve system prompt: %v", err)
+			}
+			assert.Equal(t, tt.expected, DefaultAnswerFormatInstruction(tt.task))
 		})
 	}
 }

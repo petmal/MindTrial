@@ -1314,3 +1314,174 @@ func TestJudgeSelector_MergeWith(t *testing.T) {
 		})
 	}
 }
+
+func TestSystemPrompt_MergeWith(t *testing.T) {
+	tests := []struct {
+		name  string
+		base  SystemPrompt
+		other *SystemPrompt
+		want  SystemPrompt
+	}{
+		{
+			name:  "other nil, base value set",
+			base:  SystemPrompt{Template: testutils.Ptr("base")},
+			other: nil,
+			want:  SystemPrompt{Template: testutils.Ptr("base")},
+		},
+		{
+			name:  "other nil template, base value set",
+			base:  SystemPrompt{Template: testutils.Ptr("base")},
+			other: &SystemPrompt{},
+			want:  SystemPrompt{Template: testutils.Ptr("base")},
+		},
+		{
+			name:  "other empty template, base value set",
+			base:  SystemPrompt{Template: testutils.Ptr("base")},
+			other: &SystemPrompt{Template: testutils.Ptr("")},
+			want:  SystemPrompt{Template: testutils.Ptr("")},
+		},
+		{
+			name:  "base nil template, other set",
+			base:  SystemPrompt{},
+			other: &SystemPrompt{Template: testutils.Ptr("other")},
+			want:  SystemPrompt{Template: testutils.Ptr("other")},
+		},
+		{
+			name:  "base empty template, other nil",
+			base:  SystemPrompt{Template: testutils.Ptr("")},
+			other: nil,
+			want:  SystemPrompt{Template: testutils.Ptr("")},
+		},
+		{
+			name:  "base empty template, other set",
+			base:  SystemPrompt{Template: testutils.Ptr("")},
+			other: &SystemPrompt{Template: testutils.Ptr("other")},
+			want:  SystemPrompt{Template: testutils.Ptr("other")},
+		},
+		{
+			name:  "other set, base value set",
+			base:  SystemPrompt{Template: testutils.Ptr("base")},
+			other: &SystemPrompt{Template: testutils.Ptr("other")},
+			want:  SystemPrompt{Template: testutils.Ptr("other")},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.base.MergeWith(tt.other))
+		})
+	}
+}
+
+func TestTask_ResolveSystemPrompt(t *testing.T) {
+	tests := []struct {
+		name          string
+		task          Task
+		defaultConfig SystemPrompt
+		wantPrompt    string
+		wantErr       bool
+	}{
+		{
+			name: "task has no system prompt, uses default",
+			task: Task{
+				ResponseResultFormat: "yaml",
+			},
+			defaultConfig: SystemPrompt{Template: testutils.Ptr("Default: {{.ResponseResultFormat}}")},
+			wantPrompt:    "Default: yaml",
+			wantErr:       false,
+		},
+		{
+			name: "task has template, default has template",
+			task: Task{
+				SystemPrompt:         &SystemPrompt{Template: testutils.Ptr("Task: {{.ResponseResultFormat}}")},
+				ResponseResultFormat: "json",
+			},
+			defaultConfig: SystemPrompt{Template: testutils.Ptr("Default template")},
+			wantPrompt:    "Task: json",
+			wantErr:       false,
+		},
+		{
+			name: "invalid template syntax",
+			task: Task{
+				SystemPrompt: &SystemPrompt{Template: testutils.Ptr("Invalid {{.MissingBrace")},
+			},
+			defaultConfig: SystemPrompt{Template: testutils.Ptr("Default")},
+			wantPrompt:    "",
+			wantErr:       true,
+		},
+		{
+			name: "unknown template variable",
+			task: Task{
+				SystemPrompt:         &SystemPrompt{Template: testutils.Ptr("Variable {{.UnknownVariable}}")},
+				ResponseResultFormat: "xml",
+			},
+			defaultConfig: SystemPrompt{Template: testutils.Ptr("Default")},
+			wantPrompt:    "",
+			wantErr:       true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, ok := tt.task.GetResolvedSystemPrompt()
+			require.False(t, ok)
+
+			err := tt.task.ResolveSystemPrompt(tt.defaultConfig)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				resolvedPrompt, ok := tt.task.GetResolvedSystemPrompt()
+				assert.True(t, ok)
+				assert.Equal(t, tt.wantPrompt, resolvedPrompt)
+			}
+		})
+	}
+}
+
+func TestSystemPrompt_GetTemplate(t *testing.T) {
+	tests := []struct {
+		name         string
+		systemPrompt SystemPrompt
+		want         string
+		wantOk       bool
+	}{
+		{
+			name:         "nil template",
+			systemPrompt: SystemPrompt{},
+			want:         "",
+			wantOk:       false,
+		},
+		{
+			name:         "empty template",
+			systemPrompt: SystemPrompt{Template: testutils.Ptr("")},
+			want:         "",
+			wantOk:       false,
+		},
+		{
+			name:         "whitespace only template",
+			systemPrompt: SystemPrompt{Template: testutils.Ptr("   ")},
+			want:         "",
+			wantOk:       false,
+		},
+		{
+			name:         "valid template",
+			systemPrompt: SystemPrompt{Template: testutils.Ptr("You are a helpful assistant")},
+			want:         "You are a helpful assistant",
+			wantOk:       true,
+		},
+		{
+			name:         "template with whitespace",
+			systemPrompt: SystemPrompt{Template: testutils.Ptr("  You are a helpful assistant  ")},
+			want:         "  You are a helpful assistant  ",
+			wantOk:       true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, ok := tt.systemPrompt.GetTemplate()
+			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.wantOk, ok)
+		})
+	}
+}
