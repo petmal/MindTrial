@@ -11,12 +11,16 @@ package validators
 
 import (
 	"context"
+	"errors"
 
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
 	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/petmal/mindtrial/providers"
 )
+
+// ErrUnsupportedResponseFormatValidation is returned when a validator cannot handle the response format.
+var ErrUnsupportedResponseFormatValidation = errors.New("unsupported response format validation")
 
 // ValidationResult contains the result of a validation check.
 type ValidationResult struct {
@@ -30,19 +34,16 @@ type ValidationResult struct {
 	Usage providers.Usage
 }
 
-// Explain returns a formatted explanation of the validation result.
-func (vr ValidationResult) Explain() string {
-	return vr.Title + "\n\n" + vr.Explanation
-}
-
 // Validator verifies AI model responses.
 type Validator interface {
 	// IsCorrect checks if result matches expected value using the provided validation rules.
 	// The originalPrompt and expectedResponseFormat provide additional context for semantic validation.
 	// The logger parameter allows validators to emit structured log messages during validation.
-	IsCorrect(ctx context.Context, logger logging.Logger, rules config.ValidationRules, expected utils.StringSet, actual providers.Result, originalPrompt string, expectedResponseFormat string) (ValidationResult, error)
-	// ToCanonical normalizes string for validation using the provided validation rules.
-	ToCanonical(rules config.ValidationRules, value string) string
+	IsCorrect(ctx context.Context, logger logging.Logger, rules config.ValidationRules, expected utils.ValueSet, actual providers.Result, originalPrompt string, expectedResponseFormat config.ResponseFormat) (ValidationResult, error)
+	// ToCanonical normalizes value for validation using the provided validation rules.
+	// For string values, applies string normalization rules (case, whitespace, etc.).
+	// For object values, recursively normalizes all string fields within the object structure.
+	ToCanonical(rules config.ValidationRules, value interface{}) interface{}
 	// GetName returns a descriptive user-friendly name for the validator.
 	GetName() string
 	// Close cleans up any resources used by the validator.

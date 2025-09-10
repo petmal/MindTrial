@@ -59,7 +59,7 @@ func (m *MockProvider) Run(ctx context.Context, logger logging.Logger, cfg confi
 	case "judge_evaluation":
 		return m.handleJudgeEvaluation(result, cfg, task)
 	default:
-		result.FinalAnswer = task.Name
+		result.FinalAnswer = Answer{Content: task.Name}
 		return result, nil
 	}
 }
@@ -81,9 +81,9 @@ func (m *MockProvider) createBaseResult(taskName string) Result {
 	}
 }
 
-func (m *MockProvider) handlePassMode(result Result, expectedAnswer string) Result {
+func (m *MockProvider) handlePassMode(result Result, expectedAnswer interface{}) Result {
 	result.Explanation = "mock pass"
-	result.FinalAnswer = expectedAnswer
+	result.FinalAnswer = Answer{Content: expectedAnswer}
 	return result
 }
 
@@ -95,11 +95,11 @@ func (m *MockProvider) handleMockMode(result Result, cfg config.RunConfig, task 
 
 	if parsedResponse == "failure" {
 		result.Explanation = "mock failure"
-		result.FinalAnswer = "Facere aperiam recusandae totam magnam nulla corrupti."
+		result.FinalAnswer = Answer{Content: "Facere aperiam recusandae totam magnam nulla corrupti."}
 	} else {
 		result.Explanation = m.getExplanationForRetry(retryKey)
 		expectedValidAnswers := task.ExpectedResult.Values()
-		result.FinalAnswer = expectedValidAnswers[0]
+		result.FinalAnswer = Answer{Content: expectedValidAnswers[0]}
 	}
 
 	return result, nil
@@ -116,7 +116,7 @@ func (m *MockProvider) handleJudgeEvaluation(result Result, cfg config.RunConfig
 	}
 
 	result.Explanation = m.getExplanationForRetry(retryKey)
-	result.FinalAnswer = m.evaluateResponse(parsedResponse, expectedAnswers)
+	result.FinalAnswer = Answer{Content: m.evaluateResponse(parsedResponse, expectedAnswers)}
 	return result, nil
 }
 
@@ -146,15 +146,15 @@ func (m *MockProvider) extractActualResponse(prompt string) string {
 	return strings.TrimSpace(actualMatches[1])
 }
 
-// evaluateResponse compares the actual response with expected answers and returns "1" for correct, "0" for incorrect.
-func (m *MockProvider) evaluateResponse(actualResponse string, expectedAnswers []string) string {
+// evaluateResponse compares the actual response with expected answers and returns a JSON object with "correct" boolean field.
+func (m *MockProvider) evaluateResponse(actualResponse string, expectedAnswers []string) map[string]interface{} {
 	actualTrimmed := strings.TrimSpace(actualResponse)
 	for _, expectedAnswer := range expectedAnswers {
 		if actualTrimmed == strings.TrimSpace(expectedAnswer) {
-			return "1"
+			return map[string]interface{}{"correct": true}
 		}
 	}
-	return "0"
+	return map[string]interface{}{"correct": false}
 }
 
 // getExplanationForRetry returns an appropriate explanation based on whether retry logic was used.

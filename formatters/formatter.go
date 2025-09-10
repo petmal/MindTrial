@@ -13,10 +13,9 @@ import (
 	"io"
 	"strings"
 
+	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/petmal/mindtrial/runners"
 )
-
-const textAnswerSeparator = "---\n"
 
 // ErrPrintResults indicates that result formatting failed.
 var ErrPrintResults = errors.New("failed to print formatted results")
@@ -29,8 +28,24 @@ type Formatter interface {
 	Write(results runners.Results, out io.Writer) error
 }
 
-// formatAnswerText returns a single plain text block containing all possible formatted answers separated by a separator
-// for CSV and other text-based outputs.
+// formatAnswerText returns a single plain text block containing all possible formatted answers for
+// CSV and other text-based outputs. If there is only one answer, it returns the answer directly.
+// If there are multiple answers, it returns them as a bracket-formatted list.
 func formatAnswerText(result runners.RunResult) string {
-	return strings.TrimSpace(strings.Join(FormatAnswer(result, false), textAnswerSeparator))
+	answers := FormatAnswer(result, false)
+	if len(answers) == 1 {
+		return answers[0]
+	}
+
+	// Indent all lines in each answer.
+	indentedAnswers := make([]string, len(answers))
+	for i, answer := range answers {
+		lines := utils.SplitLines(answer)
+		for j, line := range lines {
+			lines[j] = "    " + line
+		}
+		indentedAnswers[i] = strings.Join(lines, "\n")
+	}
+
+	return "[\n" + strings.Join(indentedAnswers, "\n  ,\n") + "\n]"
 }

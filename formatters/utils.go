@@ -12,9 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/petmal/mindtrial/runners"
-
-	"slices"
 
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
@@ -75,15 +74,21 @@ func TotalDuration(resultsByKind map[runners.ResultKind][]runners.RunResult, inc
 // For failures, it generates a diff between expected and actual outputs.
 // The useHTML parameter controls whether diffs are formatted as HTML or plain text.
 func FormatAnswer(result runners.RunResult, useHTML bool) (answers []string) {
+	gotStr := utils.ToString(result.Got)
+
 	switch result.Kind {
 	case runners.Success, runners.Error, runners.NotSupported:
-		answers = append(answers, result.Got)
+		if useHTML {
+			gotStr = "<pre>" + gotStr + "</pre>"
+		}
+		answers = append(answers, gotStr)
 	case runners.Failure:
 		for _, want := range result.Want.Values() {
+			wantStr := utils.ToString(want)
 			if useHTML {
-				answers = append(answers, htmlDiffContentPrefix+DiffHTML(want, result.Got))
+				answers = append(answers, htmlDiffContentPrefix+DiffHTML(wantStr, gotStr))
 			} else {
-				answers = append(answers, DiffText(want, result.Got))
+				answers = append(answers, DiffText(wantStr, gotStr))
 			}
 		}
 	}
@@ -115,22 +120,12 @@ func computeDiff(expected string, actual string) (engine *diffmatchpatch.DiffMat
 // For each key-value pair, it calls fn. If fn returns an error,
 // iteration stops and returns that error.
 func ForEachOrdered[K cmp.Ordered, V any](m map[K]V, fn func(key K, value V) error) error {
-	for _, key := range SortedKeys(m) {
+	for _, key := range utils.SortedKeys(m) {
 		if err := fn(key, m[key]); err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-// SortedKeys returns a sorted slice of map keys.
-func SortedKeys[K cmp.Ordered, V any](m map[K]V) (keys []K) {
-	keys = make([]K, 0, len(m))
-	for key := range m {
-		keys = append(keys, key)
-	}
-	slices.Sort(keys)
-	return
 }
 
 // RoundToMS rounds a duration to the nearest millisecond.
@@ -167,7 +162,7 @@ func UniqueRuns(results runners.Results) []string {
 			runSet[result.Run] = struct{}{}
 		}
 	}
-	return SortedKeys(runSet)
+	return utils.SortedKeys(runSet)
 }
 
 // Timestamp returns the current time in RFC1123Z format.

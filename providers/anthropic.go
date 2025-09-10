@@ -41,26 +41,35 @@ func (o Anthropic) Name() string {
 }
 
 func (o *Anthropic) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
+	schema, err := ResultJSONSchema(task.ResponseResultFormat)
+	if err != nil {
+		return result, err
+	}
+
 	request := anthropic.MessageNewParams{
 		MaxTokens: defaultMaxTokens,
 		Model:     anthropic.Model(cfg.Model),
-		System: []anthropic.TextBlockParam{
-			{
-				Text: result.recordPrompt(DefaultAnswerFormatInstruction(task)),
-			},
-		},
 		Tools: []anthropic.ToolUnionParam{
 			{
 				OfTool: &anthropic.ToolParam{
 					Name:        responseFormatterToolName,
 					Description: anthropic.String("Record the response using well-structured JSON."),
 					InputSchema: anthropic.ToolInputSchemaParam{
-						Properties: ResultJSONSchema().Properties,
+						Properties: schema.Properties,
+						Required:   schema.Required,
 					},
 				},
 			},
 		},
 		ToolChoice: anthropic.ToolChoiceParamOfTool(responseFormatterToolName),
+	}
+
+	if answerFormatInstruction := DefaultAnswerFormatInstruction(task); answerFormatInstruction != "" {
+		request.System = []anthropic.TextBlockParam{
+			{
+				Text: result.recordPrompt(answerFormatInstruction),
+			},
+		}
 	}
 	if cfg.ModelParams != nil {
 		if modelParams, ok := cfg.ModelParams.(config.AnthropicModelParams); ok {

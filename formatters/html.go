@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/petmal/mindtrial/runners"
 	"github.com/petmal/mindtrial/version"
 )
@@ -44,8 +45,8 @@ func NewHTMLFormatter() Formatter {
 	templ := template.Must(template.New(filepath.Base(templateFile)).Funcs(template.FuncMap{
 		"ToStatus":                ToStatus,
 		"FormatAnswer":            FormatAnswer,
-		"SortResultsByProvider":   SortedKeys[string, []runners.RunResult],
-		"SortResultsByRunAndKind": SortedKeys[string, map[runners.ResultKind][]runners.RunResult],
+		"SortResultsByProvider":   utils.SortedKeys[string, []runners.RunResult],
+		"SortResultsByRunAndKind": utils.SortedKeys[string, map[runners.ResultKind][]runners.RunResult],
 		"CountByKind":             CountByKind,
 		"TotalDuration":           TotalDuration,
 		"RoundToMS":               RoundToMS,

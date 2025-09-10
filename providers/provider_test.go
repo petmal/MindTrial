@@ -7,10 +7,12 @@
 package providers
 
 import (
+	"encoding/json"
 	"errors"
 	"testing"
 	"time"
 
+	"github.com/invopop/jsonschema"
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/testutils"
 	"github.com/stretchr/testify/assert"
@@ -118,6 +120,56 @@ func TestResultGetUsage(t *testing.T) {
 	}
 }
 
+func TestResultGetFinalAnswerContent(t *testing.T) {
+	tests := []struct {
+		name     string
+		answer   Answer
+		expected interface{}
+	}{
+		{
+			name:     "string value",
+			answer:   Answer{Content: "hello world"},
+			expected: "hello world",
+		},
+		{
+			name:     "numeric value",
+			answer:   Answer{Content: 42.3},
+			expected: 42.3,
+		},
+		{
+			name:     "boolean value",
+			answer:   Answer{Content: true},
+			expected: true,
+		},
+		{
+			name:     "nil value",
+			answer:   Answer{Content: nil},
+			expected: nil,
+		},
+		{
+			name:     "complex object",
+			answer:   Answer{Content: map[string]interface{}{"key": "value", "number": 123}},
+			expected: map[string]interface{}{"key": "value", "number": 123},
+		},
+		{
+			name:     "slice value",
+			answer:   Answer{Content: []string{"item1", "item2", "item3"}},
+			expected: []string{"item1", "item2", "item3"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := Result{
+				Title:       "Test Result",
+				Explanation: "Test explanation",
+				FinalAnswer: tt.answer,
+			}
+			assert.Equal(t, tt.expected, result.GetFinalAnswerContent())
+		})
+	}
+}
+
 func TestDefaultAnswerFormatInstruction(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -127,14 +179,14 @@ func TestDefaultAnswerFormatInstruction(t *testing.T) {
 		{
 			name: "default format",
 			task: config.Task{
-				ResponseResultFormat: "<answer>",
+				ResponseResultFormat: config.NewResponseFormat("<answer>"),
 			},
 			expected: "Provide the final answer in exactly this format: <answer>",
 		},
 		{
 			name: "custom system prompt",
 			task: config.Task{
-				ResponseResultFormat: "<answer>",
+				ResponseResultFormat: config.NewResponseFormat("<answer>"),
 				SystemPrompt: &config.SystemPrompt{
 					Template: testutils.Ptr("You are a helpful assistant. Always respond with clear answers."),
 				},
@@ -149,6 +201,535 @@ func TestDefaultAnswerFormatInstruction(t *testing.T) {
 				t.Fatalf("failed to resolve system prompt: %v", err)
 			}
 			assert.Equal(t, tt.expected, DefaultAnswerFormatInstruction(tt.task))
+		})
+	}
+}
+
+func TestDefaultAnswerFormatInstruction_EnableFor(t *testing.T) {
+	tests := []struct {
+		name     string
+		task     config.Task
+		expected string
+	}{
+		{
+			name: "EnableForAll with string format and template",
+			task: config.Task{
+				ResponseResultFormat: config.NewResponseFormat("yes/no"),
+				SystemPrompt: &config.SystemPrompt{
+					Template:  testutils.Ptr("You are helpful. Format: {{.ResponseResultFormat}}"),
+					EnableFor: testutils.Ptr(config.EnableForAll),
+				},
+			},
+			expected: "You are helpful. Format: yes/no",
+		},
+		{
+			name: "EnableForAll with schema format and template",
+			task: config.Task{
+				ResponseResultFormat: config.NewResponseFormat(map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"answer": map[string]interface{}{"type": "string"},
+					},
+				}),
+				SystemPrompt: &config.SystemPrompt{
+					Template:  testutils.Ptr("Custom prompt. Format: {{.ResponseResultFormat}}"),
+					EnableFor: testutils.Ptr(config.EnableForAll),
+				},
+			},
+			expected: "Custom prompt. Format: {\n  \"properties\": {\n    \"answer\": {\n      \"type\": \"string\"\n    }\n  },\n  \"type\": \"object\"\n}",
+		},
+		{
+			name: "EnableForAll with string format and blank template",
+			task: config.Task{
+				ResponseResultFormat: config.NewResponseFormat("yes/no"),
+				SystemPrompt: &config.SystemPrompt{
+					EnableFor: testutils.Ptr(config.EnableForAll),
+				},
+			},
+			expected: "Provide the final answer in exactly this format: yes/no",
+		},
+		{
+			name: "EnableForAll with schema format and blank template",
+			task: config.Task{
+				ResponseResultFormat: config.NewResponseFormat(map[string]interface{}{
+					"type": "object",
+				}),
+				SystemPrompt: &config.SystemPrompt{
+					EnableFor: testutils.Ptr(config.EnableForAll),
+				},
+			},
+			expected: "",
+		},
+		{
+			name: "EnableForNone with string format",
+			task: config.Task{
+				ResponseResultFormat: config.NewResponseFormat("yes/no"),
+				SystemPrompt: &config.SystemPrompt{
+					Template:  testutils.Ptr("You are helpful"),
+					EnableFor: testutils.Ptr(config.EnableForNone),
+				},
+			},
+			expected: "",
+		},
+		{
+			name: "EnableForNone with schema format",
+			task: config.Task{
+				ResponseResultFormat: config.NewResponseFormat(map[string]interface{}{
+					"type": "object",
+				}),
+				SystemPrompt: &config.SystemPrompt{
+					Template:  testutils.Ptr("You are helpful"),
+					EnableFor: testutils.Ptr(config.EnableForNone),
+				},
+			},
+			expected: "",
+		},
+		{
+			name: "EnableForText with string format and template",
+			task: config.Task{
+				ResponseResultFormat: config.NewResponseFormat("yes/no"),
+				SystemPrompt: &config.SystemPrompt{
+					Template:  testutils.Ptr("You are helpful"),
+					EnableFor: testutils.Ptr(config.EnableForText),
+				},
+			},
+			expected: "You are helpful",
+		},
+		{
+			name: "EnableForText with string format and blank template",
+			task: config.Task{
+				ResponseResultFormat: config.NewResponseFormat("yes/no"),
+				SystemPrompt: &config.SystemPrompt{
+					EnableFor: testutils.Ptr(config.EnableForText),
+				},
+			},
+			expected: "Provide the final answer in exactly this format: yes/no",
+		},
+		{
+			name: "EnableForText with schema format",
+			task: config.Task{
+				ResponseResultFormat: config.NewResponseFormat(map[string]interface{}{
+					"type": "object",
+				}),
+				SystemPrompt: &config.SystemPrompt{
+					Template:  testutils.Ptr("You are helpful"),
+					EnableFor: testutils.Ptr(config.EnableForText),
+				},
+			},
+			expected: "",
+		},
+		{
+			name: "default EnableFor (text) with string format",
+			task: config.Task{
+				ResponseResultFormat: config.NewResponseFormat("yes/no"),
+			},
+			expected: "Provide the final answer in exactly this format: yes/no",
+		},
+		{
+			name: "default EnableFor (text) with schema format",
+			task: config.Task{
+				ResponseResultFormat: config.NewResponseFormat(map[string]interface{}{
+					"type": "object",
+				}),
+			},
+			expected: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := tt.task.ResolveSystemPrompt(config.SystemPrompt{}); err != nil {
+				t.Fatalf("failed to resolve system prompt: %v", err)
+			}
+			assert.Equal(t, tt.expected, DefaultAnswerFormatInstruction(tt.task))
+		})
+	}
+}
+func TestResultJSONSchemaRaw(t *testing.T) {
+	tests := []struct {
+		name           string
+		responseFormat config.ResponseFormat
+		wantSchema     map[string]interface{}
+	}{
+		{
+			name:           "string response format",
+			responseFormat: config.NewResponseFormat("Provide a simple answer"),
+			wantSchema: map[string]interface{}{
+				"$schema":              "https://json-schema.org/draft/2020-12/schema",
+				"$id":                  "https://github.com/petmal/mindtrial/providers/result",
+				"type":                 "object",
+				"additionalProperties": false,
+				"properties": map[string]interface{}{
+					"title": map[string]interface{}{
+						"type":        "string",
+						"title":       "Response Title",
+						"description": "A concise, descriptive title that summarizes what this response is about. Should be brief (typically 3-8 words) and capture the essence of the task or question being answered.",
+					},
+					"explanation": map[string]interface{}{
+						"type":        "string",
+						"title":       "Response Explanation",
+						"description": "A comprehensive explanation of the reasoning process, methodology, and context behind the final answer. This should provide clear rationale for how the answer was derived, including any relevant analysis, steps taken, or considerations made.",
+					},
+					"final_answer": map[string]interface{}{
+						"type":        "string",
+						"title":       "Final Answer",
+						"description": "The definitive answer to the task or question, provided as plain text. This should directly address what was asked and strictly follow any formatting instructions provided.",
+					},
+				},
+				"required": []interface{}{"title", "explanation", "final_answer"},
+			},
+		},
+		{
+			name: "complex object schema",
+			responseFormat: config.NewResponseFormat(map[string]interface{}{
+				"type":        "object",
+				"title":       "Analysis Response",
+				"description": "Detailed analysis with score and recommendation",
+				"properties": map[string]interface{}{
+					"analysis": map[string]interface{}{
+						"type":  "object",
+						"title": "Analysis Details",
+						"properties": map[string]interface{}{
+							"score":     map[string]interface{}{"type": "number", "minimum": 0, "maximum": 100},
+							"reasoning": map[string]interface{}{"type": "string", "minLength": 10},
+						},
+						"required": []string{"score", "reasoning"},
+					},
+					"recommendation": map[string]interface{}{
+						"type":  "string",
+						"enum":  []string{"APPROVE", "REJECT", "REVIEW"},
+						"title": "Decision",
+					},
+				},
+				"required":             []string{"analysis", "recommendation"},
+				"additionalProperties": false,
+			}),
+			wantSchema: map[string]interface{}{
+				"$schema":              "https://json-schema.org/draft/2020-12/schema",
+				"$id":                  "https://github.com/petmal/mindtrial/providers/result",
+				"type":                 "object",
+				"additionalProperties": false,
+				"properties": map[string]interface{}{
+					"title": map[string]interface{}{
+						"type":        "string",
+						"title":       "Response Title",
+						"description": "A concise, descriptive title that summarizes what this response is about. Should be brief (typically 3-8 words) and capture the essence of the task or question being answered.",
+					},
+					"explanation": map[string]interface{}{
+						"type":        "string",
+						"title":       "Response Explanation",
+						"description": "A comprehensive explanation of the reasoning process, methodology, and context behind the final answer. This should provide clear rationale for how the answer was derived, including any relevant analysis, steps taken, or considerations made.",
+					},
+					"final_answer": map[string]interface{}{
+						"type":                 "object",
+						"title":                "Final Answer",
+						"description":          "The container holding the definitive answer to the task or question. The answer content must directly address what was asked, strictly follow any formatting instructions provided, and conform to the specified schema.",
+						"additionalProperties": false,
+						"properties": map[string]interface{}{
+							"content": map[string]interface{}{
+								"type":        "object",
+								"title":       "Analysis Response",
+								"description": "Detailed analysis with score and recommendation",
+								"properties": map[string]interface{}{
+									"analysis": map[string]interface{}{
+										"type":  "object",
+										"title": "Analysis Details",
+										"properties": map[string]interface{}{
+											"score":     map[string]interface{}{"type": "number", "minimum": 0, "maximum": 100},
+											"reasoning": map[string]interface{}{"type": "string", "minLength": 10},
+										},
+										"required": []string{"score", "reasoning"},
+									},
+									"recommendation": map[string]interface{}{
+										"type":  "string",
+										"enum":  []string{"APPROVE", "REJECT", "REVIEW"},
+										"title": "Decision",
+									},
+								},
+								"required":             []string{"analysis", "recommendation"},
+								"additionalProperties": false,
+							},
+						},
+						"required": []interface{}{"content"},
+					},
+				},
+				"required": []interface{}{"title", "explanation", "final_answer"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			schema, err := ResultJSONSchemaRaw(tt.responseFormat)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantSchema, schema)
+		})
+	}
+}
+
+func TestResultJSONSchema(t *testing.T) {
+	tests := []struct {
+		name           string
+		responseFormat config.ResponseFormat
+		wantSchemaRaw  map[string]interface{}
+	}{
+		{
+			name:           "string response format",
+			responseFormat: config.NewResponseFormat("Provide a simple answer"),
+			wantSchemaRaw: map[string]interface{}{
+				"$schema":              "https://json-schema.org/draft/2020-12/schema",
+				"$id":                  "https://github.com/petmal/mindtrial/providers/result",
+				"type":                 "object",
+				"additionalProperties": false,
+				"properties": map[string]interface{}{
+					"title": map[string]interface{}{
+						"type":        "string",
+						"title":       "Response Title",
+						"description": "A concise, descriptive title that summarizes what this response is about. Should be brief (typically 3-8 words) and capture the essence of the task or question being answered.",
+					},
+					"explanation": map[string]interface{}{
+						"type":        "string",
+						"title":       "Response Explanation",
+						"description": "A comprehensive explanation of the reasoning process, methodology, and context behind the final answer. This should provide clear rationale for how the answer was derived, including any relevant analysis, steps taken, or considerations made.",
+					},
+					"final_answer": map[string]interface{}{
+						"type":        "string",
+						"title":       "Final Answer",
+						"description": "The definitive answer to the task or question, provided as plain text. This should directly address what was asked and strictly follow any formatting instructions provided.",
+					},
+				},
+				"required": []interface{}{"title", "explanation", "final_answer"},
+			},
+		},
+		{
+			name: "complex object schema",
+			responseFormat: config.NewResponseFormat(map[string]interface{}{
+				"type":        "object",
+				"title":       "Analysis Response",
+				"description": "Detailed analysis with score and recommendation",
+				"properties": map[string]interface{}{
+					"analysis": map[string]interface{}{
+						"type":  "object",
+						"title": "Analysis Details",
+						"properties": map[string]interface{}{
+							"score":     map[string]interface{}{"type": "number", "minimum": 0, "maximum": 100},
+							"reasoning": map[string]interface{}{"type": "string", "minLength": 10},
+						},
+						"required": []string{"score", "reasoning"},
+					},
+					"recommendation": map[string]interface{}{
+						"type":  "string",
+						"enum":  []string{"APPROVE", "REJECT", "REVIEW"},
+						"title": "Decision",
+					},
+				},
+				"required":             []string{"analysis", "recommendation"},
+				"additionalProperties": false,
+			}),
+			wantSchemaRaw: map[string]interface{}{
+				"$schema":              "https://json-schema.org/draft/2020-12/schema",
+				"$id":                  "https://github.com/petmal/mindtrial/providers/result",
+				"type":                 "object",
+				"additionalProperties": false,
+				"properties": map[string]interface{}{
+					"title": map[string]interface{}{
+						"type":        "string",
+						"title":       "Response Title",
+						"description": "A concise, descriptive title that summarizes what this response is about. Should be brief (typically 3-8 words) and capture the essence of the task or question being answered.",
+					},
+					"explanation": map[string]interface{}{
+						"type":        "string",
+						"title":       "Response Explanation",
+						"description": "A comprehensive explanation of the reasoning process, methodology, and context behind the final answer. This should provide clear rationale for how the answer was derived, including any relevant analysis, steps taken, or considerations made.",
+					},
+					"final_answer": map[string]interface{}{
+						"type":                 "object",
+						"title":                "Final Answer",
+						"description":          "The container holding the definitive answer to the task or question. The answer content must directly address what was asked, strictly follow any formatting instructions provided, and conform to the specified schema.",
+						"additionalProperties": false,
+						"properties": map[string]interface{}{
+							"content": map[string]interface{}{
+								"type":        "object",
+								"title":       "Analysis Response",
+								"description": "Detailed analysis with score and recommendation",
+								"properties": map[string]interface{}{
+									"analysis": map[string]interface{}{
+										"type":  "object",
+										"title": "Analysis Details",
+										"properties": map[string]interface{}{
+											"score":     map[string]interface{}{"type": "number", "minimum": 0, "maximum": 100},
+											"reasoning": map[string]interface{}{"type": "string", "minLength": 10},
+										},
+										"required": []string{"score", "reasoning"},
+									},
+									"recommendation": map[string]interface{}{
+										"type":  "string",
+										"enum":  []string{"APPROVE", "REJECT", "REVIEW"},
+										"title": "Decision",
+									},
+								},
+								"required":             []string{"analysis", "recommendation"},
+								"additionalProperties": false,
+							},
+						},
+						"required": []interface{}{"content"},
+					},
+				},
+				"required": []interface{}{"title", "explanation", "final_answer"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			schema, err := ResultJSONSchema(tt.responseFormat)
+			require.NoError(t, err)
+			require.NotNil(t, schema)
+
+			// Convert expected raw map to jsonschema.Schema for comparison.
+			expectedBytes, err := json.Marshal(tt.wantSchemaRaw)
+			require.NoError(t, err)
+
+			var expectedSchema jsonschema.Schema
+			err = json.Unmarshal(expectedBytes, &expectedSchema)
+			require.NoError(t, err)
+
+			assert.Equal(t, expectedSchema, *schema)
+		})
+	}
+}
+
+func TestAnswerMarshalUnmarshal(t *testing.T) {
+	tests := []struct {
+		name     string
+		answer   Answer
+		jsonData string
+	}{
+		{
+			name:     "string content",
+			answer:   Answer{Content: "This is a plain text answer"},
+			jsonData: `"This is a plain text answer"`,
+		},
+		{
+			name:     "null string",
+			answer:   Answer{Content: "null"},
+			jsonData: `"null"`,
+		},
+		{
+			name:     "null content",
+			answer:   Answer{Content: nil},
+			jsonData: `null`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Test marshaling.
+			marshaled, err := json.Marshal(tt.answer)
+			require.NoError(t, err)
+			assert.JSONEq(t, tt.jsonData, string(marshaled))
+
+			// Test unmarshaling.
+			var unmarshaled Answer
+			err = json.Unmarshal([]byte(tt.jsonData), &unmarshaled)
+			require.NoError(t, err)
+			assert.Equal(t, tt.answer.Content, unmarshaled.Content)
+		})
+	}
+}
+
+func TestAnswerUnmarshalEdgeCases(t *testing.T) {
+	tests := []struct {
+		name        string
+		jsonData    string
+		expectError bool
+		expected    interface{}
+	}{
+		{
+			name:        "empty string",
+			jsonData:    `""`,
+			expectError: false,
+			expected:    "",
+		},
+		{
+			name:        "whitespace string",
+			jsonData:    `"   "`,
+			expectError: false,
+			expected:    "   ",
+		},
+		{
+			name:        "multiline string",
+			jsonData:    `"line1\nline2"`,
+			expectError: false,
+			expected:    "line1\nline2",
+		},
+		{
+			name:        "invalid json",
+			jsonData:    `{invalid}`,
+			expectError: true,
+			expected:    nil,
+		},
+		{
+			name:        "object with content field",
+			jsonData:    `{"content":"test"}`,
+			expectError: false,
+			expected:    "test",
+		},
+		{
+			name:        "object with complex content",
+			jsonData:    `{"content":{"key":"value","number":42}}`,
+			expectError: false,
+			expected:    map[string]interface{}{"key": "value", "number": float64(42)},
+		},
+		{
+			name:        "object with array content",
+			jsonData:    `{"content":["item1","item2","item3"]}`,
+			expectError: false,
+			expected:    []interface{}{"item1", "item2", "item3"},
+		},
+		{
+			name:        "object with null content",
+			jsonData:    `{"content":null}`,
+			expectError: false,
+			expected:    nil,
+		},
+		{
+			name:        "direct array content (not supported)",
+			jsonData:    `["item1","item2","item3"]`,
+			expectError: true,
+			expected:    nil,
+		},
+		{
+			name:        "direct boolean content (not supported)",
+			jsonData:    `true`,
+			expectError: true,
+			expected:    nil,
+		},
+		{
+			name:        "direct number content (not supported)",
+			jsonData:    `123.45`,
+			expectError: true,
+			expected:    nil,
+		},
+		{
+			name:        "direct object content (not supported)",
+			jsonData:    `{"data":"value","items":42}`,
+			expectError: true,
+			expected:    nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var answer Answer
+			err := json.Unmarshal([]byte(tt.jsonData), &answer)
+
+			if tt.expectError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.expected, answer.Content)
+			}
 		})
 	}
 }

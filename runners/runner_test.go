@@ -45,31 +45,31 @@ func TestRunnerRun(t *testing.T) {
 				[]config.Task{
 					{
 						Name:           "success",
-						ExpectedResult: utils.NewStringSet("Provident quas tenetur repellat deserunt ut neque culpa."),
+						ExpectedResult: utils.NewValueSet("Provident quas tenetur repellat deserunt ut neque culpa."),
 					},
 					{
 						Name:           "failure",
-						ExpectedResult: utils.NewStringSet("Aperiam assumenda id provident ratione eos molestiae."),
+						ExpectedResult: utils.NewValueSet("Aperiam assumenda id provident ratione eos molestiae."),
 					},
 					{
 						Name:           "error",
-						ExpectedResult: utils.NewStringSet("Doloribus quis incidunt velit quia."),
+						ExpectedResult: utils.NewValueSet("Doloribus quis incidunt velit quia."),
 					},
 					{
 						Name:           "failure",
-						ExpectedResult: utils.NewStringSet("Veritatis aliquid accusantium dolore voluptate optio dolor."),
+						ExpectedResult: utils.NewValueSet("Veritatis aliquid accusantium dolore voluptate optio dolor."),
 					},
 					{
 						Name:           "success",
-						ExpectedResult: utils.NewStringSet("Omnis omnis ea quia et ut est."),
+						ExpectedResult: utils.NewValueSet("Omnis omnis ea quia et ut est."),
 					},
 					{
 						Name:           "not_supported",
-						ExpectedResult: utils.NewStringSet("Unde accusantium sit et enim temporibus qui distinctio assumenda."),
+						ExpectedResult: utils.NewValueSet("Unde accusantium sit et enim temporibus qui distinctio assumenda."),
 					},
 					{
 						Name:           "failure",
-						ExpectedResult: utils.NewStringSet("rerum nam illo", "dolore praesentium non"),
+						ExpectedResult: utils.NewValueSet("rerum nam illo", "dolore praesentium non"),
 						ValidationRules: &config.ValidationRules{
 							Judge: config.JudgeSelector{
 								Enabled: testutils.Ptr(true),
@@ -80,7 +80,7 @@ func TestRunnerRun(t *testing.T) {
 					},
 					{
 						Name:           "success",
-						ExpectedResult: utils.NewStringSet("corporis et ipsa", "nesciunt sed quia"),
+						ExpectedResult: utils.NewValueSet("corporis et ipsa", "nesciunt sed quia"),
 						ValidationRules: &config.ValidationRules{
 							Judge: config.JudgeSelector{
 								Enabled: testutils.Ptr(true),
@@ -99,7 +99,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 1",
 						Run:      "mock",
 						Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
-						Want:     utils.NewStringSet("provident quas tenetur repellat deserunt ut neque culpa."),
+						Want:     utils.NewValueSet("provident quas tenetur repellat deserunt ut neque culpa."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "success",
@@ -122,7 +122,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 1",
 						Run:      "mock",
 						Got:      "facere aperiam recusandae totam magnam nulla corrupti.",
-						Want:     utils.NewStringSet("aperiam assumenda id provident ratione eos molestiae."),
+						Want:     utils.NewValueSet("aperiam assumenda id provident ratione eos molestiae."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "failure",
@@ -145,7 +145,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 1",
 						Run:      "mock",
 						Got:      "mock error",
-						Want:     utils.NewStringSet("doloribus quis incidunt velit quia."),
+						Want:     utils.NewValueSet("doloribus quis incidunt velit quia."),
 						Details: Details{
 							Answer:     AnswerDetails{},
 							Validation: ValidationDetails{},
@@ -163,7 +163,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 1",
 						Run:      "mock",
 						Got:      "facere aperiam recusandae totam magnam nulla corrupti.",
-						Want:     utils.NewStringSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
+						Want:     utils.NewValueSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "failure",
@@ -186,7 +186,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 1",
 						Run:      "mock",
 						Got:      "omnis omnis ea quia et ut est.",
-						Want:     utils.NewStringSet("omnis omnis ea quia et ut est."),
+						Want:     utils.NewValueSet("omnis omnis ea quia et ut est."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "success",
@@ -209,7 +209,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 1",
 						Run:      "mock",
 						Got:      "feature not supported by provider: mock not supported",
-						Want:     utils.NewStringSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
+						Want:     utils.NewValueSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
 						Details: Details{
 							Answer:     AnswerDetails{},
 							Validation: ValidationDetails{},
@@ -227,7 +227,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 1",
 						Run:      "mock",
 						Got:      "Facere aperiam recusandae totam magnam nulla corrupti.",
-						Want:     utils.NewStringSet("rerum nam illo", "dolore praesentium non"),
+						Want:     utils.NewValueSet("rerum nam illo", "dolore praesentium non"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "failure",
@@ -251,7 +251,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 1",
 						Run:      "mock",
 						Got:      "corporis et ipsa",
-						Want:     utils.NewStringSet("corporis et ipsa", "nesciunt sed quia"),
+						Want:     utils.NewValueSet("corporis et ipsa", "nesciunt sed quia"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "success",
@@ -275,7 +275,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 1",
 						Run:      "pass",
 						Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
-						Want:     utils.NewStringSet("provident quas tenetur repellat deserunt ut neque culpa."),
+						Want:     utils.NewValueSet("provident quas tenetur repellat deserunt ut neque culpa."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "success",
@@ -298,7 +298,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 1",
 						Run:      "pass",
 						Got:      "aperiam assumenda id provident ratione eos molestiae.",
-						Want:     utils.NewStringSet("aperiam assumenda id provident ratione eos molestiae."),
+						Want:     utils.NewValueSet("aperiam assumenda id provident ratione eos molestiae."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "failure",
@@ -321,7 +321,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 1",
 						Run:      "pass",
 						Got:      "doloribus quis incidunt velit quia.",
-						Want:     utils.NewStringSet("doloribus quis incidunt velit quia."),
+						Want:     utils.NewValueSet("doloribus quis incidunt velit quia."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "error",
@@ -344,7 +344,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 1",
 						Run:      "pass",
 						Got:      "veritatis aliquid accusantium dolore voluptate optio dolor.",
-						Want:     utils.NewStringSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
+						Want:     utils.NewValueSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "failure",
@@ -367,7 +367,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 1",
 						Run:      "pass",
 						Got:      "omnis omnis ea quia et ut est.",
-						Want:     utils.NewStringSet("omnis omnis ea quia et ut est."),
+						Want:     utils.NewValueSet("omnis omnis ea quia et ut est."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "success",
@@ -390,7 +390,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 1",
 						Run:      "pass",
 						Got:      "unde accusantium sit et enim temporibus qui distinctio assumenda.",
-						Want:     utils.NewStringSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
+						Want:     utils.NewValueSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "not_supported",
@@ -413,7 +413,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 1",
 						Run:      "pass",
 						Got:      "rerum nam illo",
-						Want:     utils.NewStringSet("rerum nam illo", "dolore praesentium non"),
+						Want:     utils.NewValueSet("rerum nam illo", "dolore praesentium non"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "failure",
@@ -437,7 +437,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 1",
 						Run:      "pass",
 						Got:      "corporis et ipsa",
-						Want:     utils.NewStringSet("corporis et ipsa", "nesciunt sed quia"),
+						Want:     utils.NewValueSet("corporis et ipsa", "nesciunt sed quia"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "success",
@@ -463,7 +463,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 2",
 						Run:      "pass",
 						Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
-						Want:     utils.NewStringSet("provident quas tenetur repellat deserunt ut neque culpa."),
+						Want:     utils.NewValueSet("provident quas tenetur repellat deserunt ut neque culpa."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "success",
@@ -486,7 +486,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 2",
 						Run:      "pass",
 						Got:      "aperiam assumenda id provident ratione eos molestiae.",
-						Want:     utils.NewStringSet("aperiam assumenda id provident ratione eos molestiae."),
+						Want:     utils.NewValueSet("aperiam assumenda id provident ratione eos molestiae."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "failure",
@@ -509,7 +509,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 2",
 						Run:      "pass",
 						Got:      "doloribus quis incidunt velit quia.",
-						Want:     utils.NewStringSet("doloribus quis incidunt velit quia."),
+						Want:     utils.NewValueSet("doloribus quis incidunt velit quia."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "error",
@@ -532,7 +532,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 2",
 						Run:      "pass",
 						Got:      "veritatis aliquid accusantium dolore voluptate optio dolor.",
-						Want:     utils.NewStringSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
+						Want:     utils.NewValueSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "failure",
@@ -555,7 +555,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 2",
 						Run:      "pass",
 						Got:      "omnis omnis ea quia et ut est.",
-						Want:     utils.NewStringSet("omnis omnis ea quia et ut est."),
+						Want:     utils.NewValueSet("omnis omnis ea quia et ut est."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "success",
@@ -578,7 +578,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 2",
 						Run:      "pass",
 						Got:      "unde accusantium sit et enim temporibus qui distinctio assumenda.",
-						Want:     utils.NewStringSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
+						Want:     utils.NewValueSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "not_supported",
@@ -601,7 +601,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 2",
 						Run:      "pass",
 						Got:      "rerum nam illo",
-						Want:     utils.NewStringSet("rerum nam illo", "dolore praesentium non"),
+						Want:     utils.NewValueSet("rerum nam illo", "dolore praesentium non"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "failure",
@@ -625,7 +625,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 2",
 						Run:      "pass",
 						Got:      "corporis et ipsa",
-						Want:     utils.NewStringSet("corporis et ipsa", "nesciunt sed quia"),
+						Want:     utils.NewValueSet("corporis et ipsa", "nesciunt sed quia"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "success",
@@ -678,7 +678,7 @@ func TestRunnerRun(t *testing.T) {
 				[]config.Task{
 					{
 						Name:           "error", // returned as final answer, causing judge to fail
-						ExpectedResult: utils.NewStringSet("Expected answer"),
+						ExpectedResult: utils.NewValueSet("Expected answer"),
 						ValidationRules: &config.ValidationRules{
 							Judge: config.JudgeSelector{
 								Enabled: testutils.Ptr(true),
@@ -697,7 +697,7 @@ func TestRunnerRun(t *testing.T) {
 						Provider: "mock provider 1",
 						Run:      "custom",
 						Got:      "error", // provider returns task name ("error") as response
-						Want:     utils.NewStringSet("Expected answer"),
+						Want:     utils.NewValueSet("Expected answer"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "error",
@@ -780,7 +780,7 @@ func TestRunnerRunWithRetry(t *testing.T) {
 			tasks := []config.Task{
 				{
 					Name:           tt.taskName,
-					ExpectedResult: utils.NewStringSet("Provident quas tenetur repellat deserunt ut neque culpa."),
+					ExpectedResult: utils.NewValueSet("Provident quas tenetur repellat deserunt ut neque culpa."),
 				},
 			}
 
@@ -1357,7 +1357,7 @@ func TestRunnerIntegrationWithValidation(t *testing.T) {
 			name: "global rules applied - case insensitive match",
 			task: config.Task{
 				Name:           "Hello_World",
-				ExpectedResult: utils.NewStringSet("hello_world"), // should match case insensitively
+				ExpectedResult: utils.NewValueSet("hello_world"), // should match case insensitively
 			},
 			wantResultKind: Success,
 		},
@@ -1365,7 +1365,7 @@ func TestRunnerIntegrationWithValidation(t *testing.T) {
 			name: "task rule override - case sensitive causes failure",
 			task: config.Task{
 				Name:           "Case_Test",
-				ExpectedResult: utils.NewStringSet("case_test"), // won't match due to case difference
+				ExpectedResult: utils.NewValueSet("case_test"), // won't match due to case difference
 				ValidationRules: &config.ValidationRules{
 					CaseSensitive: testutils.Ptr(true), // override to case sensitive
 				},
@@ -1374,8 +1374,8 @@ func TestRunnerIntegrationWithValidation(t *testing.T) {
 		}, {
 			name: "task rule override - ignore whitespace enables match",
 			task: config.Task{
-				Name:           "white space test",                   // task name contains spaces
-				ExpectedResult: utils.NewStringSet("whitespacetest"), // expected without spaces
+				Name:           "white space test",                  // task name contains spaces
+				ExpectedResult: utils.NewValueSet("whitespacetest"), // expected without spaces
 				ValidationRules: &config.ValidationRules{
 					IgnoreWhitespace: testutils.Ptr(true), // override to ignore whitespace
 				},
@@ -1385,8 +1385,8 @@ func TestRunnerIntegrationWithValidation(t *testing.T) {
 		{
 			name: "task rule override - whitespace sensitivity causes failure",
 			task: config.Task{
-				Name:           "spaced out test",                   // task name contains spaces
-				ExpectedResult: utils.NewStringSet("spacedouttest"), // expected without spaces
+				Name:           "spaced out test",                  // task name contains spaces
+				ExpectedResult: utils.NewValueSet("spacedouttest"), // expected without spaces
 				ValidationRules: &config.ValidationRules{
 					IgnoreWhitespace: testutils.Ptr(false), // override to be whitespace sensitive
 				},
@@ -1417,27 +1417,27 @@ func TestRunnerIntegrationWithValidation(t *testing.T) {
 func TestToLines(t *testing.T) {
 	tests := []struct {
 		name string
-		set  utils.StringSet
+		set  utils.ValueSet
 		want [][]string
 	}{
 		{
 			name: "empty set",
-			set:  utils.NewStringSet(),
+			set:  utils.NewValueSet(),
 			want: [][]string{},
 		},
 		{
 			name: "single string",
-			set:  utils.NewStringSet("single line"),
+			set:  utils.NewValueSet("single line"),
 			want: [][]string{{"single line"}},
 		},
 		{
 			name: "multiple lines",
-			set:  utils.NewStringSet("first line\r\nsecond line\nthird line"),
+			set:  utils.NewValueSet("first line\r\nsecond line\nthird line"),
 			want: [][]string{{"first line", "second line", "third line"}},
 		},
 		{
 			name: "double newlines",
-			set:  utils.NewStringSet("alpha\n\nbeta", "gamma\r\n\r\ndelta"),
+			set:  utils.NewValueSet("alpha\n\nbeta", "gamma\r\n\r\ndelta"),
 			want: [][]string{{"alpha", "", "beta"}, {"gamma", "", "delta"}},
 		},
 	}

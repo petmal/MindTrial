@@ -41,8 +41,10 @@ func (o Deepseek) Name() string {
 }
 
 func (o *Deepseek) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
-	responseFormatInstruction := result.recordPrompt(DefaultResponseFormatInstruction()) // NOTE: required with JSONMode
-	answerFormatInstruction := result.recordPrompt(DefaultAnswerFormatInstruction(task))
+	responseFormatInstruction, err := DefaultResponseFormatInstruction(task.ResponseResultFormat) // NOTE: required with JSONMode
+	if err != nil {
+		return result, err
+	}
 
 	var request any
 	if len(task.Files) > 0 {
@@ -50,28 +52,54 @@ func (o *Deepseek) Run(ctx context.Context, _ logging.Logger, cfg config.RunConf
 			return result, ErrFileUploadNotSupported
 		}
 
+		messages := []deepseek.ChatCompletionMessageWithImage{
+			{
+				Role:    deepseek.ChatMessageRoleSystem,
+				Content: result.recordPrompt(responseFormatInstruction),
+			},
+		}
+		if answerFormatInstruction := DefaultAnswerFormatInstruction(task); answerFormatInstruction != "" {
+			messages = append(messages, deepseek.ChatCompletionMessageWithImage{
+				Role:    deepseek.ChatMessageRoleSystem,
+				Content: result.recordPrompt(answerFormatInstruction),
+			})
+		}
+
 		promptParts, err := o.createPromptMessageParts(ctx, task.Prompt, task.Files, &result)
 		if err != nil {
 			return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
 		}
+		messages = append(messages, deepseek.ChatCompletionMessageWithImage{
+			Role:    deepseek.ChatMessageRoleUser,
+			Content: promptParts,
+		})
 
 		request = &deepseek.ChatCompletionRequestWithImage{
-			Model: cfg.Model,
-			Messages: []deepseek.ChatCompletionMessageWithImage{
-				{Role: deepseek.ChatMessageRoleSystem, Content: responseFormatInstruction},
-				{Role: deepseek.ChatMessageRoleSystem, Content: answerFormatInstruction},
-				{Role: deepseek.ChatMessageRoleUser, Content: promptParts},
-			},
+			Model:    cfg.Model,
+			Messages: messages,
 			JSONMode: true,
 		}
 	} else {
-		request = &deepseek.ChatCompletionRequest{
-			Model: cfg.Model,
-			Messages: []deepseek.ChatCompletionMessage{
-				{Role: deepseek.ChatMessageRoleSystem, Content: responseFormatInstruction},
-				{Role: deepseek.ChatMessageRoleSystem, Content: answerFormatInstruction},
-				{Role: deepseek.ChatMessageRoleUser, Content: result.recordPrompt(task.Prompt)},
+		messages := []deepseek.ChatCompletionMessage{
+			{
+				Role:    deepseek.ChatMessageRoleSystem,
+				Content: result.recordPrompt(responseFormatInstruction),
 			},
+		}
+		if answerFormatInstruction := DefaultAnswerFormatInstruction(task); answerFormatInstruction != "" {
+			messages = append(messages, deepseek.ChatCompletionMessage{
+				Role:    deepseek.ChatMessageRoleSystem,
+				Content: result.recordPrompt(answerFormatInstruction),
+			})
+		}
+		messages = append(messages, deepseek.ChatCompletionMessage{
+			Role:    deepseek.ChatMessageRoleUser,
+			Content: result.recordPrompt(task.Prompt),
+		})
+
+		request = &deepseek.ChatCompletionRequest{
+			Model:    cfg.Model,
+			Messages: messages,
 			JSONMode: true,
 		}
 	}

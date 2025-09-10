@@ -4,6 +4,8 @@ provider-name |run-failure                  |0      |1      |0     |0       |10s
 provider-name |run-failure-multiple-answers |0      |1      |0     |0       |3m0.8s         |
 provider-name |run-not-supported            |0      |0      |0     |1       |500ms          |
 provider-name |run-parsing-error            |0      |0      |1     |0       |5m14.159s      |
+provider-name |run-structured-failure       |0      |1      |0     |0       |38s            |
+provider-name |run-structured-success       |1      |0      |0     |0       |42s            |
 provider-name |run-success                  |1      |0      |0     |0       |1m35s          |
 provider-name |run-success-multiple-answers |1      |0      |0     |0       |17s            |
 provider-name |run-validation-error         |0      |0      |1     |0       |2s             |

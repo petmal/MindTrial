@@ -6,7 +6,7 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/petmal/mindtrial)](https://go.dev/)
 [![Go Reference](https://pkg.go.dev/badge/github.com/petmal/mindtrial.svg)](https://pkg.go.dev/github.com/petmal/mindtrial)
 
-**MindTrial** lets you test a single AI language model (LLM) or evaluate multiple models side-by-side. It supports providers like OpenAI, Google, Anthropic, DeepSeek, Mistral AI, and xAI. You can create your own custom tasks with text prompts and optional file attachments, validate responses using either exact value matching or an LLM judge for semantic evaluation, and get the results in easy-to-read HTML and CSV formats.
+**MindTrial** lets you test a single AI language model (LLM) or evaluate multiple models side-by-side. It supports providers like OpenAI, Google, Anthropic, DeepSeek, Mistral AI, and xAI. You can create your own custom tasks with text prompts, plain text or structured JSON response formats, and optional file attachments; validate responses through exact value matching or an LLM judge for semantic evaluation; and get results in easy-to-read HTML and CSV formats.
 
 ## Quick Start Guide
 
@@ -145,6 +145,9 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 2.0, default: 1.0). Lower values produce more focused and deterministic outputs.
 > - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0). Lower values produce more focused outputs.
 > - **top-k**: Limits tokens considered for each position to top K options. Higher values allow more diverse outputs.
+> - **presence-penalty**: Penalizes new tokens based on whether they appear in the text so far. Positive values discourage reuse of tokens, increasing vocabulary. Negative values encourage token reuse.
+> - **frequency-penalty**: Penalizes new tokens based on their frequency in the text so far. Positive values discourage frequent tokens proportionally. Negative values encourage token repetition.
+> - **seed**: Seed used for deterministic generation. When set, the model attempts to provide consistent responses for identical inputs.
 >
 > Currently supported parameters for **DeepSeek** models include:
 >
@@ -279,9 +282,13 @@ This file defines the tasks to be executed on all enabled run configurations. Ea
 
 - **name**: A unique display-friendly name to be shown in the results.
 - **prompt**: The prompt (i.e. task) that will be sent to the AI model.
-- **response-result-format**: Defines how the AI should format the final answer to the prompt. This is important because the final answer will be compared to the `expected-result` and it needs to consistently follow the same format.
-- **expected-result**: This defines the accepted valid answer(s) to the prompt. It can be a string if there is only a single valid answer or a list of strings if there are multiple possible correct answers.
-Each answer must follow the `response-result-format` precisely.
+- **response-result-format**: Defines how the AI should format the final answer to the prompt. This can be either:
+  - **Plain text format**: A string instruction describing the expected answer format (e.g., "single number", "list of words separated by commas").
+  - **Structured schema format**: A JSON schema object defining the structure of the expected response for complex data (e.g., objects with specific fields and types).
+- **expected-result**: Defines the accepted valid answer(s) to the prompt. The format depends on the `response-result-format` type:
+  - **For plain text format**: A string value or list of string values that follow the format instruction precisely.
+  - **For structured schema format**: An object value or list of object values that conform to the JSON schema definition.
+Only one expected result needs to match for the response to be considered correct.
 
 Optionally, a task can include a list of `files` to be sent along with the prompt:
 
@@ -300,6 +307,63 @@ Optionally, a task can include a list of `files` to be sent along with the promp
 > To disable all tasks by default, set `disabled: true` in the `task-config` section.
 > An individual task can override this by setting `disabled: false` (e.g. to enable just that one task).
 
+#### Structured Response Formats
+
+MindTrial supports two types of response formats for tasks:
+
+##### Plain Text Format
+
+For tasks where the final answer can be represented as a text value:
+
+```yaml
+- name: "math problem"
+  prompt: "What is 2 + 2?"
+  response-result-format: "single number"
+  expected-result: "4"
+```
+
+##### Structured Schema Format
+
+For tasks requiring complex structured answers, you can define a JSON schema that describes the expected response format:
+
+```yaml
+- name: "perfect square check"
+  prompt: "For each number in [4, 9, 10, 16], determine if it's a perfect square and if so, provide the square root."
+  response-result-format:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      properties:
+        number:
+          type: integer
+        is_perfect_square:
+          type: boolean
+        square_root:
+          type: integer
+      required: ["number", "is_perfect_square"]
+  expected-result:
+    - - number: 4
+        is_perfect_square: true
+        square_root: 2
+      - number: 9
+        is_perfect_square: true
+        square_root: 3
+      - number: 10
+        is_perfect_square: false
+      - number: 16
+        is_perfect_square: true
+        square_root: 4
+```
+
+> [!IMPORTANT]
+> **Structured schema format caveats:**
+>
+> - Semantic validation (LLM judges) cannot be used with structured schema-based response formats.
+> - All expected results must be objects that conform to the same schema. For array schemas, the entire expected array must be wrapped in a single list item under `expected-result` to avoid treating each array element as a separate expected answer.
+> - Models must support structured JSON response generation for reliable results.
+> - The *OpenAI* provider requires JSON schemas to have `additionalProperties: false` and all fields must be required (no optional fields allowed). Other providers may be more flexible.
+
 #### System Prompt
 
 The system prompt controls how the response format instruction is presented to the AI model.
@@ -312,6 +376,13 @@ Default system prompt for all tasks is:
 
 - **system-prompt**: A configuration section for the system prompt.
   - **template**: The template string for the system prompt instruction. If not specified, uses the default.
+  - **enable-for**: Controls when system prompt should be sent to AI models. Options:
+    - `"all"`: Send system prompt for all tasks (both plain text and structured schema formats).
+    - `"text"`: Send system prompt only for tasks with plain text response format (default).
+    - `"none"`: Do not send system prompt.
+
+> [!NOTE]
+> For structured schema response formats, the JSON schema is automatically passed to the AI model through the provider's structured response mechanism, making explicit format instructions in the system prompt optional.
 
 #### Validation Rules
 
@@ -432,6 +503,7 @@ A sample task from `tasks.yaml`:
 task-config:
   disabled: true
   system-prompt:
+    enable-for: "text"
     template: |
       Provide the final answer in exactly this format: {{.ResponseResultFormat}}
       Treat every substring enclosed in `<` and `>` as a variable placeholder.
@@ -502,6 +574,38 @@ task-config:
           enabled: true
           name: "mistral-judge"
           variant: "reasoning"
+    - name: "structured response - log parsing"
+      prompt: |-
+        Parse the following log lines and extract the timestamp, log level, and message for each. If a user ID is present, extract that as well.
+        Log lines:
+        [2025-09-14 10:30:00] INFO: User 'admin' logged in successfully.
+        [2025-09-14 10:31:15] WARN: System memory usage is high.
+      response-result-format:
+        type: array
+        items:
+          type: object
+          additionalProperties: false
+          properties:
+            timestamp:
+              type: string
+              format: "date-time"
+            level:
+              type: string
+              enum: ["INFO", "WARN", "ERROR"]
+            message:
+              type: string
+            user_id:
+              type: string
+          required: ["timestamp", "level", "message", "user_id"]
+      expected-result:
+        - - timestamp: "2025-09-14T10:30:00Z"
+            level: "INFO"
+            message: "User 'admin' logged in successfully."
+            user_id: "admin"
+          - timestamp: "2025-09-14T10:31:15Z"
+            level: "WARN"
+            message: "System memory usage is high."
+            user_id: ""
 ```
 
 ## Command Reference

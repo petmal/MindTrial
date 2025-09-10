@@ -13,7 +13,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/invopop/jsonschema"
@@ -128,45 +127,96 @@ func WrapErrGenerateResponse(err error) error {
 	return fmt.Errorf("%w: %w", ErrGenerateResponse, err)
 }
 
-// ResultJSONSchema is a lazily initialized JSON schema for the Result type.
-var ResultJSONSchema = sync.OnceValue(func() *jsonschema.Schema {
+// ResultJSONSchema generates a JSON schema for the Result type with the given response format
+// injected into the final_answer field. If responseFormat is a schema, it will be used
+// for the final_answer.content field. If responseFormat is a string, the entire final_answer
+// field will be replaced with a string type constraint.
+func ResultJSONSchema(responseFormat config.ResponseFormat) (*jsonschema.Schema, error) {
+	// Get the raw schema map with injected response format.
+	schemaMap, err := ResultJSONSchemaRaw(responseFormat)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert back to jsonschema.Schema.
+	schemaBytes, err := json.Marshal(schemaMap)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrCompileSchema, err)
+	}
+
+	var schema jsonschema.Schema
+	if err := json.Unmarshal(schemaBytes, &schema); err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrCompileSchema, err)
+	}
+
+	return &schema, nil
+}
+
+// ResultJSONSchemaRaw generates a JSON schema for the Result type as a map with the given
+// response format injected into the final_answer field.
+func ResultJSONSchemaRaw(responseFormat config.ResponseFormat) (map[string]interface{}, error) {
+	// Get the base schema without any response format injection.
 	reflector := jsonschema.Reflector{
 		AllowAdditionalProperties: false,
 		DoNotReference:            true,
 	}
-	return reflector.Reflect(Result{})
-})
+	baseSchema := reflector.Reflect(Result{})
 
-// ResultJSONSchemaRaw is a lazily initialized JSON schema for the Result type.
-var ResultJSONSchemaRaw = sync.OnceValue(func() map[string]interface{} {
-	schemaBytes, err := json.Marshal(ResultJSONSchema())
+	// Convert to map for easier manipulation.
+	schemaBytes, err := json.Marshal(baseSchema)
 	if err != nil {
-		panic(fmt.Errorf("%w: %v", ErrCompileSchema, err))
+		return nil, fmt.Errorf("%w: %v", ErrCompileSchema, err)
 	}
 
 	var schemaMap map[string]interface{}
 	if err := json.Unmarshal(schemaBytes, &schemaMap); err != nil {
-		panic(fmt.Errorf("%w: %v", ErrCompileSchema, err))
+		return nil, fmt.Errorf("%w: %v", ErrCompileSchema, err)
 	}
 
-	return schemaMap
-})
+	// Inject the response format into the final_answer field.
+	if properties, ok := schemaMap["properties"].(map[string]interface{}); ok {
+		if finalAnswerProp, ok := properties["final_answer"].(map[string]interface{}); ok {
+			if schemaObj, isSchema := responseFormat.AsSchema(); isSchema {
+				if finalAnswerProps, ok := finalAnswerProp["properties"].(map[string]interface{}); ok {
+					// Inject the response format schema directly into final_answer.content.
+					finalAnswerProps["content"] = schemaObj
+				}
+				// Set description on final_answer field.
+				finalAnswerProp["description"] = "The container holding the definitive answer to the task or question. The answer content must directly address what was asked, strictly follow any formatting instructions provided, and conform to the specified schema."
+			} else if _, isString := responseFormat.AsString(); isString {
+				// For string case, overwrite the entire final_answer schema with a new string schema.
+				properties["final_answer"] = map[string]interface{}{
+					"type":        "string",
+					"title":       finalAnswerProp["title"], // copy the original title from final_answer
+					"description": "The definitive answer to the task or question, provided as plain text. This should directly address what was asked and strictly follow any formatting instructions provided.",
+				}
+			}
+		}
+	}
 
-// DefaultResponseFormatInstruction generates default response formatting instruction to be passed to AI models that require it.
-var DefaultResponseFormatInstruction = sync.OnceValue(func() string {
-	schema, err := json.Marshal(ResultJSONSchema())
+	return schemaMap, nil
+}
+
+// DefaultResponseFormatInstruction generates default response formatting instruction
+// for the given response format to be passed to AI models that require it.
+func DefaultResponseFormatInstruction(responseFormat config.ResponseFormat) (string, error) {
+	schema, err := ResultJSONSchema(responseFormat)
 	if err != nil {
-		panic(fmt.Errorf("%w: %v", ErrCompileSchema, err))
+		return "", err
 	}
-	return fmt.Sprintf("Structure the response according to this JSON schema: %s", schema)
-})
+	schemaBytes, err := json.Marshal(schema)
+	if err != nil {
+		return "", fmt.Errorf("%w: %v", ErrCompileSchema, err)
+	}
+	return fmt.Sprintf("Structure the response according to this JSON schema: %s", schemaBytes), nil
+}
 
 // DefaultAnswerFormatInstruction generates default answer formatting instruction for a given task to be passed to the AI model.
 func DefaultAnswerFormatInstruction(task config.Task) string {
 	if resolvedTemplate, ok := task.GetResolvedSystemPrompt(); ok {
 		return resolvedTemplate
 	}
-	return fmt.Sprintf("Provide the final answer in exactly this format: %s", task.ResponseResultFormat)
+	return ""
 }
 
 // DefaultTaskFileNameInstruction generates default task file name instruction to be passed to AI models that require it.
@@ -180,22 +230,63 @@ type Usage struct {
 	OutputTokens *int64 `json:"-"` // Tokens used by the output if available.
 }
 
+// Answer wraps the final answer content to separate it from response metadata.
+type Answer struct {
+	// Content contains the actual answer content that follows the user-defined response format.
+	// For plain text response format, this will be a string.
+	// For structured schema-based response format, this will be an object that conforms to the schema.
+	Content interface{} `json:"content" validate:"required"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler for Answer.
+// It supports unmarshaling from either a string (for plain text answers)
+// or a structured object with a "content" field (for structured answers).
+func (a *Answer) UnmarshalJSON(data []byte) error {
+	// Handle null case.
+	if string(data) == "null" {
+		a.Content = nil
+		return nil
+	}
+
+	// Try to unmarshal as string first.
+	var str string
+	if err := json.Unmarshal(data, &str); err == nil {
+		a.Content = str
+		return nil
+	}
+
+	// Try to unmarshal as structured object with "content" field.
+	// Define an alias to the Answer structure to avoid recursive unmarshaling.
+	type answerAlias Answer
+	aliasValue := answerAlias{}
+
+	// Create a decoder that disallows unknown fields to ensure strict schema compliance.
+	decoder := json.NewDecoder(strings.NewReader(string(data)))
+	decoder.DisallowUnknownFields()
+
+	if err := decoder.Decode(&aliasValue); err != nil {
+		return err
+	}
+	a.Content = aliasValue.Content
+	return nil
+}
+
+// MarshalJSON implements json.Marshaler for Answer.
+func (a Answer) MarshalJSON() ([]byte, error) {
+	return json.Marshal(a.Content)
+}
+
 // Result represents the structured response received from an AI model.
 type Result struct {
 	// Title is a brief summary of the response.
-	Title string `json:"title" validate:"required"`
+	Title string `json:"title" jsonschema:"title=Response Title" jsonschema_description:"A concise, descriptive title that summarizes what this response is about. Should be brief (typically 3-8 words) and capture the essence of the task or question being answered." validate:"required"`
 	// Explanation is a detailed explanation of the answer.
-	Explanation string `json:"explanation" validate:"required"`
-	// FinalAnswer is the final answer to the task's query.
-	FinalAnswer string        `json:"final_answer" validate:"required"`
+	Explanation string `json:"explanation" jsonschema:"title=Response Explanation" jsonschema_description:"A comprehensive explanation of the reasoning process, methodology, and context behind the final answer. This should provide clear rationale for how the answer was derived, including any relevant analysis, steps taken, or considerations made." validate:"required"`
+	// FinalAnswer contains the final answer to the task's query.
+	FinalAnswer Answer        `json:"final_answer" jsonschema:"title=Final Answer" validate:"required"`
 	duration    time.Duration `json:"-"` // Time to generate the response.
 	prompts     []string      `json:"-"` // Prompts used to generate the response.
 	usage       Usage         `json:"-"` // Token usage statistics.
-}
-
-// Explain returns a formatted explanation of the result as generated by the AI model.
-func (r Result) Explain() string {
-	return r.Title + "\n\n" + r.Explanation
 }
 
 // GetDuration returns the time duration it took to generate this result.
@@ -211,6 +302,12 @@ func (r Result) GetPrompts() []string {
 // GetUsage returns the token usage statistics for this result.
 func (r Result) GetUsage() Usage {
 	return r.usage
+}
+
+// GetFinalAnswerContent returns the actual final answer content wrapped in the `FinalAnswer` field.
+// This is a convenience method to access `Result.FinalAnswer.Content` directly.
+func (r Result) GetFinalAnswerContent() interface{} {
+	return r.FinalAnswer.Content
 }
 
 func timed[T any](f func() (T, error), out *time.Duration) (response T, err error) {

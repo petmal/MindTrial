@@ -282,6 +282,23 @@ type GoogleAIModelParams struct {
 	// TopK limits response tokens to top K options for each token position.
 	// Higher values allow more diverse outputs by considering more token options.
 	TopK *int32 `yaml:"top-k" validate:"omitempty,min=0"`
+
+	// PresencePenalty penalizes new tokens based on whether they appear in the text so far.
+	// Positive values discourage the use of tokens that have already been used in the response,
+	// increasing the vocabulary. Negative values encourage the use of tokens that have already been used.
+	// This penalty is binary on/off and not dependent on the number of times the token is used.
+	PresencePenalty *float32 `yaml:"presence-penalty" validate:"omitempty"`
+
+	// FrequencyPenalty penalizes new tokens based on their frequency in the text so far.
+	// Positive values discourage the use of tokens that have already been used, proportional to
+	// the number of times the token has been used. Negative values encourage the model to reuse tokens.
+	// This differs from PresencePenalty as it scales with frequency.
+	FrequencyPenalty *float32 `yaml:"frequency-penalty" validate:"omitempty"`
+
+	// Seed is used for deterministic generation. When set to a specific value, the model
+	// makes a best effort to provide the same response for repeated requests.
+	// If not set, a randomly generated seed is used.
+	Seed *int32 `yaml:"seed" validate:"omitempty"`
 }
 
 // AnthropicModelParams represents Anthropic model-specific settings.

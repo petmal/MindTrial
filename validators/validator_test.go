@@ -19,18 +19,18 @@ import (
 )
 
 // createMockResult creates a providers.Result for testing.
-func createMockResult(response string) providers.Result {
+func createMockResult(response interface{}) providers.Result {
 	return providers.Result{
 		Title:       "Mock Title",
 		Explanation: "Mock Explanation",
-		FinalAnswer: response,
+		FinalAnswer: providers.Answer{Content: response},
 	}
 }
 
 func TestValidatorIsCorrect(t *testing.T) {
 	tests := []struct {
 		name            string
-		expected        utils.StringSet
+		expected        utils.ValueSet
 		validationRules config.ValidationRules
 		actual          providers.Result
 		want            bool
@@ -38,14 +38,14 @@ func TestValidatorIsCorrect(t *testing.T) {
 		// Basic correct and incorrect answers.
 		{
 			name:            "exact match - correct",
-			expected:        utils.NewStringSet("hello world"),
+			expected:        utils.NewValueSet("hello world"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("hello world"),
 			want:            true,
 		},
 		{
 			name:            "exact match - incorrect",
-			expected:        utils.NewStringSet("hello world"),
+			expected:        utils.NewValueSet("hello world"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("goodbye world"),
 			want:            false,
@@ -54,28 +54,28 @@ func TestValidatorIsCorrect(t *testing.T) {
 		// Multiple expected values - StringSet scenarios.
 		{
 			name:            "multiple expected - first match",
-			expected:        utils.NewStringSet("answer1", "answer2", "answer3"),
+			expected:        utils.NewValueSet("answer1", "answer2", "answer3"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("answer1"),
 			want:            true,
 		},
 		{
 			name:            "multiple expected - second match",
-			expected:        utils.NewStringSet("answer1", "answer2", "answer3"),
+			expected:        utils.NewValueSet("answer1", "answer2", "answer3"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("answer2"),
 			want:            true,
 		},
 		{
 			name:            "multiple expected - third match",
-			expected:        utils.NewStringSet("answer1", "answer2", "answer3"),
+			expected:        utils.NewValueSet("answer1", "answer2", "answer3"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("answer3"),
 			want:            true,
 		},
 		{
 			name:            "multiple expected - no match",
-			expected:        utils.NewStringSet("answer1", "answer2", "answer3"),
+			expected:        utils.NewValueSet("answer1", "answer2", "answer3"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("answer4"),
 			want:            false,
@@ -84,28 +84,28 @@ func TestValidatorIsCorrect(t *testing.T) {
 		// Default ValidationRules values (all nil - should be false by default).
 		{
 			name:            "default rules - case insensitive by default",
-			expected:        utils.NewStringSet("Hello World"),
+			expected:        utils.NewValueSet("Hello World"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("hello world"),
 			want:            true,
 		},
 		{
 			name:            "default rules - whitespace trimmed by default",
-			expected:        utils.NewStringSet("hello world"),
+			expected:        utils.NewValueSet("hello world"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("  hello world  "),
 			want:            true,
 		},
 		{
 			name:            "default rules - internal whitespace preserved by default",
-			expected:        utils.NewStringSet("hello world"),
+			expected:        utils.NewValueSet("hello world"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("hello  world"), // extra space should fail
 			want:            false,
 		},
 		{
 			name:            "default rules - tabs/newlines inside text preserved",
-			expected:        utils.NewStringSet("hello world"),
+			expected:        utils.NewValueSet("hello world"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("hello\tworld"), // tab should fail
 			want:            false,
@@ -114,35 +114,35 @@ func TestValidatorIsCorrect(t *testing.T) {
 		// CaseSensitive testing.
 		{
 			name:            "case sensitive - exact match",
-			expected:        utils.NewStringSet("Hello World"),
+			expected:        utils.NewValueSet("Hello World"),
 			validationRules: config.ValidationRules{CaseSensitive: testutils.Ptr(true)},
 			actual:          createMockResult("Hello World"),
 			want:            true,
 		},
 		{
 			name:            "case sensitive - case mismatch",
-			expected:        utils.NewStringSet("Hello World"),
+			expected:        utils.NewValueSet("Hello World"),
 			validationRules: config.ValidationRules{CaseSensitive: testutils.Ptr(true)},
 			actual:          createMockResult("hello world"),
 			want:            false,
 		},
 		{
 			name:            "case insensitive - case mismatch should pass",
-			expected:        utils.NewStringSet("Hello World"),
+			expected:        utils.NewValueSet("Hello World"),
 			validationRules: config.ValidationRules{CaseSensitive: testutils.Ptr(false)},
 			actual:          createMockResult("hello world"),
 			want:            true,
 		},
 		{
 			name:            "case insensitive - mixed case should pass",
-			expected:        utils.NewStringSet("hello world"),
+			expected:        utils.NewValueSet("hello world"),
 			validationRules: config.ValidationRules{CaseSensitive: testutils.Ptr(false)},
 			actual:          createMockResult("HeLLo WoRLd"),
 			want:            true,
 		},
 		{
 			name:            "case sensitive - mixed case should fail",
-			expected:        utils.NewStringSet("hello world"),
+			expected:        utils.NewValueSet("hello world"),
 			validationRules: config.ValidationRules{CaseSensitive: testutils.Ptr(true)},
 			actual:          createMockResult("HeLLo WoRLd"), // same input as above but with case sensitivity
 			want:            false,
@@ -151,49 +151,49 @@ func TestValidatorIsCorrect(t *testing.T) {
 		// IgnoreWhitespace testing.
 		{
 			name:            "ignore whitespace - spaces removed",
-			expected:        utils.NewStringSet("hello world"),
+			expected:        utils.NewValueSet("hello world"),
 			validationRules: config.ValidationRules{IgnoreWhitespace: testutils.Ptr(true)},
 			actual:          createMockResult("helloworld"),
 			want:            true,
 		},
 		{
 			name:            "ignore whitespace - tabs and newlines removed",
-			expected:        utils.NewStringSet("hello world"),
+			expected:        utils.NewValueSet("hello world"),
 			validationRules: config.ValidationRules{IgnoreWhitespace: testutils.Ptr(true)},
 			actual:          createMockResult("hello\t\nworld"),
 			want:            true,
 		},
 		{
 			name:            "preserve whitespace - tabs and newlines should fail",
-			expected:        utils.NewStringSet("hello world"),
+			expected:        utils.NewValueSet("hello world"),
 			validationRules: config.ValidationRules{IgnoreWhitespace: testutils.Ptr(false)},
 			actual:          createMockResult("hello\t\nworld"), // same input but whitespace preserved
 			want:            false,
 		},
 		{
 			name:            "ignore whitespace - all whitespace removed",
-			expected:        utils.NewStringSet("hello world test"),
+			expected:        utils.NewValueSet("hello world test"),
 			validationRules: config.ValidationRules{IgnoreWhitespace: testutils.Ptr(true)},
 			actual:          createMockResult("  hello\t\n world   test  "),
 			want:            true,
 		},
 		{
 			name:            "ignore whitespace - newlines specifically",
-			expected:        utils.NewStringSet("line1\nline2"),
+			expected:        utils.NewValueSet("line1\nline2"),
 			validationRules: config.ValidationRules{IgnoreWhitespace: testutils.Ptr(true)},
 			actual:          createMockResult("line1line2"),
 			want:            true,
 		},
 		{
 			name:            "preserve whitespace - spaces matter",
-			expected:        utils.NewStringSet("hello world"),
+			expected:        utils.NewValueSet("hello world"),
 			validationRules: config.ValidationRules{IgnoreWhitespace: testutils.Ptr(false)},
 			actual:          createMockResult("helloworld"),
 			want:            false,
 		},
 		{
 			name:            "preserve whitespace - trimmed only",
-			expected:        utils.NewStringSet("hello world"),
+			expected:        utils.NewValueSet("hello world"),
 			validationRules: config.ValidationRules{IgnoreWhitespace: testutils.Ptr(false)},
 			actual:          createMockResult("  hello world  "),
 			want:            true,
@@ -202,35 +202,35 @@ func TestValidatorIsCorrect(t *testing.T) {
 		// Combined ValidationRules.
 		{
 			name:            "case sensitive + ignore whitespace",
-			expected:        utils.NewStringSet("Hello World"),
+			expected:        utils.NewValueSet("Hello World"),
 			validationRules: config.ValidationRules{CaseSensitive: testutils.Ptr(true), IgnoreWhitespace: testutils.Ptr(true)},
 			actual:          createMockResult("Hello\t\nWorld"),
 			want:            true,
 		},
 		{
 			name:            "case sensitive + ignore whitespace - case mismatch",
-			expected:        utils.NewStringSet("Hello World"),
+			expected:        utils.NewValueSet("Hello World"),
 			validationRules: config.ValidationRules{CaseSensitive: testutils.Ptr(true), IgnoreWhitespace: testutils.Ptr(true)},
 			actual:          createMockResult("hello\t\nworld"),
 			want:            false,
 		},
 		{
 			name:            "case insensitive + preserve whitespace",
-			expected:        utils.NewStringSet("Hello World"),
+			expected:        utils.NewValueSet("Hello World"),
 			validationRules: config.ValidationRules{CaseSensitive: testutils.Ptr(false), IgnoreWhitespace: testutils.Ptr(false)},
 			actual:          createMockResult("hello world"),
 			want:            true,
 		},
 		{
 			name:            "case insensitive + preserve whitespace - whitespace mismatch",
-			expected:        utils.NewStringSet("Hello World"),
+			expected:        utils.NewValueSet("Hello World"),
 			validationRules: config.ValidationRules{CaseSensitive: testutils.Ptr(false), IgnoreWhitespace: testutils.Ptr(false)},
 			actual:          createMockResult("hello  world"),
 			want:            false,
 		},
 		{
 			name:            "case insensitive + ignore whitespace",
-			expected:        utils.NewStringSet("Hello World"),
+			expected:        utils.NewValueSet("Hello World"),
 			validationRules: config.ValidationRules{CaseSensitive: testutils.Ptr(false), IgnoreWhitespace: testutils.Ptr(true)},
 			actual:          createMockResult("hello\t\nworld"),
 			want:            true,
@@ -239,112 +239,112 @@ func TestValidatorIsCorrect(t *testing.T) {
 		// Edge cases and potential false positives.
 		{
 			name:            "empty strings",
-			expected:        utils.NewStringSet(""),
+			expected:        utils.NewValueSet(""),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult(""),
 			want:            true,
 		},
 		{
 			name:            "empty vs whitespace",
-			expected:        utils.NewStringSet(""),
+			expected:        utils.NewValueSet(""),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("   "),
 			want:            true, // whitespace is trimmed by default
 		},
 		{
 			name:            "empty vs whitespace - ignore whitespace",
-			expected:        utils.NewStringSet(""),
+			expected:        utils.NewValueSet(""),
 			validationRules: config.ValidationRules{IgnoreWhitespace: testutils.Ptr(true)},
 			actual:          createMockResult(" \t\n "),
 			want:            true,
 		},
 		{
 			name:            "empty vs whitespace with newlines - default trim",
-			expected:        utils.NewStringSet(""),
+			expected:        utils.NewValueSet(""),
 			validationRules: config.ValidationRules{IgnoreWhitespace: testutils.Ptr(false)}, // explicit false
 			actual:          createMockResult(" \t\n "),
 			want:            true, // default trim should remove newlines too
 		},
 		{
 			name:            "substring false positive prevention - longer actual",
-			expected:        utils.NewStringSet("test"),
+			expected:        utils.NewValueSet("test"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("test this is a longer answer"),
 			want:            false,
 		},
 		{
 			name:            "substring false positive prevention - longer expected",
-			expected:        utils.NewStringSet("test this is a longer answer"),
+			expected:        utils.NewValueSet("test this is a longer answer"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("test"),
 			want:            false,
 		},
 		{
 			name:            "partial word match prevention",
-			expected:        utils.NewStringSet("cat"),
+			expected:        utils.NewValueSet("cat"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("concatenate"),
 			want:            false,
 		},
 		{
 			name:            "similar but different words",
-			expected:        utils.NewStringSet("accept"),
+			expected:        utils.NewValueSet("accept"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("except"),
 			want:            false,
 		},
 		{
 			name:            "unicode characters",
-			expected:        utils.NewStringSet("café"),
+			expected:        utils.NewValueSet("café"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("café"),
 			want:            true,
 		},
 		{
 			name:            "unicode vs ascii false positive",
-			expected:        utils.NewStringSet("café"),
+			expected:        utils.NewValueSet("café"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("cafe"),
 			want:            false,
 		},
 		{
 			name:            "number strings",
-			expected:        utils.NewStringSet("123"),
+			expected:        utils.NewValueSet("123"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("123"),
 			want:            true,
 		},
 		{
 			name:            "number vs number-like string",
-			expected:        utils.NewStringSet("123"),
+			expected:        utils.NewValueSet("123"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("123.0"),
 			want:            false,
 		},
 		{
 			name:            "punctuation edge case",
-			expected:        utils.NewStringSet("hello!"),
+			expected:        utils.NewValueSet("hello!"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("hello!"),
 			want:            true,
 		},
 		{
 			name:            "punctuation false positive prevention",
-			expected:        utils.NewStringSet("hello!"),
+			expected:        utils.NewValueSet("hello!"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("hello"),
 			want:            false,
 		},
 		{
 			name:            "mixed line endings in same string",
-			expected:        utils.NewStringSet("line1\nline2\r\nline3"),
+			expected:        utils.NewValueSet("line1\nline2\r\nline3"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("line1\nline2\r\nline3"),
 			want:            true,
 		},
 		{
 			name:            "mixed line endings with ignore whitespace",
-			expected:        utils.NewStringSet("line1\nline2\r\nline3"),
+			expected:        utils.NewValueSet("line1\nline2\r\nline3"),
 			validationRules: config.ValidationRules{IgnoreWhitespace: testutils.Ptr(true)},
 			actual:          createMockResult("line1line2line3"),
 			want:            true,
@@ -353,28 +353,28 @@ func TestValidatorIsCorrect(t *testing.T) {
 		// Multiple lines.
 		{
 			name:            "multiline exact match",
-			expected:        utils.NewStringSet("line1\nline2\nline3"),
+			expected:        utils.NewValueSet("line1\nline2\nline3"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("line1\nline2\nline3"),
 			want:            true,
 		},
 		{
 			name:            "multiline with different line endings",
-			expected:        utils.NewStringSet("line1\nline2"),
+			expected:        utils.NewValueSet("line1\nline2"),
 			validationRules: config.ValidationRules{},
 			actual:          createMockResult("line1\r\nline2"),
 			want:            false, // different line endings should not match
 		},
 		{
 			name:            "multiline ignore whitespace",
-			expected:        utils.NewStringSet("line1\nline2"),
+			expected:        utils.NewValueSet("line1\nline2"),
 			validationRules: config.ValidationRules{IgnoreWhitespace: testutils.Ptr(true)},
 			actual:          createMockResult("line1line2"),
 			want:            true,
 		},
 		{
 			name:            "multiline ignore whitespace - different line endings",
-			expected:        utils.NewStringSet("line1\nline2"),
+			expected:        utils.NewValueSet("line1\nline2"),
 			validationRules: config.ValidationRules{IgnoreWhitespace: testutils.Ptr(true)},
 			actual:          createMockResult("line1\r\nline2"),
 			want:            true, // should match when ignoring whitespace
@@ -383,63 +383,63 @@ func TestValidatorIsCorrect(t *testing.T) {
 		// TrimLines rule tests (per-line edge trimming; preserves internal spaces; normalizes CRLF to \n).
 		{
 			name:            "trim-lines - trailing spaces per line",
-			expected:        utils.NewStringSet("1. a)\n2. b)\n3. c)"),
+			expected:        utils.NewValueSet("1. a)\n2. b)\n3. c)"),
 			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
 			actual:          createMockResult("1. a)\n2. b) \n3. c)"),
 			want:            true,
 		},
 		{
 			name:            "trim-lines - leading spaces per line",
-			expected:        utils.NewStringSet("A\nB\nC"),
+			expected:        utils.NewValueSet("A\nB\nC"),
 			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
 			actual:          createMockResult(" A\n  B\n   C"),
 			want:            true,
 		},
 		{
 			name:            "trim-lines with CRLF",
-			expected:        utils.NewStringSet("row1\nrow2\nrow3"),
+			expected:        utils.NewValueSet("row1\nrow2\nrow3"),
 			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
 			actual:          createMockResult("row1\r\nrow2 \r\n row3"),
 			want:            true,
 		},
 		{
 			name:            "trim-lines does not remove internal spaces",
-			expected:        utils.NewStringSet("1) a b"),
+			expected:        utils.NewValueSet("1) a b"),
 			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
 			actual:          createMockResult("1)  a b "),
 			want:            false,
 		},
 		{
 			name:            "trim-lines - preserves internal blank lines",
-			expected:        utils.NewStringSet("A\n\nB"),
+			expected:        utils.NewValueSet("A\n\nB"),
 			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
 			actual:          createMockResult(" A \r\n \r\n B "),
 			want:            true,
 		},
 		{
 			name:            "trim-lines - removes leading and trailing blank lines",
-			expected:        utils.NewStringSet("A\nB"),
+			expected:        utils.NewValueSet("A\nB"),
 			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
 			actual:          createMockResult("\r\n A \n B \n"),
 			want:            true,
 		},
 		{
 			name:            "trim-lines + ignore whitespace - trim-lines ignored",
-			expected:        utils.NewStringSet("AB"),
+			expected:        utils.NewValueSet("AB"),
 			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true), IgnoreWhitespace: testutils.Ptr(true)},
 			actual:          createMockResult(" A \n B "),
 			want:            true,
 		},
 		{
 			name:            "trim-lines - tabs inside line are preserved",
-			expected:        utils.NewStringSet("a b c"),
+			expected:        utils.NewValueSet("a b c"),
 			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
 			actual:          createMockResult("a\t b \t c"),
 			want:            false,
 		},
 		{
 			name:            "trim-lines - whitespace-only becomes empty",
-			expected:        utils.NewStringSet(""),
+			expected:        utils.NewValueSet(""),
 			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
 			actual:          createMockResult(" \r\n "),
 			want:            true,
@@ -448,31 +448,132 @@ func TestValidatorIsCorrect(t *testing.T) {
 		// Complex combinations with multiple expected values.
 		{
 			name:            "multiple expected with case sensitivity",
-			expected:        utils.NewStringSet("Answer1", "answer2", "ANSWER3"),
+			expected:        utils.NewValueSet("Answer1", "answer2", "ANSWER3"),
 			validationRules: config.ValidationRules{CaseSensitive: testutils.Ptr(true)},
 			actual:          createMockResult("answer2"),
 			want:            true,
 		},
 		{
 			name:            "multiple expected with case sensitivity - no match",
-			expected:        utils.NewStringSet("Answer1", "answer2", "ANSWER3"),
+			expected:        utils.NewValueSet("Answer1", "answer2", "ANSWER3"),
 			validationRules: config.ValidationRules{CaseSensitive: testutils.Ptr(true)},
 			actual:          createMockResult("answer1"), // case doesn't match Answer1
 			want:            false,
 		},
 		{
 			name:            "multiple expected with whitespace handling",
-			expected:        utils.NewStringSet("answer 1", "answer2", "answer 3"),
+			expected:        utils.NewValueSet("answer 1", "answer2", "answer 3"),
 			validationRules: config.ValidationRules{IgnoreWhitespace: testutils.Ptr(true)},
 			actual:          createMockResult("answer1"),
 			want:            true, // matches "answer 1" with whitespace removed
 		},
 		{
 			name:            "multiple expected with whitespace handling - no match when preserved",
-			expected:        utils.NewStringSet("answer 1", "answer2", "answer 3"),
+			expected:        utils.NewValueSet("answer 1", "answer2", "answer 3"),
 			validationRules: config.ValidationRules{IgnoreWhitespace: testutils.Ptr(false)},
 			actual:          createMockResult("answer1"), // doesn't match any with spaces preserved
 			want:            false,
+		},
+
+		// Structured objects (non-string) tests - should use JSON matching.
+		{
+			name:            "structured object - exact match",
+			expected:        utils.NewValueSet(map[string]interface{}{"answer": "YES", "confidence": 0.95}),
+			validationRules: config.ValidationRules{},
+			actual:          createMockResult(map[string]interface{}{"answer": "YES", "confidence": 0.95}),
+			want:            true,
+		},
+		{
+			name:            "structured object - field mismatch",
+			expected:        utils.NewValueSet(map[string]interface{}{"answer": "YES", "confidence": 0.95}),
+			validationRules: config.ValidationRules{},
+			actual:          createMockResult(map[string]interface{}{"answer": "NO", "confidence": 0.95}),
+			want:            false,
+		},
+		{
+			name:            "structured object - extra field in actual",
+			expected:        utils.NewValueSet(map[string]interface{}{"answer": "YES"}),
+			validationRules: config.ValidationRules{},
+			actual:          createMockResult(map[string]interface{}{"answer": "YES", "confidence": 0.95}),
+			want:            false,
+		},
+		{
+			name:            "structured object - missing field in actual",
+			expected:        utils.NewValueSet(map[string]interface{}{"answer": "YES", "confidence": 0.95}),
+			validationRules: config.ValidationRules{},
+			actual:          createMockResult(map[string]interface{}{"answer": "YES"}),
+			want:            false,
+		},
+		{
+			name: "structured object - multiple expected objects",
+			expected: utils.NewValueSet(
+				map[string]interface{}{"answer": "YES", "confidence": 0.95},
+				map[string]interface{}{"answer": "NO", "confidence": 0.90},
+			),
+			validationRules: config.ValidationRules{},
+			actual:          createMockResult(map[string]interface{}{"answer": "NO", "confidence": 0.90}),
+			want:            true,
+		},
+		{
+			name: "structured object - nested objects",
+			expected: utils.NewValueSet(map[string]interface{}{
+				"result": map[string]interface{}{"status": "success", "code": 200},
+				"data":   []interface{}{"item1", "item2"},
+			}),
+			validationRules: config.ValidationRules{},
+			actual: createMockResult(map[string]interface{}{
+				"result": map[string]interface{}{"status": "success", "code": 200},
+				"data":   []interface{}{"item1", "item2"},
+			}),
+			want: true,
+		},
+		{
+			name: "structured object - with validation rules (case sensitivity)",
+			expected: utils.NewValueSet(map[string]interface{}{
+				"status":  "  SUCCESS  ",
+				"message": "  Operation Completed  ",
+			}),
+			validationRules: config.ValidationRules{
+				CaseSensitive:    testutils.Ptr(true),
+				IgnoreWhitespace: testutils.Ptr(false),
+			},
+			actual: createMockResult(map[string]interface{}{
+				"status":  "  SUCCESS  ",
+				"message": "  Operation Completed  ",
+			}),
+			want: true,
+		},
+		{
+			name: "structured object - with validation rules (case insensitive should normalize)",
+			expected: utils.NewValueSet(map[string]interface{}{
+				"status":  "  success  ",
+				"message": "  operation completed  ",
+			}),
+			validationRules: config.ValidationRules{
+				CaseSensitive:    testutils.Ptr(false),
+				IgnoreWhitespace: testutils.Ptr(false),
+			},
+			actual: createMockResult(map[string]interface{}{
+				"status":  "  SUCCESS  ",
+				"message": "  Operation Completed  ",
+			}),
+			want: true,
+		},
+		{
+			name: "structured object - with validation rules (ignore whitespace)",
+			expected: utils.NewValueSet(map[string]interface{}{
+				"status":  "success",
+				"message": "operationcompleted",
+			}),
+			validationRules: config.ValidationRules{
+				CaseSensitive:    testutils.Ptr(false),
+				IgnoreWhitespace: testutils.Ptr(true),
+			},
+			actual: createMockResult(map[string]interface{}{
+				"status":  "  SUCCESS  ",
+				"message": "  Operation Completed  ",
+			}),
+			want: true,
 		},
 	}
 
@@ -480,7 +581,7 @@ func TestValidatorIsCorrect(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			validator := NewValueMatchValidator()
 			logger := testutils.NewTestLogger(t)
-			result, err := validator.IsCorrect(context.Background(), logger, tt.validationRules, tt.expected, tt.actual, "test prompt", "test format")
+			result, err := validator.IsCorrect(context.Background(), logger, tt.validationRules, tt.expected, tt.actual, "test prompt", config.NewResponseFormat("test format"))
 			require.NoError(t, err)
 			assert.Equal(t, tt.want, result.IsCorrect)
 		})
@@ -490,9 +591,9 @@ func TestValidatorIsCorrect(t *testing.T) {
 func TestValidatorToCanonical(t *testing.T) {
 	tests := []struct {
 		name            string
-		value           string
+		value           interface{}
 		validationRules config.ValidationRules
-		want            string
+		want            interface{}
 	}{
 		// Default behavior (case insensitive, trim spaces)
 		{
@@ -673,12 +774,143 @@ func TestValidatorToCanonical(t *testing.T) {
 			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
 			want:            "",
 		},
+
+		// Structured objects (non-string) tests
+		{
+			name:            "structured object - map with string normalization",
+			value:           map[string]interface{}{"Answer": "  YES  ", "confidence": 0.95},
+			validationRules: config.ValidationRules{},
+			want:            map[string]interface{}{"Answer": "yes", "confidence": float64(0.95)}, // 0.95 is not a whole number, so stays as float64
+		},
+		{
+			name:            "structured object - case sensitive map",
+			value:           map[string]interface{}{"Answer": "  YES  "},
+			validationRules: config.ValidationRules{CaseSensitive: testutils.Ptr(true)},
+			want:            map[string]interface{}{"Answer": "YES"},
+		},
+		{
+			name: "structured object - nested map",
+			value: map[string]interface{}{
+				"Result": map[string]interface{}{"Status": "  SUCCESS  ", "Code": 200},
+				"Data":   []interface{}{"  Item1  ", "  Item2  "},
+			},
+			validationRules: config.ValidationRules{},
+			want: map[string]interface{}{
+				"Data":   []interface{}{"item1", "item2"},
+				"Result": map[string]interface{}{"Code": int64(200), "Status": "success"},
+			},
+		},
+		{
+			name:            "structured object - array normalization",
+			value:           []interface{}{"  Hello  ", "  World  ", 123},
+			validationRules: config.ValidationRules{},
+			want:            []interface{}{"hello", "world", int64(123)},
+		},
+		{
+			name:            "structured object - null value",
+			value:           map[string]interface{}{"value": nil},
+			validationRules: config.ValidationRules{},
+			want:            map[string]interface{}{"value": nil},
+		},
+		{
+			name:            "structured object - boolean values",
+			value:           map[string]interface{}{"enabled": true, "disabled": false},
+			validationRules: config.ValidationRules{},
+			want:            map[string]interface{}{"disabled": false, "enabled": true},
+		},
+		{
+			name:            "structured object - float to int conversion",
+			value:           map[string]interface{}{"whole": 42.0, "decimal": 42.5},
+			validationRules: config.ValidationRules{},
+			want:            map[string]interface{}{"decimal": float64(42.5), "whole": int64(42)},
+		},
+
+		// Number normalization tests
+		{
+			name:            "number normalization - int types to int64",
+			value:           map[string]interface{}{"int": int(42), "int8": int8(42), "int16": int16(42), "int32": int32(42)},
+			validationRules: config.ValidationRules{},
+			want:            map[string]interface{}{"int": int64(42), "int16": int64(42), "int32": int64(42), "int8": int64(42)},
+		},
+		{
+			name:            "number normalization - unsigned int types to int64",
+			value:           map[string]interface{}{"uint": uint(42), "uint8": uint8(42), "uint16": uint16(42), "uint32": uint32(42)},
+			validationRules: config.ValidationRules{},
+			want:            map[string]interface{}{"uint": int64(42), "uint16": int64(42), "uint32": int64(42), "uint8": int64(42)},
+		},
+		{
+			name:            "number normalization - large uint to uint64",
+			value:           map[string]interface{}{"large_uint": uint(18446744073709551615)}, // max uint64
+			validationRules: config.ValidationRules{},
+			want:            map[string]interface{}{"large_uint": uint64(18446744073709551615)},
+		},
+		{
+			name:            "number normalization - uint64 unchanged",
+			value:           map[string]interface{}{"uint64_val": uint64(42)},
+			validationRules: config.ValidationRules{},
+			want:            map[string]interface{}{"uint64_val": uint64(42)},
+		},
+		{
+			name:            "number normalization - float32 to float64",
+			value:           map[string]interface{}{"float32_val": float32(42.5)},
+			validationRules: config.ValidationRules{},
+			want:            map[string]interface{}{"float32_val": float64(42.5)},
+		},
+		{
+			name:            "number normalization - mixed number types",
+			value:           []interface{}{int(1), int8(2), uint16(3), float32(4.5), uint64(5), float64(6.7)},
+			validationRules: config.ValidationRules{},
+			want:            []interface{}{int64(1), int64(2), int64(3), float64(4.5), uint64(5), float64(6.7)},
+		},
+		{
+			name: "structured object - with TrimLines validation rule",
+			value: map[string]interface{}{
+				"message":     "  Line 1  \n  Line 2  \n  Line 3  ",
+				"description": "\n  Multi-line text  \n  with spaces  \n",
+				"status":      "  SUCCESS  ",
+				"count":       42,
+			},
+			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
+			want: map[string]interface{}{
+				"count":       int64(42),
+				"description": "multi-line text\nwith spaces",
+				"message":     "line 1\nline 2\nline 3",
+				"status":      "success",
+			},
+		},
+		{
+			name: "structured object - TrimLines with nested objects",
+			value: map[string]interface{}{
+				"result": map[string]interface{}{
+					"status":  "\n  SUCCESS  \n",
+					"message": "  Operation\nCompleted  ",
+				},
+				"data": []interface{}{
+					"  Item 3  \n",
+					"\n  Item 2  ",
+					"  Item 1\nwith newline  ",
+				},
+			},
+			validationRules: config.ValidationRules{TrimLines: testutils.Ptr(true)},
+			want: map[string]interface{}{
+				"data": []interface{}{
+					"item 3",
+					"item 2",
+					"item 1\nwith newline",
+				},
+				"result": map[string]interface{}{
+					"message": "operation\ncompleted",
+					"status":  "success",
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			validator := NewValueMatchValidator()
-			assert.Equal(t, tt.want, validator.ToCanonical(tt.validationRules, tt.value))
+			result := validator.ToCanonical(tt.validationRules, tt.value)
+			assert.Equal(t, tt.want, result)
 		})
 	}
 }
@@ -893,9 +1125,10 @@ func TestJudgeValidatorToCanonical(t *testing.T) {
 
 	tests := []struct {
 		name  string
-		input string
-		want  string
+		input interface{}
+		want  interface{}
 	}{
+		// String input tests.
 		{
 			name:  "trims whitespace",
 			input: "  hello world  ",
@@ -925,6 +1158,33 @@ func TestJudgeValidatorToCanonical(t *testing.T) {
 			name:  "only whitespace",
 			input: "   \r\n\t  ",
 			want:  "",
+		},
+
+		// Non-string input tests - should be returned as-is.
+		{
+			name:  "structured object returned as-is",
+			input: map[string]interface{}{"answer": "YES", "confidence": 0.95},
+			want:  map[string]interface{}{"answer": "YES", "confidence": 0.95},
+		},
+		{
+			name:  "array returned as-is",
+			input: []interface{}{"item1", "item2", 123},
+			want:  []interface{}{"item1", "item2", 123},
+		},
+		{
+			name:  "boolean returned as-is",
+			input: true,
+			want:  true,
+		},
+		{
+			name:  "number returned as-is",
+			input: 42.5,
+			want:  42.5,
+		},
+		{
+			name:  "nil returned as-is",
+			input: nil,
+			want:  nil,
 		},
 	}
 
@@ -1149,7 +1409,7 @@ Validation flags:
 Procedure
 1. Normalize candidate and each expected answer per the flags.  
 2. Compare the candidate to each expected answer independently for semantic equivalence.  
-3. If ANY match, the response is correct; else incorrect.`
+3. Set "correct" to true if ANY match, false otherwise.`
 
 	assert.Equal(t, expectedPrompt, prompt)
 }
@@ -1310,6 +1570,60 @@ func TestJudgeValidatorIsCorrect(t *testing.T) {
 		},
 	}
 
+	// Test non-string actual responses (should fail validation).
+	nonStringTests := []struct {
+		name           string
+		actualResponse interface{}
+		expectedResult string
+		expectedError  bool
+	}{
+		{
+			name:           "structured object response - should fail",
+			actualResponse: map[string]interface{}{"answer": "YES", "confidence": 0.95},
+			expectedResult: "correct answer",
+			expectedError:  false,
+		},
+		{
+			name:           "array response - should fail",
+			actualResponse: []interface{}{"answer1", "answer2"},
+			expectedResult: "correct answer",
+			expectedError:  false,
+		},
+		{
+			name:           "boolean response - should fail",
+			actualResponse: true,
+			expectedResult: "correct answer",
+			expectedError:  false,
+		},
+		{
+			name:           "number response - should fail",
+			actualResponse: 42,
+			expectedResult: "correct answer",
+			expectedError:  false,
+		},
+	}
+
+	// Test non-plain text expected values (should return error).
+	nonPlainTextExpectedTests := []struct {
+		name              string
+		expectedValues    utils.ValueSet
+		actualResponse    string
+		shouldReturnError bool
+	}{
+		{
+			name:              "structured object expected - should error",
+			expectedValues:    utils.NewValueSet(map[string]interface{}{"answer": "YES"}),
+			actualResponse:    "YES",
+			shouldReturnError: true,
+		},
+		{
+			name:              "mixed string and object expected - should error",
+			expectedValues:    utils.NewValueSet("YES", map[string]interface{}{"answer": "YES"}),
+			actualResponse:    "YES",
+			shouldReturnError: true,
+		},
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create a judge validator with a mock run variant config.
@@ -1329,18 +1643,18 @@ func TestJudgeValidatorIsCorrect(t *testing.T) {
 			validator, err := NewJudgeValidator(context.Background(), judgeConfig, judgeRunVariant)
 			require.NoError(t, err)
 
-			// Create original task expectedTaskValues result set.
-			expectedTaskValues := utils.NewStringSet(tt.originalTaskExpectedResult)
+			// Create original task expected result set.
+			expectedTaskValues := utils.NewValueSet(tt.originalTaskExpectedResult)
 
 			// Create original task result.
 			actualTaskResult := providers.Result{
 				Title:       "Original Task Result",
 				Explanation: "Original task explanation",
-				FinalAnswer: tt.originalTaskActualResponse,
+				FinalAnswer: providers.Answer{Content: tt.originalTaskActualResponse},
 			}
 
 			logger := testutils.NewTestLogger(t)
-			result, err := validator.IsCorrect(context.Background(), logger, config.ValidationRules{}, expectedTaskValues, actualTaskResult, tt.originalPrompt, "json")
+			result, err := validator.IsCorrect(context.Background(), logger, config.ValidationRules{}, expectedTaskValues, actualTaskResult, tt.originalPrompt, config.NewResponseFormat("json"))
 
 			if tt.expectError {
 				require.Error(t, err)
@@ -1350,6 +1664,82 @@ func TestJudgeValidatorIsCorrect(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.Equal(t, tt.expectCorrect, result.IsCorrect)
+		})
+	}
+
+	// Test non-string actual responses.
+	for _, tt := range nonStringTests {
+		t.Run(tt.name, func(t *testing.T) {
+			judgeRunVariant := config.RunConfig{
+				Name:  "judge_evaluation",
+				Model: "judge-model",
+			}
+
+			judgeConfig := &config.JudgeConfig{
+				Name: "mock-judge",
+				Provider: config.ProviderConfig{
+					Name: "mock-judge",
+				},
+			}
+
+			validator, err := NewJudgeValidator(context.Background(), judgeConfig, judgeRunVariant)
+			require.NoError(t, err)
+
+			expectedTaskValues := utils.NewValueSet(tt.expectedResult)
+			actualTaskResult := providers.Result{
+				Title:       "Original Task Result",
+				Explanation: "Original task explanation",
+				FinalAnswer: providers.Answer{Content: tt.actualResponse},
+			}
+
+			logger := testutils.NewTestLogger(t)
+			result, err := validator.IsCorrect(context.Background(), logger, config.ValidationRules{}, expectedTaskValues, actualTaskResult, "", config.NewResponseFormat("json"))
+
+			if tt.expectedError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				assert.False(t, result.IsCorrect, "Non-string responses should fail validation")
+				assert.Equal(t, "Invalid Response Type", result.Title)
+				assert.Contains(t, result.Explanation, "Semantic validation requires plain text responses")
+			}
+		})
+	}
+
+	// Test non-plain text expected values.
+	for _, tt := range nonPlainTextExpectedTests {
+		t.Run(tt.name, func(t *testing.T) {
+			judgeRunVariant := config.RunConfig{
+				Name:  "judge_evaluation",
+				Model: "judge-model",
+			}
+
+			judgeConfig := &config.JudgeConfig{
+				Name: "mock-judge",
+				Provider: config.ProviderConfig{
+					Name: "mock-judge",
+				},
+			}
+
+			validator, err := NewJudgeValidator(context.Background(), judgeConfig, judgeRunVariant)
+			require.NoError(t, err)
+
+			actualTaskResult := providers.Result{
+				Title:       "Original Task Result",
+				Explanation: "Original task explanation",
+				FinalAnswer: providers.Answer{Content: tt.actualResponse},
+			}
+
+			logger := testutils.NewTestLogger(t)
+			result, err := validator.IsCorrect(context.Background(), logger, config.ValidationRules{}, tt.expectedValues, actualTaskResult, "", config.NewResponseFormat("json"))
+
+			if tt.shouldReturnError {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "semantic validation requires plain text responses")
+			} else {
+				require.NoError(t, err)
+				assert.NotNil(t, result)
+			}
 		})
 	}
 }

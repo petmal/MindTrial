@@ -99,9 +99,13 @@ type RunResult struct {
 	// Run is the name of the provider's run configuration used.
 	Run string
 	// Got is the actual answer received from the AI model.
-	Got string
+	// For plain text response format, this should be a string that follows the format instruction precisely.
+	// For structured schema-based response format, this will be any object that conforms to the schema.
+	Got interface{}
 	// Want are the accepted valid answer(s) for the task.
-	Want utils.StringSet
+	// For plain text response format: contains string values that should follow the format instruction precisely.
+	// For structured schema-based response format: contains object values that conform to the schema.
+	Want utils.ValueSet
 	// Details contains comprehensive information about the generated response and validation assessment.
 	Details Details
 	// Duration represents the time taken to generate the response.
@@ -175,12 +179,12 @@ type TokenUsage struct {
 	OutputTokens *int64 `json:"OutputTokens,omitempty"`
 }
 
-// toLines converts a StringSet to [][]string where each value is split into lines.
-func toLines(stringSet utils.StringSet) [][]string {
-	values := stringSet.Values()
-	result := make([][]string, 0, len(values))
-	for _, value := range values {
-		result = append(result, utils.SplitLines(value))
+// toLines converts an ExpectedResultSet to [][]string where each value is converted to string and split into lines.
+func toLines(expectedResult utils.ValueSet) [][]string {
+	expectedValues := expectedResult.Values()
+	result := make([][]string, 0, len(expectedValues))
+	for _, value := range expectedValues {
+		result = append(result, utils.ToLines(value))
 	}
 	return result
 }

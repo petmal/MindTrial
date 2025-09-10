@@ -141,6 +141,19 @@ func (u URI) Path(basePath string) string {
 	}
 }
 
+// SystemPromptEnabledFor represents the enabled state for system prompt.
+type SystemPromptEnabledFor string
+
+// SystemPromptEnabledFor constants define when system prompt should be sent.
+const (
+	// EnableForAll enables system prompt for all tasks.
+	EnableForAll SystemPromptEnabledFor = "all"
+	// EnableForText enables system prompt only for tasks with plain text response format.
+	EnableForText SystemPromptEnabledFor = "text"
+	// EnableForNone disables system prompt for all tasks.
+	EnableForNone SystemPromptEnabledFor = "none"
+)
+
 // Tasks represents the top-level task configuration structure.
 type Tasks struct {
 	// TaskConfig contains all task definitions and settings.
@@ -152,6 +165,13 @@ type SystemPrompt struct {
 	// Template is the template string for the system prompt.
 	// It can reference `{{.ResponseResultFormat}}` to include the task's response format.
 	Template *string `yaml:"template" validate:"omitempty"`
+
+	// EnableFor controls when system prompt should be sent to AI models.
+	// - "all": system prompt is sent for all tasks
+	// - "text": system prompt is sent only for tasks with plain text response format
+	// - "none": system prompt is never sent
+	// Defaults to "text" when not specified.
+	EnableFor *SystemPromptEnabledFor `yaml:"enable-for" validate:"omitempty,oneof=all text none"`
 }
 
 // GetTemplate returns the template string and true if it is set and not blank.
@@ -162,6 +182,14 @@ func (s SystemPrompt) GetTemplate() (template string, ok bool) {
 	return
 }
 
+// GetEnableFor returns the EnableFor value, defaulting to EnableForText if not set.
+func (s SystemPrompt) GetEnableFor() SystemPromptEnabledFor {
+	if s.EnableFor != nil {
+		return *s.EnableFor
+	}
+	return EnableForText
+}
+
 // MergeWith merges this system prompt with another and returns the result.
 // The provided other values override these values if set.
 func (these SystemPrompt) MergeWith(other *SystemPrompt) SystemPrompt {
@@ -169,6 +197,7 @@ func (these SystemPrompt) MergeWith(other *SystemPrompt) SystemPrompt {
 
 	if other != nil {
 		setIfNotNil(&resolved.Template, other.Template)
+		setIfNotNil(&resolved.EnableFor, other.EnableFor)
 	}
 
 	return resolved
@@ -202,6 +231,56 @@ func (o TaskConfig) GetEnabledTasks() []Task {
 		}
 	}
 	return enabledTasks
+}
+
+// Validate validates all tasks for internal consistency.
+// Returns an error if any task has incompatible configuration.
+func (o TaskConfig) Validate() error {
+	for _, task := range o.Tasks {
+		if err := o.validateTask(task); err != nil {
+			return fmt.Errorf("invalid configuration for task '%s': %w", task.Name, err)
+		}
+	}
+	return nil
+}
+
+// validateTask validates a single task for internal consistency and compatibility.
+// It ensures that the task's configuration is valid and that all properties are
+// compatible with each other.
+//
+// - Response format must be either a plain text string or a JSON schema object describing the required response structure.
+// - For string response format: all expected results must be strings.
+// - For structured response format: all expected results must conform to the schema.
+// - Semantic validation cannot be used with structured schema-based response formats.
+func (o TaskConfig) validateTask(task Task) error {
+	if _, isString := task.ResponseResultFormat.AsString(); isString {
+		// For string format, expected results must all be strings.
+		if _, ok := task.ExpectedResult.AsStringSet(); !ok {
+			return fmt.Errorf("%w: when response-result-format is plain text, all expected-result values must be plain text", ErrInvalidTaskProperty)
+		}
+	} else if schema, isSchema := task.ResponseResultFormat.AsSchema(); isSchema {
+		// For schema format, expected results must conform to the schema.
+		expectedValues := task.ExpectedResult.Values()
+		if err := utils.ValidateAgainstSchema(schema, expectedValues...); err != nil {
+			switch {
+			case errors.Is(err, utils.ErrInvalidJSONSchema):
+				return fmt.Errorf("%w: response-result-format contains an invalid JSON schema: %v", ErrInvalidTaskProperty, err)
+			case errors.Is(err, utils.ErrJSONSchemaValidation):
+				return fmt.Errorf("%w: expected-result does not conform to response-result-format schema: %v", ErrInvalidTaskProperty, err)
+			default:
+				return err
+			}
+		}
+
+		// Semantic validation should not be used with schema format.
+		if resolvedValidationRules := o.ValidationRules.MergeWith(task.ValidationRules); resolvedValidationRules.UseJudge() {
+			return fmt.Errorf("%w: semantic validation cannot be used with structured schema-based response-result-format", ErrInvalidTaskProperty)
+		}
+	} else {
+		return fmt.Errorf("%w: response-result-format must be either plain text or a JSON schema object", ErrInvalidTaskProperty)
+	}
+
+	return nil
 }
 
 // TaskFile represents a file to be included with a task.
@@ -373,6 +452,43 @@ func (f *TaskFile) GetDataURL(ctx context.Context) (string, error) {
 	return "data:" + mimeType + ";base64," + base64Content, nil
 }
 
+// ResponseFormat represents the expected format of the AI model's response.
+// It specifies how the model should structure its answer, either as
+// a plain text format instruction or a JSON schema object for structured responses.
+type ResponseFormat struct {
+	// raw stores the original value from YAML
+	raw interface{}
+}
+
+// UnmarshalYAML implements custom YAML unmarshaling for ResponseFormat.
+func (r *ResponseFormat) UnmarshalYAML(value *yaml.Node) error {
+	return value.Decode(&r.raw)
+}
+
+// MarshalYAML implements custom YAML marshaling for ResponseFormat.
+func (r ResponseFormat) MarshalYAML() (interface{}, error) {
+	return r.raw, nil
+}
+
+// AsString returns the string instruction if this is a string format.
+// Returns (value, true) if this is a string format.
+func (r ResponseFormat) AsString() (value string, ok bool) {
+	value, ok = r.raw.(string)
+	return
+}
+
+// AsSchema returns the JSON schema object if this is a schema format.
+// Returns (schema, true) if this is a schema format.
+func (r ResponseFormat) AsSchema() (schema map[string]interface{}, ok bool) {
+	schema, ok = r.raw.(map[string]interface{})
+	return
+}
+
+// NewResponseFormat creates a ResponseFormat from an instruction string or schema object.
+func NewResponseFormat(value interface{}) ResponseFormat {
+	return ResponseFormat{raw: value}
+}
+
 // Task defines a single test case to be executed by AI models.
 type Task struct {
 	// Name is a display-friendly identifier shown in results.
@@ -382,12 +498,14 @@ type Task struct {
 	Prompt string `yaml:"prompt" validate:"required"`
 
 	// ResponseResultFormat specifies how the AI should format the final answer to the prompt.
-	ResponseResultFormat string `yaml:"response-result-format" validate:"required"`
+	// Can be either a plain text instruction or a JSON schema object.
+	ResponseResultFormat ResponseFormat `yaml:"response-result-format" validate:"required"`
 
 	// ExpectedResult is the set of accepted valid answers for the prompt.
-	// All values must follow the ResponseResultFormat precisely.
+	// For plain text format: contains string values that must follow the `ResponseResultFormat` instruction precisely.
+	// For structured schema format: contains object values that must be valid according to the `ResponseResultFormat` schema.
 	// Only one needs to match for the response to be considered correct.
-	ExpectedResult utils.StringSet `yaml:"expected-result" validate:"required"`
+	ExpectedResult utils.ValueSet `yaml:"expected-result" validate:"required"`
 
 	// Disabled indicates whether this specific task should be skipped.
 	// If set, overrides the global TaskConfig.Disabled value.
@@ -418,23 +536,58 @@ func (t Task) GetResolvedSystemPrompt() (prompt string, ok bool) {
 // ResolveSystemPrompt resolves the system prompt template for this task using the provided default.
 // The resolved template can be retrieved using GetResolvedSystemPrompt().
 func (t *Task) ResolveSystemPrompt(defaultConfig SystemPrompt) error {
-	resolvedTemplate := defaultConfig.MergeWith(t.SystemPrompt)
+	systemPromptConfig := defaultConfig.MergeWith(t.SystemPrompt)
 
-	if templateValue, ok := resolvedTemplate.GetTemplate(); ok {
+	if !t.shouldResolveSystemPrompt(systemPromptConfig) {
+		t.resolvedSystemPrompt = "" // clear any existing resolved prompt
+		return nil
+	}
+
+	// If we have a template, resolve it.
+	if templateValue, ok := systemPromptConfig.GetTemplate(); ok {
 		tmpl, err := template.New("system-prompt").Option("missingkey=error").Parse(templateValue)
 		if err != nil {
 			return fmt.Errorf("failed to parse system prompt template: %w", err)
 		}
+
 		var buf strings.Builder
-		if err := tmpl.Execute(&buf, map[string]interface{}{
-			"ResponseResultFormat": t.ResponseResultFormat,
-		}); err != nil {
+		templateData := make(map[string]interface{})
+
+		// Always include ResponseResultFormat variable, converting to string representation.
+		if formatStr, ok := t.ResponseResultFormat.AsString(); ok {
+			templateData["ResponseResultFormat"] = formatStr
+		} else if schema, ok := t.ResponseResultFormat.AsSchema(); ok {
+			templateData["ResponseResultFormat"] = utils.ToString(schema)
+		}
+
+		if err := tmpl.Execute(&buf, templateData); err != nil {
 			return fmt.Errorf("failed to execute system prompt template: %w", err)
 		}
 		t.resolvedSystemPrompt = buf.String()
+	} else {
+		// If no template but prompt should be enabled for string format tasks, set default format instruction.
+		if formatStr, ok := t.ResponseResultFormat.AsString(); ok {
+			t.resolvedSystemPrompt = fmt.Sprintf("Provide the final answer in exactly this format: %s", formatStr)
+		}
 	}
 
 	return nil
+}
+
+// shouldResolveSystemPrompt determines if system prompt should be resolved for this task
+// based on the SystemPrompt configuration.
+func (t Task) shouldResolveSystemPrompt(configuration SystemPrompt) bool {
+	switch configuration.GetEnableFor() {
+	case EnableForAll:
+		return true
+	case EnableForNone:
+		return false
+	case EnableForText:
+		_, isString := t.ResponseResultFormat.AsString()
+		return isString
+	default:
+		return false
+	}
 }
 
 // JudgeSelector defines settings for using a judge in validation.
@@ -538,6 +691,7 @@ func (these ValidationRules) MergeWith(other *ValidationRules) ValidationRules {
 	return resolved
 }
 
+// setIfNotNil sets the destination pointer to the source value if source is not nil.
 func setIfNotNil[T any](dst **T, src *T) {
 	if src != nil {
 		*dst = src

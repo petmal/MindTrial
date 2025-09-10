@@ -8,6 +8,7 @@ package providers
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -17,7 +18,6 @@ import (
 	"github.com/petmal/mindtrial/pkg/logging"
 	"github.com/petmal/mindtrial/pkg/utils"
 	openai "github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/jsonschema"
 )
 
 // NewOpenAI creates a new OpenAI provider instance with the given configuration.
@@ -37,9 +37,9 @@ func (o OpenAI) Name() string {
 }
 
 func (o *OpenAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
-	schema, err := jsonschema.GenerateSchemaForType(&result)
+	schema, err := ResultJSONSchema(task.ResponseResultFormat)
 	if err != nil {
-		return result, fmt.Errorf("%w: %v", ErrCompileSchema, err)
+		return result, err
 	}
 	request := openai.ChatCompletionRequest{
 		Model:    cfg.Model,
@@ -64,9 +64,13 @@ func (o *OpenAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig
 				request.ResponseFormat = &openai.ChatCompletionResponseFormat{
 					Type: openai.ChatCompletionResponseFormatTypeText,
 				}
+				responseFormatInstruction, err := DefaultResponseFormatInstruction(task.ResponseResultFormat)
+				if err != nil {
+					return result, err
+				}
 				request.Messages = append(request.Messages, openai.ChatCompletionMessage{
 					Role:    openai.ChatMessageRoleUser, // NOTE: system role not supported by all models
-					Content: result.recordPrompt(DefaultResponseFormatInstruction()),
+					Content: result.recordPrompt(responseFormatInstruction),
 				})
 			}
 			if modelParams.Temperature != nil {
@@ -92,11 +96,13 @@ func (o *OpenAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig
 		request.Messages = append(request.Messages, promptMessage)
 	}
 
-	request.Messages = append(request.Messages,
-		openai.ChatCompletionMessage{
-			Role:    openai.ChatMessageRoleUser, // NOTE: system role not supported by all models
-			Content: result.recordPrompt(DefaultAnswerFormatInstruction(task)),
-		})
+	if answerFormatInstruction := DefaultAnswerFormatInstruction(task); answerFormatInstruction != "" {
+		request.Messages = append(request.Messages,
+			openai.ChatCompletionMessage{
+				Role:    openai.ChatMessageRoleUser, // NOTE: system role not supported by all models
+				Content: result.recordPrompt(answerFormatInstruction),
+			})
+	}
 
 	resp, err := timed(func() (openai.ChatCompletionResponse, error) {
 		response, err := o.client.CreateChatCompletion(ctx, request)
@@ -118,7 +124,7 @@ func (o *OpenAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig
 				return result, NewErrUnmarshalResponse(err, []byte(candidate.Message.Content), []byte(candidate.FinishReason))
 			}
 		}
-		if err = schema.Unmarshal(content, &result); err != nil {
+		if err = json.Unmarshal([]byte(content), &result); err != nil {
 			return result, NewErrUnmarshalResponse(err, []byte(candidate.Message.Content), []byte(candidate.FinishReason))
 		}
 	}

@@ -50,7 +50,11 @@ func (o *MistralAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunCon
 	request.SetModel(cfg.Model)
 	request.SetN(1)
 
-	schema := mistralai.NewJsonSchema("response", ResultJSONSchemaRaw())
+	responseSchema, err := ResultJSONSchemaRaw(task.ResponseResultFormat)
+	if err != nil {
+		return result, err
+	}
+	schema := mistralai.NewJsonSchema("response", responseSchema)
 	schema.SetDescription(mistralai.Description{
 		String: mistralai.PtrString("Record the response using well-structured JSON."),
 	})
@@ -70,10 +74,12 @@ func (o *MistralAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunCon
 		}
 	}
 
-	request.Messages = append(request.Messages, mistralai.SystemMessageAsChatCompletionRequestMessagesInner(
-		mistralai.NewSystemMessage(mistralai.Content4{
-			String: mistralai.PtrString(result.recordPrompt(DefaultAnswerFormatInstruction(task))),
-		})))
+	if answerFormatInstruction := DefaultAnswerFormatInstruction(task); answerFormatInstruction != "" {
+		request.Messages = append(request.Messages, mistralai.SystemMessageAsChatCompletionRequestMessagesInner(
+			mistralai.NewSystemMessage(mistralai.Content4{
+				String: mistralai.PtrString(result.recordPrompt(answerFormatInstruction)),
+			})))
+	}
 
 	contentParts, err := o.createPromptMessageParts(ctx, task.Prompt, task.Files, &result)
 	if err != nil {

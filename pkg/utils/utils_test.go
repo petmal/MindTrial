@@ -270,3 +270,232 @@ func TestSplitLines(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateAgainstSchema(t *testing.T) {
+	tests := []struct {
+		name    string
+		schema  map[string]interface{}
+		values  []interface{}
+		wantErr bool
+		errType error
+	}{
+		{
+			name: "valid schema with valid value",
+			schema: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"name": map[string]interface{}{
+						"type": "string",
+					},
+					"age": map[string]interface{}{
+						"type": "number",
+					},
+				},
+				"required": []interface{}{"name"},
+			},
+			values: []interface{}{
+				map[string]interface{}{
+					"name": "John",
+					"age":  30,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid schema with multiple valid values",
+			schema: map[string]interface{}{
+				"type": "string",
+			},
+			values: []interface{}{
+				"hello",
+				"world",
+				"test",
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid schema with no values",
+			schema: map[string]interface{}{
+				"type": "string",
+			},
+			values:  []interface{}{},
+			wantErr: false,
+		},
+		{
+			name: "invalid schema",
+			schema: map[string]interface{}{
+				"type": "invalid_type",
+			},
+			values: []interface{}{
+				"test",
+			},
+			wantErr: true,
+			errType: ErrInvalidJSONSchema,
+		},
+		{
+			name: "valid schema with invalid value",
+			schema: map[string]interface{}{
+				"type": "string",
+			},
+			values: []interface{}{
+				123, // number instead of string
+			},
+			wantErr: true,
+			errType: ErrJSONSchemaValidation,
+		},
+		{
+			name: "valid schema with mixed valid and invalid values",
+			schema: map[string]interface{}{
+				"type": "string",
+			},
+			values: []interface{}{
+				"valid",
+				123, // invalid
+			},
+			wantErr: true,
+			errType: ErrJSONSchemaValidation,
+		},
+		{
+			name: "object schema with missing required field",
+			schema: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"name": map[string]interface{}{
+						"type": "string",
+					},
+					"age": map[string]interface{}{
+						"type": "number",
+					},
+				},
+				"required": []interface{}{"name"},
+			},
+			values: []interface{}{
+				map[string]interface{}{
+					"age": 30, // missing required "name"
+				},
+			},
+			wantErr: true,
+			errType: ErrJSONSchemaValidation,
+		},
+		{
+			name: "array schema validation",
+			schema: map[string]interface{}{
+				"type": "array",
+				"items": map[string]interface{}{
+					"type": "number",
+				},
+			},
+			values: []interface{}{
+				[]interface{}{1, 2, 3},
+				[]interface{}{4.5, 6.7},
+			},
+			wantErr: false,
+		},
+		{
+			name: "array schema with invalid items",
+			schema: map[string]interface{}{
+				"type": "array",
+				"items": map[string]interface{}{
+					"type": "number",
+				},
+			},
+			values: []interface{}{
+				[]interface{}{1, "string", 3}, // string in number array
+			},
+			wantErr: true,
+			errType: ErrJSONSchemaValidation,
+		},
+		{
+			name: "malformed schema structure",
+			schema: map[string]interface{}{
+				"properties": "invalid", // should be object
+			},
+			values: []interface{}{
+				"test",
+			},
+			wantErr: true,
+			errType: ErrInvalidJSONSchema,
+		},
+		{
+			name: "simple number validation",
+			schema: map[string]interface{}{
+				"type": "number",
+			},
+			values: []interface{}{
+				42,
+				3.14,
+			},
+			wantErr: false,
+		},
+		{
+			name: "boolean validation",
+			schema: map[string]interface{}{
+				"type": "boolean",
+			},
+			values: []interface{}{
+				true,
+				false,
+			},
+			wantErr: false,
+		},
+		{
+			name: "null validation",
+			schema: map[string]interface{}{
+				"type": "null",
+			},
+			values: []interface{}{
+				nil,
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateAgainstSchema(tt.schema, tt.values...)
+
+			if tt.wantErr {
+				require.Error(t, err)
+				if tt.errType != nil {
+					require.ErrorIs(t, err, tt.errType)
+				}
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestSortedKeys(t *testing.T) {
+	tests := []struct {
+		name string
+		m    map[int]interface{}
+		want []int
+	}{
+		{
+			name: "empty map",
+			m:    map[int]interface{}{},
+			want: []int{},
+		},
+		{
+			name: "single element",
+			m:    map[int]interface{}{1: nil},
+			want: []int{1},
+		},
+		{
+			name: "multiple elements",
+			m:    map[int]interface{}{3: nil, 1: nil, 2: nil},
+			want: []int{1, 2, 3},
+		},
+		{
+			name: "negative and positive keys",
+			m:    map[int]interface{}{-1: nil, 2: nil, -3: nil, 0: nil},
+			want: []int{-3, -1, 0, 2},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, SortedKeys(tt.m))
+		})
+	}
+}

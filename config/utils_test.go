@@ -816,8 +816,9 @@ func TestLoadTasksFromFile(t *testing.T) {
 						{
 							Name:                 "Books neural Automotive",
 							Prompt:               "Commodi enim magni.\nEos modi id omnis exercitationem debitis doloremque.\n\nEt atque eius ut.",
-							ResponseResultFormat: "Sed unde non.\nVoluptatem quia voluptate id ipsum est rerum quisquam modi pariatur.",
-							ExpectedResult:       utils.NewStringSet("Ut quibusdam inventore dolorum velit.\nUllam et dolor laudantium placeat totam dolorem quia.\nEx voluptates et ipsam sunt nulla eos alias sint ad.\n\nDeleniti ducimus natus et omnis expedita."),
+							ResponseResultFormat: NewResponseFormat("Sed unde non.\nVoluptatem quia voluptate id ipsum est rerum quisquam modi pariatur."),
+							ExpectedResult:       utils.NewValueSet("Ut quibusdam inventore dolorum velit.\nUllam et dolor laudantium placeat totam dolorem quia.\nEx voluptates et ipsam sunt nulla eos alias sint ad.\n\nDeleniti ducimus natus et omnis expedita."),
+							resolvedSystemPrompt: "Provide the final answer in exactly this format: Sed unde non.\nVoluptatem quia voluptate id ipsum est rerum quisquam modi pariatur.",
 						},
 					},
 				},
@@ -864,13 +865,14 @@ func TestLoadTasksFromFile(t *testing.T) {
 						{
 							Name:                 "Books neural Automotive",
 							Prompt:               "Commodi enim magni.\nEos modi id omnis exercitationem debitis doloremque.\n\nEt atque eius ut.",
-							ResponseResultFormat: "Sed unde non.\nVoluptatem quia voluptate id ipsum est rerum quisquam modi pariatur.",
-							ExpectedResult:       utils.NewStringSet("Ut quibusdam inventore dolorum velit.\nUllam et dolor laudantium placeat totam dolorem quia.\nEx voluptates et ipsam sunt nulla eos alias sint ad.\n\nDeleniti ducimus natus et omnis expedita."),
+							ResponseResultFormat: NewResponseFormat("Sed unde non.\nVoluptatem quia voluptate id ipsum est rerum quisquam modi pariatur."),
+							ExpectedResult:       utils.NewValueSet("Ut quibusdam inventore dolorum velit.\nUllam et dolor laudantium placeat totam dolorem quia.\nEx voluptates et ipsam sunt nulla eos alias sint ad.\n\nDeleniti ducimus natus et omnis expedita."),
 							Files: []TaskFile{
 								mockTaskFile(t, "local-file", "path/to/file.txt", "text"),
 								mockTaskFile(t, "remote-file", "http://example.com/file.txt", "text"),
 							},
-							Disabled: testutils.Ptr(false),
+							Disabled:             testutils.Ptr(false),
+							resolvedSystemPrompt: "Provide the final answer in exactly this format: Sed unde non.\nVoluptatem quia voluptate id ipsum est rerum quisquam modi pariatur.",
 						},
 					},
 				},
@@ -916,8 +918,8 @@ func TestLoadTasksFromFile(t *testing.T) {
 						{
 							Name:                 "Task with judge validation",
 							Prompt:               "What is the capital of France?",
-							ResponseResultFormat: "City name",
-							ExpectedResult:       utils.NewStringSet("Paris"),
+							ResponseResultFormat: NewResponseFormat("City name"),
+							ExpectedResult:       utils.NewValueSet("Paris"),
 							ValidationRules: &ValidationRules{
 								Judge: JudgeSelector{
 									Enabled: testutils.Ptr(true),
@@ -925,12 +927,13 @@ func TestLoadTasksFromFile(t *testing.T) {
 									Variant: testutils.Ptr("default"),
 								},
 							},
+							resolvedSystemPrompt: "Provide the final answer in exactly this format: City name",
 						},
 						{
 							Name:                 "Task with disabled judge validation",
 							Prompt:               "What is 2 + 2?",
-							ResponseResultFormat: "Number",
-							ExpectedResult:       utils.NewStringSet("4"),
+							ResponseResultFormat: NewResponseFormat("Number"),
+							ExpectedResult:       utils.NewValueSet("4"),
 							ValidationRules: &ValidationRules{
 								Judge: JudgeSelector{
 									Enabled: testutils.Ptr(false),
@@ -938,6 +941,7 @@ func TestLoadTasksFromFile(t *testing.T) {
 									Variant: testutils.Ptr("strict"),
 								},
 							},
+							resolvedSystemPrompt: "Provide the final answer in exactly this format: Number",
 						},
 					},
 				},
@@ -989,32 +993,35 @@ func TestLoadTasksFromFile(t *testing.T) {
 						{
 							Name:                 "Task with case-sensitive validation",
 							Prompt:               "What is the exact name of the capital city of France?",
-							ResponseResultFormat: "City name (exact case)",
-							ExpectedResult:       utils.NewStringSet("Paris"),
+							ResponseResultFormat: NewResponseFormat("City name (exact case)"),
+							ExpectedResult:       utils.NewValueSet("Paris"),
 							ValidationRules: &ValidationRules{
 								CaseSensitive:    testutils.Ptr(true),
 								IgnoreWhitespace: testutils.Ptr(false),
 							},
+							resolvedSystemPrompt: "Provide the final answer in exactly this format: City name (exact case)",
 						},
 						{
 							Name:                 "Task with whitespace-ignoring validation",
 							Prompt:               "What is 2 + 2?",
-							ResponseResultFormat: "Number with optional whitespace",
-							ExpectedResult:       utils.NewStringSet("4"),
+							ResponseResultFormat: NewResponseFormat("Number with optional whitespace"),
+							ExpectedResult:       utils.NewValueSet("4"),
 							ValidationRules: &ValidationRules{
 								CaseSensitive:    testutils.Ptr(false),
 								IgnoreWhitespace: testutils.Ptr(true),
 							},
+							resolvedSystemPrompt: "Provide the final answer in exactly this format: Number with optional whitespace",
 						},
 						{
 							Name:                 "Task with combined validation rules",
 							Prompt:               "What programming language is this project written in?",
-							ResponseResultFormat: "Programming language name",
-							ExpectedResult:       utils.NewStringSet("Go"),
+							ResponseResultFormat: NewResponseFormat("Programming language name"),
+							ExpectedResult:       utils.NewValueSet("Go"),
 							ValidationRules: &ValidationRules{
 								CaseSensitive:    testutils.Ptr(true),
 								IgnoreWhitespace: testutils.Ptr(true),
 							},
+							resolvedSystemPrompt: "Provide the final answer in exactly this format: Programming language name",
 						},
 					},
 				},
@@ -1030,27 +1037,31 @@ func TestLoadTasksFromFile(t *testing.T) {
 						`task-config:
     system-prompt:
         template: "You are a helpful assistant. {{.ResponseResultFormat}}"
+        enable-for: none
     tasks:
         - name: "Task with custom system prompt"
           prompt: "How many legs does a dog have?"
           response-result-format: "Greeting"
           system-prompt:
               template: "Hello, {{.ResponseResultFormat}}"
+              enable-for: all
           expected-result: "4"`)),
 			},
 			want: &Tasks{
 				TaskConfig: TaskConfig{
 					SystemPrompt: SystemPrompt{
-						Template: testutils.Ptr("You are a helpful assistant. {{.ResponseResultFormat}}"),
+						Template:  testutils.Ptr("You are a helpful assistant. {{.ResponseResultFormat}}"),
+						EnableFor: testutils.Ptr(EnableForNone),
 					},
 					Tasks: []Task{
 						{
 							Name:                 "Task with custom system prompt",
 							Prompt:               "How many legs does a dog have?",
-							ResponseResultFormat: "Greeting",
-							ExpectedResult:       utils.NewStringSet("4"),
+							ResponseResultFormat: NewResponseFormat("Greeting"),
+							ExpectedResult:       utils.NewValueSet("4"),
 							SystemPrompt: &SystemPrompt{
-								Template: testutils.Ptr("Hello, {{.ResponseResultFormat}}"),
+								Template:  testutils.Ptr("Hello, {{.ResponseResultFormat}}"),
+								EnableFor: testutils.Ptr(EnableForAll),
 							},
 							resolvedSystemPrompt: "Hello, Greeting",
 						},
@@ -1279,8 +1290,8 @@ func TestGetEnabledTasks(t *testing.T) {
 					{
 						Name:                 "Rapid",
 						Prompt:               "enable",
-						ResponseResultFormat: "generating",
-						ExpectedResult:       utils.NewStringSet("Account"),
+						ResponseResultFormat: NewResponseFormat("generating"),
+						ExpectedResult:       utils.NewValueSet("Account"),
 						Disabled:             testutils.Ptr(false),
 						Files: []TaskFile{
 							mockTaskFile(t, "mock file", "http://example.com/file.txt", "text"),
@@ -1297,8 +1308,8 @@ func TestGetEnabledTasks(t *testing.T) {
 				{
 					Name:                 "Rapid",
 					Prompt:               "enable",
-					ResponseResultFormat: "generating",
-					ExpectedResult:       utils.NewStringSet("Account"),
+					ResponseResultFormat: NewResponseFormat("generating"),
+					ExpectedResult:       utils.NewValueSet("Account"),
 					Disabled:             testutils.Ptr(false),
 					Files: []TaskFile{
 						mockTaskFile(t, "mock file", "http://example.com/file.txt", "text"),

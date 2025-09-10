@@ -81,6 +81,11 @@ func LoadTasksFromFile(ctx context.Context, path string) (*Tasks, error) {
 		}
 	}
 
+	// Validate task configuration consistency.
+	if err := cfg.TaskConfig.Validate(); err != nil {
+		return cfg, fmt.Errorf("invalid task configuration: %w", err)
+	}
+
 	return cfg, nil
 }
 

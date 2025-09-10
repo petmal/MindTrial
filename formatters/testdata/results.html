@@ -117,8 +117,10 @@
         .answer-list li { margin-bottom: 1em; }
         .answer-list.single { list-style-type: none; padding-left: 0; }
         .answer-list.single li { margin-bottom: 0; }
+        .details-cell pre { font-family: inherit; margin: 0; line-height: inherit; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; overflow-x: auto; }
         .filter-container { display: flex; gap: 10px; margin-bottom: 10px; max-width: 800px; align-items: center; }
         .filter-sort-controls { display: flex; flex-direction: column; gap: 5px; }
+        .filter-sort-controls .header-with-sort { display: flex; align-items: center; gap: 5px; }
         .filter-sort-controls input, .filter-sort-controls select { width: 100%; box-sizing: border-box; }
         .sort-btn { cursor: pointer; margin-left: 5px; }
         .clickable { cursor: pointer; }
@@ -986,13 +988,48 @@
                         <th scope="col" style="width: 30px; padding: 8px 4px; text-align: center; vertical-align: middle;">
                             <input type="checkbox" id="select-all-runs" title="Select/Deselect All Runs" style="margin: 0; vertical-align: middle;">
                         </th>
-                        <th scope="col">Provider <span class="sort-btn" data-column="provider" data-direction="asc">↕️</span></th>
-                        <th scope="col">Run <span class="sort-btn" data-column="run" data-direction="asc">↕️</span></th>
-                        <th scope="col">Passed <span class="sort-btn" data-column="passed" data-direction="asc">↕️</span></th>
-                        <th scope="col">Failed <span class="sort-btn" data-column="failed" data-direction="asc">↕️</span></th>
-                        <th scope="col">Error <span class="sort-btn" data-column="error" data-direction="asc">↕️</span></th>
-                        <th scope="col">Skipped <span class="sort-btn" data-column="skipped" data-direction="asc">↕️</span></th>
-                        <th scope="col">Total Duration <span class="sort-btn" data-column="duration" data-direction="asc">↕️</span></th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Provider</span>
+                                <span class="sort-btn" data-column="provider" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Run</span>
+                                <span class="sort-btn" data-column="run" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Passed</span>
+                                <span class="sort-btn" data-column="passed" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Failed</span>
+                                <span class="sort-btn" data-column="failed" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Error</span>
+                                <span class="sort-btn" data-column="error" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Skipped</span>
+                                <span class="sort-btn" data-column="skipped" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Total Duration</span>
+                                <span class="sort-btn" data-column="duration" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1071,6 +1108,36 @@
                         <td><time itemprop="observationPeriod" datetime="PT314.159S">5m14.159s</time>
                         </td>
                     </tr>
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-structured-failure" data-passed="0" data-failed="1" data-error="0" data-skipped="0" data-duration="38000">
+                        <td>
+                            <input type="checkbox" class="run-compare-checkbox" data-provider="provider-name" data-run="run-structured-failure" title="Select for comparison">
+                        </td>
+                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name">
+                            <span itemprop="name">provider-name</span>
+                        </td>
+                        <td itemprop="identifier" class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-structured-failure" title="Filter by run: run-structured-failure">run-structured-failure</td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Passed"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Failed"><span itemprop="value">1</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Skipped"><span itemprop="value">0</span></td>
+                        <td><time itemprop="observationPeriod" datetime="PT38.000S">38s</time>
+                        </td>
+                    </tr>
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-structured-success" data-passed="1" data-failed="0" data-error="0" data-skipped="0" data-duration="42000">
+                        <td>
+                            <input type="checkbox" class="run-compare-checkbox" data-provider="provider-name" data-run="run-structured-success" title="Select for comparison">
+                        </td>
+                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name">
+                            <span itemprop="name">provider-name</span>
+                        </td>
+                        <td itemprop="identifier" class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-structured-success" title="Filter by run: run-structured-success">run-structured-success</td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Passed"><span itemprop="value">1</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Failed"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Skipped"><span itemprop="value">0</span></td>
+                        <td><time itemprop="observationPeriod" datetime="PT42.000S">42s</time>
+                        </td>
+                    </tr>
                     <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-success" data-passed="1" data-failed="0" data-error="0" data-skipped="0" data-duration="95000">
                         <td>
                             <input type="checkbox" class="run-compare-checkbox" data-provider="provider-name" data-run="run-success" title="Select for comparison">
@@ -1137,7 +1204,10 @@
                     <tr>
                         <th>
                             <div class="filter-sort-controls">
-                                <span>Provider <span class="sort-btn" data-column="provider" data-direction="asc">↕️</span></span>
+                                <div class="header-with-sort">
+                                    <span>Provider</span>
+                                    <span class="sort-btn" data-column="provider" data-direction="asc">↕️</span>
+                                </div>
                                 <select id="provider-filter">
                                     <option value="">All</option>
                                     <option value="provider-name">provider-name</option>
@@ -1146,7 +1216,10 @@
                         </th>
                         <th>
                             <div class="filter-sort-controls">
-                                <span>Run <span class="sort-btn" data-column="run" data-direction="asc">↕️</span></span>
+                                <div class="header-with-sort">
+                                    <span>Run</span>
+                                    <span class="sort-btn" data-column="run" data-direction="asc">↕️</span>
+                                </div>
                                 <select id="run-filter">
                                     <option value="">All</option>
                                     <option value="run-error">run-error</option>
@@ -1154,6 +1227,8 @@
                                     <option value="run-failure-multiple-answers">run-failure-multiple-answers</option>
                                     <option value="run-not-supported">run-not-supported</option>
                                     <option value="run-parsing-error">run-parsing-error</option>
+                                    <option value="run-structured-failure">run-structured-failure</option>
+                                    <option value="run-structured-success">run-structured-success</option>
                                     <option value="run-success">run-success</option>
                                     <option value="run-success-multiple-answers">run-success-multiple-answers</option>
                                     <option value="run-validation-error">run-validation-error</option>
@@ -1162,13 +1237,19 @@
                         </th>
                         <th>
                             <div class="filter-sort-controls">
-                                <span>Task <span class="sort-btn" data-column="task" data-direction="asc">↕️</span></span>
+                                <div class="header-with-sort">
+                                    <span>Task</span>
+                                    <span class="sort-btn" data-column="task" data-direction="asc">↕️</span>
+                                </div>
                                 <input id="task-filter" type="text" placeholder="Filter (regexp)..." title="Supports regular expressions, e.g. task-(one|two), ^task, ^(?!visual\s*-\s*).*">
                             </div>
                         </th>
                         <th>
                             <div class="filter-sort-controls">
-                                <span>Status <span class="sort-btn" data-column="status" data-direction="asc">↕️</span></span>
+                                <div class="header-with-sort">
+                                    <span>Status</span>
+                                    <span class="sort-btn" data-column="status" data-direction="asc">↕️</span>
+                                </div>
                                 <select id="status-filter">
                                     <option value="">All</option>
                                     <option value="passed">Passed</option>
@@ -1180,7 +1261,10 @@
                         </th>
                         <th>
                             <div class="filter-sort-controls">
-                                <span>Duration <span class="sort-btn" data-column="duration" data-direction="asc">↕️</span></span>
+                                <div class="header-with-sort">
+                                    <span>Duration</span>
+                                    <span class="sort-btn" data-column="duration" data-direction="asc">↕️</span>
+                                </div>
                             </div>
                         </th>
                         <th>Answer</th>
@@ -1202,7 +1286,7 @@
                         </td>
                         <td class="details-cell">
                             <ol class="answer-list single">
-                                <li>Quos aut rerum quaerat qui ad culpa.</li>
+                                <li><pre>Quos aut rerum quaerat qui ad culpa.</pre></li>
                             </ol>
                         </td>
                         <td class="details-toggle-cell">
@@ -1332,7 +1416,7 @@
                         </td>
                         <td class="details-cell">
                             <ol class="answer-list single">
-                                <li>Quos aut rerum quaerat qui ad culpa.</li>
+                                <li><pre>Quos aut rerum quaerat qui ad culpa.</pre></li>
                             </ol>
                         </td>
                         <td class="details-toggle-cell">
@@ -1459,7 +1543,7 @@
                         </td>
                         <td class="details-cell">
                             <ol class="answer-list single">
-                                <li>error message</li>
+                                <li><pre>error message</pre></li>
                             </ol>
                         </td>
                         <td class="details-toggle-cell">
@@ -1490,7 +1574,7 @@
                         </td>
                         <td class="details-cell">
                             <ol class="answer-list single">
-                                <li>Sequi molestiae iusto sit sit dolorum aut.</li>
+                                <li><pre>Sequi molestiae iusto sit sit dolorum aut.</pre></li>
                             </ol>
                         </td>
                         <td class="details-toggle-cell">
@@ -1536,7 +1620,7 @@ Sunt in culpa qui officia deserunt mollit anim.
                         </td>
                         <td class="details-cell">
                             <ol class="answer-list single">
-                                <li>Adipiscing elit sed do eiusmod tempor.</li>
+                                <li><pre>Adipiscing elit sed do eiusmod tempor.</pre></li>
                             </ol>
                         </td>
                         <td class="details-toggle-cell">
@@ -1586,7 +1670,7 @@ Id est laborum et dolorum fuga
                         </td>
                         <td class="details-cell">
                             <ol class="answer-list single">
-                                <li>Invalid JSON: {broken</li>
+                                <li><pre>Invalid JSON: {broken</pre></li>
                             </ol>
                         </td>
                         <td class="details-toggle-cell">
@@ -1620,6 +1704,201 @@ Context: within object literal
                                         <details>
                                             <summary>Token Usage</summary>
                                             <dl class="tech-details" style="margin-top:0.4em;"><dt>Output</dt><dd>333</dd></dl>
+                                        </details>
+                                </section>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="run-provider-name-run-structured-success-task-name" itemscope itemtype="https://schema.org/Question" data-provider="provider-name" data-run="run-structured-success" data-task="task-name" data-status="passed" data-duration="42000">
+                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name"><span itemprop="name">provider-name</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-structured-success" title="Filter by run: run-structured-success"><span itemprop="identifier">run-structured-success</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="task" data-filter-value="task-name" title="Filter by task: task-name"><span itemprop="name">task-name</span></td>
+                        <td class="status-passed clickable-filter clickable" data-filter-type="status" data-filter-value="passed" title="Filter by status: Passed">
+                            <span itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty">
+                                <meta itemprop="name" content="status">
+                                <span itemprop="value">Passed</span>
+                            </span>
+                        </td>
+                        <td><time itemprop="timeRequired" datetime="PT42.000S">42s</time>
+                        </td>
+                        <td class="details-cell">
+                            <ol class="answer-list single">
+                                <li><pre>[
+  {
+    "level": "INFO",
+    "message": "User 'admin' logged in successfully.",
+    "timestamp": "2025-09-14T10:30:00Z",
+    "user_id": "admin"
+  },
+  {
+    "level": "WARN",
+    "message": "System memory usage is high.",
+    "timestamp": "2025-09-14T10:31:15Z"
+  }
+]</pre></li>
+                            </ol>
+                        </td>
+                        <td class="details-toggle-cell">
+                            <button class="details" onclick="toggleDetails('details-run-provider-name-run-structured-success-task-name', this)" aria-expanded="false" aria-controls="details-run-provider-name-run-structured-success-task-name">Show Details</button>
+                            <div id="details-run-provider-name-run-structured-success-task-name" class="details-content">
+                                <section class="section-answer">
+                                    <div itemscope itemtype="https://schema.org/Answer" itemprop="suggestedAnswer" itemref="validation-run-provider-name-run-structured-success-task-name">
+                                        <h4 itemprop="name">Log Parsing Success</h4>
+                                        <details class="explanation" open itemprop="answerExplanation" itemscope itemtype="https://schema.org/Comment">
+                                            <summary>Answer Explanation</summary>
+                                            <div class="explanation-body" style="margin-top:0.5em;" itemprop="text">
+                                                <p class="para">Successfully parsed log entries with structured JSON output. Extracted timestamps, levels, messages, and user IDs where present.</p>
+                                            </div>
+                                        </details>
+                                        <details open>
+                                            <summary>Actual Answer</summary>
+                                            <ol style="margin:0.5em 0 0 1.2em; list-style:none; padding:0;">
+                                                <li style="margin:0;">
+                                                    <pre><code itemprop="text">[
+  {
+    &#34;timestamp&#34;: &#34;2025-09-14T10:30:00Z&#34;,
+    &#34;level&#34;: &#34;INFO&#34;,
+    &#34;message&#34;: &#34;User &#39;admin&#39; logged in successfully.&#34;,
+    &#34;user_id&#34;: &#34;admin&#34;
+  },
+  {
+    &#34;timestamp&#34;: &#34;2025-09-14T10:31:15Z&#34;,
+    &#34;level&#34;: &#34;WARN&#34;,
+    &#34;message&#34;: &#34;System memory usage is high.&#34;
+  }
+]
+</code></pre>
+                                                </li>
+                                            </ol>
+                                        </details>
+                                    </div>
+                                    <details>
+                                        <summary>Expected Acceptable Answer(s)</summary>
+                                        <ol class="expected-answers" style="margin:0.5em 0 0 1.2em; padding:0;">
+                                            <li itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer"><pre><code itemprop="text">[
+  {
+    &#34;timestamp&#34;: &#34;2025-09-14T10:30:00Z&#34;,
+    &#34;level&#34;: &#34;INFO&#34;,
+    &#34;message&#34;: &#34;User &#39;admin&#39; logged in successfully.&#34;,
+    &#34;user_id&#34;: &#34;admin&#34;
+  },
+  {
+    &#34;timestamp&#34;: &#34;2025-09-14T10:31:15Z&#34;,
+    &#34;level&#34;: &#34;WARN&#34;,
+    &#34;message&#34;: &#34;System memory usage is high.&#34;
+  }
+]
+</code></pre></li>
+                                        </ol>
+                                    </details>
+                                        <details>
+                                            <summary>Token Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;"><dt>Input</dt><dd>456</dd><dt>Output</dt><dd>234</dd></dl>
+                                        </details>
+                                </section>
+                                <section id="validation-run-provider-name-run-structured-success-task-name" class="section-validation" itemscope itemtype="https://schema.org/Comment" itemprop="comment">
+                                    <h4>Structured Validation Success</h4>
+                                    <details class="explanation" open>
+                                        <summary>Validation Explanation</summary>
+                                        <div class="explanation-body" style="margin-top:0.5em;" itemprop="text">
+                                            <p class="para">JSON structure matches expected schema. All required fields present with correct types. Deep equality comparison passed.</p>
+                                        </div>
+                                    </details>
+                                        <details>
+                                            <summary>Token Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;"><dt>Input</dt><dd>78</dd><dt>Output</dt><dd>12</dd></dl>
+                                        </details>
+                                </section>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="run-provider-name-run-structured-failure-task-name" itemscope itemtype="https://schema.org/Question" data-provider="provider-name" data-run="run-structured-failure" data-task="task-name" data-status="failed" data-duration="38000">
+                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name"><span itemprop="name">provider-name</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-structured-failure" title="Filter by run: run-structured-failure"><span itemprop="identifier">run-structured-failure</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="task" data-filter-value="task-name" title="Filter by task: task-name"><span itemprop="name">task-name</span></td>
+                        <td class="status-failed clickable-filter clickable" data-filter-type="status" data-filter-value="failed" title="Filter by status: Failed">
+                            <span itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty">
+                                <meta itemprop="name" content="status">
+                                <span itemprop="value">Failed</span>
+                            </span>
+                        </td>
+                        <td><time itemprop="timeRequired" datetime="PT38.000S">38s</time>
+                        </td>
+                        <td class="details-cell">
+                            <ol class="answer-list ">
+                                <li><!-- [html-validate-disable-block no-inline-style: generated by go-diff] --><span>{&para;<br>  &#34;level&#34;: &#34;</span><del style="background:#ffe6e6;">INFO</del><ins style="background:#e6ffe6;">ERROR</ins><span>&#34;,&para;<br>  &#34;message&#34;: &#34;</span><del style="background:#ffe6e6;">User &#39;admin&#39; logged in successfully</del><ins style="background:#e6ffe6;">Authentication failed for user &#39;admin&#39;</ins><span>.&#34;,&para;<br>  &#34;timestamp&#34;: &#34;2025-09-14T10:30:00Z&#34;,&para;<br>  &#34;user_id&#34;: &#34;admin&#34;&para;<br>}</span></li>
+                                <li><!-- [html-validate-disable-block no-inline-style: generated by go-diff] --><span>{&para;<br>  &#34;level&#34;: &#34;</span><del style="background:#ffe6e6;">WARN</del><ins style="background:#e6ffe6;">ERROR</ins><span>&#34;,&para;<br>  &#34;message&#34;: &#34;</span><del style="background:#ffe6e6;">System mem</del><ins style="background:#e6ffe6;">Authentication failed f</ins><span>or</span><del style="background:#ffe6e6;">y</del><span> us</span><del style="background:#ffe6e6;">age is high</del><ins style="background:#e6ffe6;">er &#39;admin&#39;</ins><span>.&#34;,&para;<br>  &#34;timestamp&#34;: &#34;2025-09-14T10:3</span><del style="background:#ffe6e6;">1:15Z</del><ins style="background:#e6ffe6;">0:00Z&#34;,&para;<br>  &#34;user_id&#34;: &#34;admin</ins><span>&#34;&para;<br>}</span></li>
+                                <li><!-- [html-validate-disable-block no-inline-style: generated by go-diff] --><span>{&para;<br>  &#34;level&#34;: &#34;</span><del style="background:#ffe6e6;">INFO</del><ins style="background:#e6ffe6;">ERROR</ins><span>&#34;,&para;<br>  &#34;message&#34;: &#34;</span><del style="background:#ffe6e6;">User login successful</del><ins style="background:#e6ffe6;">Authentication failed for user &#39;admin&#39;</ins><span>.&#34;,&para;<br>  &#34;timestamp&#34;: &#34;2025-09-14T10:30:00Z&#34;,&para;<br>  &#34;user_id&#34;: &#34;admin&#34;&para;<br>}</span></li>
+                            </ol>
+                        </td>
+                        <td class="details-toggle-cell">
+                            <button class="details" onclick="toggleDetails('details-run-provider-name-run-structured-failure-task-name', this)" aria-expanded="false" aria-controls="details-run-provider-name-run-structured-failure-task-name">Show Details</button>
+                            <div id="details-run-provider-name-run-structured-failure-task-name" class="details-content">
+                                <section class="section-answer">
+                                    <div itemscope itemtype="https://schema.org/Answer" itemprop="suggestedAnswer" itemref="validation-run-provider-name-run-structured-failure-task-name">
+                                        <h4 itemprop="name">Log Parsing with Incorrect Data</h4>
+                                        <details class="explanation" open itemprop="answerExplanation" itemscope itemtype="https://schema.org/Comment">
+                                            <summary>Answer Explanation</summary>
+                                            <div class="explanation-body" style="margin-top:0.5em;" itemprop="text">
+                                                <p class="para">Parsed log entries but with incorrect content. First entry shows authentication failure instead of success. Second entry is correct.</p>
+                                            </div>
+                                        </details>
+                                        <details open>
+                                            <summary>Actual Answer</summary>
+                                            <ol style="margin:0.5em 0 0 1.2em; list-style:none; padding:0;">
+                                                <li style="margin:0;">
+                                                    <pre><code itemprop="text">{
+  &#34;level&#34;: &#34;ERROR&#34;,
+  &#34;message&#34;: &#34;Authentication failed for user &#39;admin&#39;.&#34;,
+  &#34;timestamp&#34;: &#34;2025-09-14T10:30:00Z&#34;,
+  &#34;user_id&#34;: &#34;admin&#34;
+}
+</code></pre>
+                                                </li>
+                                            </ol>
+                                        </details>
+                                    </div>
+                                    <details>
+                                        <summary>Expected Acceptable Answer(s)</summary>
+                                        <ol class="expected-answers" style="margin:0.5em 0 0 1.2em; padding:0;">
+                                            <li itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer"><pre><code itemprop="text">{
+  &#34;level&#34;: &#34;INFO&#34;,
+  &#34;message&#34;: &#34;User &#39;admin&#39; logged in successfully.&#34;,
+  &#34;timestamp&#34;: &#34;2025-09-14T10:30:00Z&#34;,
+  &#34;user_id&#34;: &#34;admin&#34;
+}
+</code></pre></li>
+                                            <li itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer"><pre><code itemprop="text">{
+  &#34;level&#34;: &#34;WARN&#34;,
+  &#34;message&#34;: &#34;System memory usage is high.&#34;,
+  &#34;timestamp&#34;: &#34;2025-09-14T10:31:15Z&#34;
+}
+</code></pre></li>
+                                            <li itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer"><pre><code itemprop="text">{
+  &#34;level&#34;: &#34;INFO&#34;,
+  &#34;message&#34;: &#34;User login successful.&#34;,
+  &#34;timestamp&#34;: &#34;2025-09-14T10:30:00Z&#34;,
+  &#34;user_id&#34;: &#34;admin&#34;
+}
+</code></pre></li>
+                                        </ol>
+                                    </details>
+                                        <details>
+                                            <summary>Token Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;"><dt>Input</dt><dd>412</dd><dt>Output</dt><dd>198</dd></dl>
+                                        </details>
+                                </section>
+                                <section id="validation-run-provider-name-run-structured-failure-task-name" class="section-validation" itemscope itemtype="https://schema.org/Comment" itemprop="comment">
+                                    <h4>Structured Validation Failure</h4>
+                                    <details class="explanation" open>
+                                        <summary>Validation Explanation</summary>
+                                        <div class="explanation-body" style="margin-top:0.5em;" itemprop="text">
+                                            <p class="para">JSON structure is valid but content doesn&#39;t match any expected results. First log entry shows ERROR level instead of expected INFO level. Message content mismatch: authentication failure vs login success.</p>
+                                        </div>
+                                    </details>
+                                        <details>
+                                            <summary>Token Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;"><dt>Input</dt><dd>89</dd><dt>Output</dt><dd>15</dd></dl>
                                         </details>
                                 </section>
                             </div>

@@ -8,12 +8,15 @@
 package utils
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 
 	"github.com/kaptinlin/jsonrepair"
+	"github.com/santhosh-tekuri/jsonschema/v6"
 )
 
 var (
@@ -22,6 +25,12 @@ var (
 
 	// ErrCouldNotRepairJSON is returned when malformed JSON cannot be automatically fixed.
 	ErrCouldNotRepairJSON = errors.New("malformed JSON could not be repaired")
+
+	// ErrInvalidJSONSchema is returned when the provided JSON schema is invalid.
+	ErrInvalidJSONSchema = errors.New("schema structure or keywords do not conform to the JSON Schema standard")
+
+	// ErrJSONSchemaValidation is returned when JSON schema validation fails.
+	ErrJSONSchemaValidation = errors.New("data format does not meet the defined schema requirements")
 
 	jsonMarkdownMatcher = regexp.MustCompile("(?s)```json\\s*(\\{.*?\\})\\s*```")
 
@@ -62,6 +71,13 @@ func JSONFromMarkdown(content string) string {
 	return content
 }
 
+// ToLines converts a value to []string for display.
+// For string values, splits them into lines.
+// For objects, converts to pretty-printed JSON and splits into lines.
+func ToLines(value interface{}) []string {
+	return SplitLines(ToString(value))
+}
+
 // SplitLines splits text by newlines supporting both \n and \r\n and preserves empty lines.
 // Returns an empty slice for empty input.
 func SplitLines(text string) []string {
@@ -69,4 +85,52 @@ func SplitLines(text string) []string {
 		return []string{}
 	}
 	return newlineMatcher.Split(text, -1)
+}
+
+// ToString converts a value to a string for display purposes.
+// For string values, returns as-is.
+// For objects, converts to pretty-printed JSON with indentation.
+func ToString(value interface{}) string {
+	if str, ok := value.(string); ok {
+		return str
+	}
+	jsonBytes, err := json.MarshalIndent(value, "", "  ")
+	if err != nil {
+		return fmt.Sprintf("%v", value)
+	}
+	return string(jsonBytes)
+}
+
+// ValidateAgainstSchema validates that one or more values conform to the given JSON schema.
+// The schema is compiled and validated exactly once.
+func ValidateAgainstSchema(schema map[string]interface{}, values ...interface{}) error {
+	// Always compile and validate the schema, even if no values are provided.
+	compiler := jsonschema.NewCompiler()
+	compiler.DefaultDraft(jsonschema.Draft2020)
+	if err := compiler.AddResource("schema.json", schema); err != nil {
+		return fmt.Errorf("schema validation failed: %w: %v", ErrInvalidJSONSchema, err)
+	}
+	compiledSchema, err := compiler.Compile("schema.json")
+	if err != nil {
+		return fmt.Errorf("schema compilation failed: %w: %v", ErrInvalidJSONSchema, err)
+	}
+
+	// Validate each value against the schema.
+	for i, value := range values {
+		if err := compiledSchema.Validate(value); err != nil {
+			return fmt.Errorf("item %d does not conform to schema: %w: %v", i+1, ErrJSONSchemaValidation, err)
+		}
+	}
+
+	return nil
+}
+
+// SortedKeys returns a sorted slice of map keys.
+func SortedKeys[K cmp.Ordered, V any](m map[K]V) (keys []K) {
+	keys = make([]K, 0, len(m))
+	for key := range m {
+		keys = append(keys, key)
+	}
+	slices.Sort(keys)
+	return
 }

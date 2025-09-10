@@ -205,7 +205,7 @@ func TestFormatAnswer(t *testing.T) {
 			name: "failure result with HTML",
 			result: runners.RunResult{
 				Kind: runners.Failure,
-				Want: utils.NewStringSet("Expected output"),
+				Want: utils.NewValueSet("Expected output"),
 				Got:  "Actual output",
 			},
 			useHTML: true,
@@ -215,7 +215,7 @@ func TestFormatAnswer(t *testing.T) {
 			name: "failure result without HTML",
 			result: runners.RunResult{
 				Kind: runners.Failure,
-				Want: utils.NewStringSet("Expected output"),
+				Want: utils.NewValueSet("Expected output"),
 				Got:  "Actual output",
 			},
 			useHTML: false,
@@ -225,7 +225,7 @@ func TestFormatAnswer(t *testing.T) {
 			name: "failure result multiple answers with HTML",
 			result: runners.RunResult{
 				Kind: runners.Failure,
-				Want: utils.NewStringSet("Expected output", "Other output"),
+				Want: utils.NewValueSet("Expected output", "Other output"),
 				Got:  "Actual output",
 			},
 			useHTML: true,
@@ -238,7 +238,7 @@ func TestFormatAnswer(t *testing.T) {
 			name: "failure result multiple answers without HTML",
 			result: runners.RunResult{
 				Kind: runners.Failure,
-				Want: utils.NewStringSet("Expected output", "Other output"),
+				Want: utils.NewValueSet("Expected output", "Other output"),
 				Got:  "Actual output",
 			},
 			useHTML: false,
@@ -425,40 +425,6 @@ func (o *valuesByName) Add(name string, value string) {
 
 func (o *valuesByName) Get(name string) []string {
 	return o.m[name]
-}
-
-func TestSortedKeys(t *testing.T) {
-	tests := []struct {
-		name string
-		m    map[int]interface{}
-		want []int
-	}{
-		{
-			name: "empty map",
-			m:    map[int]interface{}{},
-			want: []int{},
-		},
-		{
-			name: "single element",
-			m:    map[int]interface{}{1: nil},
-			want: []int{1},
-		},
-		{
-			name: "multiple elements",
-			m:    map[int]interface{}{3: nil, 1: nil, 2: nil},
-			want: []int{1, 2, 3},
-		},
-		{
-			name: "negative and positive keys",
-			m:    map[int]interface{}{-1: nil, 2: nil, -3: nil, 0: nil},
-			want: []int{-3, -1, 0, 2},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, SortedKeys(tt.m))
-		})
-	}
 }
 
 func TestRoundToMS(t *testing.T) {

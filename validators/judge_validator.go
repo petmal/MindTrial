@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"text/template"
 
 	"github.com/petmal/mindtrial/config"
@@ -20,6 +21,31 @@ import (
 )
 
 const judgeTaskName = "response assessment"
+
+// judgeResponseFormat is a lazily initialized singleton for the judge task's ResponseFormat.
+var judgeResponseFormat = sync.OnceValue(func() config.ResponseFormat {
+	judgeSchema := map[string]interface{}{
+		"type": "object",
+		"properties": map[string]interface{}{
+			"correct": map[string]interface{}{
+				"type":        "boolean",
+				"title":       "Semantic Equivalence Verdict",
+				"description": "True if the candidate response is semantically equivalent to any expected answer, false otherwise. Follow the provided evaluation criteria and normalization rules.",
+			},
+		},
+		"required":             []string{"correct"},
+		"additionalProperties": false,
+	}
+	return config.NewResponseFormat(judgeSchema)
+})
+
+// judgeExpectedResult is a lazily initialized singleton for the judge task's ExpectedResult.
+var judgeExpectedResult = sync.OnceValue(func() utils.ValueSet {
+	expectedResult := map[string]interface{}{
+		"correct": true,
+	}
+	return utils.NewValueSet(expectedResult)
+})
 
 // judgeValidator uses an LLM to evaluate the correctness of responses.
 // It provides semantic validation by comparing model responses against expected answers
@@ -48,14 +74,35 @@ func NewJudgeValidator(ctx context.Context, judgeConfig *config.JudgeConfig, jud
 }
 
 // IsCorrect evaluates the response using the judge LLM.
+// This validator always returns a result with `IsCorrect` set to false for non-string responses.
+// If the tasks requires a structured schema-based response format the validator returns an error.
 // The originalPrompt and expectedResponseFormat provide additional context to help the judge
 // make more informed evaluations by understanding the task requirements.
-func (v *judgeValidator) IsCorrect(ctx context.Context, logger logging.Logger, rules config.ValidationRules, expected utils.StringSet, actual providers.Result, originalPrompt string, expectedResponseFormat string) (result ValidationResult, err error) {
+func (v *judgeValidator) IsCorrect(ctx context.Context, logger logging.Logger, rules config.ValidationRules, expected utils.ValueSet, actual providers.Result, originalPrompt string, expectedResponseFormat config.ResponseFormat) (result ValidationResult, err error) {
+	// Get expected results as strings for judge evaluation.
+	expectedStrings, isPlainTextExpected := expected.AsStringSet()
+
+	// Semantic validation requires plain text responses.
+	if !isPlainTextExpected {
+		return ValidationResult{}, fmt.Errorf("%w: semantic validation requires plain text responses", ErrUnsupportedResponseFormatValidation)
+	}
+
+	// Check if actual result is a string - if not, return validation failure.
+	actualString, ok := actual.GetFinalAnswerContent().(string)
+	if !ok {
+		return ValidationResult{
+			IsCorrect:   false,
+			Title:       "Invalid Response Type",
+			Explanation: fmt.Sprintf("Semantic validation requires plain text responses but received %T:\n%v", actual.GetFinalAnswerContent(), utils.ToString(actual.GetFinalAnswerContent())),
+			Usage:       actual.GetUsage(),
+		}, nil
+	}
 	// Create prefixed logger for judge evaluation, extending the existing prefix.
 	judgeLogger := logger.WithContext(fmt.Sprintf("%s: %s: ", judgeTaskName, v.name))
 
 	// Create a task for the judge to evaluate.
-	prompt, err := v.createJudgePrompt(rules, expected, actual.FinalAnswer, originalPrompt, expectedResponseFormat)
+	expectedFormatString, _ := expectedResponseFormat.AsString()
+	prompt, err := v.createJudgePrompt(rules, expectedStrings, actualString, originalPrompt, expectedFormatString)
 	if err != nil {
 		return result, fmt.Errorf("failed to create judge prompt: %w", err)
 	}
@@ -63,8 +110,8 @@ func (v *judgeValidator) IsCorrect(ctx context.Context, logger logging.Logger, r
 	judgeTask := config.Task{
 		Name:                 judgeTaskName,
 		Prompt:               prompt,
-		ResponseResultFormat: "0 (incorrect) or 1 (correct)",
-		ExpectedResult:       utils.NewStringSet("1"),
+		ResponseResultFormat: judgeResponseFormat(),
+		ExpectedResult:       judgeExpectedResult(),
 	}
 
 	// Execute the judge task and evaluate the response.
@@ -75,7 +122,7 @@ func (v *judgeValidator) IsCorrect(ctx context.Context, logger logging.Logger, r
 		return ValidationResult{Usage: usage}, fmt.Errorf("judge evaluation failed: %w", err)
 	}
 
-	judgeLogger.Message(ctx, logging.LevelTrace, "verdict: %s", judgeTaskResult.FinalAnswer)
+	judgeLogger.Message(ctx, logging.LevelTrace, "verdict: %s", utils.ToString(judgeTaskResult.GetFinalAnswerContent()))
 
 	// Log statistics about the judge task execution.
 	judgeLogger.Message(ctx, logging.LevelDebug, "completed in %s", judgeTaskResult.GetDuration())
@@ -102,9 +149,13 @@ func (v *judgeValidator) IsCorrect(ctx context.Context, logger logging.Logger, r
 	}, nil
 }
 
-func (v *judgeValidator) ToCanonical(_ config.ValidationRules, value string) string {
-	// For judge validator, we only trim whitespace to preserve the original model output.
-	return strings.TrimSpace(value)
+func (v *judgeValidator) ToCanonical(_ config.ValidationRules, value interface{}) interface{} {
+	// Judge validation only works with strings.
+	// Only trim whitespace to preserve the original model output.
+	if str, ok := value.(string); ok {
+		return strings.TrimSpace(str)
+	}
+	return value
 }
 
 func (v *judgeValidator) GetName() string {
@@ -145,7 +196,7 @@ Validation flags:
 Procedure
 1. Normalize candidate and each expected answer per the flags.  
 2. Compare the candidate to each expected answer independently for semantic equivalence.  
-3. If ANY match, the response is correct; else incorrect.`))
+3. Set "correct" to true if ANY match, false otherwise.`))
 
 // createJudgePrompt creates a prompt for the judge to evaluate semantic equivalence.
 // The originalPrompt and expectedResponseFormat provide additional context to help the judge

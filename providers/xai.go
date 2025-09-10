@@ -59,8 +59,12 @@ func (o *XAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig, t
 	req.SetFrequencyPenaltyNil()
 
 	// Configure response format schema.
+	responseSchema, err := ResultJSONSchemaRaw(task.ResponseResultFormat)
+	if err != nil {
+		return result, err
+	}
 	schema := map[string]interface{}{
-		"schema": ResultJSONSchemaRaw(),
+		"schema": responseSchema,
 	}
 	req.SetResponseFormat(xai.ResponseFormatOneOf2AsResponseFormat(xai.NewResponseFormatOneOf2(schema, "json_schema")))
 
@@ -93,9 +97,11 @@ func (o *XAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig, t
 		}
 	}
 
-	// Add system instruction.
-	sysContent := xai.StringAsContent(xai.PtrString(result.recordPrompt(DefaultAnswerFormatInstruction(task))))
-	req.Messages = append(req.Messages, xai.MessageOneOfAsMessage(xai.NewMessageOneOf(sysContent, "system")))
+	// Add system instruction if available.
+	if answerFormatInstruction := DefaultAnswerFormatInstruction(task); answerFormatInstruction != "" {
+		sysContent := xai.StringAsContent(xai.PtrString(result.recordPrompt(answerFormatInstruction)))
+		req.Messages = append(req.Messages, xai.MessageOneOfAsMessage(xai.NewMessageOneOf(sysContent, "system")))
+	}
 
 	// Add structured user messages.
 	parts, err := o.createPromptMessageParts(ctx, task.Prompt, task.Files, &result)

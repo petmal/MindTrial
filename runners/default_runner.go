@@ -258,7 +258,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 		runResult.Got = err.Error()
 		runResult.Details.Error = ErrorDetails{
 			Title:   "Configuration Error",
-			Message: runResult.Got,
+			Message: err.Error(),
 		}
 		return
 	}
@@ -266,16 +266,17 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 	runResult.Task = task.Name
 	runResult.Provider = executor.Provider.Name()
 	runResult.Run = executor.RunConfig.Name
-	runResult.Want = task.ExpectedResult.Map(func(value string) string {
+	runResult.Want = task.ExpectedResult.Map(func(value interface{}) interface{} {
 		return validator.ToCanonical(resolvedValidationRules, value)
 	})
 	defer func() {
 		if p := recover(); p != nil {
+			msg := fmt.Sprintf("%v", p)
 			runResult.Kind = Error
-			runResult.Got = fmt.Sprintf("%v", p)
+			runResult.Got = msg
 			runResult.Details.Error = ErrorDetails{
 				Title:   "Execution Error",
-				Message: runResult.Got,
+				Message: msg,
 			}
 		}
 	}()
@@ -327,7 +328,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 		validationResult, err := validator.IsCorrect(ctx, taskLogger, resolvedValidationRules, task.ExpectedResult, result, task.Prompt, task.ResponseResultFormat)
 		if err != nil { //nolint:gocritic
 			runResult.Kind = Error
-			runResult.Got = result.FinalAnswer
+			runResult.Got = result.GetFinalAnswerContent()
 			runResult.Details.Error = ErrorDetails{
 				Title:   "Validation Error",
 				Message: err.Error(),
@@ -340,7 +341,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 				runResult.Kind = Success
 			}
 
-			runResult.Got = validator.ToCanonical(resolvedValidationRules, result.FinalAnswer)
+			runResult.Got = validator.ToCanonical(resolvedValidationRules, result.GetFinalAnswerContent())
 			runResult.Details.Validation = ValidationDetails{
 				Title:       validationResult.Title,
 				Explanation: utils.SplitLines(validationResult.Explanation),
@@ -351,7 +352,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 		runResult.Details.Answer = AnswerDetails{
 			Title:          result.Title,
 			Explanation:    utils.SplitLines(result.Explanation),
-			ActualAnswer:   utils.SplitLines(result.FinalAnswer),
+			ActualAnswer:   utils.ToLines(result.GetFinalAnswerContent()),
 			ExpectedAnswer: toLines(task.ExpectedResult),
 			Usage:          toTokenUsage(usage),
 		}

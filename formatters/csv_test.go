@@ -26,7 +26,7 @@ var mockResults = runners.Results{
 			Run:      "run-success",
 			Kind:     runners.Success,
 			Duration: 95 * time.Second,
-			Want:     utils.NewStringSet("Quos aut rerum quaerat qui ad culpa."),
+			Want:     utils.NewValueSet("Quos aut rerum quaerat qui ad culpa."),
 			Got:      "Quos aut rerum quaerat qui ad culpa.",
 			Details: runners.Details{
 				Answer: runners.AnswerDetails{
@@ -56,7 +56,7 @@ var mockResults = runners.Results{
 			Run:      "run-failure",
 			Kind:     runners.Failure,
 			Duration: 10 * time.Second,
-			Want:     utils.NewStringSet("Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui."),
+			Want:     utils.NewValueSet("Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui."),
 			Got:      "Ipsam ea et optio explicabo eius et.",
 			Details: runners.Details{
 				Answer: runners.AnswerDetails{
@@ -81,7 +81,7 @@ var mockResults = runners.Results{
 			Run:      "run-success-multiple-answers",
 			Kind:     runners.Success,
 			Duration: 17 * time.Second,
-			Want:     utils.NewStringSet("Deserunt quo sint minus eos officiis et.", "Quos aut rerum quaerat qui ad culpa."),
+			Want:     utils.NewValueSet("Deserunt quo sint minus eos officiis et.", "Quos aut rerum quaerat qui ad culpa."),
 			Got:      "Quos aut rerum quaerat qui ad culpa.",
 			Details: runners.Details{
 				Answer: runners.AnswerDetails{
@@ -107,7 +107,7 @@ var mockResults = runners.Results{
 			Run:      "run-failure-multiple-answers",
 			Kind:     runners.Failure,
 			Duration: 3*time.Minute + 800*time.Millisecond,
-			Want:     utils.NewStringSet("Dolores saepe ad sed rerum autem iure minima et.", "Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui."),
+			Want:     utils.NewValueSet("Dolores saepe ad sed rerum autem iure minima et.", "Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui."),
 			Got:      "Ipsam ea et optio explicabo eius et.",
 			Details: runners.Details{
 				Answer: runners.AnswerDetails{
@@ -133,7 +133,7 @@ var mockResults = runners.Results{
 			Run:      "run-error",
 			Kind:     runners.Error,
 			Duration: 0 * time.Second,
-			Want:     utils.NewStringSet("Cum et rem."),
+			Want:     utils.NewValueSet("Cum et rem."),
 			Got:      "error message",
 			Details: runners.Details{
 				Answer:     runners.AnswerDetails{},
@@ -155,7 +155,7 @@ var mockResults = runners.Results{
 			Run:      "run-not-supported",
 			Kind:     runners.NotSupported,
 			Duration: 500 * time.Millisecond,
-			Want:     utils.NewStringSet("Animi aut eligendi repellendus debitis harum aut."),
+			Want:     utils.NewValueSet("Animi aut eligendi repellendus debitis harum aut."),
 			Got:      "Sequi molestiae iusto sit sit dolorum aut.",
 			Details: runners.Details{
 				Answer:     runners.AnswerDetails{},
@@ -184,7 +184,7 @@ var mockResults = runners.Results{
 			Run:      "run-validation-error",
 			Kind:     runners.Error,
 			Duration: 2 * time.Second,
-			Want:     utils.NewStringSet("Lorem ipsum dolor sit amet consectetur."),
+			Want:     utils.NewValueSet("Lorem ipsum dolor sit amet consectetur."),
 			Got:      "Adipiscing elit sed do eiusmod tempor.",
 			Details: runners.Details{
 				Answer:     runners.AnswerDetails{},
@@ -217,7 +217,7 @@ var mockResults = runners.Results{
 			Run:      "run-parsing-error",
 			Kind:     runners.Error,
 			Duration: 314159 * time.Millisecond,
-			Want:     utils.NewStringSet("Sed do eiusmod tempor incididunt ut."),
+			Want:     utils.NewValueSet("Sed do eiusmod tempor incididunt ut."),
 			Got:      "Invalid JSON: {broken",
 			Details: runners.Details{
 				Answer:     runners.AnswerDetails{},
@@ -246,6 +246,172 @@ var mockResults = runners.Results{
 						OutputTokens: testutils.Ptr(int64(333)),
 					},
 				},
+			},
+		},
+		{
+			Provider: "provider-name",
+			Task:     "task-name",
+			Run:      "run-structured-success",
+			Kind:     runners.Success,
+			Duration: 42 * time.Second,
+			Want: utils.NewValueSet(
+				[]interface{}{
+					map[string]interface{}{
+						"timestamp": "2025-09-14T10:30:00Z",
+						"level":     "INFO",
+						"message":   "User 'admin' logged in successfully.",
+						"user_id":   "admin",
+					},
+					map[string]interface{}{
+						"timestamp": "2025-09-14T10:31:15Z",
+						"level":     "WARN",
+						"message":   "System memory usage is high.",
+					},
+				}),
+			Got: []interface{}{
+				map[string]interface{}{
+					"timestamp": "2025-09-14T10:30:00Z",
+					"level":     "INFO",
+					"message":   "User 'admin' logged in successfully.",
+					"user_id":   "admin",
+				},
+				map[string]interface{}{
+					"timestamp": "2025-09-14T10:31:15Z",
+					"level":     "WARN",
+					"message":   "System memory usage is high.",
+				},
+			},
+			Details: runners.Details{
+				Answer: runners.AnswerDetails{
+					Title:       "Log Parsing Success",
+					Explanation: []string{"Successfully parsed log entries with structured JSON output.", "Extracted timestamps, levels, messages, and user IDs where present."},
+					ActualAnswer: []string{
+						"[",
+						"  {",
+						"    \"timestamp\": \"2025-09-14T10:30:00Z\",",
+						"    \"level\": \"INFO\",",
+						"    \"message\": \"User 'admin' logged in successfully.\",",
+						"    \"user_id\": \"admin\"",
+						"  },",
+						"  {",
+						"    \"timestamp\": \"2025-09-14T10:31:15Z\",",
+						"    \"level\": \"WARN\",",
+						"    \"message\": \"System memory usage is high.\"",
+						"  }",
+						"]",
+					},
+					ExpectedAnswer: [][]string{{
+						"[",
+						"  {",
+						"    \"timestamp\": \"2025-09-14T10:30:00Z\",",
+						"    \"level\": \"INFO\",",
+						"    \"message\": \"User 'admin' logged in successfully.\",",
+						"    \"user_id\": \"admin\"",
+						"  },",
+						"  {",
+						"    \"timestamp\": \"2025-09-14T10:31:15Z\",",
+						"    \"level\": \"WARN\",",
+						"    \"message\": \"System memory usage is high.\"",
+						"  }",
+						"]",
+					}},
+					Usage: runners.TokenUsage{
+						InputTokens:  testutils.Ptr(int64(456)),
+						OutputTokens: testutils.Ptr(int64(234)),
+					},
+				},
+				Validation: runners.ValidationDetails{
+					Title:       "Structured Validation Success",
+					Explanation: []string{"JSON structure matches expected schema.", "All required fields present with correct types.", "Deep equality comparison passed."},
+					Usage: runners.TokenUsage{
+						InputTokens:  testutils.Ptr(int64(78)),
+						OutputTokens: testutils.Ptr(int64(12)),
+					},
+				},
+				Error: runners.ErrorDetails{},
+			},
+		},
+		{
+			Provider: "provider-name",
+			Task:     "task-name",
+			Run:      "run-structured-failure",
+			Kind:     runners.Failure,
+			Duration: 38 * time.Second,
+			Want: utils.NewValueSet(
+				map[string]interface{}{
+					"timestamp": "2025-09-14T10:30:00Z",
+					"level":     "INFO",
+					"message":   "User 'admin' logged in successfully.",
+					"user_id":   "admin",
+				},
+				map[string]interface{}{
+					"timestamp": "2025-09-14T10:31:15Z",
+					"level":     "WARN",
+					"message":   "System memory usage is high.",
+				},
+				map[string]interface{}{
+					"timestamp": "2025-09-14T10:30:00Z",
+					"level":     "INFO",
+					"message":   "User login successful.",
+					"user_id":   "admin",
+				}),
+			Got: map[string]interface{}{
+				"timestamp": "2025-09-14T10:30:00Z",
+				"level":     "ERROR",
+				"message":   "Authentication failed for user 'admin'.",
+				"user_id":   "admin",
+			},
+			Details: runners.Details{
+				Answer: runners.AnswerDetails{
+					Title:       "Log Parsing with Incorrect Data",
+					Explanation: []string{"Parsed log entries but with incorrect content.", "First entry shows authentication failure instead of success.", "Second entry is correct."},
+					ActualAnswer: []string{
+						"{",
+						"  \"level\": \"ERROR\",",
+						"  \"message\": \"Authentication failed for user 'admin'.\",",
+						"  \"timestamp\": \"2025-09-14T10:30:00Z\",",
+						"  \"user_id\": \"admin\"",
+						"}",
+					},
+					ExpectedAnswer: [][]string{
+						{
+							"{",
+							"  \"level\": \"INFO\",",
+							"  \"message\": \"User 'admin' logged in successfully.\",",
+							"  \"timestamp\": \"2025-09-14T10:30:00Z\",",
+							"  \"user_id\": \"admin\"",
+							"}",
+						},
+						{
+							"{",
+							"  \"level\": \"WARN\",",
+							"  \"message\": \"System memory usage is high.\",",
+							"  \"timestamp\": \"2025-09-14T10:31:15Z\"",
+							"}",
+						},
+						{
+							"{",
+							"  \"level\": \"INFO\",",
+							"  \"message\": \"User login successful.\",",
+							"  \"timestamp\": \"2025-09-14T10:30:00Z\",",
+							"  \"user_id\": \"admin\"",
+							"}",
+						},
+					},
+					Usage: runners.TokenUsage{
+						InputTokens:  testutils.Ptr(int64(412)),
+						OutputTokens: testutils.Ptr(int64(198)),
+					},
+				},
+				Validation: runners.ValidationDetails{
+					Title:       "Structured Validation Failure",
+					Explanation: []string{"JSON structure is valid but content doesn't match any expected results.", "First log entry shows ERROR level instead of expected INFO level.", "Message content mismatch: authentication failure vs login success."},
+					Usage: runners.TokenUsage{
+						InputTokens:  testutils.Ptr(int64(89)),
+						OutputTokens: testutils.Ptr(int64(15)),
+					},
+				},
+				Error: runners.ErrorDetails{},
 			},
 		},
 	},

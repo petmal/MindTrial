@@ -123,8 +123,10 @@
         .answer-list li { margin-bottom: 1em; }
         .answer-list.single { list-style-type: none; padding-left: 0; }
         .answer-list.single li { margin-bottom: 0; }
+        .details-cell pre { font-family: inherit; margin: 0; line-height: inherit; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; overflow-x: auto; }
         .filter-container { display: flex; gap: 10px; margin-bottom: 10px; max-width: 800px; align-items: center; }
         .filter-sort-controls { display: flex; flex-direction: column; gap: 5px; }
+        .filter-sort-controls .header-with-sort { display: flex; align-items: center; gap: 5px; }
         .filter-sort-controls input, .filter-sort-controls select { width: 100%; box-sizing: border-box; }
         .sort-btn { cursor: pointer; margin-left: 5px; }
         .clickable { cursor: pointer; }
@@ -992,13 +994,48 @@
                         <th scope="col" style="width: 30px; padding: 8px 4px; text-align: center; vertical-align: middle;">
                             <input type="checkbox" id="select-all-runs" title="Select/Deselect All Runs" style="margin: 0; vertical-align: middle;">
                         </th>
-                        <th scope="col">Provider <span class="sort-btn" data-column="provider" data-direction="asc">↕️</span></th>
-                        <th scope="col">Run <span class="sort-btn" data-column="run" data-direction="asc">↕️</span></th>
-                        <th scope="col">Passed <span class="sort-btn" data-column="passed" data-direction="asc">↕️</span></th>
-                        <th scope="col">Failed <span class="sort-btn" data-column="failed" data-direction="asc">↕️</span></th>
-                        <th scope="col">Error <span class="sort-btn" data-column="error" data-direction="asc">↕️</span></th>
-                        <th scope="col">Skipped <span class="sort-btn" data-column="skipped" data-direction="asc">↕️</span></th>
-                        <th scope="col">Total Duration <span class="sort-btn" data-column="duration" data-direction="asc">↕️</span></th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Provider</span>
+                                <span class="sort-btn" data-column="provider" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Run</span>
+                                <span class="sort-btn" data-column="run" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Passed</span>
+                                <span class="sort-btn" data-column="passed" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Failed</span>
+                                <span class="sort-btn" data-column="failed" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Error</span>
+                                <span class="sort-btn" data-column="error" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Skipped</span>
+                                <span class="sort-btn" data-column="skipped" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Total Duration</span>
+                                <span class="sort-btn" data-column="duration" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1048,7 +1085,10 @@
                     <tr>
                         <th>
                             <div class="filter-sort-controls">
-                                <span>Provider <span class="sort-btn" data-column="provider" data-direction="asc">↕️</span></span>
+                                <div class="header-with-sort">
+                                    <span>Provider</span>
+                                    <span class="sort-btn" data-column="provider" data-direction="asc">↕️</span>
+                                </div>
                                 <select id="provider-filter">
                                     <option value="">All</option>
                                     {{- range SortResultsByProvider .ResultsData }}
@@ -1059,7 +1099,10 @@
                         </th>
                         <th>
                             <div class="filter-sort-controls">
-                                <span>Run <span class="sort-btn" data-column="run" data-direction="asc">↕️</span></span>
+                                <div class="header-with-sort">
+                                    <span>Run</span>
+                                    <span class="sort-btn" data-column="run" data-direction="asc">↕️</span>
+                                </div>
                                 <select id="run-filter">
                                     <option value="">All</option>
                                     {{- range UniqueRuns .ResultsData }}
@@ -1070,13 +1113,19 @@
                         </th>
                         <th>
                             <div class="filter-sort-controls">
-                                <span>Task <span class="sort-btn" data-column="task" data-direction="asc">↕️</span></span>
+                                <div class="header-with-sort">
+                                    <span>Task</span>
+                                    <span class="sort-btn" data-column="task" data-direction="asc">↕️</span>
+                                </div>
                                 <input id="task-filter" type="text" placeholder="Filter (regexp)..." title="Supports regular expressions, e.g. task-(one|two), ^task, ^(?!visual\s*-\s*).*">
                             </div>
                         </th>
                         <th>
                             <div class="filter-sort-controls">
-                                <span>Status <span class="sort-btn" data-column="status" data-direction="asc">↕️</span></span>
+                                <div class="header-with-sort">
+                                    <span>Status</span>
+                                    <span class="sort-btn" data-column="status" data-direction="asc">↕️</span>
+                                </div>
                                 <select id="status-filter">
                                     <option value="">All</option>
                                     <option value="passed">Passed</option>
@@ -1088,7 +1137,10 @@
                         </th>
                         <th>
                             <div class="filter-sort-controls">
-                                <span>Duration <span class="sort-btn" data-column="duration" data-direction="asc">↕️</span></span>
+                                <div class="header-with-sort">
+                                    <span>Duration</span>
+                                    <span class="sort-btn" data-column="duration" data-direction="asc">↕️</span>
+                                </div>
                             </div>
                         </th>
                         <th>Answer</th>

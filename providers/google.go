@@ -11,17 +11,19 @@ import (
 	"encoding/json"
 	"fmt"
 
-	genai "github.com/google/generative-ai-go/genai"
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
 	"github.com/petmal/mindtrial/pkg/utils"
-	gapioption "google.golang.org/api/option"
+	"google.golang.org/genai"
 )
 
 // NewGoogleAI creates a new GoogleAI provider instance with the given configuration.
 // It returns an error if client initialization fails.
 func NewGoogleAI(ctx context.Context, cfg config.GoogleAIClientConfig) (*GoogleAI, error) {
-	client, err := genai.NewClient(ctx, gapioption.WithAPIKey(cfg.APIKey))
+	client, err := genai.NewClient(ctx, &genai.ClientConfig{
+		APIKey:  cfg.APIKey,
+		Backend: genai.BackendGeminiAPI,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrCreateClient, err)
 	}
@@ -40,55 +42,87 @@ func (o GoogleAI) Name() string {
 }
 
 func (o *GoogleAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
-	model := o.client.GenerativeModel(cfg.Model)
-	model.ResponseMIMEType = "application/json"
-	model.SetCandidateCount(1) // generate only one candidate response
-	model.ResponseSchema = &genai.Schema{
-		Type: genai.TypeObject,
-		Properties: map[string]*genai.Schema{
-			"title":        {Type: genai.TypeString},
-			"explanation":  {Type: genai.TypeString},
-			"final_answer": {Type: genai.TypeString},
-		},
+	// Prepare the JSON schema for structured response.
+	responseSchema, err := ResultJSONSchemaRaw(task.ResponseResultFormat)
+	if err != nil {
+		return result, err
 	}
 
-	systemInstructions := make([]genai.Part, 0)
+	// Create the generation config.
+	generateConfig := &genai.GenerateContentConfig{
+		ResponseMIMEType:   "application/json",
+		ResponseJsonSchema: responseSchema,
+		CandidateCount:     1,
+	}
+
+	// Collect all system instructions.
+	var systemParts []*genai.Part
+
+	// Handle model parameters.
 	if cfg.ModelParams != nil {
 		if modelParams, ok := cfg.ModelParams.(config.GoogleAIModelParams); ok {
 			if modelParams.TextResponseFormat {
-				model.ResponseMIMEType = "text/plain"
-				model.ResponseSchema = nil
-				systemInstructions = append(systemInstructions, genai.Text(result.recordPrompt(DefaultResponseFormatInstruction())))
+				generateConfig.ResponseMIMEType = "text/plain"
+				generateConfig.ResponseJsonSchema = nil
+				responseFormatInstruction, err := DefaultResponseFormatInstruction(task.ResponseResultFormat)
+				if err != nil {
+					return result, err
+				}
+				// Add response format instruction to system instructions.
+				systemParts = append(systemParts, genai.NewPartFromText(result.recordPrompt(responseFormatInstruction)))
 			}
 			if modelParams.Temperature != nil {
-				model.Temperature = modelParams.Temperature
+				generateConfig.Temperature = modelParams.Temperature
 			}
 			if modelParams.TopP != nil {
-				model.TopP = modelParams.TopP
+				generateConfig.TopP = modelParams.TopP
 			}
 			if modelParams.TopK != nil {
-				model.TopK = modelParams.TopK
+				// TopK should logically be an integer (number of tokens), but the Go genai library
+				// expects float32.
+				generateConfig.TopK = genai.Ptr(float32(*modelParams.TopK))
+			}
+			if modelParams.PresencePenalty != nil {
+				generateConfig.PresencePenalty = modelParams.PresencePenalty
+			}
+			if modelParams.FrequencyPenalty != nil {
+				generateConfig.FrequencyPenalty = modelParams.FrequencyPenalty
+			}
+			if modelParams.Seed != nil {
+				generateConfig.Seed = modelParams.Seed
 			}
 		} else {
 			return result, fmt.Errorf("%w: %s", ErrInvalidModelParams, cfg.Name)
 		}
 	}
 
-	systemInstructions = append(systemInstructions, genai.Text(result.recordPrompt(DefaultAnswerFormatInstruction(task))))
-	model.SystemInstruction = genai.NewUserContent(systemInstructions...)
+	// Add answer format instruction to system instructions.
+	if answerFormatInstruction := DefaultAnswerFormatInstruction(task); answerFormatInstruction != "" {
+		systemParts = append(systemParts, genai.NewPartFromText(result.recordPrompt(answerFormatInstruction)))
+	}
 
+	// Set system instruction if we have any.
+	if len(systemParts) > 0 {
+		generateConfig.SystemInstruction = &genai.Content{Parts: systemParts}
+	}
+
+	// Create prompt content.
 	promptParts, err := o.createPromptMessageParts(ctx, task.Prompt, task.Files, &result)
 	if err != nil {
 		return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
 	}
 
+	contents := []*genai.Content{{Parts: promptParts}}
+
+	// Execute the completion request.
 	resp, err := timed(func() (*genai.GenerateContentResponse, error) {
-		return model.GenerateContent(ctx, promptParts...)
+		return o.client.Models.GenerateContent(ctx, cfg.Model, contents, generateConfig)
 	}, &result.duration)
 	if err != nil {
 		return result, fmt.Errorf("%w: %v", ErrGenerateResponse, err)
 	}
 
+	// Parse the completion response.
 	if resp != nil {
 		if resp.UsageMetadata != nil {
 			recordUsage(&resp.UsageMetadata.PromptTokenCount, &resp.UsageMetadata.CandidatesTokenCount, &result.usage)
@@ -96,17 +130,17 @@ func (o *GoogleAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConf
 		for _, candidate := range resp.Candidates {
 			if candidate.Content != nil {
 				for _, part := range candidate.Content.Parts {
-					if value, ok := part.(genai.Text); ok {
-						content := []byte(value)
-						if model.ResponseSchema == nil {
-							repaired, err := utils.RepairTextJSON(string(content))
+					if part.Text != "" {
+						content := []byte(part.Text)
+						if generateConfig.ResponseJsonSchema == nil {
+							repaired, err := utils.RepairTextJSON(part.Text)
 							if err != nil {
-								return result, NewErrUnmarshalResponse(err, []byte(value), []byte(candidate.FinishReason.String()))
+								return result, NewErrUnmarshalResponse(err, []byte(part.Text), []byte(string(candidate.FinishReason)))
 							}
 							content = []byte(repaired)
 						}
 						if err := json.Unmarshal(content, &result); err != nil {
-							return result, NewErrUnmarshalResponse(err, []byte(value), []byte(candidate.FinishReason.String()))
+							return result, NewErrUnmarshalResponse(err, []byte(part.Text), []byte(string(candidate.FinishReason)))
 						}
 					}
 				}
@@ -117,7 +151,7 @@ func (o *GoogleAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConf
 	return result, nil
 }
 
-func (o *GoogleAI) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []genai.Part, err error) {
+func (o *GoogleAI) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []*genai.Part, err error) {
 	for _, file := range files {
 		fileType, err := file.TypeValue(ctx)
 		if err != nil {
@@ -132,20 +166,15 @@ func (o *GoogleAI) createPromptMessageParts(ctx context.Context, promptText stri
 		}
 
 		// Attach file name as a text part before the blob, for reference.
-		parts = append(parts, genai.Text(result.recordPrompt(DefaultTaskFileNameInstruction(file))))
-		parts = append(parts, genai.Blob{
-			MIMEType: fileType,
-			Data:     content,
-		})
+		parts = append(parts, genai.NewPartFromText(result.recordPrompt(DefaultTaskFileNameInstruction(file))))
+		parts = append(parts, genai.NewPartFromBytes(content, fileType))
 	}
 
-	parts = append(parts, genai.Text(result.recordPrompt(promptText))) // append the prompt text after the file data for improved context integrity
+	parts = append(parts, genai.NewPartFromText(result.recordPrompt(promptText))) // append the prompt text after the file data for improved context integrity
 
 	return parts, nil
 }
 
 func (o *GoogleAI) Close(ctx context.Context) error {
-	return utils.NoPanic(func() error {
-		return o.client.Close()
-	})
+	return nil
 }

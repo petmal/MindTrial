@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/petmal/mindtrial/pkg/testutils"
+	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
@@ -1364,6 +1365,44 @@ func TestSystemPrompt_MergeWith(t *testing.T) {
 			other: &SystemPrompt{Template: testutils.Ptr("other")},
 			want:  SystemPrompt{Template: testutils.Ptr("other")},
 		},
+		{
+			name:  "EnableFor: other nil, base value set",
+			base:  SystemPrompt{EnableFor: testutils.Ptr(EnableForAll)},
+			other: nil,
+			want:  SystemPrompt{EnableFor: testutils.Ptr(EnableForAll)},
+		},
+		{
+			name:  "EnableFor: other nil field, base value set",
+			base:  SystemPrompt{EnableFor: testutils.Ptr(EnableForAll)},
+			other: &SystemPrompt{},
+			want:  SystemPrompt{EnableFor: testutils.Ptr(EnableForAll)},
+		},
+		{
+			name:  "EnableFor: base nil field, other set",
+			base:  SystemPrompt{},
+			other: &SystemPrompt{EnableFor: testutils.Ptr(EnableForNone)},
+			want:  SystemPrompt{EnableFor: testutils.Ptr(EnableForNone)},
+		},
+		{
+			name:  "EnableFor: other overrides base",
+			base:  SystemPrompt{EnableFor: testutils.Ptr(EnableForAll)},
+			other: &SystemPrompt{EnableFor: testutils.Ptr(EnableForNone)},
+			want:  SystemPrompt{EnableFor: testutils.Ptr(EnableForNone)},
+		},
+		{
+			name: "both Template and EnableFor merge",
+			base: SystemPrompt{
+				Template:  testutils.Ptr("base template"),
+				EnableFor: testutils.Ptr(EnableForAll),
+			},
+			other: &SystemPrompt{
+				Template: testutils.Ptr("other template"),
+			},
+			want: SystemPrompt{
+				Template:  testutils.Ptr("other template"),
+				EnableFor: testutils.Ptr(EnableForAll),
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1383,7 +1422,7 @@ func TestTask_ResolveSystemPrompt(t *testing.T) {
 		{
 			name: "task has no system prompt, uses default",
 			task: Task{
-				ResponseResultFormat: "yaml",
+				ResponseResultFormat: NewResponseFormat("yaml"),
 			},
 			defaultConfig: SystemPrompt{Template: testutils.Ptr("Default: {{.ResponseResultFormat}}")},
 			wantPrompt:    "Default: yaml",
@@ -1393,7 +1432,7 @@ func TestTask_ResolveSystemPrompt(t *testing.T) {
 			name: "task has template, default has template",
 			task: Task{
 				SystemPrompt:         &SystemPrompt{Template: testutils.Ptr("Task: {{.ResponseResultFormat}}")},
-				ResponseResultFormat: "json",
+				ResponseResultFormat: NewResponseFormat("json"),
 			},
 			defaultConfig: SystemPrompt{Template: testutils.Ptr("Default template")},
 			wantPrompt:    "Task: json",
@@ -1402,7 +1441,8 @@ func TestTask_ResolveSystemPrompt(t *testing.T) {
 		{
 			name: "invalid template syntax",
 			task: Task{
-				SystemPrompt: &SystemPrompt{Template: testutils.Ptr("Invalid {{.MissingBrace")},
+				SystemPrompt:         &SystemPrompt{Template: testutils.Ptr("Invalid {{.MissingBrace")},
+				ResponseResultFormat: NewResponseFormat("yaml"),
 			},
 			defaultConfig: SystemPrompt{Template: testutils.Ptr("Default")},
 			wantPrompt:    "",
@@ -1412,11 +1452,129 @@ func TestTask_ResolveSystemPrompt(t *testing.T) {
 			name: "unknown template variable",
 			task: Task{
 				SystemPrompt:         &SystemPrompt{Template: testutils.Ptr("Variable {{.UnknownVariable}}")},
-				ResponseResultFormat: "xml",
+				ResponseResultFormat: NewResponseFormat("xml"),
 			},
 			defaultConfig: SystemPrompt{Template: testutils.Ptr("Default")},
 			wantPrompt:    "",
 			wantErr:       true,
+		},
+		{
+			name: "EnableForText with schema format disables template resolution",
+			task: Task{
+				SystemPrompt: &SystemPrompt{Template: testutils.Ptr("Template: {{.ResponseResultFormat}}")},
+				ResponseResultFormat: NewResponseFormat(map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"answer": map[string]interface{}{"type": "string"},
+					},
+				}),
+			},
+			defaultConfig: SystemPrompt{EnableFor: testutils.Ptr(EnableForText)},
+			wantPrompt:    "",
+			wantErr:       false,
+		},
+		{
+			name: "EnableForAll with schema format enables template resolution",
+			task: Task{
+				SystemPrompt: &SystemPrompt{Template: testutils.Ptr("Template: {{.ResponseResultFormat}}")},
+				ResponseResultFormat: NewResponseFormat(map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"answer": map[string]interface{}{"type": "string"},
+					},
+				}),
+			},
+			defaultConfig: SystemPrompt{EnableFor: testutils.Ptr(EnableForAll)},
+			wantPrompt:    "Template: {\n  \"properties\": {\n    \"answer\": {\n      \"type\": \"string\"\n    }\n  },\n  \"type\": \"object\"\n}",
+			wantErr:       false,
+		},
+		{
+			name: "EnableForText with string format and no template creates default instruction",
+			task: Task{
+				ResponseResultFormat: NewResponseFormat("yes/no"),
+			},
+			defaultConfig: SystemPrompt{EnableFor: testutils.Ptr(EnableForText)},
+			wantPrompt:    "Provide the final answer in exactly this format: yes/no",
+			wantErr:       false,
+		},
+		{
+			name: "EnableForAll with string format and no template creates default instruction",
+			task: Task{
+				ResponseResultFormat: NewResponseFormat("yes/no"),
+			},
+			defaultConfig: SystemPrompt{EnableFor: testutils.Ptr(EnableForAll)},
+			wantPrompt:    "Provide the final answer in exactly this format: yes/no",
+			wantErr:       false,
+		},
+		{
+			name: "EnableForAll with schema format and no template produces empty prompt",
+			task: Task{
+				ResponseResultFormat: NewResponseFormat(map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"answer": map[string]interface{}{"type": "string"},
+					},
+				}),
+			},
+			defaultConfig: SystemPrompt{EnableFor: testutils.Ptr(EnableForAll)},
+			wantPrompt:    "",
+			wantErr:       false,
+		},
+		{
+			name: "EnableForNone with string format and no template produces empty prompt",
+			task: Task{
+				ResponseResultFormat: NewResponseFormat("yes/no"),
+			},
+			defaultConfig: SystemPrompt{EnableFor: testutils.Ptr(EnableForNone)},
+			wantPrompt:    "",
+			wantErr:       false,
+		},
+		{
+			name: "EnableForNone with schema format and no template produces empty prompt",
+			task: Task{
+				ResponseResultFormat: NewResponseFormat(map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"answer": map[string]interface{}{"type": "string"},
+					},
+				}),
+			},
+			defaultConfig: SystemPrompt{EnableFor: testutils.Ptr(EnableForNone)},
+			wantPrompt:    "",
+			wantErr:       false,
+		},
+		{
+			name: "default EnableFor (text) with string format and no template creates default instruction",
+			task: Task{
+				ResponseResultFormat: NewResponseFormat("yes/no"),
+			},
+			defaultConfig: SystemPrompt{}, // No EnableFor set, defaults to EnableForText
+			wantPrompt:    "Provide the final answer in exactly this format: yes/no",
+			wantErr:       false,
+		},
+		{
+			name: "default EnableFor (text) with schema format and no template produces empty prompt",
+			task: Task{
+				ResponseResultFormat: NewResponseFormat(map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"answer": map[string]interface{}{"type": "string"},
+					},
+				}),
+			},
+			defaultConfig: SystemPrompt{}, // No EnableFor set, defaults to EnableForText
+			wantPrompt:    "",
+			wantErr:       false,
+		},
+		{
+			name: "EnableForText with string format and custom template resolves template",
+			task: Task{
+				SystemPrompt:         &SystemPrompt{Template: testutils.Ptr("Custom: {{.ResponseResultFormat}}")},
+				ResponseResultFormat: NewResponseFormat("answer"),
+			},
+			defaultConfig: SystemPrompt{EnableFor: testutils.Ptr(EnableForText)},
+			wantPrompt:    "Custom: answer",
+			wantErr:       false,
 		},
 	}
 
@@ -1431,9 +1589,49 @@ func TestTask_ResolveSystemPrompt(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				resolvedPrompt, ok := tt.task.GetResolvedSystemPrompt()
-				assert.True(t, ok)
-				assert.Equal(t, tt.wantPrompt, resolvedPrompt)
+				if tt.wantPrompt == "" {
+					assert.False(t, ok)
+				} else {
+					assert.True(t, ok)
+					assert.Equal(t, tt.wantPrompt, resolvedPrompt)
+				}
 			}
+		})
+	}
+}
+
+func TestSystemPrompt_GetEnableFor(t *testing.T) {
+	tests := []struct {
+		name         string
+		systemPrompt SystemPrompt
+		want         SystemPromptEnabledFor
+	}{
+		{
+			name:         "nil EnableFor defaults to text",
+			systemPrompt: SystemPrompt{},
+			want:         EnableForText,
+		},
+		{
+			name:         "explicit EnableForAll",
+			systemPrompt: SystemPrompt{EnableFor: testutils.Ptr(EnableForAll)},
+			want:         EnableForAll,
+		},
+		{
+			name:         "explicit EnableForText",
+			systemPrompt: SystemPrompt{EnableFor: testutils.Ptr(EnableForText)},
+			want:         EnableForText,
+		},
+		{
+			name:         "explicit EnableForNone",
+			systemPrompt: SystemPrompt{EnableFor: testutils.Ptr(EnableForNone)},
+			want:         EnableForNone,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.systemPrompt.GetEnableFor()
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -1484,4 +1682,232 @@ func TestSystemPrompt_GetTemplate(t *testing.T) {
 			assert.Equal(t, tt.wantOk, ok)
 		})
 	}
+}
+
+func TestResponseFormat(t *testing.T) {
+	t.Run("string format", func(t *testing.T) {
+		var format ResponseFormat
+		format.raw = "Provide answer as: YES or NO"
+
+		stringValue, isString := format.AsString()
+		_, isSchema := format.AsSchema()
+		assert.True(t, isString)
+		assert.False(t, isSchema)
+		assert.Equal(t, "Provide answer as: YES or NO", stringValue)
+	})
+
+	t.Run("schema format", func(t *testing.T) {
+		var format ResponseFormat
+		format.raw = map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"answer": map[string]interface{}{
+					"type": "string",
+					"enum": []interface{}{"YES", "NO"},
+				},
+			},
+			"required": []interface{}{"answer"},
+		}
+
+		_, isString := format.AsString()
+		schemaValue, isSchema := format.AsSchema()
+		assert.False(t, isString)
+		assert.True(t, isSchema)
+		assert.NotNil(t, schemaValue)
+	})
+}
+
+func TestValueSet(t *testing.T) {
+	t.Run("string values", func(t *testing.T) {
+		expected := utils.NewValueSet("YES", "NO")
+
+		stringSet, ok := expected.AsStringSet()
+		assert.True(t, ok)
+		assert.Len(t, stringSet.Values(), 2)
+		assert.Contains(t, stringSet.Values(), "YES")
+		assert.Contains(t, stringSet.Values(), "NO")
+		assert.Equal(t, []interface{}{"YES", "NO"}, expected.Values())
+	})
+
+	t.Run("object values", func(t *testing.T) {
+		expected := utils.NewValueSet(
+			map[string]interface{}{"answer": "YES"},
+			map[string]interface{}{"answer": "NO"},
+		)
+
+		stringSet, ok := expected.AsStringSet()
+		assert.False(t, ok)
+		assert.Empty(t, stringSet.Values()) // Should be empty since values are not strings
+		assert.Len(t, expected.Values(), 2)
+	})
+}
+
+func TestValidateTaskConfiguration(t *testing.T) {
+	t.Run("valid string task", func(t *testing.T) {
+		task := Task{
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat("Number"),
+			ExpectedResult:       utils.NewValueSet("4", "four"),
+		}
+
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		assert.NoError(t, err)
+	})
+
+	t.Run("valid schema task", func(t *testing.T) {
+		schema := map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"answer": map[string]interface{}{
+					"type": "number",
+				},
+			},
+			"required": []interface{}{"answer"},
+		}
+
+		task := Task{
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat(schema),
+			ExpectedResult: utils.NewValueSet(
+				map[string]interface{}{"answer": 4},
+				map[string]interface{}{"answer": 4.0},
+			),
+		}
+
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		assert.NoError(t, err)
+	})
+
+	t.Run("invalid - string format with object expected results", func(t *testing.T) {
+		task := Task{
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat("Number"),
+			ExpectedResult: utils.NewValueSet(
+				map[string]interface{}{"answer": 4},
+			),
+		}
+
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "when response-result-format is plain text, all expected-result values must be plain text")
+	})
+
+	t.Run("invalid - schema with judge validation", func(t *testing.T) {
+		schema := map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"answer": map[string]interface{}{
+					"type": "number",
+				},
+			},
+		}
+		enabled := true
+		task := Task{
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat(schema),
+			ExpectedResult: utils.NewValueSet(
+				map[string]interface{}{"answer": 4},
+			),
+			ValidationRules: &ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: &enabled,
+				},
+			},
+		}
+
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "semantic validation cannot be used with structured schema-based response-result-format")
+	})
+
+	t.Run("invalid - expected result does not conform to schema", func(t *testing.T) {
+		schema := map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"answer": map[string]interface{}{
+					"type": "number",
+				},
+			},
+			"required": []interface{}{"answer"},
+		}
+		task := Task{
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat(schema),
+			ExpectedResult: utils.NewValueSet(
+				map[string]interface{}{"answer": "four"}, // string instead of number
+			),
+		}
+
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "does not conform to response-result-format schema")
+	})
+
+	t.Run("invalid - malformed JSON schema", func(t *testing.T) {
+		invalidSchema := map[string]interface{}{
+			"type":       "object",
+			"properties": "this_should_be_an_object_not_a_string", // Invalid: properties must be an object
+			"required":   []interface{}{"answer"},
+		}
+		task := Task{
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat(invalidSchema),
+			ExpectedResult: utils.NewValueSet(
+				map[string]interface{}{"answer": 4},
+			),
+		}
+
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "response-result-format contains an invalid JSON schema")
+	})
+
+	t.Run("invalid - response format neither string nor schema", func(t *testing.T) {
+		task := Task{
+			Name:   "test",
+			Prompt: "What is 2+2?",
+			ResponseResultFormat: ResponseFormat{
+				raw: 123, // invalid type
+			},
+			ExpectedResult: utils.NewValueSet("4"),
+		}
+
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "response-result-format must be either plain text or a JSON schema object")
+	})
 }

@@ -129,14 +129,14 @@ func TestExecutor_Execute_WithoutRetry(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
 	task := config.Task{
 		Name:           "success",
-		ExpectedResult: utils.NewStringSet("expected answer"),
+		ExpectedResult: utils.NewValueSet("expected answer"),
 	}
 
 	result, err := executor.Execute(context.Background(), logger, task)
 
 	require.NoError(t, err)
 	assert.Equal(t, "success", result.Title)
-	assert.Equal(t, "expected answer", result.FinalAnswer)
+	assert.Equal(t, "expected answer", result.GetFinalAnswerContent())
 }
 
 func TestExecutor_Execute_WithRetry_Success(t *testing.T) {
@@ -156,7 +156,7 @@ func TestExecutor_Execute_WithRetry_Success(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
 	task := config.Task{
 		Name:           "retry_1: success", // will fail once, then succeed
-		ExpectedResult: utils.NewStringSet("expected answer"),
+		ExpectedResult: utils.NewValueSet("expected answer"),
 	}
 
 	result, err := executor.Execute(context.Background(), logger, task)
@@ -164,7 +164,7 @@ func TestExecutor_Execute_WithRetry_Success(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "retry_1: success", result.Title)
 	assert.Contains(t, result.Explanation, "mock success after 2 attempts")
-	assert.Equal(t, "expected answer", result.FinalAnswer)
+	assert.Equal(t, "expected answer", result.GetFinalAnswerContent())
 }
 
 func TestExecutor_Execute_WithRetry_Failure(t *testing.T) {
@@ -184,7 +184,7 @@ func TestExecutor_Execute_WithRetry_Failure(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
 	task := config.Task{
 		Name:           "retry_3", // will fail 3 times, but only 1 retry allowed
-		ExpectedResult: utils.NewStringSet("expected answer"),
+		ExpectedResult: utils.NewValueSet("expected answer"),
 	}
 
 	_, err = executor.Execute(context.Background(), logger, task)
@@ -210,7 +210,7 @@ func TestExecutor_Execute_PermanentError(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
 	task := config.Task{
 		Name:           "error",
-		ExpectedResult: utils.NewStringSet("expected answer"),
+		ExpectedResult: utils.NewValueSet("expected answer"),
 	}
 
 	_, err = executor.Execute(context.Background(), logger, task)
@@ -231,7 +231,7 @@ func TestExecutor_Execute_ContextCanceled(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
 	task := config.Task{
 		Name:           "success",
-		ExpectedResult: utils.NewStringSet("expected answer"),
+		ExpectedResult: utils.NewValueSet("expected answer"),
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())

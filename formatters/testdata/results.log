@@ -3,18 +3,83 @@ provider-name |run-success |task-name |Passed |1m35s    |Quos aut rerum quaerat 
 provider-name |run-failure |task-name |Failed |10s      |@@ -1,67 +1,36 @@
 -Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui
 +Ipsam ea et optio explicabo eius et
- .            |
+ .
+              |
 provider-name |run-success-multiple-answers |task-name |Passed |17s    |Quos aut rerum quaerat qui ad culpa. |
-provider-name |run-failure-multiple-answers |task-name |Failed |3m0.8s |@@ -1,48 +1,36 @@
--Dolores saepe ad sed rerum autem iure minima
-+Ipsam ea et optio explicabo eius
-  et.
----
-@@ -1,67 +1,36 @@
--Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui
-+Ipsam ea et optio explicabo eius et
- .            |
-provider-name |run-error            |task-name |Error   |0s        |error message                              |
-provider-name |run-not-supported    |task-name |Skipped |500ms     |Sequi molestiae iusto sit sit dolorum aut. |
-provider-name |run-validation-error |task-name |Error   |2s        |Adipiscing elit sed do eiusmod tempor.     |
-provider-name |run-parsing-error    |task-name |Error   |5m14.159s |Invalid JSON: {broken                      |
+provider-name |run-failure-multiple-answers |task-name |Failed |3m0.8s |[
+    @@ -1,48 +1,36 @@
+    -Dolores saepe ad sed rerum autem iure minima
+    +Ipsam ea et optio explicabo eius
+      et.
+    
+  ,
+    @@ -1,67 +1,36 @@
+    -Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui
+    +Ipsam ea et optio explicabo eius et
+     .
+    
+]             |
+provider-name |run-error              |task-name |Error   |0s        |error message                              |
+provider-name |run-not-supported      |task-name |Skipped |500ms     |Sequi molestiae iusto sit sit dolorum aut. |
+provider-name |run-validation-error   |task-name |Error   |2s        |Adipiscing elit sed do eiusmod tempor.     |
+provider-name |run-parsing-error      |task-name |Error   |5m14.159s |Invalid JSON: {broken                      |
+provider-name |run-structured-success |task-name |Passed  |42s       |[
+  {
+    "level": "INFO",
+    "message": "User 'admin' logged in successfully.",
+    "timestamp": "2025-09-14T10:30:00Z",
+    "user_id": "admin"
+  },
+  {
+    "level": "WARN",
+    "message": "System memory usage is high.",
+    "timestamp": "2025-09-14T10:31:15Z"
+  }
+]             |
+provider-name |run-structured-failure |task-name |Failed |38s |[
+    @@ -11,12 +11,13 @@
+     %22: %22
+    -INFO
+    +ERROR
+     %22,%0A 
+    @@ -33,43 +33,46 @@
+     %22: %22
+    -User 'admin' logged in successfully
+    +Authentication failed for user 'admin'
+     .%22,%0A
+    
+  ,
+    @@ -11,12 +11,13 @@
+     %22: %22
+    -WARN
+    +ERROR
+     %22,%0A 
+    @@ -33,35 +33,46 @@
+     %22: %22
+    -System mem
+    +Authentication failed f
+     or
+    -y
+      us
+    -age is high
+    +er 'admin'
+     .%22,%0A
+    @@ -106,12 +106,34 @@
+     10:3
+    -1:15Z
+    +0:00Z%22,%0A  %22user_id%22: %22admin
+     %22%0A%7D
+    
+  ,
+    @@ -11,12 +11,13 @@
+     %22: %22
+    -INFO
+    +ERROR
+     %22,%0A 
+    @@ -33,29 +33,46 @@
+     %22: %22
+    -User login successful
+    +Authentication failed for user 'admin'
+     .%22,%0A
+    
+] |
