@@ -125,6 +125,12 @@ task-config:
           3. c) 10
           4. c) 25
           5. a) 8
+        - |
+          b)
+          b)
+          c)
+          c)
+          a)
       validation-rules:
         trim-lines: true
     - name: "quiz - analogies"
