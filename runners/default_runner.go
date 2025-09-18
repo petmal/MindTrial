@@ -108,7 +108,7 @@ func (r *asyncResultSet) emitMessageEvent(message string) {
 // NewDefaultRunner creates a new Runner that executes tasks on all configured providers
 // in parallel. The individual runs on a single provider are executed sequentially.
 // It returns an error if any provider initialization fails.
-func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, globalValidationRules config.ValidationRules, judges []config.JudgeConfig, logger zerolog.Logger) (Runner, error) {
+func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, judges []config.JudgeConfig, logger zerolog.Logger) (Runner, error) {
 	targets := make(map[providers.Provider][]config.RunConfig, len(cfg))
 	totalTargetCount := 0
 	for _, providerConfig := range cfg {
@@ -123,27 +123,25 @@ func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, globalVa
 	validatorFactory := validators.NewFactory(judges)
 
 	return &defaultRunner{
-		targets:               targets,
-		totalTargetCount:      totalTargetCount,
-		globalValidationRules: globalValidationRules,
-		validatorFactory:      validatorFactory,
-		logger:                logger,
+		targets:          targets,
+		totalTargetCount: totalTargetCount,
+		validatorFactory: validatorFactory,
+		logger:           logger,
 	}, nil
 }
 
 type defaultRunner struct {
-	targets               map[providers.Provider][]config.RunConfig // All tasks will be executed against all run configurations of each target provider.
-	totalTargetCount      int
-	globalValidationRules config.ValidationRules
-	validatorFactory      *validators.Factory
-	logger                zerolog.Logger
+	targets          map[providers.Provider][]config.RunConfig // All tasks will be executed against all run configurations of each target provider.
+	totalTargetCount int
+	validatorFactory *validators.Factory
+	logger           zerolog.Logger
 }
 
 func (r *defaultRunner) assertCanRun(tasks []config.Task) error {
 	var taskErrors []error
 	for _, task := range tasks {
 		// Resolve validation rules for this task.
-		resolvedValidationRules := r.globalValidationRules.MergeWith(task.ValidationRules)
+		resolvedValidationRules := task.GetResolvedValidationRules()
 
 		// Check that if judge is enabled the configuration exists.
 		if resolvedValidationRules.UseJudge() {
@@ -249,9 +247,9 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 	taskLogger := logger.WithContext(fmt.Sprintf("%s: %s: %s: ", executor.Provider.Name(), executor.RunConfig.Name, task.Name))
 
 	// Resolve validation rules for this task.
-	resolvedValidationRules := r.globalValidationRules.MergeWith(task.ValidationRules)
+	resolvedValidationRules := task.GetResolvedValidationRules()
 
-	// Create validator selected for this this task.
+	// Create validator selected for this task.
 	validator, err := r.validatorFactory.GetValidator(ctx, resolvedValidationRules.Judge)
 	if err != nil {
 		runResult.Kind = Error
@@ -288,7 +286,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 	if err != nil { //nolint:gocritic
 		runResult.Kind = Error
 		runResult.Got = err.Error()
-		var unmarshalErr *providers.ErrUnmarshalResponse
+
 		switch {
 		case errors.Is(err, providers.ErrFeatureNotSupported):
 			runResult.Kind = NotSupported
@@ -297,29 +295,22 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 				Message: err.Error(),
 				Usage:   toTokenUsage(usage),
 			}
-		case errors.As(err, &unmarshalErr):
-			runResult.Details.Error = ErrorDetails{
-				Title:   "Response Parsing Error",
-				Message: unmarshalErr.Cause.Error(),
-				Details: map[string][]string{
-					"Stop Reason":  {string(unmarshalErr.StopReason)},
-					"Raw Response": utils.SplitLines(string(unmarshalErr.RawMessage)),
-				},
-				Usage: toTokenUsage(usage),
-			}
 		default:
-			runResult.Details.Error = ErrorDetails{
-				Title:   "Execution Error",
-				Message: err.Error(),
-				Usage:   toTokenUsage(usage),
-			}
-			// If this is an API error that carries response body, expose it.
-			var apiErr *providers.ErrAPIResponse
-			if errors.As(err, &apiErr) && apiErr.Body != nil {
-				runResult.Details.Error.Details = map[string][]string{
-					"HTTP Response": utils.SplitLines(string(apiErr.Body)),
+			var unmarshalErr *providers.ErrUnmarshalResponse
+			if errors.As(err, &unmarshalErr) {
+				runResult.Details.Error = ErrorDetails{
+					Title:   "Response Parsing Error",
+					Message: unmarshalErr.Cause.Error(),
+					Usage:   toTokenUsage(usage),
+				}
+			} else {
+				runResult.Details.Error = ErrorDetails{
+					Title:   "Execution Error",
+					Message: err.Error(),
+					Usage:   toTokenUsage(usage),
 				}
 			}
+			populateErrorDetails(&runResult.Details.Error, err)
 			taskLogger.Error(ctx, logging.LevelError, err, "task finished with error")
 		}
 	} else {
@@ -334,6 +325,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 				Message: err.Error(),
 				Usage:   toTokenUsage(validationResult.Usage),
 			}
+			populateErrorDetails(&runResult.Details.Error, err)
 		} else {
 			if !validationResult.IsCorrect {
 				runResult.Kind = Failure
@@ -368,6 +360,25 @@ func (r *defaultRunner) Close(ctx context.Context) {
 	}
 	if err := r.validatorFactory.Close(ctx); err != nil {
 		r.logger.Warn().Err(err).Msg("failed to close validator factory")
+	}
+}
+
+// populateErrorDetails injects additional error details into the provided ErrorDetails struct
+// based on the error type. The Details field is populated with error-specific information.
+func populateErrorDetails(errorDetails *ErrorDetails, err error) {
+	var unmarshalErr *providers.ErrUnmarshalResponse
+	var apiErr *providers.ErrAPIResponse
+
+	switch {
+	case errors.As(err, &unmarshalErr):
+		errorDetails.Details = map[string][]string{
+			"Stop Reason":  {string(unmarshalErr.StopReason)},
+			"Raw Response": utils.SplitLines(string(unmarshalErr.RawMessage)),
+		}
+	case errors.As(err, &apiErr) && apiErr.Body != nil:
+		errorDetails.Details = map[string][]string{
+			"HTTP Response": utils.SplitLines(string(apiErr.Body)),
+		}
 	}
 }
 

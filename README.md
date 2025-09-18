@@ -496,6 +496,35 @@ To use judge validation:
               # Inherits name: "mistral-judge" from global config.
     ```
 
+#### Judge Prompt Customization
+
+MindTrial automatically applies a built-in semantic evaluation template that compares candidate responses against expected answers. For advanced use cases, you can customize the judge prompt template, response format, and acceptance criteria.
+
+Judge prompts can be customized in the `validation-rules.judge.prompt` section of your `tasks.yaml` file, either globally in `task-config` or individually per task.
+
+**Customization Fields:**
+
+- **template**: Custom prompt template for the judge (supports template variables listed below).
+- **verdict-format**: Expected response format from the judge (plain text instruction or JSON schema).
+- **passing-verdicts**: Set of verdict values that indicate a passing evaluation.
+
+> [!IMPORTANT]
+>
+> - If you provide a custom `template`, you **must** also specify both `verdict-format` and `passing-verdicts`.
+> - You **cannot** override just `verdict-format` or `passing-verdicts` unless you also override the `template`.
+> - All `passing-verdicts` values must conform to the `verdict-format` structure.
+
+> [!TIP]
+> The following template variables are available for judge prompts:
+>
+> - **{{.OriginalTask.Prompt}}**: The original task prompt
+> - **{{.OriginalTask.ResponseResultFormat}}**: Format instruction from the task
+> - **{{.OriginalTask.ExpectedResults}}**: Array of expected answers
+> - **{{.Candidate.Response}}**: The model's response being evaluated
+> - **{{.Rules.CaseSensitive}}**: Boolean case-sensitive validation flag
+> - **{{.Rules.IgnoreWhitespace}}**: Boolean ignore whitespace flag
+> - **{{.Rules.TrimLines}}**: Boolean trim lines flag
+
 A sample task from `tasks.yaml`:
 
 ```yaml
@@ -574,6 +603,36 @@ task-config:
           enabled: true
           name: "mistral-judge"
           variant: "reasoning"
+          # Uses default judge prompt configuration for semantic evaluation.
+    - name: "code quality - custom judge"
+      prompt: |-
+        Write a Python function that finds the maximum value in a list.
+      response-result-format: |-
+        complete Python function with proper naming and structure
+      expected-result: |-
+        A well-written Python function that correctly finds the maximum value with good practices
+      validation-rules:
+        judge:
+          enabled: true
+          name: "mistral-judge"
+          variant: "reasoning"
+          prompt:
+            template: |-
+              Evaluate this Python code for both correctness and quality:
+              {{.Candidate.Response}}
+
+              Criteria: 1) Correctly finds max value, 2) Proper function name/structure, 3) Handles edge cases, 4) Good Python style
+            verdict-format:
+              type: object
+              properties:
+                quality_score:
+                  type: string
+                  enum: ["excellent", "good", "poor"]
+              required: ["quality_score"]
+              additionalProperties: false
+            passing-verdicts:
+              - quality_score: "excellent"
+              - quality_score: "good"
     - name: "structured response - log parsing"
       prompt: |-
         Parse the following log lines and extract the timestamp, log level, and message for each. If a user ID is present, extract that as well.

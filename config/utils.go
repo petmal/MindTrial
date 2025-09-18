@@ -74,10 +74,13 @@ func LoadTasksFromFile(ctx context.Context, path string) (*Tasks, error) {
 		return cfg, fmt.Errorf("invalid task definition: %w", err)
 	}
 
-	// Resolve system prompt templates for all tasks.
+	// Resolve system prompt templates and validation rules for all tasks.
 	for i, task := range cfg.TaskConfig.Tasks {
 		if err := cfg.TaskConfig.Tasks[i].ResolveSystemPrompt(cfg.TaskConfig.SystemPrompt); err != nil {
 			return cfg, fmt.Errorf("invalid system prompt configuration for task '%s': %w", task.Name, err)
+		}
+		if err := cfg.TaskConfig.Tasks[i].ResolveValidationRules(cfg.TaskConfig.ValidationRules); err != nil {
+			return cfg, fmt.Errorf("invalid validation rules configuration for task '%s': %w", task.Name, err)
 		}
 	}
 

@@ -722,6 +722,12 @@ func TestRunnerRun(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			for i := range tt.args.tasks {
+				if err := tt.args.tasks[i].ResolveValidationRules(config.ValidationRules{}); err != nil {
+					t.Fatalf("failed to resolve validation rules: %v", err)
+				}
+			}
+
 			got, err := tt.r.Run(tt.args.ctx, tt.args.tasks)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -857,7 +863,7 @@ func createMockRunner(t *testing.T) Runner {
 }
 
 func createMockRunnerFromConfig(t *testing.T, cfg []config.ProviderConfig, judges []config.JudgeConfig, logger zerolog.Logger) Runner {
-	runner, err := NewDefaultRunner(context.Background(), cfg, config.ValidationRules{}, judges, logger)
+	runner, err := NewDefaultRunner(context.Background(), cfg, judges, logger)
 	if err != nil {
 		t.Fatalf("failed to create runner: %v", err)
 	}
@@ -1331,13 +1337,13 @@ func TestRunResultGetID(t *testing.T) {
 }
 
 func TestRunnerIntegrationWithValidation(t *testing.T) {
-	// Global validation rules: case insensitive, trim whitespace only.
-	globalRules := config.ValidationRules{
-		CaseSensitive:    testutils.Ptr(false), // case insensitive by default
-		IgnoreWhitespace: testutils.Ptr(false), // trim whitespace only by default
+	// Default validation rules.
+	defaultRules := config.ValidationRules{
+		CaseSensitive:    testutils.Ptr(false),
+		IgnoreWhitespace: testutils.Ptr(false),
 	}
 
-	// Set up runner with global validation rules.
+	// Set up runner.
 	runner, err := NewDefaultRunner(context.Background(), []config.ProviderConfig{
 		{
 			Name: "mock provider 1",
@@ -1345,7 +1351,7 @@ func TestRunnerIntegrationWithValidation(t *testing.T) {
 				{Name: "custom", Model: "test-model"}, // uses task name as answer
 			},
 		},
-	}, globalRules, []config.JudgeConfig{}, zerolog.Nop())
+	}, []config.JudgeConfig{}, zerolog.Nop())
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -1354,7 +1360,7 @@ func TestRunnerIntegrationWithValidation(t *testing.T) {
 		wantResultKind ResultKind
 	}{
 		{
-			name: "global rules applied - case insensitive match",
+			name: "case insensitive match by default",
 			task: config.Task{
 				Name:           "Hello_World",
 				ExpectedResult: utils.NewValueSet("hello_world"), // should match case insensitively
@@ -1397,6 +1403,10 @@ func TestRunnerIntegrationWithValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if err := tt.task.ResolveValidationRules(defaultRules); err != nil {
+				t.Fatalf("failed to resolve validation rules: %v", err)
+			}
+
 			results, err := runner.Run(context.Background(), []config.Task{tt.task})
 			require.NoError(t, err)
 

@@ -80,6 +80,12 @@ func (v *ValueSet) UnmarshalYAML(value *yaml.Node) error {
 			return fmt.Errorf("%w: %v", ErrInvalidValueSetValue, err)
 		}
 		v.values = []interface{}{single}
+	case yaml.MappingNode:
+		var m map[string]interface{}
+		if err := value.Decode(&m); err != nil {
+			return fmt.Errorf("%w: %v", ErrInvalidValueSetValue, err)
+		}
+		v.values = []interface{}{m}
 	case yaml.SequenceNode:
 		var list []interface{}
 		if err := value.Decode(&list); err != nil {

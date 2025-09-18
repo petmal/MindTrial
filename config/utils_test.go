@@ -928,6 +928,13 @@ func TestLoadTasksFromFile(t *testing.T) {
 								},
 							},
 							resolvedSystemPrompt: "Provide the final answer in exactly this format: City name",
+							resolvedValidationRules: ValidationRules{
+								Judge: JudgeSelector{
+									Enabled: testutils.Ptr(true),
+									Name:    testutils.Ptr("semantic-judge"),
+									Variant: testutils.Ptr("default"),
+								},
+							},
 						},
 						{
 							Name:                 "Task with disabled judge validation",
@@ -942,6 +949,13 @@ func TestLoadTasksFromFile(t *testing.T) {
 								},
 							},
 							resolvedSystemPrompt: "Provide the final answer in exactly this format: Number",
+							resolvedValidationRules: ValidationRules{
+								Judge: JudgeSelector{
+									Enabled: testutils.Ptr(false),
+									Name:    testutils.Ptr("math-judge"),
+									Variant: testutils.Ptr("strict"),
+								},
+							},
 						},
 					},
 				},
@@ -1000,6 +1014,10 @@ func TestLoadTasksFromFile(t *testing.T) {
 								IgnoreWhitespace: testutils.Ptr(false),
 							},
 							resolvedSystemPrompt: "Provide the final answer in exactly this format: City name (exact case)",
+							resolvedValidationRules: ValidationRules{
+								CaseSensitive:    testutils.Ptr(true),
+								IgnoreWhitespace: testutils.Ptr(false),
+							},
 						},
 						{
 							Name:                 "Task with whitespace-ignoring validation",
@@ -1011,6 +1029,10 @@ func TestLoadTasksFromFile(t *testing.T) {
 								IgnoreWhitespace: testutils.Ptr(true),
 							},
 							resolvedSystemPrompt: "Provide the final answer in exactly this format: Number with optional whitespace",
+							resolvedValidationRules: ValidationRules{
+								CaseSensitive:    testutils.Ptr(false),
+								IgnoreWhitespace: testutils.Ptr(true),
+							},
 						},
 						{
 							Name:                 "Task with combined validation rules",
@@ -1022,6 +1044,10 @@ func TestLoadTasksFromFile(t *testing.T) {
 								IgnoreWhitespace: testutils.Ptr(true),
 							},
 							resolvedSystemPrompt: "Provide the final answer in exactly this format: Programming language name",
+							resolvedValidationRules: ValidationRules{
+								CaseSensitive:    testutils.Ptr(true),
+								IgnoreWhitespace: testutils.Ptr(true),
+							},
 						},
 					},
 				},

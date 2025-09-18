@@ -856,6 +856,13 @@ func TestValidationRulesResolution(t *testing.T) {
 			globalRules: ValidationRules{
 				CaseSensitive:    testutils.Ptr(false),
 				IgnoreWhitespace: testutils.Ptr(false),
+				Judge: JudgeSelector{
+					Prompt: JudgePrompt{
+						Template:        testutils.Ptr("default-judge-template"),
+						VerdictFormat:   testutils.Ptr(NewResponseFormat("Yes/No")),
+						PassingVerdicts: testutils.Ptr(utils.NewValueSet("Yes", "Y")),
+					},
+				},
 			},
 			taskRules: &ValidationRules{
 				CaseSensitive: testutils.Ptr(true), // override only this
@@ -863,6 +870,13 @@ func TestValidationRulesResolution(t *testing.T) {
 			expected: ValidationRules{
 				CaseSensitive:    testutils.Ptr(true),  // overridden
 				IgnoreWhitespace: testutils.Ptr(false), // from global
+				Judge: JudgeSelector{ // from global
+					Prompt: JudgePrompt{
+						Template:        testutils.Ptr("default-judge-template"),
+						VerdictFormat:   testutils.Ptr(NewResponseFormat("Yes/No")),
+						PassingVerdicts: testutils.Ptr(utils.NewValueSet("Yes", "Y")),
+					},
+				},
 			},
 		},
 		{
@@ -1411,6 +1425,157 @@ func TestSystemPrompt_MergeWith(t *testing.T) {
 	}
 }
 
+func TestJudgePrompt_MergeWith(t *testing.T) {
+	tests := []struct {
+		name     string
+		base     JudgePrompt
+		other    JudgePrompt
+		expected JudgePrompt
+	}{
+		{
+			name:     "both empty",
+			base:     JudgePrompt{},
+			other:    JudgePrompt{},
+			expected: JudgePrompt{},
+		},
+		{
+			name: "base has values, other empty",
+			base: JudgePrompt{
+				Template:        testutils.Ptr("base template"),
+				VerdictFormat:   testutils.Ptr(NewResponseFormat("base format")),
+				PassingVerdicts: testutils.Ptr(utils.NewValueSet("base expected")),
+			},
+			other: JudgePrompt{},
+			expected: JudgePrompt{
+				Template:        testutils.Ptr("base template"),
+				VerdictFormat:   testutils.Ptr(NewResponseFormat("base format")),
+				PassingVerdicts: testutils.Ptr(utils.NewValueSet("base expected")),
+			},
+		},
+		{
+			name: "other overrides base",
+			base: JudgePrompt{
+				Template:        testutils.Ptr("base template"),
+				VerdictFormat:   testutils.Ptr(NewResponseFormat("base format")),
+				PassingVerdicts: testutils.Ptr(utils.NewValueSet("base expected")),
+			},
+			other: JudgePrompt{
+				Template:        testutils.Ptr("other template"),
+				VerdictFormat:   testutils.Ptr(NewResponseFormat("other format")),
+				PassingVerdicts: testutils.Ptr(utils.NewValueSet("other expected")),
+			},
+			expected: JudgePrompt{
+				Template:        testutils.Ptr("other template"),
+				VerdictFormat:   testutils.Ptr(NewResponseFormat("other format")),
+				PassingVerdicts: testutils.Ptr(utils.NewValueSet("other expected")),
+			},
+		},
+		{
+			name: "partial override",
+			base: JudgePrompt{
+				Template:        testutils.Ptr("base template"),
+				VerdictFormat:   testutils.Ptr(NewResponseFormat("base format")),
+				PassingVerdicts: testutils.Ptr(utils.NewValueSet("base expected")),
+			},
+			other: JudgePrompt{
+				VerdictFormat: testutils.Ptr(NewResponseFormat("other format")),
+			},
+			expected: JudgePrompt{
+				Template:        testutils.Ptr("base template"),
+				VerdictFormat:   testutils.Ptr(NewResponseFormat("other format")),
+				PassingVerdicts: testutils.Ptr(utils.NewValueSet("base expected")),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.base.MergeWith(tt.other)
+			assert.Equal(t, tt.expected.Template, result.Template)
+			assert.Equal(t, tt.expected.VerdictFormat, result.VerdictFormat)
+			assert.Equal(t, tt.expected.PassingVerdicts, result.PassingVerdicts)
+		})
+	}
+}
+
+func TestTask_ResolveValidationRules(t *testing.T) {
+	tests := []struct {
+		name         string
+		task         Task
+		defaultRules ValidationRules
+		wantRules    ValidationRules
+		wantErr      bool
+	}{
+		{
+			name: "resolve with default rules",
+			task: Task{
+				ValidationRules: &ValidationRules{
+					CaseSensitive: testutils.Ptr(true),
+				},
+			},
+			defaultRules: ValidationRules{
+				IgnoreWhitespace: testutils.Ptr(true),
+			},
+			wantRules: ValidationRules{
+				CaseSensitive:    testutils.Ptr(true),
+				IgnoreWhitespace: testutils.Ptr(true),
+			},
+			wantErr: false,
+		},
+		{
+			name: "resolve with judge prompt",
+			task: Task{
+				ValidationRules: &ValidationRules{
+					Judge: JudgeSelector{
+						Enabled: testutils.Ptr(true),
+						Name:    testutils.Ptr("test-judge"),
+						Prompt: JudgePrompt{
+							Template: testutils.Ptr("custom judge prompt"),
+						},
+					},
+				},
+			},
+			defaultRules: ValidationRules{},
+			wantRules: ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(true),
+					Name:    testutils.Ptr("test-judge"),
+					Prompt: JudgePrompt{
+						Template: testutils.Ptr("custom judge prompt"),
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.task.ResolveValidationRules(tt.defaultRules)
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				got := tt.task.GetResolvedValidationRules()
+				assert.Equal(t, tt.wantRules.CaseSensitive, got.CaseSensitive)
+				assert.Equal(t, tt.wantRules.IgnoreWhitespace, got.IgnoreWhitespace)
+				assert.Equal(t, tt.wantRules.Judge.Enabled, got.Judge.Enabled)
+				assert.Equal(t, tt.wantRules.Judge.Name, got.Judge.Name)
+				assert.Equal(t, tt.wantRules.Judge.Variant, got.Judge.Variant)
+				assert.Equal(t, tt.wantRules.Judge.Prompt.Template, got.Judge.Prompt.Template)
+				assert.Equal(t, tt.wantRules.Judge.Prompt.VerdictFormat, got.Judge.Prompt.VerdictFormat)
+				assert.Equal(t, tt.wantRules.Judge.Prompt.PassingVerdicts, got.Judge.Prompt.PassingVerdicts)
+				if tt.wantRules.Judge.Prompt.Template != nil {
+					// Verify the template can be resolved.
+					data := struct{ Test string }{"test"}
+					resolvedPrompt, err := got.Judge.Prompt.ResolveJudgePrompt(data)
+					require.NoError(t, err)
+					assert.Contains(t, resolvedPrompt, "custom judge prompt")
+				}
+			}
+		})
+	}
+}
+
 func TestTask_ResolveSystemPrompt(t *testing.T) {
 	tests := []struct {
 		name          string
@@ -1816,7 +1981,6 @@ func TestValidateTaskConfiguration(t *testing.T) {
 				},
 			},
 		}
-		enabled := true
 		task := Task{
 			Name:                 "test",
 			Prompt:               "What is 2+2?",
@@ -1826,7 +1990,7 @@ func TestValidateTaskConfiguration(t *testing.T) {
 			),
 			ValidationRules: &ValidationRules{
 				Judge: JudgeSelector{
-					Enabled: &enabled,
+					Enabled: testutils.Ptr(true),
 				},
 			},
 		}
@@ -1865,7 +2029,7 @@ func TestValidateTaskConfiguration(t *testing.T) {
 		}
 		err := taskConfig.Validate()
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "does not conform to response-result-format schema")
+		assert.Contains(t, err.Error(), "expected-result does not conform to response-result-format schema")
 	})
 
 	t.Run("invalid - malformed JSON schema", func(t *testing.T) {
@@ -1894,12 +2058,10 @@ func TestValidateTaskConfiguration(t *testing.T) {
 
 	t.Run("invalid - response format neither string nor schema", func(t *testing.T) {
 		task := Task{
-			Name:   "test",
-			Prompt: "What is 2+2?",
-			ResponseResultFormat: ResponseFormat{
-				raw: 123, // invalid type
-			},
-			ExpectedResult: utils.NewValueSet("4"),
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat(123), // invalid type
+			ExpectedResult:       utils.NewValueSet("4"),
 		}
 
 		taskConfig := TaskConfig{
@@ -1909,5 +2071,193 @@ func TestValidateTaskConfiguration(t *testing.T) {
 		err := taskConfig.Validate()
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "response-result-format must be either plain text or a JSON schema object")
+	})
+
+	t.Run("invalid - judge prompt string response format with object expected result", func(t *testing.T) {
+		task := Task{
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat("Number"),
+			ExpectedResult:       utils.NewValueSet("4"),
+			ValidationRules: &ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(true),
+					Prompt: JudgePrompt{
+						Template:        testutils.Ptr("Is the response correct? Answer Yes or No."),
+						VerdictFormat:   testutils.Ptr(NewResponseFormat("Yes or No")),
+						PassingVerdicts: testutils.Ptr(utils.NewValueSet(map[string]interface{}{"correct": true})), // object when string format
+					},
+				},
+			},
+		}
+
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "when judge verdict-format is plain text, all judge passing-verdicts values must be plain text")
+	})
+
+	t.Run("invalid - judge prompt schema response format with string expected result", func(t *testing.T) {
+		judgeSchema := map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"correct": map[string]interface{}{
+					"type": "boolean",
+				},
+			},
+		}
+		task := Task{
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat("Number"),
+			ExpectedResult:       utils.NewValueSet("4"),
+			ValidationRules: &ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(true),
+					Prompt: JudgePrompt{
+						Template:        testutils.Ptr("Evaluate the response using the schema."),
+						VerdictFormat:   testutils.Ptr(NewResponseFormat(judgeSchema)),
+						PassingVerdicts: testutils.Ptr(utils.NewValueSet("yes")), // string when schema expects object
+					},
+				},
+			},
+		}
+
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "judge passing-verdicts does not conform to judge verdict-format schema")
+	})
+
+	t.Run("invalid - judge response format neither string nor schema", func(t *testing.T) {
+		task := Task{
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat("Number"),
+			ExpectedResult:       utils.NewValueSet("4"),
+			ValidationRules: &ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(true),
+					Prompt: JudgePrompt{
+						Template:        testutils.Ptr("Test template"),
+						VerdictFormat:   testutils.Ptr(NewResponseFormat(123)), // invalid type
+						PassingVerdicts: testutils.Ptr(utils.NewValueSet("yes")),
+					},
+				},
+			},
+		}
+
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "judge verdict-format must be either plain text or a JSON schema object")
+	})
+
+	t.Run("invalid - judge response format specified without custom template", func(t *testing.T) {
+		task := Task{
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat("Number"),
+			ExpectedResult:       utils.NewValueSet("4"),
+			ValidationRules: &ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(true),
+					Prompt: JudgePrompt{
+						VerdictFormat: testutils.Ptr(NewResponseFormat("Yes or No")), // should not be specified without custom template
+					},
+				},
+			},
+		}
+
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "judge verdict-format should not be specified when using default judge prompt template")
+	})
+
+	t.Run("invalid - judge expected result specified without custom template", func(t *testing.T) {
+		task := Task{
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat("Number"),
+			ExpectedResult:       utils.NewValueSet("4"),
+			ValidationRules: &ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(true),
+					Prompt: JudgePrompt{
+						PassingVerdicts: testutils.Ptr(utils.NewValueSet("correct")), // should not be specified without custom template
+					},
+				},
+			},
+		}
+
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "judge passing-verdicts should not be specified when using default judge prompt template")
+	})
+}
+
+func TestJudgePrompt_Getters_DefaultsAndOverrides(t *testing.T) {
+	t.Run("defaults when unset", func(t *testing.T) {
+		var jp JudgePrompt
+		gotFormat := jp.GetVerdictFormat()
+		if schema, ok := gotFormat.AsSchema(); assert.True(t, ok, "default verdict format should be schema") {
+			expectedDefaultSchema := map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"correct": map[string]interface{}{
+						"type":        "boolean",
+						"title":       "Semantic Equivalence Verdict",
+						"description": "True if the candidate response is semantically equivalent to any expected answer, false otherwise. Follow the provided evaluation criteria and normalization rules.",
+					},
+				},
+				"required":             []interface{}{"correct"},
+				"additionalProperties": false,
+			}
+			assert.Equal(t, expectedDefaultSchema, schema)
+		}
+
+		gotPassing := jp.GetPassingVerdicts()
+		expectedVerdicts := utils.NewValueSet(map[string]interface{}{"correct": true})
+		assert.Equal(t, expectedVerdicts.Values(), gotPassing.Values())
+	})
+
+	t.Run("overrides when set", func(t *testing.T) {
+		customSchema := map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"ok": map[string]interface{}{"type": "boolean"},
+			},
+			"required": []interface{}{"ok"},
+		}
+		customVerdicts := utils.NewValueSet(map[string]interface{}{"ok": true})
+		jp := JudgePrompt{
+			VerdictFormat:   testutils.Ptr(NewResponseFormat(customSchema)),
+			PassingVerdicts: testutils.Ptr(customVerdicts),
+		}
+
+		gotFormat := jp.GetVerdictFormat()
+		if schema, ok := gotFormat.AsSchema(); assert.True(t, ok, "override verdict format should be schema") {
+			assert.Equal(t, customSchema, schema)
+		}
+
+		gotPassing := jp.GetPassingVerdicts()
+		assert.Equal(t, customVerdicts.Values(), gotPassing.Values())
 	})
 }

@@ -18,6 +18,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"text/template"
 	"time"
 
@@ -37,6 +38,65 @@ var (
 	ErrDownloadFile = errors.New("failed to download remote file")
 	// ErrAccessFile indicates that a local file could not be accessed.
 	ErrAccessFile = errors.New("file is not accessible")
+)
+
+var (
+	// defaultJudgePromptTemplate is the pre-compiled default judge prompt template.
+	defaultJudgePromptTemplate = template.Must(template.New("default-judge-prompt").Option("missingkey=error").Parse(`You are an automatic grader. Decide if the candidate response is semantically equivalent to ANY ONE of the expected answers.
+
+Definitions
+- Semantic equivalence: the candidate conveys the same meaning and required facts as an expected answer; wording may differ.
+- Extra content: ignore unless it contradicts or changes the meaning.
+- Normalization: apply the flags below BEFORE comparing (case/whitespace).
+
+Inputs
+Original task prompt:
+{{.OriginalTask.Prompt}}
+
+Original answer format instruction:
+{{.OriginalTask.ResponseResultFormat}}
+
+Expected answer(s) (match any one):
+{{- range .OriginalTask.ExpectedResults}}
+- {{.}}
+{{- end}}
+
+Candidate response:
+{{.Candidate.Response}}
+
+Validation flags:
+- Case sensitive: {{if .Rules.CaseSensitive}}yes{{else}}no{{end}}
+- Ignore whitespace: {{if .Rules.IgnoreWhitespace}}yes{{else}}no{{end}}
+
+Procedure
+1. Normalize candidate and each expected answer per the flags.
+2. Compare the candidate to each expected answer independently for semantic equivalence.
+3. Set "correct" to true if ANY match, false otherwise.`))
+
+	// defaultJudgeVerdictFormat is the default response format for judge evaluation.
+	defaultJudgeVerdictFormat = sync.OnceValue(func() ResponseFormat {
+		judgeSchema := map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"correct": map[string]interface{}{
+					"type":        "boolean",
+					"title":       "Semantic Equivalence Verdict",
+					"description": "True if the candidate response is semantically equivalent to any expected answer, false otherwise. Follow the provided evaluation criteria and normalization rules.",
+				},
+			},
+			"required":             []interface{}{"correct"},
+			"additionalProperties": false,
+		}
+		return NewResponseFormat(judgeSchema)
+	})
+
+	// defaultJudgePassingVerdicts is the default accepted verdict(s) for judge evaluation.
+	defaultJudgePassingVerdicts = sync.OnceValue(func() utils.ValueSet {
+		expectedResult := map[string]interface{}{
+			"correct": true,
+		}
+		return utils.NewValueSet(expectedResult)
+	})
 )
 
 // URI represents a parsed URI/URL that can be used to reference a file.
@@ -244,42 +304,80 @@ func (o TaskConfig) Validate() error {
 	return nil
 }
 
-// validateTask validates a single task for internal consistency and compatibility.
-// It ensures that the task's configuration is valid and that all properties are
-// compatible with each other.
-//
-// - Response format must be either a plain text string or a JSON schema object describing the required response structure.
-// - For string response format: all expected results must be strings.
-// - For structured response format: all expected results must conform to the schema.
-// - Semantic validation cannot be used with structured schema-based response formats.
 func (o TaskConfig) validateTask(task Task) error {
-	if _, isString := task.ResponseResultFormat.AsString(); isString {
-		// For string format, expected results must all be strings.
-		if _, ok := task.ExpectedResult.AsStringSet(); !ok {
-			return fmt.Errorf("%w: when response-result-format is plain text, all expected-result values must be plain text", ErrInvalidTaskProperty)
+	resolvedValidationRules := o.ValidationRules.MergeWith(task.ValidationRules)
+
+	// Validate task response format and expected results.
+	if err := validateFormatAndExpectedResults(task.ResponseResultFormat, task.ExpectedResult, resolvedValidationRules.UseJudge(), "response-result-format", "expected-result"); err != nil {
+		return err
+	}
+
+	// Validate judge prompt configuration.
+	if resolvedValidationRules.UseJudge() {
+		judgePrompt := resolvedValidationRules.Judge.Prompt
+		if _, ok := judgePrompt.GetTemplate(); ok {
+			// If template is provided, verdict-format and passing-verdicts must also be provided.
+			if judgePrompt.VerdictFormat == nil {
+				return fmt.Errorf("%w: judge prompt template requires verdict-format to be specified", ErrInvalidTaskProperty)
+			}
+			if judgePrompt.PassingVerdicts == nil {
+				return fmt.Errorf("%w: judge prompt template requires passing-verdicts to be specified", ErrInvalidTaskProperty)
+			}
+		} else {
+			// If no template is provided (using fallback), verdict-format and passing-verdicts should not be overridden.
+			if judgePrompt.VerdictFormat != nil {
+				return fmt.Errorf("%w: judge verdict-format should not be specified when using default judge prompt template", ErrInvalidTaskProperty)
+			}
+			if judgePrompt.PassingVerdicts != nil {
+				return fmt.Errorf("%w: judge passing-verdicts should not be specified when using default judge prompt template", ErrInvalidTaskProperty)
+			}
 		}
-	} else if schema, isSchema := task.ResponseResultFormat.AsSchema(); isSchema {
+
+		// Validate that judge prompt expected result conforms to response format.
+		// This will also validate fallback values if not overridden.
+		// `useJudge` is always `false` here because judge validators use exact matching to assert the semantic evaluation result.
+		if err := validateFormatAndExpectedResults(judgePrompt.GetVerdictFormat(), judgePrompt.GetPassingVerdicts(), false, "judge verdict-format", "judge passing-verdicts"); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// validateFormatAndExpectedResults validates that a response format is compatible with expected results.
+// It ensures that:
+// - Response format is either plain text string or JSON schema.
+// - For string format: all expected results are strings.
+// - For schema format: all expected results conform to the schema.
+// - For schema format: semantic validation of the result is not allowed.
+// The formatPrefix and expectedPrefix parameters are used to customize error messages.
+func validateFormatAndExpectedResults(format ResponseFormat, expectedResult utils.ValueSet, useJudge bool, formatPrefix string, expectedPrefix string) error {
+	if _, isString := format.AsString(); isString {
+		// For string format, expected results must all be strings.
+		if _, ok := expectedResult.AsStringSet(); !ok {
+			return fmt.Errorf("%w: when %s is plain text, all %s values must be plain text", ErrInvalidTaskProperty, formatPrefix, expectedPrefix)
+		}
+	} else if schema, isSchema := format.AsSchema(); isSchema {
 		// For schema format, expected results must conform to the schema.
-		expectedValues := task.ExpectedResult.Values()
+		expectedValues := expectedResult.Values()
 		if err := utils.ValidateAgainstSchema(schema, expectedValues...); err != nil {
 			switch {
 			case errors.Is(err, utils.ErrInvalidJSONSchema):
-				return fmt.Errorf("%w: response-result-format contains an invalid JSON schema: %v", ErrInvalidTaskProperty, err)
+				return fmt.Errorf("%w: %s contains an invalid JSON schema: %v", ErrInvalidTaskProperty, formatPrefix, err)
 			case errors.Is(err, utils.ErrJSONSchemaValidation):
-				return fmt.Errorf("%w: expected-result does not conform to response-result-format schema: %v", ErrInvalidTaskProperty, err)
+				return fmt.Errorf("%w: %s does not conform to %s schema: %v", ErrInvalidTaskProperty, expectedPrefix, formatPrefix, err)
 			default:
 				return err
 			}
 		}
 
 		// Semantic validation should not be used with schema format.
-		if resolvedValidationRules := o.ValidationRules.MergeWith(task.ValidationRules); resolvedValidationRules.UseJudge() {
-			return fmt.Errorf("%w: semantic validation cannot be used with structured schema-based response-result-format", ErrInvalidTaskProperty)
+		if useJudge {
+			return fmt.Errorf("%w: semantic validation cannot be used with structured schema-based %s", ErrInvalidTaskProperty, formatPrefix)
 		}
 	} else {
-		return fmt.Errorf("%w: response-result-format must be either plain text or a JSON schema object", ErrInvalidTaskProperty)
+		return fmt.Errorf("%w: %s must be either plain text or a JSON schema object", ErrInvalidTaskProperty, formatPrefix)
 	}
-
 	return nil
 }
 
@@ -526,11 +624,19 @@ type Task struct {
 
 	// resolvedSystemPrompt is the resolved system prompt template for this task.
 	resolvedSystemPrompt string
+
+	// resolvedValidationRules is the resolved validation rules for this task.
+	resolvedValidationRules ValidationRules
 }
 
 // GetResolvedSystemPrompt returns the resolved system prompt template for this task and true if it is not blank.
 func (t Task) GetResolvedSystemPrompt() (prompt string, ok bool) {
 	return t.resolvedSystemPrompt, IsNotBlank(t.resolvedSystemPrompt)
+}
+
+// GetResolvedValidationRules returns the resolved validation rules for this task.
+func (t Task) GetResolvedValidationRules() ValidationRules {
+	return t.resolvedValidationRules
 }
 
 // ResolveSystemPrompt resolves the system prompt template for this task using the provided default.
@@ -574,6 +680,21 @@ func (t *Task) ResolveSystemPrompt(defaultConfig SystemPrompt) error {
 	return nil
 }
 
+// ResolveValidationRules resolves the validation rules for this task using the provided default.
+// The resolved rules can be retrieved using GetResolvedValidationRules().
+func (t *Task) ResolveValidationRules(defaultConfig ValidationRules) error {
+	t.resolvedValidationRules = defaultConfig.MergeWith(t.ValidationRules)
+
+	// Parse judge prompt template if judge is enabled.
+	if t.resolvedValidationRules.UseJudge() {
+		if err := t.resolvedValidationRules.Judge.Prompt.CompileJudgeTemplate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // shouldResolveSystemPrompt determines if system prompt should be resolved for this task
 // based on the SystemPrompt configuration.
 func (t Task) shouldResolveSystemPrompt(configuration SystemPrompt) bool {
@@ -600,6 +721,9 @@ type JudgeSelector struct {
 
 	// Variant specifies the run variant name from the judge's provider configuration.
 	Variant *string `yaml:"variant" validate:"omitempty"`
+
+	// Prompt specifies the judge prompt configuration.
+	Prompt JudgePrompt `yaml:"prompt" validate:"omitempty"`
 }
 
 // IsEnabled returns whether judge evaluation is enabled.
@@ -631,6 +755,7 @@ func (these JudgeSelector) MergeWith(other JudgeSelector) JudgeSelector {
 	setIfNotNil(&resolved.Enabled, other.Enabled)
 	setIfNotNil(&resolved.Name, other.Name)
 	setIfNotNil(&resolved.Variant, other.Variant)
+	resolved.Prompt = resolved.Prompt.MergeWith(other.Prompt)
 
 	return resolved
 }
@@ -708,4 +833,88 @@ func (t *Task) SetBaseFilePath(basePath string) error {
 		}
 	}
 	return nil
+}
+
+// JudgePrompt represents a judge prompt configuration for semantic validation.
+type JudgePrompt struct {
+	// Template is the template string for the judge prompt.
+	Template *string `yaml:"template" validate:"omitempty"`
+
+	// VerdictFormat specifies how the judge should format its evaluation response.
+	VerdictFormat *ResponseFormat `yaml:"verdict-format" validate:"omitempty"`
+
+	// PassingVerdicts is the set of verdicts that count as a pass.
+	PassingVerdicts *utils.ValueSet `yaml:"passing-verdicts" validate:"omitempty"`
+
+	// compiledJudgeTemplate is the parsed judge prompt template.
+	compiledJudgeTemplate *template.Template
+}
+
+// GetTemplate returns the template string and true if it is set and not blank.
+func (jp JudgePrompt) GetTemplate() (template string, ok bool) {
+	if ok = jp.Template != nil && IsNotBlank(*jp.Template); ok {
+		template = *jp.Template
+	}
+	return
+}
+
+// GetResponseFormat returns the response format.
+func (jp JudgePrompt) GetVerdictFormat() ResponseFormat {
+	if jp.VerdictFormat != nil {
+		return *jp.VerdictFormat
+	}
+	return defaultJudgeVerdictFormat()
+}
+
+// GetPassingVerdicts returns the accepted verdicts set.
+func (jp JudgePrompt) GetPassingVerdicts() utils.ValueSet {
+	if jp.PassingVerdicts != nil {
+		return *jp.PassingVerdicts
+	}
+	return defaultJudgePassingVerdicts()
+}
+
+// getCompiledTemplate returns template compiled from the judge prompt.
+func (jp JudgePrompt) getCompiledTemplate() *template.Template {
+	if jp.compiledJudgeTemplate != nil {
+		return jp.compiledJudgeTemplate
+	}
+	return defaultJudgePromptTemplate
+}
+
+// ResolveJudgePrompt resolves the judge prompt template with the provided data.
+// Returns the resolved prompt string and an error if the template execution fails.
+// If no custom template is provided, uses the default judge prompt template.
+func (jp JudgePrompt) ResolveJudgePrompt(data interface{}) (string, error) {
+	tmpl := jp.getCompiledTemplate()
+
+	var result strings.Builder
+	if err := tmpl.Execute(&result, data); err != nil {
+		return "", fmt.Errorf("failed to execute judge prompt template: %w", err)
+	}
+	return result.String(), nil
+}
+
+// CompileJudgeTemplate compiles the judge prompt template if it exists.
+func (jp *JudgePrompt) CompileJudgeTemplate() error {
+	if templateValue, ok := jp.GetTemplate(); ok {
+		tmpl, err := template.New("custom-judge-prompt").Option("missingkey=error").Parse(templateValue)
+		if err != nil {
+			return fmt.Errorf("failed to parse judge prompt template: %w", err)
+		}
+		jp.compiledJudgeTemplate = tmpl
+	}
+	return nil
+}
+
+// MergeWith merges this judge prompt with another and returns the result.
+// The provided other values override these values if set.
+func (these JudgePrompt) MergeWith(other JudgePrompt) JudgePrompt {
+	resolved := these
+
+	setIfNotNil(&resolved.Template, other.Template)
+	setIfNotNil(&resolved.VerdictFormat, other.VerdictFormat)
+	setIfNotNil(&resolved.PassingVerdicts, other.PassingVerdicts)
+
+	return resolved
 }

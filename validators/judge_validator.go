@@ -10,8 +10,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"sync"
-	"text/template"
 
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
@@ -21,31 +19,6 @@ import (
 )
 
 const judgeTaskName = "response assessment"
-
-// judgeResponseFormat is a lazily initialized singleton for the judge task's ResponseFormat.
-var judgeResponseFormat = sync.OnceValue(func() config.ResponseFormat {
-	judgeSchema := map[string]interface{}{
-		"type": "object",
-		"properties": map[string]interface{}{
-			"correct": map[string]interface{}{
-				"type":        "boolean",
-				"title":       "Semantic Equivalence Verdict",
-				"description": "True if the candidate response is semantically equivalent to any expected answer, false otherwise. Follow the provided evaluation criteria and normalization rules.",
-			},
-		},
-		"required":             []string{"correct"},
-		"additionalProperties": false,
-	}
-	return config.NewResponseFormat(judgeSchema)
-})
-
-// judgeExpectedResult is a lazily initialized singleton for the judge task's ExpectedResult.
-var judgeExpectedResult = sync.OnceValue(func() utils.ValueSet {
-	expectedResult := map[string]interface{}{
-		"correct": true,
-	}
-	return utils.NewValueSet(expectedResult)
-})
 
 // judgeValidator uses an LLM to evaluate the correctness of responses.
 // It provides semantic validation by comparing model responses against expected answers
@@ -75,9 +48,9 @@ func NewJudgeValidator(ctx context.Context, judgeConfig *config.JudgeConfig, jud
 
 // IsCorrect evaluates the response using the judge LLM.
 // This validator always returns a result with `IsCorrect` set to false for non-string responses.
-// If the tasks requires a structured schema-based response format the validator returns an error.
+// If the task requires a structured, schema-based response format, the validator returns an error.
 // The originalPrompt and expectedResponseFormat provide additional context to help the judge
-// make more informed evaluations by understanding the task requirements.
+// make a more informed evaluation by understanding the task requirements.
 func (v *judgeValidator) IsCorrect(ctx context.Context, logger logging.Logger, rules config.ValidationRules, expected utils.ValueSet, actual providers.Result, originalPrompt string, expectedResponseFormat config.ResponseFormat) (result ValidationResult, err error) {
 	// Get expected results as strings for judge evaluation.
 	expectedStrings, isPlainTextExpected := expected.AsStringSet()
@@ -110,8 +83,8 @@ func (v *judgeValidator) IsCorrect(ctx context.Context, logger logging.Logger, r
 	judgeTask := config.Task{
 		Name:                 judgeTaskName,
 		Prompt:               prompt,
-		ResponseResultFormat: judgeResponseFormat(),
-		ExpectedResult:       judgeExpectedResult(),
+		ResponseResultFormat: rules.Judge.Prompt.GetVerdictFormat(),
+		ExpectedResult:       rules.Judge.Prompt.GetPassingVerdicts(),
 	}
 
 	// Execute the judge task and evaluate the response.
@@ -166,60 +139,59 @@ func (v *judgeValidator) Close(ctx context.Context) error {
 	return v.executor.Provider.Close(ctx)
 }
 
-// judgePromptTemplate defines the template for judge semantic evaluation prompts.
-var judgePromptTemplate = template.Must(template.New("judgePrompt").Parse(`You are an automatic grader. Decide if the candidate response is semantically equivalent to ANY ONE of the expected answers.
+// judgeTemplateOriginalTask exposes selected fields of the evaluated task to the judge template.
+type judgeTemplateOriginalTask struct {
+	// Prompt is the original task's prompt.
+	Prompt string
+	// ResponseResultFormat is the answer format instruction from the original task.
+	ResponseResultFormat string
+	// ExpectedResults are accepted answers from the original task used for semantic comparison.
+	ExpectedResults []string
+}
 
-Definitions
-- Semantic equivalence: the candidate conveys the same meaning and required facts as an expected answer; wording may differ.
-- Extra content: ignore unless it contradicts or changes the meaning.
-- Normalization: apply the flags below BEFORE comparing (case/whitespace).
+// judgeTemplateCandidate encapsulates information about the candidate model response.
+type judgeTemplateCandidate struct {
+	// Response is the final answer produced by the model under test.
+	Response string
+}
 
-Inputs
-Original task prompt:
-{{.OriginalPrompt}}
+// judgeTemplateRules is a sanitized projection of validation rules for the template.
+type judgeTemplateRules struct {
+	CaseSensitive    bool
+	IgnoreWhitespace bool
+	TrimLines        bool
+}
 
-Original answer format instruction:
-{{.ExpectedResponseFormat}}
-
-Expected answer(s) (match any one):
-{{- range .ExpectedAnswers}}
-- {{.}}
-{{- end}}
-
-Candidate response:
-{{.ActualResponse}}
-
-Validation flags:
-- Case sensitive: {{if .Rules.IsCaseSensitive}}yes{{else}}no{{end}}
-- Ignore whitespace: {{if .Rules.IsIgnoreWhitespace}}yes{{else}}no{{end}}
-
-Procedure
-1. Normalize candidate and each expected answer per the flags.  
-2. Compare the candidate to each expected answer independently for semantic equivalence.  
-3. Set "correct" to true if ANY match, false otherwise.`))
+// judgeTemplateContext is the nested, sanitized data passed to the judge prompt template.
+type judgeTemplateContext struct {
+	OriginalTask judgeTemplateOriginalTask
+	Candidate    judgeTemplateCandidate
+	Rules        judgeTemplateRules
+}
 
 // createJudgePrompt creates a prompt for the judge to evaluate semantic equivalence.
-// The originalPrompt and expectedResponseFormat provide additional context to help the judge
-// understand the task requirements and make more informed evaluations.
+// The original task's prompt and response format instruction are included
+// to help the judge understand the task requirements and make more informed evaluations.
 func (v *judgeValidator) createJudgePrompt(rules config.ValidationRules, expected utils.StringSet, actualResponse, originalPrompt, expectedResponseFormat string) (string, error) {
-	data := struct {
-		ExpectedAnswers        []string
-		ActualResponse         string
-		Rules                  config.ValidationRules
-		OriginalPrompt         string
-		ExpectedResponseFormat string
-	}{
-		ExpectedAnswers:        expected.Values(),
-		ActualResponse:         actualResponse,
-		Rules:                  rules,
-		OriginalPrompt:         originalPrompt,
-		ExpectedResponseFormat: expectedResponseFormat,
+	data := judgeTemplateContext{
+		OriginalTask: judgeTemplateOriginalTask{
+			Prompt:               originalPrompt,
+			ResponseResultFormat: expectedResponseFormat,
+			ExpectedResults:      expected.Values(),
+		},
+		Candidate: judgeTemplateCandidate{
+			Response: actualResponse,
+		},
+		Rules: judgeTemplateRules{
+			CaseSensitive:    rules.IsCaseSensitive(),
+			IgnoreWhitespace: rules.IsIgnoreWhitespace(),
+			TrimLines:        rules.IsTrimLines(),
+		},
 	}
 
-	var result strings.Builder
-	if err := judgePromptTemplate.Execute(&result, data); err != nil {
+	prompt, err := rules.Judge.Prompt.ResolveJudgePrompt(data)
+	if err != nil {
 		return "", err
 	}
-
-	return result.String(), nil
+	return prompt, nil
 }

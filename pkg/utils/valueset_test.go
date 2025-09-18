@@ -113,6 +113,14 @@ func TestValueSet_YAMLUnmarshal(t *testing.T) {
 				map[string]interface{}{"name": "other", "values": []interface{}{4, 5, 6}},
 			},
 		},
+		{
+			name: "single map object",
+			yaml: `answer: "YES"
+confidence: 0.95`,
+			expected: []interface{}{
+				map[string]interface{}{"answer": "YES", "confidence": 0.95},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -128,10 +136,9 @@ func TestValueSet_YAMLUnmarshal(t *testing.T) {
 func TestValueSet_YAMLUnmarshal_Error(t *testing.T) {
 	var unmarshaled ValueSet
 
-	// Test invalid YAML structure (map instead of scalar or sequence).
-	err := yaml.Unmarshal([]byte("key: value"), &unmarshaled)
+	// Test invalid YAML syntax.
+	err := yaml.Unmarshal([]byte("invalid: - :"), &unmarshaled)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "invalid set value")
 }
 
 func TestValueSet_YAMLMarshal(t *testing.T) {
@@ -169,6 +176,13 @@ func TestValueSet_YAMLMarshal(t *testing.T) {
 				map[string]interface{}{"name": "test", "values": []interface{}{1, 2, 3}},
 			},
 			contains: []string{"name", "test", "values", "1", "2", "3"},
+		},
+		{
+			name: "single map",
+			values: []interface{}{
+				map[string]interface{}{"key": "value"},
+			},
+			contains: []string{"key", "value"},
 		},
 	}
 

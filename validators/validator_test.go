@@ -1372,16 +1372,23 @@ func TestValidatorFactoryWithDisabledJudgeRun(t *testing.T) {
 func TestJudgeValidatorCreateJudgePrompt(t *testing.T) {
 	judgeValidator := &judgeValidator{}
 
-	rules := config.ValidationRules{}
-	expected := utils.NewStringSet("42", "forty-two")
-	actualResponse := "The answer is 42"
-	originalPrompt := "What is the answer to the ultimate question?"
-	expectedResponseFormat := "A single number or spelled-out number"
-
-	prompt, err := judgeValidator.createJudgePrompt(rules, expected, actualResponse, originalPrompt, expectedResponseFormat)
-	require.NoError(t, err)
-
-	expectedPrompt := `You are an automatic grader. Decide if the candidate response is semantically equivalent to ANY ONE of the expected answers.
+	tests := []struct {
+		name           string
+		rules          config.ValidationRules
+		expected       utils.StringSet
+		actual         string
+		original       string
+		format         string
+		expectedPrompt string
+	}{
+		{
+			name:     "default judge prompt",
+			rules:    config.ValidationRules{},
+			expected: utils.NewStringSet("42", "forty-two"),
+			actual:   "The answer is 42",
+			original: "What is the answer to the ultimate question?",
+			format:   "A single number or spelled-out number",
+			expectedPrompt: `You are an automatic grader. Decide if the candidate response is semantically equivalent to ANY ONE of the expected answers.
 
 Definitions
 - Semantic equivalence: the candidate conveys the same meaning and required facts as an expected answer; wording may differ.
@@ -1407,11 +1414,63 @@ Validation flags:
 - Ignore whitespace: no
 
 Procedure
-1. Normalize candidate and each expected answer per the flags.  
-2. Compare the candidate to each expected answer independently for semantic equivalence.  
-3. Set "correct" to true if ANY match, false otherwise.`
+1. Normalize candidate and each expected answer per the flags.
+2. Compare the candidate to each expected answer independently for semantic equivalence.
+3. Set "correct" to true if ANY match, false otherwise.`,
+		},
+		{
+			name: "custom judge prompt with string format",
+			rules: config.ValidationRules{
+				Judge: config.JudgeSelector{
+					Enabled: testutils.Ptr(true),
+					Prompt: config.JudgePrompt{
+						Template:        testutils.Ptr("Custom judge: {{.OriginalTask.Prompt}} -> {{.Candidate.Response}} should match {{range .OriginalTask.ExpectedResults}}{{.}} {{end}}"),
+						VerdictFormat:   testutils.Ptr(config.NewResponseFormat("string")),
+						PassingVerdicts: testutils.Ptr(utils.NewValueSet("yes")),
+					},
+				},
+			},
+			expected:       utils.NewStringSet("expected1", "expected2"),
+			actual:         "response",
+			original:       "original prompt",
+			format:         "string format",
+			expectedPrompt: "Custom judge: original prompt -> response should match expected1 expected2 ",
+		},
+		{
+			name: "custom judge prompt with schema format",
+			rules: config.ValidationRules{
+				Judge: config.JudgeSelector{
+					Enabled: testutils.Ptr(true),
+					Prompt: config.JudgePrompt{
+						Template: testutils.Ptr("Schema judge: {{.OriginalTask.Prompt}}"),
+						VerdictFormat: testutils.Ptr(config.NewResponseFormat(map[string]interface{}{
+							"type": "object",
+							"properties": map[string]interface{}{
+								"correct": map[string]interface{}{"type": "boolean"},
+							},
+							"required": []string{"correct"},
+						})),
+						PassingVerdicts: testutils.Ptr(utils.NewValueSet(map[string]interface{}{"correct": true})),
+					},
+				},
+			},
+			expected:       utils.NewStringSet("true"),
+			actual:         "candidate",
+			original:       "schema prompt",
+			format:         "schema format",
+			expectedPrompt: "Schema judge: schema prompt",
+		},
+	}
 
-	assert.Equal(t, expectedPrompt, prompt)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.rules.Judge.Prompt.CompileJudgeTemplate()
+			require.NoError(t, err)
+			prompt, err := judgeValidator.createJudgePrompt(tt.rules, tt.expected, tt.actual, tt.original, tt.format)
+			require.NoError(t, err)
+			assert.Equal(t, tt.expectedPrompt, prompt)
+		})
+	}
 }
 
 func TestJudgeValidatorCreateJudgePromptWithValidationRules(t *testing.T) {
