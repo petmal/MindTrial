@@ -8,9 +8,11 @@ package utils
 
 import (
 	"errors"
+	"math"
 	"strings"
 	"testing"
 
+	"github.com/petmal/mindtrial/pkg/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
@@ -497,5 +499,107 @@ func TestSortedKeys(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, SortedKeys(tt.m))
 		})
+	}
+}
+
+func TestConvertIntPtr(t *testing.T) {
+	tests := []struct {
+		name     string
+		testFunc func(t *testing.T)
+	}{
+		{
+			name: "uint32 to int64 non-nil",
+			testFunc: func(t *testing.T) {
+				input := testutils.Ptr(uint32(42))
+				expected := testutils.Ptr(int64(42))
+				result := ConvertIntPtr[uint32, int64](input)
+				require.NotNil(t, result)
+				assert.Equal(t, *expected, *result)
+			},
+		},
+		{
+			name: "uint32 to int64 nil",
+			testFunc: func(t *testing.T) {
+				result := ConvertIntPtr[uint32, int64](nil)
+				assert.Nil(t, result)
+			},
+		},
+		{
+			name: "int64 to int non-nil",
+			testFunc: func(t *testing.T) {
+				input := testutils.Ptr(int64(123))
+				expected := testutils.Ptr(int(123))
+				result := ConvertIntPtr[int64, int](input)
+				require.NotNil(t, result)
+				assert.Equal(t, *expected, *result)
+			},
+		},
+		{
+			name: "int64 to int nil",
+			testFunc: func(t *testing.T) {
+				result := ConvertIntPtr[int64, int](nil)
+				assert.Nil(t, result)
+			},
+		},
+		{
+			name: "int32 to uint16 non-nil",
+			testFunc: func(t *testing.T) {
+				input := testutils.Ptr(int32(255))
+				expected := testutils.Ptr(uint16(255))
+				result := ConvertIntPtr[int32, uint16](input)
+				require.NotNil(t, result)
+				assert.Equal(t, *expected, *result)
+			},
+		},
+		{
+			name: "int8 to uint64 non-nil",
+			testFunc: func(t *testing.T) {
+				input := testutils.Ptr(int8(127))
+				expected := testutils.Ptr(uint64(127))
+				result := ConvertIntPtr[int8, uint64](input)
+				require.NotNil(t, result)
+				assert.Equal(t, *expected, *result)
+			},
+		},
+		{
+			name: "uint64 to int32 non-nil",
+			testFunc: func(t *testing.T) {
+				input := testutils.Ptr(uint64(127))
+				expected := testutils.Ptr(int32(127))
+				result := ConvertIntPtr[uint64, int32](input)
+				require.NotNil(t, result)
+				assert.Equal(t, *expected, *result)
+			},
+		},
+		{
+			name: "edge cases",
+			testFunc: func(t *testing.T) {
+				testCases := []struct {
+					name     string
+					input    uint64
+					expected int32
+				}{
+					{"zero", 0, 0},
+					{"small positive", 127, 127},
+					{"max safe value", math.MaxInt32, math.MaxInt32},
+					{"overflow wraps around", uint64(math.MaxInt32) + 1, math.MinInt32}, // 2^31 wraps to -2^31
+					{"large value truncation", 4294967296, 0},                           // 2^32 truncates to 0
+				}
+
+				for _, tc := range testCases {
+					t.Run(tc.name, func(t *testing.T) {
+						input := testutils.Ptr(tc.input)
+						expected := testutils.Ptr(tc.expected)
+						result := ConvertIntPtr[uint64, int32](input)
+						require.NotNil(t, result)
+						assert.Equal(t, *expected, *result)
+					})
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, tt.testFunc)
 	}
 }

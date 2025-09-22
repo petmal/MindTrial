@@ -16,7 +16,7 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-// NewDeepseek creates a new Deepseek provider instance with the given configuration.
+// NewDeepseek creates a new DeepSeek provider instance with the given configuration.
 func NewDeepseek(cfg config.DeepseekClientConfig) (*Deepseek, error) {
 	opts := make([]deepseek.Option, 0)
 	if cfg.RequestTimeout != nil {
@@ -31,7 +31,7 @@ func NewDeepseek(cfg config.DeepseekClientConfig) (*Deepseek, error) {
 	}, nil
 }
 
-// Deepseek implements the Provider interface for Deepseek generative models.
+// Deepseek implements the Provider interface for DeepSeek generative models.
 type Deepseek struct {
 	client *deepseek.Client
 }
@@ -132,7 +132,7 @@ func (o *Deepseek) Run(ctx context.Context, _ logging.Logger, cfg config.RunConf
 }
 
 func (o *Deepseek) isFileUploadSupported() bool {
-	return false // NOTE: Deepseek API does not support file upload in the current version.
+	return false // NOTE: DeepSeek API does not support file upload in the current version.
 }
 
 func (o *Deepseek) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []deepseek.ContentItem, err error) {

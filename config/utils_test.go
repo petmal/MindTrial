@@ -191,6 +191,12 @@ func TestLoadConfigFromFile(t *testing.T) {
       runs:
           - name: "Vision"
             model: "interface"
+    - name: alibaba
+      client-config:
+          api-key: "sk-alibaba-test-key"
+      runs:
+          - name: "Qwen"
+            model: "qwen-turbo"
 `)),
 			},
 			want: &Config{
@@ -282,6 +288,20 @@ func TestLoadConfigFromFile(t *testing.T) {
 							},
 							Disabled: false,
 						},
+						{
+							Name: "alibaba",
+							ClientConfig: AlibabaClientConfig{
+								APIKey: "sk-alibaba-test-key",
+							},
+							Runs: []RunConfig{
+								{
+									Name:                 "Qwen",
+									Model:                "qwen-turbo",
+									MaxRequestsPerMinute: 0,
+								},
+							},
+							Disabled: false,
+						},
 					},
 				},
 			},
@@ -313,6 +333,7 @@ func TestLoadConfigFromFile(t *testing.T) {
                     top-p: 0.95
                     presence-penalty: 0.1
                     frequency-penalty: 0.1
+                    max-completion-tokens: 4096
         - name: anthropic
           client-config:
               api-key: "c86be894-ad2e-4c7f-b0bd-4397df9f234f"
@@ -349,6 +370,9 @@ func TestLoadConfigFromFile(t *testing.T) {
                     temperature: 0.7
                     top-p: 0.95
                     top-k: 40
+                    presence-penalty: 0.1
+                    frequency-penalty: 0.1
+                    seed: 42
         - name: mistralai
           client-config:
               api-key: "f1a2b3c4-d5e6-7f8g-9h0i-j1k2l3m4n5o6"
@@ -384,6 +408,21 @@ func TestLoadConfigFromFile(t *testing.T) {
                     frequency-penalty: 0.2
                     reasoning-effort: low
                     seed: 42
+        - name: alibaba
+          client-config:
+              api-key: "sk-alibaba-test-endpoint"
+              endpoint: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+          runs:
+              - name: "Qwen Beijing"
+                model: "qwen-turbo"
+                model-parameters:
+                    temperature: 0.8
+                    top-p: 0.9
+                    presence-penalty: 0.1
+                    frequency-penalty: 0.2
+                    max-tokens: 2048
+                    seed: 12345
+                    disable-legacy-json-mode: true
 `)),
 			},
 			want: &Config{
@@ -403,12 +442,13 @@ func TestLoadConfigFromFile(t *testing.T) {
 									MaxRequestsPerMinute: 3,
 									Disabled:             testutils.Ptr(true),
 									ModelParams: OpenAIModelParams{
-										ReasoningEffort:    testutils.Ptr("high"),
-										TextResponseFormat: true,
-										Temperature:        testutils.Ptr(float32(0.7)),
-										TopP:               testutils.Ptr(float32(0.95)),
-										PresencePenalty:    testutils.Ptr(float32(0.1)),
-										FrequencyPenalty:   testutils.Ptr(float32(0.1)),
+										ReasoningEffort:     testutils.Ptr("high"),
+										TextResponseFormat:  true,
+										Temperature:         testutils.Ptr(float32(0.7)),
+										TopP:                testutils.Ptr(float32(0.95)),
+										PresencePenalty:     testutils.Ptr(float32(0.1)),
+										FrequencyPenalty:    testutils.Ptr(float32(0.1)),
+										MaxCompletionTokens: testutils.Ptr(int32(4096)),
 									},
 								},
 							},
@@ -472,6 +512,9 @@ func TestLoadConfigFromFile(t *testing.T) {
 										Temperature:        testutils.Ptr(float32(0.7)),
 										TopP:               testutils.Ptr(float32(0.95)),
 										TopK:               testutils.Ptr(int32(40)),
+										PresencePenalty:    testutils.Ptr(float32(0.1)),
+										FrequencyPenalty:   testutils.Ptr(float32(0.1)),
+										Seed:               testutils.Ptr(int32(42)),
 									},
 								},
 							},
@@ -527,6 +570,30 @@ func TestLoadConfigFromFile(t *testing.T) {
 										FrequencyPenalty:    testutils.Ptr(float32(0.2)),
 										ReasoningEffort:     testutils.Ptr("low"),
 										Seed:                testutils.Ptr(int32(42)),
+									},
+								},
+							},
+							Disabled: false,
+						},
+						{
+							Name: "alibaba",
+							ClientConfig: AlibabaClientConfig{
+								APIKey:   "sk-alibaba-test-endpoint",
+								Endpoint: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+							},
+							Runs: []RunConfig{
+								{
+									Name:                 "Qwen Beijing",
+									Model:                "qwen-turbo",
+									MaxRequestsPerMinute: 0,
+									ModelParams: AlibabaModelParams{
+										Temperature:           testutils.Ptr(float32(0.8)),
+										TopP:                  testutils.Ptr(float32(0.9)),
+										PresencePenalty:       testutils.Ptr(float32(0.1)),
+										FrequencyPenalty:      testutils.Ptr(float32(0.2)),
+										MaxTokens:             testutils.Ptr(int32(2048)),
+										Seed:                  testutils.Ptr(uint32(12345)),
+										DisableLegacyJsonMode: testutils.Ptr(true),
 									},
 								},
 							},
@@ -1991,6 +2058,45 @@ func TestGetRunsResolved(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, tt.pc.GetRunsResolved())
+		})
+	}
+}
+
+func TestAlibabaClientConfig_GetEndpoint(t *testing.T) {
+	tests := []struct {
+		name     string
+		config   AlibabaClientConfig
+		expected string
+	}{
+		{
+			name: "empty endpoint defaults to Singapore",
+			config: AlibabaClientConfig{
+				APIKey: "test-key",
+				// Endpoint not set.
+			},
+			expected: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+		},
+		{
+			name: "explicit Beijing endpoint",
+			config: AlibabaClientConfig{
+				APIKey:   "test-key",
+				Endpoint: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+			},
+			expected: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+		},
+		{
+			name: "explicit Singapore endpoint",
+			config: AlibabaClientConfig{
+				APIKey:   "test-key",
+				Endpoint: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+			},
+			expected: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, tt.config.GetEndpoint())
 		})
 	}
 }

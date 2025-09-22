@@ -17,6 +17,7 @@ import (
 
 	"github.com/kaptinlin/jsonrepair"
 	"github.com/santhosh-tekuri/jsonschema/v6"
+	"golang.org/x/exp/constraints"
 )
 
 var (
@@ -36,6 +37,19 @@ var (
 
 	newlineMatcher = regexp.MustCompile(`\r?\n`)
 )
+
+// ConvertIntPtr converts a pointer of any integer type to a pointer of another integer type.
+// If the input pointer is nil, returns nil. Otherwise, returns a pointer to the converted value.
+//
+// Warning: Conversions between different integer types may result in data loss or overflow.
+// The conversion follows Go's standard truncation behavior (e.g., uint64(2^32) -> int32(0)).
+func ConvertIntPtr[From constraints.Integer, To constraints.Integer](ptr *From) *To {
+	if ptr != nil {
+		converted := To(*ptr)
+		return &converted
+	}
+	return nil
+}
 
 // NoPanic executes the provided function and recovers from any panic by converting it to error if that occurs.
 func NoPanic(fn func() error) (err error) {

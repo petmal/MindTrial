@@ -6,7 +6,7 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/petmal/mindtrial)](https://go.dev/)
 [![Go Reference](https://pkg.go.dev/badge/github.com/petmal/mindtrial.svg)](https://pkg.go.dev/github.com/petmal/mindtrial)
 
-**MindTrial** lets you test a single AI language model (LLM) or evaluate multiple models side-by-side. It supports providers like OpenAI, Google, Anthropic, DeepSeek, Mistral AI, and xAI. You can create your own custom tasks with text prompts, plain text or structured JSON response formats, and optional file attachments; validate responses through exact value matching or an LLM judge for semantic evaluation; and get results in easy-to-read HTML and CSV formats.
+**MindTrial** lets you test a single AI language model (LLM) or evaluate multiple models side-by-side. It supports providers like OpenAI, Google, Anthropic, DeepSeek, Mistral AI, xAI, and Alibaba. You can create your own custom tasks with text prompts, plain text or structured JSON response formats, and optional file attachments; validate responses through exact value matching or an LLM judge for semantic evaluation; and get results in easy-to-read HTML and CSV formats.
 
 ## Quick Start Guide
 
@@ -112,11 +112,16 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **deepseek**: DeepSeek open-source models
 > - **mistralai**: Mistral AI models
 > - **xai**: xAI (Grok) models
+> - **alibaba**: Alibaba (Qwen) models
 
 > [!NOTE]
 > **Anthropic** and **DeepSeek** providers support configurable request timeout in the `client-config` section:
 >
 > - **request-timeout**: Sets the timeout duration for API requests (i.e. thinking).
+>
+> **Alibaba** provider supports endpoint configuration in the `client-config` section:
+>
+> - **endpoint**: Specifies the network endpoint URL for the API. If not specified, defaults to the *Singapore* endpoint (`https://dashscope-intl.aliyuncs.com/compatible-mode/v1`) for better international access. For *China* mainland, use `https://dashscope.aliyuncs.com/compatible-mode/v1`.
 
 > [!NOTE]
 > Some models support additional model-specific runtime configuration parameters.
@@ -130,6 +135,7 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0, default: 1.0). Lower values produce more focused outputs.
 > - **presence-penalty**: Penalizes new tokens based on their presence in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use new tokens.
 > - **frequency-penalty**: Penalizes new tokens based on their frequency in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use less frequent tokens.
+> - **max-completion-tokens**: Controls the maximum number of tokens available to the model for generating a response.
 >
 > Currently supported parameters for **Anthropic** models include:
 >
@@ -176,6 +182,17 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **frequency-penalty**: Penalizes new tokens based on their frequency in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use less frequent tokens.
 > - **reasoning-effort**: Controls effort on reasoning for supported reasoning-capable models (values: `low`, `high`). Not all xAI reasoning models (i.e. Grok 4) accept this parameter.
 > - **seed**: Integer seed to request deterministic sampling when possible. Determinism is best-effort. xAI makes a best-effort to return repeatable outputs for identical inputs when `seed` and other parameters are the same.
+>
+> Currently supported parameters for **Alibaba** models include:
+>
+> - **text-response-format**: If `true`, use plain-text response format (less reliable) for compatibility with models that do not support `JSON` (for example, when thinking is enabled on certain Qwen models).
+> - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 2.0, default: 1.0). Lower values produce more focused and deterministic outputs.
+> - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0). Lower values produce more focused outputs.
+> - **max-tokens**: Controls the maximum number of tokens available to the model for generating a response.
+> - **presence-penalty**: Penalizes new tokens based on whether they appear in the text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage introducing new topics.
+> - **frequency-penalty**: Penalizes new tokens based on their frequency in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use less frequent tokens.
+> - **seed**: Makes text generation more deterministic by using the same seed value. When using the same seed and keeping other parameters unchanged, the model makes best-effort to return consistent outputs for identical inputs.
+> - **disable-legacy-json-mode**: Compatibility toggle that controls legacy prompt injection for JSON formatting. Default: `false` (legacy mode on), which adds an explicit JSON formatting instruction to the prompt for improved compatibility with most Qwen models. Setting this to `true` disables the legacy prompt injection. For best compatibility and reliable JSON responses, keep this set to `false` unless you are certain the target model works correctly without legacy prompt injection.
 
 > [!NOTE]
 > The results will be saved to `<output-dir>/<output-basename>.<format>`. If the result output file already exists, it will be replaced. If the log file already exists, it will be appended to.
@@ -226,6 +243,9 @@ config:
       disabled: true
       client-config:
         api-key: "<your-api-key>"
+      retry-policy:
+        max-retry-attempts: 5
+        initial-delay-seconds: 30
       runs:
         - name: "4o-mini - latest"
           disabled: false
@@ -274,6 +294,27 @@ config:
           retry-policy:
             max-retry-attempts: 5
             initial-delay-seconds: 30
+    - name: alibaba
+      client-config:
+        api-key: "<your-api-key>"
+        endpoint: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"  # Singapore region
+      retry-policy:
+        max-retry-attempts: 5
+        initial-delay-seconds: 30
+      runs:
+        - name: "Qwen3-Max-Preview"
+          model: "qwen3-max-preview"
+          max-requests-per-minute: 30
+        - name: "Qwen-VL-Max-Latest"
+          model: "qwen-vl-max-latest"
+          max-requests-per-minute: 30
+          model-parameters:
+            disable-legacy-json-mode: true
+        - name: "Qwen3-Next-80B-A3B-Thinking"
+          model: "qwen3-next-80b-a3b-thinking"
+          max-requests-per-minute: 30
+          model-parameters:
+            text-response-format: true
 ```
 
 ### tasks.yaml

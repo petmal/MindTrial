@@ -60,10 +60,7 @@ func (o *OpenAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig
 			if modelParams.ReasoningEffort != nil {
 				request.ReasoningEffort = *modelParams.ReasoningEffort
 			}
-			if modelParams.TextResponseFormat {
-				request.ResponseFormat = &openai.ChatCompletionResponseFormat{
-					Type: openai.ChatCompletionResponseFormatTypeText,
-				}
+			if modelParams.TextResponseFormat || modelParams.EnableLegacyJsonMode {
 				responseFormatInstruction, err := DefaultResponseFormatInstruction(task.ResponseResultFormat)
 				if err != nil {
 					return result, err
@@ -72,6 +69,13 @@ func (o *OpenAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig
 					Role:    openai.ChatMessageRoleUser, // NOTE: system role not supported by all models
 					Content: result.recordPrompt(responseFormatInstruction),
 				})
+
+				// For TextResponseFormat, change the response format to plain text; otherwise keep JSON schema.
+				if modelParams.TextResponseFormat {
+					request.ResponseFormat = &openai.ChatCompletionResponseFormat{
+						Type: openai.ChatCompletionResponseFormatTypeText,
+					}
+				}
 			}
 			if modelParams.Temperature != nil {
 				request.Temperature = *modelParams.Temperature
@@ -79,11 +83,20 @@ func (o *OpenAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig
 			if modelParams.TopP != nil {
 				request.TopP = *modelParams.TopP
 			}
+			if modelParams.MaxCompletionTokens != nil {
+				request.MaxCompletionTokens = int(*modelParams.MaxCompletionTokens)
+			}
+			if modelParams.MaxTokens != nil {
+				request.MaxTokens = int(*modelParams.MaxTokens)
+			}
 			if modelParams.PresencePenalty != nil {
 				request.PresencePenalty = *modelParams.PresencePenalty
 			}
 			if modelParams.FrequencyPenalty != nil {
 				request.FrequencyPenalty = *modelParams.FrequencyPenalty
+			}
+			if modelParams.Seed != nil {
+				request.Seed = utils.ConvertIntPtr[int64, int](modelParams.Seed)
 			}
 		} else {
 			return result, fmt.Errorf("%w: %s", ErrInvalidModelParams, cfg.Name)
@@ -112,7 +125,7 @@ func (o *OpenAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig
 		return response, err
 	}, &result.duration)
 	if err != nil {
-		return result, fmt.Errorf("%w: %v", ErrGenerateResponse, err)
+		return result, WrapErrGenerateResponse(err)
 	}
 
 	recordUsage(&resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, &result.usage)

@@ -31,6 +31,8 @@ func NewProvider(ctx context.Context, cfg config.ProviderConfig) (Provider, erro
 		return NewMistralAI(cfg.ClientConfig.(config.MistralAIClientConfig))
 	case config.XAI:
 		return NewXAI(cfg.ClientConfig.(config.XAIClientConfig))
+	case config.ALIBABA:
+		return NewAlibaba(cfg.ClientConfig.(config.AlibabaClientConfig)), nil
 	}
 	return nil, fmt.Errorf("%w: %s", ErrUnknownProviderName, cfg.Name)
 }

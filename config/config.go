@@ -25,12 +25,14 @@ const (
 	GOOGLE string = "google"
 	// ANTHROPIC identifies the Anthropic provider.
 	ANTHROPIC string = "anthropic"
-	// DEEPSEEK identifies the Deepseek provider.
+	// DEEPSEEK identifies the DeepSeek provider.
 	DEEPSEEK string = "deepseek"
 	// MISTRALAI identifies the Mistral AI provider.
 	MISTRALAI string = "mistralai"
 	// XAI identifies the xAI provider.
 	XAI string = "xai"
+	// ALIBABA identifies the Alibaba provider.
+	ALIBABA string = "alibaba"
 )
 
 // ErrInvalidConfigProperty indicates invalid configuration.
@@ -97,7 +99,7 @@ func (ac AppConfig) GetJudgesWithEnabledRuns() []JudgeConfig {
 // ProviderConfig defines settings for an AI provider.
 type ProviderConfig struct {
 	// Name specifies unique identifier of the provider.
-	Name string `yaml:"name" validate:"required,oneof=openai google anthropic deepseek mistralai xai"`
+	Name string `yaml:"name" validate:"required,oneof=openai google anthropic deepseek mistralai xai alibaba"`
 
 	// ClientConfig holds provider-specific client settings.
 	ClientConfig ClientConfig `yaml:"client-config" validate:"required"`
@@ -171,9 +173,9 @@ type AnthropicClientConfig struct {
 	RequestTimeout *time.Duration `yaml:"request-timeout" validate:"omitempty"`
 }
 
-// DeepseekClientConfig represents Deepseek provider settings.
+// DeepseekClientConfig represents DeepSeek provider settings.
 type DeepseekClientConfig struct {
-	// APIKey is the API key for the Deepseek generative models provider.
+	// APIKey is the API key for the DeepSeek generative models provider.
 	APIKey string `yaml:"api-key" validate:"required"`
 	// RequestTimeout specifies the timeout for API requests.
 	RequestTimeout *time.Duration `yaml:"request-timeout" validate:"omitempty"`
@@ -189,6 +191,22 @@ type MistralAIClientConfig struct {
 type XAIClientConfig struct {
 	// APIKey is the API key for the xAI provider.
 	APIKey string `yaml:"api-key" validate:"required"`
+}
+
+// AlibabaClientConfig represents Alibaba provider settings.
+type AlibabaClientConfig struct {
+	// APIKey is the API key for the Alibaba provider.
+	APIKey string `yaml:"api-key" validate:"required"`
+	// Endpoint specifies the network endpoint URL for the API.
+	Endpoint string `yaml:"endpoint" validate:"omitempty,url"`
+}
+
+// GetEndpoint returns the endpoint URL, defaulting to Singapore endpoint if not specified.
+func (c AlibabaClientConfig) GetEndpoint() string {
+	if c.Endpoint == "" {
+		return "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+	}
+	return c.Endpoint
 }
 
 // RunConfig defines settings for a single run configuration.
@@ -261,6 +279,25 @@ type OpenAIModelParams struct {
 	// decreasing the model's likelihood to repeat the same line verbatim.
 	// The default value is 0.0.
 	FrequencyPenalty *float32 `yaml:"frequency-penalty" validate:"omitempty,min=-2,max=2"`
+
+	// MaxCompletionTokens controls the maximum number of tokens available to the model for generating a response,
+	// including visible output tokens and reasoning tokens.
+	MaxCompletionTokens *int32 `yaml:"max-completion-tokens" validate:"omitempty,min=1"`
+
+	// MaxTokens controls the maximum number of tokens available to the model for generating a response.
+	// This field is for internal use only and not exposed in YAML configuration.
+	// Deprecated: Use `MaxCompletionTokens` instead for user configuration.
+	MaxTokens *int32 `yaml:"-"`
+
+	// Seed makes text generation more deterministic. If specified, the system will
+	// attempt to return the same result for the same inputs with the same seed value and parameters.
+	// This field is for internal use only and not exposed in YAML configuration.
+	Seed *int64 `yaml:"-"`
+
+	// EnableLegacyJsonMode forces inclusion of the default response format instruction
+	// in the prompt even when using structured JSON response mode.
+	// This field is for internal use only and not exposed in YAML configuration.
+	EnableLegacyJsonMode bool `yaml:"-"`
 }
 
 // GoogleAIModelParams represents Google AI model-specific settings.
@@ -329,7 +366,7 @@ type AnthropicModelParams struct {
 	TopK *int64 `yaml:"top-k" validate:"omitempty,min=0"`
 }
 
-// DeepseekModelParams represents Deepseek model-specific settings.
+// DeepseekModelParams represents DeepSeek model-specific settings.
 type DeepseekModelParams struct {
 	// Temperature controls the randomness or "creativity" of the model's outputs.
 	// Values range from 0.0 to 2.0, with lower values making the output more focused.
@@ -411,7 +448,7 @@ type XAIModelParams struct {
 
 	// TopP controls diversity via nucleus sampling (probability mass cutoff).
 	// Notes: Use either Temperature or TopP, not both, for sampling control.
-	// Valid range: (0.0, 1.0]. Default: 1.0.
+	// Valid range: 0.0 — 1.0. Default: 1.0.
 	TopP *float32 `yaml:"top-p" validate:"omitempty,min=0,max=1"`
 
 	// MaxCompletionTokens controls the maximum number of tokens to generate in the completion.
@@ -436,6 +473,49 @@ type XAIModelParams struct {
 	// No guaranteed determinism — xAI makes a best-effort to return
 	// repeatable outputs for identical inputs when `seed` and other parameters are the same.
 	Seed *int32 `yaml:"seed" validate:"omitempty"`
+}
+
+// AlibabaModelParams represents Alibaba model-specific settings.
+type AlibabaModelParams struct {
+	// TextResponseFormat indicates whether to use plain-text response format
+	// for compatibility with models that do not support JSON mode (e.g., when
+	// thinking is enabled on certain Qwen models).
+	TextResponseFormat bool `yaml:"text-response-format" validate:"omitempty"`
+
+	// Temperature controls the randomness or "creativity" of the model's outputs.
+	// Notes: Higher values (e.g. 0.8) make outputs more random; lower values
+	// (e.g. 0.2) make outputs more focused and deterministic.
+	// Notes: Use either `Temperature` or `TopP`, not both, for sampling control.
+	// Valid range: 0.0 — 2.0. Default: 1.0.
+	Temperature *float32 `yaml:"temperature" validate:"omitempty,min=0,max=2"`
+
+	// TopP controls diversity via nucleus sampling (probability mass cutoff).
+	// Notes: Use either `Temperature` or `TopP`, not both, for sampling control.
+	// Valid range: 0.0 — 1.0. Default varies by model.
+	TopP *float32 `yaml:"top-p" validate:"omitempty,min=0,max=1"`
+
+	// PresencePenalty penalizes new tokens based on whether they appear in the text so far.
+	// Notes: Positive values encourage the model to introduce new topics.
+	// Valid range: [-2.0, 2.0]. Default: 0.0.
+	PresencePenalty *float32 `yaml:"presence-penalty" validate:"omitempty,min=-2,max=2"`
+
+	// FrequencyPenalty penalizes new tokens based on their frequency in text so far.
+	// Notes: Positive values encourage model to use less frequent tokens.
+	// Valid range: [-2.0, 2.0]. Default: 0.0.
+	FrequencyPenalty *float32 `yaml:"frequency-penalty" validate:"omitempty,min=-2,max=2"`
+
+	// MaxTokens controls the maximum number of tokens available to the model for generating a response.
+	MaxTokens *int32 `yaml:"max-tokens" validate:"omitempty,min=0"`
+
+	// Seed makes text generation more deterministic. If specified, the system will
+	// attempt to return the same result for the same inputs with the same seed value and parameters.
+	Seed *uint32 `yaml:"seed" validate:"omitempty"`
+
+	// DisableLegacyJsonMode toggles a compatibility behavior for certain models.
+	// In the legacy mode (default), a standard response format instruction is included
+	// in the prompt to guide the model to respond in a structured JSON format.
+	// This is necessary for models that do not fully support schema-based structured JSON output.
+	DisableLegacyJsonMode *bool `yaml:"disable-legacy-json-mode" validate:"omitempty"`
 }
 
 // JudgeConfig defines configuration for an LLM judge used for semantic evaluation of complex open-ended task responses.
@@ -517,6 +597,12 @@ func (pc *ProviderConfig) UnmarshalYAML(value *yaml.Node) error {
 			return err
 		}
 		pc.ClientConfig = cfg
+	case ALIBABA:
+		cfg := AlibabaClientConfig{}
+		if err := temp.ClientConfig.Decode(&cfg); err != nil {
+			return err
+		}
+		pc.ClientConfig = cfg
 	default:
 		return fmt.Errorf("%w: unknown client-config for provider: %s", ErrInvalidConfigProperty, temp.Name)
 	}
@@ -580,6 +666,12 @@ func decodeRuns(provider string, value *yaml.Node, out *[]RunConfig) error {
 				(*out)[i].ModelParams = params
 			case XAI:
 				params := XAIModelParams{}
+				if err := temp[i].ModelParams.Decode(&params); err != nil {
+					return err
+				}
+				(*out)[i].ModelParams = params
+			case ALIBABA:
+				params := AlibabaModelParams{}
 				if err := temp[i].ModelParams.Decode(&params); err != nil {
 					return err
 				}
