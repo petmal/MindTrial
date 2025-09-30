@@ -31,8 +31,8 @@ type judgeValidator struct {
 // NewJudgeValidator creates a new semantic Validator with the given judge configuration and run variant.
 // The judge provider will be initialized from the configuration and used to evaluate responses
 // for semantic equivalence.
-func NewJudgeValidator(ctx context.Context, judgeConfig *config.JudgeConfig, judgeRunVariant config.RunConfig) (Validator, error) {
-	judgeProvider, err := providers.NewProvider(ctx, judgeConfig.Provider)
+func NewJudgeValidator(ctx context.Context, judgeConfig *config.JudgeConfig, judgeRunVariant config.RunConfig, availableTools []config.ToolConfig) (Validator, error) {
+	judgeProvider, err := providers.NewProvider(ctx, judgeConfig.Provider, availableTools)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create judge provider: %w", err)
 	}

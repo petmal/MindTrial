@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -108,11 +109,11 @@ func (r *asyncResultSet) emitMessageEvent(message string) {
 // NewDefaultRunner creates a new Runner that executes tasks on all configured providers
 // in parallel. The individual runs on a single provider are executed sequentially.
 // It returns an error if any provider initialization fails.
-func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, judges []config.JudgeConfig, logger zerolog.Logger) (Runner, error) {
+func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, judges []config.JudgeConfig, tools []config.ToolConfig, logger zerolog.Logger) (Runner, error) {
 	targets := make(map[providers.Provider][]config.RunConfig, len(cfg))
 	totalTargetCount := 0
 	for _, providerConfig := range cfg {
-		client, err := providers.NewProvider(ctx, providerConfig)
+		client, err := providers.NewProvider(ctx, providerConfig, tools)
 		if err != nil {
 			return nil, fmt.Errorf("failed to initialize task runner: %w", err)
 		}
@@ -126,6 +127,7 @@ func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, judges [
 		targets:          targets,
 		totalTargetCount: totalTargetCount,
 		validatorFactory: validatorFactory,
+		tools:            tools,
 		logger:           logger,
 	}, nil
 }
@@ -134,6 +136,7 @@ type defaultRunner struct {
 	targets          map[providers.Provider][]config.RunConfig // All tasks will be executed against all run configurations of each target provider.
 	totalTargetCount int
 	validatorFactory *validators.Factory
+	tools            []config.ToolConfig
 	logger           zerolog.Logger
 }
 
@@ -147,6 +150,17 @@ func (r *defaultRunner) assertCanRun(tasks []config.Task) error {
 		if resolvedValidationRules.UseJudge() {
 			if err := r.validatorFactory.AssertExists(resolvedValidationRules.Judge); err != nil {
 				taskErrors = append(taskErrors, fmt.Errorf("task '%s' requires judge '%s' with variant '%s' that does not exist or is disabled: %w", task.Name, resolvedValidationRules.Judge.GetName(), resolvedValidationRules.Judge.GetVariant(), err))
+			}
+		}
+
+		// Check that all tools referenced in the task's tool selector exist in tools.
+		resolvedToolSelector := task.GetResolvedToolSelector()
+		enabledTools, _ := resolvedToolSelector.GetEnabledToolsByName()
+		for toolName := range enabledTools {
+			if !slices.ContainsFunc(r.tools, func(tool config.ToolConfig) bool {
+				return tool.Name == toolName
+			}) {
+				taskErrors = append(taskErrors, fmt.Errorf("%w: task '%s' requires tool '%s' that does not exist in tools", ErrToolNotFound, task.Name, toolName))
 			}
 		}
 	}
@@ -291,23 +305,26 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 		case errors.Is(err, providers.ErrFeatureNotSupported):
 			runResult.Kind = NotSupported
 			runResult.Details.Error = ErrorDetails{
-				Title:   "Feature Not Supported",
-				Message: err.Error(),
-				Usage:   toTokenUsage(usage),
+				Title:     "Feature Not Supported",
+				Message:   err.Error(),
+				Usage:     toTokenUsage(usage),
+				ToolUsage: toToolUsage(usage),
 			}
 		default:
 			var unmarshalErr *providers.ErrUnmarshalResponse
 			if errors.As(err, &unmarshalErr) {
 				runResult.Details.Error = ErrorDetails{
-					Title:   "Response Parsing Error",
-					Message: unmarshalErr.Cause.Error(),
-					Usage:   toTokenUsage(usage),
+					Title:     "Response Parsing Error",
+					Message:   unmarshalErr.Cause.Error(),
+					Usage:     toTokenUsage(usage),
+					ToolUsage: toToolUsage(usage),
 				}
 			} else {
 				runResult.Details.Error = ErrorDetails{
-					Title:   "Execution Error",
-					Message: err.Error(),
-					Usage:   toTokenUsage(usage),
+					Title:     "Execution Error",
+					Message:   err.Error(),
+					Usage:     toTokenUsage(usage),
+					ToolUsage: toToolUsage(usage),
 				}
 			}
 			populateErrorDetails(&runResult.Details.Error, err)
@@ -321,9 +338,10 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 			runResult.Kind = Error
 			runResult.Got = result.GetFinalAnswerContent()
 			runResult.Details.Error = ErrorDetails{
-				Title:   "Validation Error",
-				Message: err.Error(),
-				Usage:   toTokenUsage(validationResult.Usage),
+				Title:     "Validation Error",
+				Message:   err.Error(),
+				Usage:     toTokenUsage(validationResult.Usage),
+				ToolUsage: toToolUsage(validationResult.Usage),
 			}
 			populateErrorDetails(&runResult.Details.Error, err)
 		} else {
@@ -338,6 +356,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 				Title:       validationResult.Title,
 				Explanation: utils.SplitLines(validationResult.Explanation),
 				Usage:       toTokenUsage(validationResult.Usage),
+				ToolUsage:   toToolUsage(validationResult.Usage),
 			}
 		}
 
@@ -347,6 +366,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 			ActualAnswer:   utils.ToLines(result.GetFinalAnswerContent()),
 			ExpectedAnswer: toLines(task.ExpectedResult),
 			Usage:          toTokenUsage(usage),
+			ToolUsage:      toToolUsage(usage),
 		}
 	}
 	runResult.Duration = result.GetDuration()
@@ -403,4 +423,17 @@ func pluralize(tokens ...any) []interface{} {
 
 func toTokenUsage(u providers.Usage) TokenUsage {
 	return TokenUsage{InputTokens: u.InputTokens, OutputTokens: u.OutputTokens}
+}
+
+func toToolUsage(u providers.Usage) (toolUsage map[string]ToolUsage) {
+	toolUsage = make(map[string]ToolUsage, len(u.ToolUsage))
+	for name, usage := range u.ToolUsage {
+		callCount := usage.CallCount
+		duration := time.Duration(usage.TotalTimeNs) // nanosecond is the natural unit of time.Duration
+		toolUsage[name] = ToolUsage{
+			CallCount:     &callCount,
+			TotalDuration: &duration,
+		}
+	}
+	return toolUsage
 }

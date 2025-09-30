@@ -17,14 +17,15 @@ import (
 )
 
 // NewAlibaba creates a new Alibaba provider instance with the given configuration.
-func NewAlibaba(cfg config.AlibabaClientConfig) *Alibaba {
+func NewAlibaba(cfg config.AlibabaClientConfig, availableTools []config.ToolConfig) *Alibaba {
 	// Create OpenAI client with Alibaba-specific configuration.
 	clientConfig := openai.DefaultConfig(cfg.APIKey)
 	clientConfig.BaseURL = cfg.GetEndpoint()
 
 	return &Alibaba{
 		openaiProvider: &OpenAI{
-			client: openai.NewClientWithConfig(clientConfig),
+			client:         openai.NewClientWithConfig(clientConfig),
+			availableTools: availableTools,
 		},
 	}
 }

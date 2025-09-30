@@ -38,6 +38,24 @@ var mockResults = runners.Results{
 						InputTokens:  testutils.Ptr(int64(9876543210)),
 						OutputTokens: testutils.Ptr(int64(1234567890)),
 					},
+					ToolUsage: map[string]runners.ToolUsage{
+						"calculator": {
+							CallCount:     testutils.Ptr(int64(127)),
+							TotalDuration: testutils.Ptr(45 * time.Second),
+						},
+						"web_search": {
+							CallCount:     testutils.Ptr(int64(1)),
+							TotalDuration: testutils.Ptr(2*time.Minute + 15*time.Second),
+						},
+						"memory_tool": {
+							CallCount: testutils.Ptr(int64(8)),
+							// Only call count, no duration
+						},
+						"file_processor": {
+							TotalDuration: testutils.Ptr(350 * time.Millisecond),
+							// Only duration, no call count
+						},
+					},
 				},
 				Validation: runners.ValidationDetails{
 					Title:       "Validatio Perfecta",
@@ -45,6 +63,16 @@ var mockResults = runners.Results{
 					Usage: runners.TokenUsage{
 						InputTokens:  testutils.Ptr(int64(11)),
 						OutputTokens: testutils.Ptr(int64(5)),
+					},
+					ToolUsage: map[string]runners.ToolUsage{
+						"validator": {
+							CallCount:     testutils.Ptr(int64(15)),
+							TotalDuration: testutils.Ptr(7*time.Second + 250*time.Millisecond),
+						},
+						"data_formatter": {
+							CallCount: testutils.Ptr(int64(1)),
+							// Only call count
+						},
 					},
 				},
 				Error: runners.ErrorDetails{},
@@ -66,6 +94,12 @@ var mockResults = runners.Results{
 					ExpectedAnswer: [][]string{{"Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui."}},
 					Usage: runners.TokenUsage{
 						InputTokens: testutils.Ptr(int64(200)),
+					},
+					ToolUsage: map[string]runners.ToolUsage{
+						"json_parser": {
+							TotalDuration: testutils.Ptr(55 * time.Millisecond),
+							// Only duration
+						},
 					},
 				},
 				Validation: runners.ValidationDetails{
@@ -123,6 +157,16 @@ var mockResults = runners.Results{
 						InputTokens:  testutils.Ptr(int64(500)),
 						OutputTokens: testutils.Ptr(int64(150)),
 					},
+					ToolUsage: map[string]runners.ToolUsage{
+						"spell_checker": {
+							CallCount:     testutils.Ptr(int64(847)),
+							TotalDuration: testutils.Ptr(3*time.Minute + 42*time.Second + 300*time.Millisecond),
+						},
+						"grammar_analyzer": {
+							TotalDuration: testutils.Ptr(12 * time.Second),
+							// Only duration
+						},
+					},
 				},
 				Error: runners.ErrorDetails{},
 			},
@@ -145,6 +189,16 @@ var mockResults = runners.Results{
 					Usage: runners.TokenUsage{
 						InputTokens:  testutils.Ptr(int64(0)),
 						OutputTokens: testutils.Ptr(int64(0)),
+					},
+					ToolUsage: map[string]runners.ToolUsage{
+						"file_reader": {
+							CallCount:     testutils.Ptr(int64(3456)),
+							TotalDuration: testutils.Ptr(25*time.Minute + 12*time.Second + 100*time.Millisecond),
+						},
+						"config_loader": {
+							CallCount: testutils.Ptr(int64(92)),
+							// Only call count
+						},
 					},
 				},
 			},
@@ -319,6 +373,16 @@ var mockResults = runners.Results{
 						InputTokens:  testutils.Ptr(int64(456)),
 						OutputTokens: testutils.Ptr(int64(234)),
 					},
+					ToolUsage: map[string]runners.ToolUsage{
+						"json_parser": {
+							CallCount:     testutils.Ptr(int64(2)),
+							TotalDuration: testutils.Ptr(50 * time.Millisecond),
+						},
+						"validator": {
+							CallCount:     testutils.Ptr(int64(1)),
+							TotalDuration: testutils.Ptr(25 * time.Millisecond),
+						},
+					},
 				},
 				Validation: runners.ValidationDetails{
 					Title:       "Structured Validation Success",
@@ -326,6 +390,12 @@ var mockResults = runners.Results{
 					Usage: runners.TokenUsage{
 						InputTokens:  testutils.Ptr(int64(78)),
 						OutputTokens: testutils.Ptr(int64(12)),
+					},
+					ToolUsage: map[string]runners.ToolUsage{
+						"schema_validator": {
+							CallCount:     testutils.Ptr(int64(1)),
+							TotalDuration: testutils.Ptr(15 * time.Millisecond),
+						},
 					},
 				},
 				Error: runners.ErrorDetails{},

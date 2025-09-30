@@ -9,6 +9,7 @@ package providers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -599,6 +600,58 @@ func TestResultJSONSchema(t *testing.T) {
 	}
 }
 
+func TestMapToJSONSchema(t *testing.T) {
+	tests := []struct {
+		name      string
+		schemaMap map[string]interface{}
+		wantErr   bool
+	}{
+		{
+			name: "valid simple schema",
+			schemaMap: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"name": map[string]interface{}{
+						"type": "string",
+					},
+					"age": map[string]interface{}{
+						"type": "integer",
+					},
+				},
+				"required": []string{"name"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "empty schema map",
+			schemaMap: map[string]interface{}{
+				"type": "object",
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid json structure",
+			schemaMap: map[string]interface{}{
+				"invalid": make(chan int), // channels cannot be marshaled to JSON
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			schema, err := MapToJSONSchema(tt.schemaMap)
+
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				assert.NotNil(t, schema)
+			}
+		})
+	}
+}
+
 func TestAnswerMarshalUnmarshal(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -729,6 +782,117 @@ func TestAnswerUnmarshalEdgeCases(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				assert.Equal(t, tt.expected, answer.Content)
+			}
+		})
+	}
+}
+
+func TestFormatToolExecutionError(t *testing.T) {
+	tests := []struct {
+		name     string
+		err      error
+		expected string
+	}{
+		{
+			name:     "simple error message",
+			err:      errors.New("execution failed"), //nolint:err113
+			expected: "Tool execution failed: execution failed",
+		},
+		{
+			name:     "wrapped error",
+			err:      fmt.Errorf("%w: additional context", ErrToolUse),
+			expected: "Tool execution failed: tool use failed: additional context",
+		},
+		{
+			name:     "nil error creates empty result",
+			err:      nil,
+			expected: "Tool execution failed: <nil>",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := formatToolExecutionError(tt.err)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestFindToolByName(t *testing.T) {
+	tests := []struct {
+		name           string
+		availableTools []config.ToolConfig
+		searchName     string
+		want           *config.ToolConfig
+		wantFound      bool
+	}{
+		{
+			name:           "empty tools slice",
+			availableTools: []config.ToolConfig{},
+			searchName:     "test-tool",
+			want:           nil,
+			wantFound:      false,
+		},
+		{
+			name: "tool found at beginning",
+			availableTools: []config.ToolConfig{
+				{Name: "tool1", Description: "First tool"},
+				{Name: "tool2", Description: "Second tool"},
+			},
+			searchName: "tool1",
+			want:       &config.ToolConfig{Name: "tool1", Description: "First tool"},
+			wantFound:  true,
+		},
+		{
+			name: "tool found in middle",
+			availableTools: []config.ToolConfig{
+				{Name: "tool1", Description: "First tool"},
+				{Name: "tool2", Description: "Second tool"},
+				{Name: "tool3", Description: "Third tool"},
+			},
+			searchName: "tool2",
+			want:       &config.ToolConfig{Name: "tool2", Description: "Second tool"},
+			wantFound:  true,
+		},
+		{
+			name: "tool found at end",
+			availableTools: []config.ToolConfig{
+				{Name: "tool1", Description: "First tool"},
+				{Name: "tool2", Description: "Second tool"},
+			},
+			searchName: "tool2",
+			want:       &config.ToolConfig{Name: "tool2", Description: "Second tool"},
+			wantFound:  true,
+		},
+		{
+			name: "tool not found",
+			availableTools: []config.ToolConfig{
+				{Name: "tool1", Description: "First tool"},
+				{Name: "tool2", Description: "Second tool"},
+			},
+			searchName: "tool3",
+			want:       nil,
+			wantFound:  false,
+		},
+		{
+			name: "case sensitive match",
+			availableTools: []config.ToolConfig{
+				{Name: "Tool1", Description: "First tool"},
+			},
+			searchName: "tool1",
+			want:       nil,
+			wantFound:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, gotFound := findToolByName(tt.availableTools, tt.searchName)
+			assert.Equal(t, tt.wantFound, gotFound)
+			if tt.wantFound {
+				assert.Equal(t, tt.want, got)
+			} else {
+				assert.Nil(t, got)
 			}
 		})
 	}

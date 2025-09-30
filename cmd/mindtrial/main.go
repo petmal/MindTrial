@@ -249,7 +249,7 @@ func run(ctx context.Context) (ok bool, err error) {
 	availableJudges := cfg.Config.GetJudgesWithEnabledRuns()
 
 	// Run tasks.
-	exec, err := runners.NewDefaultRunner(ctx, targetProviders, availableJudges, logger)
+	exec, err := runners.NewDefaultRunner(ctx, targetProviders, availableJudges, cfg.Config.Tools, logger)
 	if err != nil {
 		return
 	}

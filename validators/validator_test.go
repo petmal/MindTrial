@@ -1216,7 +1216,7 @@ func TestJudgeValidator_NewJudgeValidator_Success(t *testing.T) {
 
 	runVariant := config.RunConfig{Name: "test-run"}
 
-	validator, err := NewJudgeValidator(ctx, judgeConfig, runVariant)
+	validator, err := NewJudgeValidator(ctx, judgeConfig, runVariant, nil)
 
 	require.NoError(t, err)
 	require.NotNil(t, validator)
@@ -1699,7 +1699,7 @@ func TestJudgeValidatorIsCorrect(t *testing.T) {
 				},
 			}
 
-			validator, err := NewJudgeValidator(context.Background(), judgeConfig, judgeRunVariant)
+			validator, err := NewJudgeValidator(context.Background(), judgeConfig, judgeRunVariant, nil)
 			require.NoError(t, err)
 
 			// Create original task expected result set.
@@ -1741,7 +1741,7 @@ func TestJudgeValidatorIsCorrect(t *testing.T) {
 				},
 			}
 
-			validator, err := NewJudgeValidator(context.Background(), judgeConfig, judgeRunVariant)
+			validator, err := NewJudgeValidator(context.Background(), judgeConfig, judgeRunVariant, nil)
 			require.NoError(t, err)
 
 			expectedTaskValues := utils.NewValueSet(tt.expectedResult)
@@ -1780,7 +1780,7 @@ func TestJudgeValidatorIsCorrect(t *testing.T) {
 				},
 			}
 
-			validator, err := NewJudgeValidator(context.Background(), judgeConfig, judgeRunVariant)
+			validator, err := NewJudgeValidator(context.Background(), judgeConfig, judgeRunVariant, nil)
 			require.NoError(t, err)
 
 			actualTaskResult := providers.Result{

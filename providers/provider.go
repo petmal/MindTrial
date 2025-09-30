@@ -18,6 +18,7 @@ import (
 	"github.com/invopop/jsonschema"
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
+	"github.com/petmal/mindtrial/providers/tools"
 	"golang.org/x/exp/constraints"
 )
 
@@ -28,8 +29,10 @@ var (
 	ErrCreateClient = errors.New("failed to create client")
 	// ErrInvalidModelParams is returned when model parameters are invalid.
 	ErrInvalidModelParams = errors.New("invalid model parameters for run")
-	// ErrCompileSchema is returned when response schema compilation fails.
-	ErrCompileSchema = errors.New("failed to compile response schema")
+	// ErrCompileResponseSchema is returned when response schema compilation fails.
+	ErrCompileResponseSchema = errors.New("failed to compile response schema")
+	// ErrMalformedSchema is returned when raw schema data cannot be converted to a valid schema object.
+	ErrMalformedSchema = errors.New("malformed schema")
 	// ErrGenerateResponse is returned when response generation fails.
 	ErrGenerateResponse = errors.New("failed to generate response")
 	// ErrCreatePromptRequest is returned when request generation fails.
@@ -40,6 +43,12 @@ var (
 	ErrFileNotSupported = fmt.Errorf("%w: file type", ErrFeatureNotSupported)
 	// ErrFileUploadNotSupported is returned when file upload is not supported by the provider.
 	ErrFileUploadNotSupported = fmt.Errorf("%w: file upload", ErrFeatureNotSupported)
+	// ErrToolUse is returned when tool use fails.
+	ErrToolUse = errors.New("tool use failed")
+	// ErrToolSetup is returned when tool setup/configuration fails.
+	ErrToolSetup = errors.New("tool setup failed")
+	// ErrToolNotFound is returned when a requested tool is not found in available tools.
+	ErrToolNotFound = errors.New("tool not found in available tools")
 	// ErrRetryable is returned when an operation can be retried.
 	ErrRetryable = errors.New("retryable error")
 )
@@ -138,18 +147,11 @@ func ResultJSONSchema(responseFormat config.ResponseFormat) (*jsonschema.Schema,
 		return nil, err
 	}
 
-	// Convert back to jsonschema.Schema.
-	schemaBytes, err := json.Marshal(schemaMap)
+	schema, err := MapToJSONSchema(schemaMap)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrCompileSchema, err)
+		return nil, fmt.Errorf("%w: %v", ErrCompileResponseSchema, err)
 	}
-
-	var schema jsonschema.Schema
-	if err := json.Unmarshal(schemaBytes, &schema); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrCompileSchema, err)
-	}
-
-	return &schema, nil
+	return schema, nil
 }
 
 // ResultJSONSchemaRaw generates a JSON schema for the Result type as a map with the given
@@ -165,12 +167,12 @@ func ResultJSONSchemaRaw(responseFormat config.ResponseFormat) (map[string]inter
 	// Convert to map for easier manipulation.
 	schemaBytes, err := json.Marshal(baseSchema)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrCompileSchema, err)
+		return nil, fmt.Errorf("%w: %v", ErrCompileResponseSchema, err)
 	}
 
 	var schemaMap map[string]interface{}
 	if err := json.Unmarshal(schemaBytes, &schemaMap); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrCompileSchema, err)
+		return nil, fmt.Errorf("%w: %v", ErrCompileResponseSchema, err)
 	}
 
 	// Inject the response format into the final_answer field.
@@ -197,6 +199,21 @@ func ResultJSONSchemaRaw(responseFormat config.ResponseFormat) (map[string]inter
 	return schemaMap, nil
 }
 
+// MapToJSONSchema converts a JSON schema represented as a map to a jsonschema.Schema object.
+func MapToJSONSchema(schemaMap map[string]interface{}) (*jsonschema.Schema, error) {
+	schemaBytes, err := json.Marshal(schemaMap)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrMalformedSchema, err)
+	}
+
+	var schema jsonschema.Schema
+	if err := json.Unmarshal(schemaBytes, &schema); err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrMalformedSchema, err)
+	}
+
+	return &schema, nil
+}
+
 // DefaultResponseFormatInstruction generates default response formatting instruction
 // for the given response format to be passed to AI models that require it.
 func DefaultResponseFormatInstruction(responseFormat config.ResponseFormat) (string, error) {
@@ -206,7 +223,7 @@ func DefaultResponseFormatInstruction(responseFormat config.ResponseFormat) (str
 	}
 	schemaBytes, err := json.Marshal(schema)
 	if err != nil {
-		return "", fmt.Errorf("%w: %v", ErrCompileSchema, err)
+		return "", fmt.Errorf("%w: %v", ErrCompileResponseSchema, err)
 	}
 	return fmt.Sprintf("Structure the response according to this JSON schema: %s", schemaBytes), nil
 }
@@ -224,10 +241,15 @@ func DefaultTaskFileNameInstruction(file config.TaskFile) string {
 	return fmt.Sprintf("[file: %s]", file.Name)
 }
 
-// Usage represents the token usage statistics for a response.
+// Usage represents aggregated usage statistics for a response, including both token
+// consumption and tool execution metrics when available.
 type Usage struct {
-	InputTokens  *int64 `json:"-"` // Tokens used by the input if available.
-	OutputTokens *int64 `json:"-"` // Tokens used by the output if available.
+	// InputTokens used by the input if available.
+	InputTokens *int64 `json:"-"`
+	// OutputTokens used by the output if available.
+	OutputTokens *int64 `json:"-"`
+	// ToolUsage contains per-tool execution metrics collected during the run if available.
+	ToolUsage map[string]tools.ToolUsage `json:"-"`
 }
 
 // Answer wraps the final answer content to separate it from response metadata.
@@ -286,7 +308,7 @@ type Result struct {
 	FinalAnswer Answer        `json:"final_answer" jsonschema:"title=Final Answer" validate:"required"`
 	duration    time.Duration `json:"-"` // Time to generate the response.
 	prompts     []string      `json:"-"` // Prompts used to generate the response.
-	usage       Usage         `json:"-"` // Token usage statistics.
+	usage       Usage         `json:"-"` // Usage statistics.
 }
 
 // GetDuration returns the time duration it took to generate this result.
@@ -299,7 +321,7 @@ func (r Result) GetPrompts() []string {
 	return r.prompts
 }
 
-// GetUsage returns the token usage statistics for this result.
+// GetUsage returns the aggregated usage statistics for this result.
 func (r Result) GetUsage() Usage {
 	return r.usage
 }
@@ -310,10 +332,13 @@ func (r Result) GetFinalAnswerContent() interface{} {
 	return r.FinalAnswer.Content
 }
 
+// timed measures the duration of a function execution
+// and adds it to the provided time.Duration pointer.
+// Multiple calls with the same out pointer will accumulate the durations.
 func timed[T any](f func() (T, error), out *time.Duration) (response T, err error) {
 	start := time.Now()
 	response, err = f()
-	*out = time.Since(start)
+	*out += time.Since(start)
 	return
 }
 
@@ -322,11 +347,16 @@ func (r *Result) recordPrompt(prompt string) string {
 	return prompt
 }
 
+func (r *Result) recordToolUsage(usage map[string]tools.ToolUsage) {
+	r.usage.ToolUsage = usage
+}
+
 func recordUsage[T constraints.Signed](inputTokens *T, outputTokens *T, out *Usage) {
 	addIfNotNil(&out.InputTokens, inputTokens)
 	addIfNotNil(&out.OutputTokens, outputTokens)
 }
 
+// addIfNotNil adds the values from src to dst if src is not nil.
 func addIfNotNil[D ~int64, S constraints.Signed](dst **D, src *S) {
 	if src != nil {
 		if *dst == nil {
@@ -338,4 +368,21 @@ func addIfNotNil[D ~int64, S constraints.Signed](dst **D, src *S) {
 
 func isSupportedImageType(mimeType string) bool {
 	return supportedImageMimeTypes[strings.ToLower(mimeType)]
+}
+
+// findToolByName searches for a tool configuration by name in the provided available tools slice.
+// Returns the tool configuration and true if found, nil and false otherwise.
+func findToolByName(availableTools []config.ToolConfig, name string) (*config.ToolConfig, bool) {
+	for i, tool := range availableTools {
+		if tool.Name == name {
+			return &availableTools[i], true
+		}
+	}
+	return nil, false
+}
+
+// formatToolExecutionError formats a tool execution error message for consistent
+// error reporting across all providers.
+func formatToolExecutionError(err error) string {
+	return fmt.Sprintf("Tool execution failed: %v", err)
 }

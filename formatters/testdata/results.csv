@@ -17,6 +17,22 @@ provider-name,run-success,task-name,Passed,1m35s,Quos aut rerum quaerat qui ad c
     ""Usage"": {
       ""InputTokens"": 9876543210,
       ""OutputTokens"": 1234567890
+    },
+    ""ToolUsage"": {
+      ""calculator"": {
+        ""CallCount"": 127,
+        ""TotalDuration"": 45000000000
+      },
+      ""file_processor"": {
+        ""TotalDuration"": 350000000
+      },
+      ""memory_tool"": {
+        ""CallCount"": 8
+      },
+      ""web_search"": {
+        ""CallCount"": 1,
+        ""TotalDuration"": 135000000000
+      }
     }
   },
   ""Validation"": {
@@ -27,6 +43,15 @@ provider-name,run-success,task-name,Passed,1m35s,Quos aut rerum quaerat qui ad c
     ""Usage"": {
       ""InputTokens"": 11,
       ""OutputTokens"": 5
+    },
+    ""ToolUsage"": {
+      ""data_formatter"": {
+        ""CallCount"": 1
+      },
+      ""validator"": {
+        ""CallCount"": 15,
+        ""TotalDuration"": 7250000000
+      }
     }
   },
   ""Error"": {
@@ -59,6 +84,11 @@ provider-name,run-failure,task-name,Failed,10s,"@@ -1,67 +1,36 @@
     ],
     ""Usage"": {
       ""InputTokens"": 200
+    },
+    ""ToolUsage"": {
+      ""json_parser"": {
+        ""TotalDuration"": 55000000
+      }
     }
   },
   ""Validation"": {
@@ -153,6 +183,15 @@ provider-name,run-failure-multiple-answers,task-name,Failed,3m0.8s,"[
     ""Usage"": {
       ""InputTokens"": 500,
       ""OutputTokens"": 150
+    },
+    ""ToolUsage"": {
+      ""grammar_analyzer"": {
+        ""TotalDuration"": 12000000000
+      },
+      ""spell_checker"": {
+        ""CallCount"": 847,
+        ""TotalDuration"": 222300000000
+      }
     }
   },
   ""Error"": {
@@ -182,6 +221,15 @@ provider-name,run-error,task-name,Error,0s,error message,"{
     ""Usage"": {
       ""InputTokens"": 0,
       ""OutputTokens"": 0
+    },
+    ""ToolUsage"": {
+      ""config_loader"": {
+        ""CallCount"": 92
+      },
+      ""file_reader"": {
+        ""CallCount"": 3456,
+        ""TotalDuration"": 1512100000000
+      }
     }
   }
 }"
@@ -351,6 +399,16 @@ provider-name,run-structured-success,task-name,Passed,42s,"[
     ""Usage"": {
       ""InputTokens"": 456,
       ""OutputTokens"": 234
+    },
+    ""ToolUsage"": {
+      ""json_parser"": {
+        ""CallCount"": 2,
+        ""TotalDuration"": 50000000
+      },
+      ""validator"": {
+        ""CallCount"": 1,
+        ""TotalDuration"": 25000000
+      }
     }
   },
   ""Validation"": {
@@ -363,6 +421,12 @@ provider-name,run-structured-success,task-name,Passed,42s,"[
     ""Usage"": {
       ""InputTokens"": 78,
       ""OutputTokens"": 12
+    },
+    ""ToolUsage"": {
+      ""schema_validator"": {
+        ""CallCount"": 1,
+        ""TotalDuration"": 15000000
+      }
     }
   },
   ""Error"": {

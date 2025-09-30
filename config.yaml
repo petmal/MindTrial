@@ -191,3 +191,30 @@ config:
               prompt-mode: "reasoning"
               temperature: 0.20
               random-seed: 847629
+  tools:
+    - name: python-code-executor
+      image: python:latest
+      description: |
+        Executes Python 3 code in a secure, sandboxed environment to perform calculations, data manipulation, or algorithmic tasks.
+        IMPORTANT:
+        - Only the Python standard library is available. No third-party packages (like pandas or numpy) can be imported.
+        - The environment has no network access.
+        - The code must print its final result to standard output to be returned.
+      parameters:
+        type: object
+        properties:
+          code:
+            type: string
+            description: "A string containing a self-contained Python 3 script. The script must use the `print()` function to return a final result. Example: `print(sum([i for i in range(101) if i % 2 == 0]))`"
+        required:
+          - code
+        additionalProperties: false
+      file_mappings:
+        code: /app/main.py
+      command:
+        - python
+        - /app/main.py
+      env:
+        PYTHONIOENCODING: "UTF-8"
+        PYTHONUNBUFFERED: "1"
+        PYTHONHASHSEED: "847629"

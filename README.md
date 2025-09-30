@@ -6,7 +6,7 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/petmal/mindtrial)](https://go.dev/)
 [![Go Reference](https://pkg.go.dev/badge/github.com/petmal/mindtrial.svg)](https://pkg.go.dev/github.com/petmal/mindtrial)
 
-**MindTrial** lets you test a single AI language model (LLM) or evaluate multiple models side-by-side. It supports providers like OpenAI, Google, Anthropic, DeepSeek, Mistral AI, xAI, and Alibaba. You can create your own custom tasks with text prompts, plain text or structured JSON response formats, and optional file attachments; validate responses through exact value matching or an LLM judge for semantic evaluation; and get results in easy-to-read HTML and CSV formats.
+**MindTrial** lets you test a single AI language model (LLM) or evaluate multiple models side-by-side. It supports providers like OpenAI, Google, Anthropic, DeepSeek, Mistral AI, xAI, and Alibaba. You can create your own custom tasks with text prompts, plain text or structured JSON response formats, optional file attachments, and tool use for enhanced capabilities; validate responses through exact value matching or an LLM judge for semantic evaluation; and get results in easy-to-read HTML and CSV formats.
 
 ## Quick Start Guide
 
@@ -25,6 +25,7 @@
 ### Prerequisites
 
 - [Go 1.24](https://golang.org/dl/)
+- [Docker](https://www.docker.com/) (for tool execution)
 - API keys from your chosen AI providers
 
 ## Key Features
@@ -32,6 +33,7 @@
 - Compare multiple AI models at once
 - Create custom evaluation tasks using simple YAML files
 - Attach files or images to prompts for visual tasks
+- Enable tool use for tasks with secure sandboxed execution
 - Use LLM judges for semantic validation of complex and creative tasks
 - Get results in HTML and CSV formats
 - Easy to extend with new AI models
@@ -708,6 +710,101 @@ task-config:
             user_id: ""
 ```
 
+#### Tools
+
+MindTrial supports tool use for tasks, allowing AI models to execute external tools during task solving. Tools are executed in sandboxed Docker containers with resource limits and network isolation.
+
+##### Tool Definitions
+
+Tools must be defined in `config.yaml` under the `tools` section. Each tool defines how to execute a specific capability:
+
+- **name**: A unique name for the tool.
+- **image**: Docker image to use for the tool execution.
+- **description**: A detailed description of what the tool does and how to use it. This description is provided to the LLM to help it understand when and how to use the tool. Be specific and avoid ambiguity to help the LLM choose the correct tool and provide appropriate parameters.
+- **parameters**: JSON schema defining the tool's input parameters. The LLM will generate the actual parameter values based on this schema. Provide comprehensive descriptions that explain parameter purpose and format.
+- **file_mappings**: Mapping of parameter names to container file paths where argument values should be written. Argument values are converted to strings, non-string values are marshaled to JSON. The tool's command should read these files as needed.
+- **command**: Command to run inside the container. The standard output of the command execution is captured and passed back to the LLM as is.
+- **env**: Environment variables to set in the container.
+
+> [!IMPORTANT]
+> Tool use requires Docker to be installed and running on the system. Tools are executed in isolated containers with no network access by default.
+
+Example tool definition in `config.yaml`:
+
+```yaml
+config:
+  tools:
+    - name: python-code-executor
+      image: python:latest
+      description: |
+        Executes Python 3 code in a secure, sandboxed environment to perform calculations, data manipulation, or algorithmic tasks.
+        IMPORTANT:
+        - Only the Python standard library is available. No third-party packages (like pandas or numpy) can be imported.
+        - The environment has no network access.
+        - The code must print its final result to standard output to be returned.
+      parameters:
+        type: object
+        properties:
+          code:
+            type: string
+            description: "A string containing a self-contained Python 3 script. The script must use the `print()` function to return a final result. Example: `print(sum([i for i in range(101) if i % 2 == 0]))`"
+        required:
+          - code
+        additionalProperties: false
+      file_mappings:
+        code: /app/main.py
+      command:
+        - python
+        - /app/main.py
+      env:
+        PYTHONIOENCODING: "UTF-8"
+        PYTHONUNBUFFERED: "1"
+        PYTHONHASHSEED: "847629"
+```
+
+##### Tool Selection
+
+You can configure tool selection globally for all tasks in the `task-config` section, and override it for individual tasks if needed. Tools must be defined in `config.yaml` first.
+
+- **tool-selector**: Configuration for tool availability during task execution.
+  - **disabled**: If `true`, no tools are available for tasks (default: `false`).
+  - **tools**: List of tools to make available, with per-tool limits.
+    - **name**: Name of the tool as defined in `config.yaml`.
+    - **disabled**: If `true`, this tool is not available (default: `false`).
+    - **max-calls**: Maximum number of times this tool can be called per task (optional).
+    - **timeout**: Maximum execution time per tool call (e.g., `60s`, optional).
+    - **max-memory-mb**: Maximum memory usage in MB per tool call (optional).
+    - **cpu-percent**: Maximum CPU usage as percentage per tool call (optional).
+
+Example tool configuration in `tasks.yaml`:
+
+```yaml
+task-config:
+  tool-selector:
+    disabled: false
+    tools:
+      - name: python-code-executor
+        disabled: false
+        max-calls: 10
+        timeout: 60s
+        max-memory-mb: 512
+        cpu-percent: 25
+  tasks:
+    - name: "math calculation"
+      prompt: "Calculate the sum of even numbers from 1 to 100."
+      response-result-format: "single number"
+      expected-result: "2550"
+      # Inherits global tool-selector configuration.
+    - name: "simple math"
+      prompt: "What is 2 + 2?"
+      response-result-format: "single number"
+      expected-result: "4"
+      tool-selector:
+        tools:
+          - name: python-code-executor
+            disabled: true  # Selectively disable tool for this simple task.
+```
+
 ## Command Reference
 
 ```bash
@@ -764,7 +861,8 @@ go test -tags=test -race -v ./...
 ├── formatters/          # Output formatting for results
 ├── pkg/                 # Shared packages and utilities
 ├── providers/           # AI model service provider connectors
-│   └── execution/       # Provider run execution utilities and coordination
+│   ├── execution/       # Provider run execution utilities and coordination
+│   └── tools/           # Execution engine for external tools used by models
 ├── runners/             # Task execution and result aggregation
 ├── taskdata/            # Auxiliary files referenced by tasks in tasks.yaml
 ├── validators/          # Result validation logic

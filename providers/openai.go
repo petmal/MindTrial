@@ -17,26 +17,29 @@ import (
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
 	"github.com/petmal/mindtrial/pkg/utils"
+	"github.com/petmal/mindtrial/providers/tools"
 	openai "github.com/sashabaranov/go-openai"
 )
 
 // NewOpenAI creates a new OpenAI provider instance with the given configuration.
-func NewOpenAI(cfg config.OpenAIClientConfig) *OpenAI {
+func NewOpenAI(cfg config.OpenAIClientConfig, availableTools []config.ToolConfig) *OpenAI {
 	return &OpenAI{
-		client: openai.NewClient(cfg.APIKey),
+		client:         openai.NewClient(cfg.APIKey),
+		availableTools: availableTools,
 	}
 }
 
 // OpenAI implements the Provider interface for OpenAI generative models.
 type OpenAI struct {
-	client *openai.Client
+	client         *openai.Client
+	availableTools []config.ToolConfig
 }
 
 func (o OpenAI) Name() string {
 	return config.OPENAI
 }
 
-func (o *OpenAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (o *OpenAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
 	schema, err := ResultJSONSchema(task.ResponseResultFormat)
 	if err != nil {
 		return result, err
@@ -117,32 +120,88 @@ func (o *OpenAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig
 			})
 	}
 
-	resp, err := timed(func() (openai.ChatCompletionResponse, error) {
-		response, err := o.client.CreateChatCompletion(ctx, request)
-		if err != nil && o.isTransientResponse(err) {
-			return response, WrapErrRetryable(err)
+	// Setup tools if any.
+	var executor *tools.DockerToolExecutor
+	toolSelector := task.GetResolvedToolSelector()
+	if enabledTools, hasTools := toolSelector.GetEnabledToolsByName(); hasTools {
+		var err error
+		executor, err = tools.NewDockerToolExecutor(ctx)
+		if err != nil {
+			return result, fmt.Errorf("%w: %w", ErrToolSetup, err)
 		}
-		return response, err
-	}, &result.duration)
-	if err != nil {
-		return result, WrapErrGenerateResponse(err)
+		defer executor.Close()
+		for toolName, toolSelection := range enabledTools {
+			// Find the tool config from available tools.
+			toolCfg, found := findToolByName(o.availableTools, toolName)
+			if !found {
+				return result, fmt.Errorf("%w: %s", ErrToolNotFound, toolName)
+			}
+			tool := tools.NewDockerTool(toolCfg, toolSelection.MaxCalls, toolSelection.Timeout, toolSelection.MaxMemoryMB, toolSelection.CpuPercent)
+			executor.RegisterTool(tool)
+			request.Tools = append(request.Tools, openai.Tool{
+				Type: "function",
+				Function: &openai.FunctionDefinition{
+					Name:        toolCfg.Name,
+					Description: toolCfg.Description,
+					Strict:      false,
+					Parameters:  toolCfg.Parameters,
+				},
+			})
+		}
+		// If user tools are present, allow auto tool choice.
+		request.ToolChoice = "auto"
 	}
 
-	recordUsage(&resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, &result.usage)
-	for _, candidate := range resp.Choices {
-		content := candidate.Message.Content
-		if request.ResponseFormat.Type == openai.ChatCompletionResponseFormatTypeText {
-			content, err = utils.RepairTextJSON(content)
-			if err != nil {
-				return result, NewErrUnmarshalResponse(err, []byte(candidate.Message.Content), []byte(candidate.FinishReason))
+	// Conversation loop to handle tool calls.
+	for {
+		resp, err := timed(func() (openai.ChatCompletionResponse, error) {
+			response, err := o.client.CreateChatCompletion(ctx, request)
+			if err != nil && o.isTransientResponse(err) {
+				return response, WrapErrRetryable(err)
+			}
+			return response, err
+		}, &result.duration)
+		if err != nil {
+			return result, WrapErrGenerateResponse(err)
+		}
+
+		recordUsage(&resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, &result.usage)
+		result.recordToolUsage(executor.GetUsageStats())
+
+		for _, candidate := range resp.Choices {
+			if len(candidate.Message.ToolCalls) == 0 {
+				// No tool calls, this is the final response.
+				content := candidate.Message.Content
+				if request.ResponseFormat.Type == openai.ChatCompletionResponseFormatTypeText {
+					content, err = utils.RepairTextJSON(content)
+					if err != nil {
+						return result, NewErrUnmarshalResponse(err, []byte(candidate.Message.Content), []byte(candidate.FinishReason))
+					}
+				}
+				if err = json.Unmarshal([]byte(content), &result); err != nil {
+					return result, NewErrUnmarshalResponse(err, []byte(candidate.Message.Content), []byte(candidate.FinishReason))
+				}
+				return result, nil
+			}
+
+			// Append assistant message to conversation history before handling tool calls.
+			request.Messages = append(request.Messages, candidate.Message)
+
+			// Handle tool calls.
+			for _, toolCall := range candidate.Message.ToolCalls {
+				toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, json.RawMessage(toolCall.Function.Arguments))
+				content := string(toolResult)
+				if err != nil {
+					content = formatToolExecutionError(err)
+				}
+				request.Messages = append(request.Messages, openai.ChatCompletionMessage{
+					Role:       openai.ChatMessageRoleTool,
+					Content:    content,
+					ToolCallID: toolCall.ID,
+				})
 			}
 		}
-		if err = json.Unmarshal([]byte(content), &result); err != nil {
-			return result, NewErrUnmarshalResponse(err, []byte(candidate.Message.Content), []byte(candidate.FinishReason))
-		}
-	}
-
-	return result, nil
+	} // move to the next conversation turn
 }
 
 func (o *OpenAI) createPromptMessage(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (message openai.ChatCompletionMessage, err error) {

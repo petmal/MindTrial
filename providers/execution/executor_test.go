@@ -70,7 +70,7 @@ func TestBackoffWithCallback(t *testing.T) {
 func createMockProvider(name string) (providers.Provider, error) {
 	return providers.NewProvider(context.Background(), config.ProviderConfig{
 		Name: name,
-	})
+	}, nil)
 }
 
 func TestNewExecutor(t *testing.T) {

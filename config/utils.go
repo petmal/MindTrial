@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/petmal/mindtrial/pkg/utils"
 	"gopkg.in/yaml.v3"
 )
 
@@ -45,10 +46,29 @@ func LoadConfigFromFile(ctx context.Context, path string) (*Config, error) {
 	}
 
 	if err := validate.Struct(cfg); err != nil {
-		return cfg, fmt.Errorf("invalid configuration: %w", err)
+		return cfg, fmt.Errorf("invalid configuration definition: %w", err)
+	}
+
+	// Validate tool parameters schemas.
+	for _, tool := range cfg.Config.Tools {
+		if err := validateToolParameters(tool.Parameters); err != nil {
+			return cfg, fmt.Errorf("invalid tool configuration: invalid parameters for tool '%s': %w", tool.Name, err)
+		}
 	}
 
 	return cfg, nil
+}
+
+// validateToolParameters validates that the tool parameters map is a valid JSON schema.
+func validateToolParameters(parameters map[string]interface{}) error {
+	if len(parameters) == 0 {
+		return nil // empty parameters are allowed
+	}
+
+	if err := utils.ValidateAgainstSchema(parameters); err != nil {
+		return fmt.Errorf("parameters must be a valid JSON schema: %w", err)
+	}
+	return nil
 }
 
 // LoadTasksFromFile reads and validates task definitions from the specified file path.
@@ -74,7 +94,7 @@ func LoadTasksFromFile(ctx context.Context, path string) (*Tasks, error) {
 		return cfg, fmt.Errorf("invalid task definition: %w", err)
 	}
 
-	// Resolve system prompt templates and validation rules for all tasks.
+	// Resolve system prompt templates, validation rules and tool selections for all tasks.
 	for i, task := range cfg.TaskConfig.Tasks {
 		if err := cfg.TaskConfig.Tasks[i].ResolveSystemPrompt(cfg.TaskConfig.SystemPrompt); err != nil {
 			return cfg, fmt.Errorf("invalid system prompt configuration for task '%s': %w", task.Name, err)
@@ -82,6 +102,7 @@ func LoadTasksFromFile(ctx context.Context, path string) (*Tasks, error) {
 		if err := cfg.TaskConfig.Tasks[i].ResolveValidationRules(cfg.TaskConfig.ValidationRules); err != nil {
 			return cfg, fmt.Errorf("invalid validation rules configuration for task '%s': %w", task.Name, err)
 		}
+		cfg.TaskConfig.Tasks[i].ResolveToolSelector(cfg.TaskConfig.ToolSelector)
 	}
 
 	// Validate task configuration consistency.

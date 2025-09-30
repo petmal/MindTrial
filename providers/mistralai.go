@@ -17,29 +17,32 @@ import (
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
 	mistralai "github.com/petmal/mindtrial/pkg/mistralai"
+	"github.com/petmal/mindtrial/providers/tools"
 )
 
 // NewMistralAI creates a new Mistral AI provider instance with the given configuration.
-func NewMistralAI(cfg config.MistralAIClientConfig) (*MistralAI, error) {
+func NewMistralAI(cfg config.MistralAIClientConfig, availableTools []config.ToolConfig) (*MistralAI, error) {
 	clientCfg := mistralai.NewConfiguration()
 	clientCfg.AddDefaultHeader("Authorization", "Bearer "+cfg.APIKey)
 
 	client := mistralai.NewAPIClient(clientCfg)
 	return &MistralAI{
-		client: client,
+		client:         client,
+		availableTools: availableTools,
 	}, nil
 }
 
 // MistralAI implements the Provider interface for Mistral AI generative models.
 type MistralAI struct {
-	client *mistralai.APIClient
+	client         *mistralai.APIClient
+	availableTools []config.ToolConfig
 }
 
 func (o MistralAI) Name() string {
 	return config.MISTRALAI
 }
 
-func (o *MistralAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
 	if len(task.Files) > 0 {
 		if !o.isFileUploadSupported(cfg.Model) {
 			return result, ErrFileUploadNotSupported
@@ -91,41 +94,97 @@ func (o *MistralAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunCon
 			ArrayOfContentChunk: &contentParts,
 		}))))
 
-	resp, err := timed(func() (*mistralai.ChatCompletionResponse, error) {
-		response, httpResponse, err := o.client.ChatAPI.ChatCompletionV1ChatCompletionsPost(ctx).ChatCompletionRequest(*request).Execute()
+	// Setup tools if any.
+	var executor *tools.DockerToolExecutor
+	toolSelector := task.GetResolvedToolSelector()
+	if enabledTools, hasTools := toolSelector.GetEnabledToolsByName(); hasTools {
+		var err error
+		executor, err = tools.NewDockerToolExecutor(ctx)
 		if err != nil {
-			var apiErr *mistralai.GenericOpenAPIError
-			switch {
-			case o.isTransientResponse(httpResponse):
-				return response, WrapErrRetryable(err)
-			case errors.As(err, &apiErr):
-				return response, NewErrAPIResponse(err, apiErr.Body())
-			}
+			return result, fmt.Errorf("%w: %w", ErrToolSetup, err)
 		}
-		return response, err
-	}, &result.duration)
-	if err != nil {
-		return result, WrapErrGenerateResponse(err)
+		defer executor.Close()
+		for toolName, toolSelection := range enabledTools {
+			// Find the tool config from available tools.
+			toolCfg, found := findToolByName(o.availableTools, toolName)
+			if !found {
+				return result, fmt.Errorf("%w: %s", ErrToolNotFound, toolName)
+			}
+			tool := tools.NewDockerTool(toolCfg, toolSelection.MaxCalls, toolSelection.Timeout, toolSelection.MaxMemoryMB, toolSelection.CpuPercent)
+			executor.RegisterTool(tool)
+			function := mistralai.NewFunction(toolCfg.Name, toolCfg.Parameters)
+			function.SetDescription(toolCfg.Description)
+			function.SetStrict(false)
+			toolDef := mistralai.NewTool(*function)
+			request.Tools = append(request.Tools, *toolDef)
+		}
+		// If user tools are present, allow auto tool choice.
+		request.ToolChoice = mistralai.ToolChoiceEnum("auto").Ptr()
 	}
 
-	if resp != nil {
+	// Conversation loop to handle tool calls.
+	for {
+		resp, err := timed(func() (*mistralai.ChatCompletionResponse, error) {
+			response, httpResponse, err := o.client.ChatAPI.ChatCompletionV1ChatCompletionsPost(ctx).ChatCompletionRequest(*request).Execute()
+			if err != nil {
+				var apiErr *mistralai.GenericOpenAPIError
+				switch {
+				case o.isTransientResponse(httpResponse):
+					return response, WrapErrRetryable(err)
+				case errors.As(err, &apiErr):
+					return response, NewErrAPIResponse(err, apiErr.Body())
+				}
+			}
+			return response, err
+		}, &result.duration)
+		result.recordToolUsage(executor.GetUsageStats())
+		if err != nil {
+			return result, WrapErrGenerateResponse(err)
+		} else if resp == nil {
+			return result, nil // return current result state
+		}
+
 		if resp.Usage != nil {
 			recordUsage(&resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, &result.usage)
 		}
-
 		for _, candidate := range resp.Choices {
-			if message, ok := candidate.Message.GetContentOk(); ok {
-				if message != nil && message.String != nil {
-					content := *message.String
-					if err := json.Unmarshal([]byte(content), &result); err != nil {
-						return result, NewErrUnmarshalResponse(err, []byte(content), []byte(candidate.FinishReason))
+			if len(candidate.Message.ToolCalls) == 0 {
+				// No tool calls, this is the final response.
+				if message, ok := candidate.Message.GetContentOk(); ok {
+					if message != nil && message.String != nil {
+						content := *message.String
+						if err := json.Unmarshal([]byte(content), &result); err != nil {
+							return result, NewErrUnmarshalResponse(err, []byte(content), []byte(candidate.FinishReason))
+						}
+						return result, nil
 					}
 				}
 			}
-		}
-	}
 
-	return result, nil
+			// Append assistant message to conversation history before handling tool calls.
+			request.Messages = append(request.Messages, mistralai.AssistantMessageAsChatCompletionRequestMessagesInner(&candidate.Message))
+
+			// Handle tool calls.
+			for _, toolCall := range candidate.Message.ToolCalls {
+				args, err := marshalToolArguments(toolCall.Function.Arguments)
+				if err != nil {
+					return result, fmt.Errorf("%w: failed to extract tool arguments: %v", ErrToolUse, err)
+				}
+				toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, args)
+				content := string(toolResult)
+				if err != nil {
+					content = formatToolExecutionError(err)
+				}
+				content3 := mistralai.Content3{
+					String: &content,
+				}
+				nullableContent := mistralai.NewNullableContent3(&content3)
+				toolMessage := mistralai.NewToolMessage(*nullableContent)
+				toolMessage.ToolCallId.Set(toolCall.Id)
+				request.Messages = append(request.Messages, mistralai.ToolMessageAsChatCompletionRequestMessagesInner(toolMessage))
+			}
+		}
+	} // move to the next conversation turn
 }
 
 func (o *MistralAI) isFileUploadSupported(model string) bool {
@@ -219,6 +278,15 @@ func (o *MistralAI) createPromptMessageParts(ctx context.Context, promptText str
 		mistralai.NewTextChunk(result.recordPrompt(promptText))))
 
 	return parts, nil
+}
+
+func marshalToolArguments(args mistralai.Arguments) (argsData json.RawMessage, err error) {
+	if args.MapmapOfStringAny != nil {
+		argsData, err = json.Marshal(*args.MapmapOfStringAny)
+	} else if args.String != nil {
+		argsData, err = json.RawMessage(*args.String), nil
+	}
+	return
 }
 
 func (o *MistralAI) Close(ctx context.Context) error {

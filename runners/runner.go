@@ -9,6 +9,7 @@ package runners
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -32,6 +33,11 @@ const (
 const runResultIDPrefix = "run"
 
 var validIDCharMatcher = regexp.MustCompile(`[^a-zA-Z0-9_-]`)
+
+var (
+	// ErrToolNotFound is returned when a required tool is not found in the available tools.
+	ErrToolNotFound = errors.New("required tool not found")
+)
 
 // ResultKind represents the task execution result status.
 type ResultKind int
@@ -144,6 +150,8 @@ type AnswerDetails struct {
 	ExpectedAnswer [][]string
 	// Usage contains token usage statistics for generating the answer.
 	Usage TokenUsage
+	// ToolUsage contains aggregated statistics for any tools invoked while producing the answer.
+	ToolUsage map[string]ToolUsage `json:"ToolUsage,omitempty"`
 }
 
 // ValidationDetails defines structured information about answer verification and correctness assessment.
@@ -155,6 +163,8 @@ type ValidationDetails struct {
 	// Usage contains token usage statistics for the response validation step.
 	// This is typically populated when using an LLM judge validator.
 	Usage TokenUsage
+	// ToolUsage contains aggregated statistics for any tools invoked during validation.
+	ToolUsage map[string]ToolUsage `json:"ToolUsage,omitempty"`
 }
 
 // ErrorDetails defines structured information about errors that occurred during execution.
@@ -168,6 +178,8 @@ type ErrorDetails struct {
 	// Usage contains token usage statistics if available even in error scenarios.
 	// This is typically populated if the error occurs when parsing the generated response.
 	Usage TokenUsage
+	// ToolUsage contains aggregated statistics for any tools invoked prior to the error.
+	ToolUsage map[string]ToolUsage `json:"ToolUsage,omitempty"`
 }
 
 // TokenUsage represents token usage consumed by an LLM request.
@@ -177,6 +189,14 @@ type TokenUsage struct {
 	InputTokens *int64 `json:"InputTokens,omitempty"`
 	// OutputTokens is the number of tokens generated in the completion/output.
 	OutputTokens *int64 `json:"OutputTokens,omitempty"`
+}
+
+// ToolUsage represents aggregated tool invocation statistics captured during execution.
+type ToolUsage struct {
+	// CallCount is the number of times the tool was invoked.
+	CallCount *int64 `json:"CallCount,omitempty"`
+	// TotalDuration is the cumulative execution time for the tool.
+	TotalDuration *time.Duration `json:"TotalDuration,omitempty"`
 }
 
 // toLines converts an ExpectedResultSet to [][]string where each value is converted to string and split into lines.

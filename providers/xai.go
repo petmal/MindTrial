@@ -18,10 +18,11 @@ import (
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
 	xai "github.com/petmal/mindtrial/pkg/xai"
+	"github.com/petmal/mindtrial/providers/tools"
 )
 
 // NewXAI creates a new xAI provider instance with the given configuration.
-func NewXAI(cfg config.XAIClientConfig) (*XAI, error) {
+func NewXAI(cfg config.XAIClientConfig, availableTools []config.ToolConfig) (*XAI, error) {
 	clientCfg := xai.NewConfiguration()
 	clientCfg.AddDefaultHeader("Authorization", "Bearer "+cfg.APIKey)
 
@@ -34,19 +35,23 @@ func NewXAI(cfg config.XAIClientConfig) (*XAI, error) {
 	}
 
 	client := xai.NewAPIClient(clientCfg)
-	return &XAI{client: client}, nil
+	return &XAI{
+		client:         client,
+		availableTools: availableTools,
+	}, nil
 }
 
 // XAI implements the Provider interface for xAI.
 type XAI struct {
-	client *xai.APIClient
+	client         *xai.APIClient
+	availableTools []config.ToolConfig
 }
 
 func (o XAI) Name() string {
 	return config.XAI
 }
 
-func (o *XAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
 	// Prepare a completion request.
 	req := xai.NewChatRequestWithDefaults()
 	req.SetModel(cfg.Model)
@@ -112,26 +117,58 @@ func (o *XAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig, t
 	userContent := xai.ArrayOfContentPartAsContent(&parts)
 	req.Messages = append(req.Messages, xai.MessageOneOf1AsMessage(xai.NewMessageOneOf1(userContent, "user")))
 
-	// Execute the completion request.
-	resp, err := timed(func() (*xai.ChatResponse, error) {
-		response, httpResp, err := o.client.V1API.HandleGenericCompletionRequest(ctx).ChatRequest(*req).Execute()
+	// Setup tools if any.
+	var executor *tools.DockerToolExecutor
+	toolSelector := task.GetResolvedToolSelector()
+	if enabledTools, hasTools := toolSelector.GetEnabledToolsByName(); hasTools {
+		var err error
+		executor, err = tools.NewDockerToolExecutor(ctx)
 		if err != nil {
-			var apiErr *xai.GenericOpenAPIError
-			switch {
-			case o.isTransientResponse(httpResp):
-				return response, WrapErrRetryable(err)
-			case errors.As(err, &apiErr):
-				return response, NewErrAPIResponse(err, apiErr.Body())
-			}
+			return result, fmt.Errorf("%w: %w", ErrToolSetup, err)
 		}
-		return response, err
-	}, &result.duration)
-	if err != nil {
-		return result, WrapErrGenerateResponse(err)
+		defer executor.Close()
+		for toolName, toolSelection := range enabledTools {
+			// Find the tool config from available tools
+			toolCfg, found := findToolByName(o.availableTools, toolName)
+			if !found {
+				return result, fmt.Errorf("%w: %s", ErrToolNotFound, toolName)
+			}
+			tool := tools.NewDockerTool(toolCfg, toolSelection.MaxCalls, toolSelection.Timeout, toolSelection.MaxMemoryMB, toolSelection.CpuPercent)
+			executor.RegisterTool(tool)
+			funcDef := xai.NewFunctionDefinition(toolCfg.Name, toolCfg.Parameters)
+			funcDef.SetDescription(toolCfg.Description)
+			funcDef.SetStrict(false)
+			toolDef := xai.ToolOneOfAsTool(xai.NewToolOneOf(*funcDef, "function"))
+			req.Tools = append(req.Tools, toolDef)
+		}
+		// If user tools are present, allow auto tool choice.
+		req.SetToolChoice(xai.ToolChoiceOneOfAsToolChoice(xai.NewToolChoiceOneOf("auto")))
 	}
 
-	// Parse the completion response.
-	if resp != nil {
+	// Conversation loop to handle tool calls.
+	for {
+		resp, err := timed(func() (*xai.ChatResponse, error) {
+			response, httpResp, err := o.client.V1API.HandleGenericCompletionRequest(ctx).ChatRequest(*req).Execute()
+			if err != nil {
+				var apiErr *xai.GenericOpenAPIError
+				switch {
+				case o.isTransientResponse(httpResp):
+					return response, WrapErrRetryable(err)
+				case errors.As(err, &apiErr):
+					return response, NewErrAPIResponse(err, apiErr.Body())
+				}
+			}
+			return response, err
+		}, &result.duration)
+		result.recordToolUsage(executor.GetUsageStats())
+		if err != nil {
+			return result, WrapErrGenerateResponse(err)
+		} else if resp == nil {
+			return result, nil // return current result state
+		}
+
+		// Parse the completion response.
+
 		if resp.Usage.IsSet() {
 			if u := resp.Usage.Get(); u != nil {
 				promptTokens := int64(u.PromptTokens)
@@ -140,23 +177,45 @@ func (o *XAI) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig, t
 			}
 		}
 		for _, candidate := range resp.Choices {
-			if contentPtr, ok := candidate.Message.GetContentOk(); ok && contentPtr != nil {
-				content := *contentPtr
-				if err := json.Unmarshal([]byte(content), &result); err != nil {
-					// Stop reason may be present.
-					var stopReason []byte
-					if candidate.FinishReason.IsSet() {
-						if fr := candidate.FinishReason.Get(); fr != nil {
-							stopReason = []byte(*fr)
+			if len(candidate.Message.ToolCalls) == 0 {
+				// No tool calls, this is the final response.
+				if contentPtr, ok := candidate.Message.GetContentOk(); ok && contentPtr != nil {
+					content := *contentPtr
+					if err := json.Unmarshal([]byte(content), &result); err != nil {
+						// Stop reason may be present.
+						var stopReason []byte
+						if candidate.FinishReason.IsSet() {
+							if fr := candidate.FinishReason.Get(); fr != nil {
+								stopReason = []byte(*fr)
+							}
 						}
+						return result, NewErrUnmarshalResponse(err, []byte(content), stopReason)
 					}
-					return result, NewErrUnmarshalResponse(err, []byte(content), stopReason)
+					return result, nil
 				}
 			}
-		}
-	}
 
-	return result, nil
+			// Append assistant message to conversation history before handling tool calls.
+			msg := xai.NewMessageOneOf2(candidate.Message.Role)
+			if contentPtr, ok := candidate.Message.GetContentOk(); ok && contentPtr != nil {
+				msg.SetContent(xai.StringAsContent(contentPtr))
+			}
+			req.Messages = append(req.Messages, xai.MessageOneOf2AsMessage(msg))
+
+			// Handle tool calls.
+			for _, toolCall := range candidate.Message.ToolCalls {
+				args := json.RawMessage(toolCall.Function.Arguments)
+				toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, args)
+				content := string(toolResult)
+				if err != nil {
+					content = formatToolExecutionError(err)
+				}
+				toolMessage := xai.NewMessageOneOf3(xai.StringAsContent(&content), "tool")
+				toolMessage.SetToolCallId(toolCall.Id)
+				req.Messages = append(req.Messages, xai.MessageOneOf3AsMessage(toolMessage))
+			}
+		}
+	} // move to the next conversation turn
 }
 
 func (o *XAI) isTransientResponse(response *http.Response) bool {

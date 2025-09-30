@@ -64,6 +64,9 @@ type AppConfig struct {
 
 	// Judges lists LLM configurations for semantic evaluation of open-ended task responses.
 	Judges []JudgeConfig `yaml:"judges" validate:"omitempty,unique=Name,dive"`
+
+	// Tools lists common tool configurations available to tasks.
+	Tools []ToolConfig `yaml:"tools" validate:"omitempty,unique=Name,dive"`
 }
 
 // GetProvidersWithEnabledRuns returns providers with their enabled run configurations.
@@ -207,6 +210,42 @@ func (c AlibabaClientConfig) GetEndpoint() string {
 		return "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
 	}
 	return c.Endpoint
+}
+
+// ToolConfig represents the configuration for a tool.
+type ToolConfig struct {
+	// Name is the unique identifier for the tool.
+	Name string `yaml:"name" validate:"required"`
+	// Image is the name of the Docker image to use for the tool.
+	Image string `yaml:"image" validate:"required"`
+	// Description describes what the tool does. For optimal LLM understanding and tool selection,
+	// provide extremely detailed descriptions including:
+	// - What the tool does and its primary purpose
+	// - When it should be used (and when it shouldn't)
+	// - What each parameter in the schema means and how it affects behavior
+	// - Any important caveats, limitations, or side effects
+	// - Examples of usage if helpful
+	// Aim for 3-4 sentences per tool description. Be specific and avoid ambiguity
+	// to help the LLM choose the correct tool and provide appropriate parameters.
+	Description string `yaml:"description" validate:"required"`
+	// Parameters is the JSON schema for the tool's input parameters. Follow these best practices
+	// to improve LLM parameter generation accuracy:
+	// - Use standard JSON Schema format with detailed "description" fields for each parameter
+	// - Specify precise types (string, integer, boolean, array, object)
+	// - Use "enum" arrays for parameters with fixed sets of allowed values
+	// - Include examples and constraints in parameter descriptions (e.g., "The city name, e.g., 'San Francisco'")
+	// - Clearly mark all required parameters in the "required" array
+	// - Use "additionalProperties": false for objects to prevent unexpected parameters
+	// - Provide comprehensive descriptions that explain parameter purpose and format
+	Parameters map[string]interface{} `yaml:"parameters" validate:"required"`
+	// FileMappings maps parameter field names to file paths where argument values should be written.
+	// This allows passing large or complex data to tools via files instead of inline JSON.
+	// The tool's command should read these files as needed.
+	FileMappings map[string]string `yaml:"file_mappings,omitempty"`
+	// Command specifies the command to execute as a list of its components.
+	Command []string `yaml:"command,omitempty"`
+	// Env specifies additional environment variables to set.
+	Env map[string]string `yaml:"env,omitempty"`
 }
 
 // RunConfig defines settings for a single run configuration.

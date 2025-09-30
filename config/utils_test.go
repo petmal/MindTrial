@@ -605,6 +605,140 @@ func TestLoadConfigFromFile(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "config with tool config",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`config:
+    task-source: "tasks.yaml"
+    output-dir: "."
+    providers:
+        - name: openai
+          client-config:
+              api-key: "test-key"
+          runs:
+              - name: "test-run"
+                model: "gpt-4"
+    tools:
+        - name: python-code-executor
+          image: python:3.9-slim
+          description: "Executes Python code in a container"
+          parameters:
+            code:
+              type: string
+              description: "Python code to execute"
+          command: ["python", "-c"]
+          file_mappings:
+            code: "/tmp/code.py"
+          env:
+            PYTHONPATH: "/usr/local/lib/python3.9"
+`)),
+			},
+			want: &Config{
+				Config: AppConfig{
+					TaskSource: "tasks.yaml",
+					OutputDir:  ".",
+					Providers: []ProviderConfig{
+						{
+							Name: "openai",
+							ClientConfig: OpenAIClientConfig{
+								APIKey: "test-key",
+							},
+							Runs: []RunConfig{
+								{
+									Name:                 "test-run",
+									Model:                "gpt-4",
+									MaxRequestsPerMinute: 0,
+								},
+							},
+							Disabled: false,
+						},
+					},
+					Tools: []ToolConfig{
+						{
+							Name:        "python-code-executor",
+							Image:       "python:3.9-slim",
+							Description: "Executes Python code in a container",
+							Parameters: map[string]interface{}{
+								"code": map[string]interface{}{
+									"type":        "string",
+									"description": "Python code to execute",
+								},
+							},
+							Command:      []string{"python", "-c"},
+							FileMappings: map[string]string{"code": "/tmp/code.py"},
+							Env:          map[string]string{"PYTHONPATH": "/usr/local/lib/python3.9"},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "config with invalid tool parameter schema",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`config:
+    task-source: "tasks.yaml"
+    output-dir: "."
+    providers:
+        - name: openai
+          client-config:
+              api-key: "test-key"
+          runs:
+              - name: "test-run"
+                model: "gpt-4"
+    tools:
+        - name: invalid-tool
+          image: python:3.9-slim
+          description: "Invalid tool"
+          parameters:
+            code:
+              type: string
+              description: "Python code to execute"
+            required: "code"
+          command: ["python", "-c"]
+`)),
+			},
+			wantErr: true,
+		},
+		{
+			name: "config with duplicate tool names",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`config:
+    task-source: "tasks.yaml"
+    output-dir: "."
+    providers:
+        - name: openai
+          client-config:
+              api-key: "test-key"
+          runs:
+              - name: "test-run"
+                model: "gpt-4"
+    tools:
+        - name: duplicate-tool
+          image: python:3.9-slim
+          description: "First tool"
+          parameters:
+            code:
+              type: string
+        - name: duplicate-tool
+          image: python:3.9-slim
+          description: "Second tool"
+          parameters:
+            code:
+              type: string
+`)),
+			},
+			wantErr: true,
+		},
+		{
 			name: "config with duplicate judge names",
 			args: args{
 				ctx: context.Background(),
@@ -1157,6 +1291,91 @@ func TestLoadTasksFromFile(t *testing.T) {
 								EnableFor: testutils.Ptr(EnableForAll),
 							},
 							resolvedSystemPrompt: "Hello, Greeting",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid file with tool selector",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`task-config:
+    tool-selector:
+        disabled: false
+        tools:
+            - name: python-code-executor
+              max-calls: 10
+              timeout: 60s
+              max-memory-mb: 512
+              cpu-percent: 25
+            - name: calculator
+              disabled: true
+    tasks:
+        - name: "Task with tool selector"
+          prompt: "Calculate 2 + 2"
+          response-result-format: "Result"
+          expected-result: "4"
+          tool-selector:
+              tools:
+                  - name: calculator
+                    disabled: false
+                    max-calls: 5`)),
+			},
+			want: &Tasks{
+				TaskConfig: TaskConfig{
+					ToolSelector: ToolSelector{
+						Disabled: testutils.Ptr(false),
+						Tools: []ToolSelection{
+							{
+								Name:        "python-code-executor",
+								MaxCalls:    testutils.Ptr(10),
+								Timeout:     testutils.Ptr(60 * time.Second),
+								MaxMemoryMB: testutils.Ptr(512),
+								CpuPercent:  testutils.Ptr(25),
+							},
+							{
+								Name:     "calculator",
+								Disabled: testutils.Ptr(true),
+							},
+						},
+					},
+					Tasks: []Task{
+						{
+							Name:                 "Task with tool selector",
+							Prompt:               "Calculate 2 + 2",
+							ResponseResultFormat: NewResponseFormat("Result"),
+							ExpectedResult:       utils.NewValueSet("4"),
+							ToolSelector: &ToolSelector{
+								Tools: []ToolSelection{
+									{
+										Name:     "calculator",
+										Disabled: testutils.Ptr(false),
+										MaxCalls: testutils.Ptr(5),
+									},
+								},
+							},
+							resolvedSystemPrompt: "Provide the final answer in exactly this format: Result",
+							resolvedToolSelector: ToolSelector{
+								Disabled: testutils.Ptr(false),
+								Tools: []ToolSelection{
+									{
+										Name:        "python-code-executor",
+										MaxCalls:    testutils.Ptr(10),
+										Timeout:     testutils.Ptr(60 * time.Second),
+										MaxMemoryMB: testutils.Ptr(512),
+										CpuPercent:  testutils.Ptr(25),
+									},
+									{
+										Name:     "calculator",
+										Disabled: testutils.Ptr(false),
+										MaxCalls: testutils.Ptr(5),
+									},
+								},
+							},
 						},
 					},
 				},

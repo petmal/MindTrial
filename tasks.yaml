@@ -71,6 +71,15 @@ task-config:
       2. If it contains placeholders like `<variable>`, substitute them with the correct raw value, removing the `<` and `>` characters.
       3. Adhere to all described structural rules, such as list numbering, ordering, separators, and newlines.
       4. If the format provides specific word choices (e.g., "true or false"), your answer must be one of those exact words.
+  # Selection of tools available to language models during task solving.
+  tool-selector:
+    disabled: true  # Requires Docker to be installed and running. Disable tool use for all tasks by default.
+    tools:
+      - name: python-code-executor
+        max-calls: 10
+        timeout: 60s
+        max-memory-mb: 512
+        cpu-percent: 25
   # Each task represents a specific challenge or test case for language model evaluation.
   tasks:
     - name: "reasoning - section, color and number - v1"

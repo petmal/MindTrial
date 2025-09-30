@@ -20,6 +20,7 @@ import (
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
 	"github.com/petmal/mindtrial/pkg/testutils"
+	"github.com/petmal/mindtrial/providers/tools"
 )
 
 var (
@@ -32,6 +33,7 @@ var (
 // MockProvider provides a test implementation of the Provider interface for testing purposes.
 type MockProvider struct {
 	name    string
+	tools   []config.ToolConfig
 	retries sync.Map
 }
 
@@ -66,7 +68,7 @@ func (m *MockProvider) Run(ctx context.Context, logger logging.Logger, cfg confi
 
 // createBaseResult creates a base Result with mock data.
 func (m *MockProvider) createBaseResult(taskName string) Result {
-	return Result{
+	result := Result{
 		Title: taskName,
 		prompts: []string{
 			"Porro laudantium quam voluptas.",
@@ -79,6 +81,20 @@ func (m *MockProvider) createBaseResult(taskName string) Result {
 		},
 		duration: 7211609999927884 * time.Nanosecond,
 	}
+
+	// Add mock tool usage if tools are available.
+	if len(m.tools) > 0 {
+		result.usage.ToolUsage = make(map[string]tools.ToolUsage)
+		// Add usage for each tool.
+		for _, tool := range m.tools {
+			result.usage.ToolUsage[tool.Name] = tools.ToolUsage{
+				CallCount:   2,
+				TotalTimeNs: 150000000, // 150ms
+			}
+		}
+	}
+
+	return result
 }
 
 func (m *MockProvider) handlePassMode(result Result, expectedAnswer interface{}) Result {
@@ -243,8 +259,9 @@ func (m *MockProvider) Close(ctx context.Context) error {
 	return nil
 }
 
-func NewProvider(ctx context.Context, cfg config.ProviderConfig) (Provider, error) {
+func NewProvider(ctx context.Context, cfg config.ProviderConfig, availableTools []config.ToolConfig) (Provider, error) {
 	return &MockProvider{
-		name: cfg.Name,
+		name:  cfg.Name,
+		tools: availableTools,
 	}, nil
 }

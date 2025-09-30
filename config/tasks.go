@@ -12,11 +12,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"mime"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"text/template"
@@ -279,6 +281,10 @@ type TaskConfig struct {
 	// SystemPrompt is the default system prompt configuration for all tasks.
 	// Individual tasks can override this configuration.
 	SystemPrompt SystemPrompt `yaml:"system-prompt" validate:"omitempty"`
+
+	// ToolSelector is the default tool selector configuration for all tasks.
+	// Individual tasks can override this configuration.
+	ToolSelector ToolSelector `yaml:"tool-selector" validate:"omitempty"`
 }
 
 // GetEnabledTasks returns a filtered list of tasks that are not disabled.
@@ -622,11 +628,18 @@ type Task struct {
 	// depending on the provider's capabilities.
 	Files []TaskFile `yaml:"files" validate:"omitempty,unique=Name,dive"`
 
+	// ToolSelector is the tool selector configuration for this specific task.
+	// If set, overrides the global TaskConfig.ToolSelector values.
+	ToolSelector *ToolSelector `yaml:"tool-selector" validate:"omitempty"`
+
 	// resolvedSystemPrompt is the resolved system prompt template for this task.
 	resolvedSystemPrompt string
 
 	// resolvedValidationRules is the resolved validation rules for this task.
 	resolvedValidationRules ValidationRules
+
+	// resolvedToolSelector is the resolved tool selector for this task.
+	resolvedToolSelector ToolSelector
 }
 
 // GetResolvedSystemPrompt returns the resolved system prompt template for this task and true if it is not blank.
@@ -637,6 +650,11 @@ func (t Task) GetResolvedSystemPrompt() (prompt string, ok bool) {
 // GetResolvedValidationRules returns the resolved validation rules for this task.
 func (t Task) GetResolvedValidationRules() ValidationRules {
 	return t.resolvedValidationRules
+}
+
+// GetResolvedToolSelector returns the resolved tool selector for this task.
+func (t Task) GetResolvedToolSelector() ToolSelector {
+	return t.resolvedToolSelector
 }
 
 // ResolveSystemPrompt resolves the system prompt template for this task using the provided default.
@@ -693,6 +711,12 @@ func (t *Task) ResolveValidationRules(defaultConfig ValidationRules) error {
 	}
 
 	return nil
+}
+
+// ResolveToolSelector resolves the tool selector for this task using the provided default.
+// The resolved selector can be retrieved using GetResolvedToolSelector().
+func (t *Task) ResolveToolSelector(defaultSelector ToolSelector) {
+	t.resolvedToolSelector = defaultSelector.MergeWith(t.ToolSelector)
 }
 
 // shouldResolveSystemPrompt determines if system prompt should be resolved for this task
@@ -915,6 +939,81 @@ func (these JudgePrompt) MergeWith(other JudgePrompt) JudgePrompt {
 	setIfNotNil(&resolved.Template, other.Template)
 	setIfNotNil(&resolved.VerdictFormat, other.VerdictFormat)
 	setIfNotNil(&resolved.PassingVerdicts, other.PassingVerdicts)
+
+	return resolved
+}
+
+// ToolSelection represents the selection and configuration of a tool for a task.
+type ToolSelection struct {
+	// Name of the tool to select.
+	Name string `yaml:"name" validate:"required"`
+	// Disabled determines whether this specific tool is disabled.
+	// If nil, uses the value from the ToolSelector.
+	Disabled *bool `yaml:"disabled" validate:"omitempty"`
+	// MaxCalls is the maximum number of times this tool can be called per task.
+	// If nil, there is no limit.
+	MaxCalls *int `yaml:"max-calls" validate:"omitempty,min=1"`
+	// Timeout is the timeout for a single tool invocation.
+	// If nil, there is no timeout.
+	Timeout *time.Duration `yaml:"timeout" validate:"omitempty"`
+	// MaxMemoryMB is the maximum memory limit in MB available for this tool per invocation.
+	// If nil, there is no memory limit.
+	MaxMemoryMB *int `yaml:"max-memory-mb" validate:"omitempty,min=1"`
+	// CpuPercent is the CPU limit as a percentage of total host CPU (0-100) per invocation.
+	// If nil, there is no CPU limit.
+	CpuPercent *int `yaml:"cpu-percent" validate:"omitempty,min=1,max=100"`
+}
+
+// ToolSelector defines settings for using tools in task execution.
+type ToolSelector struct {
+	// Disabled determines whether tools are disabled for the task.
+	// Individual tools can override this setting.
+	Disabled *bool `yaml:"disabled" validate:"omitempty"`
+	// Tools lists the tools to be available in the task execution.
+	Tools []ToolSelection `yaml:"tools" validate:"omitempty,unique=Name,dive"`
+}
+
+// GetEnabledToolsByName returns the map of tools that are not disabled and a boolean indicating if any tools are enabled.
+// For each tool, if ToolSelection.Disabled is nil, uses the ToolSelector.Disabled value.
+func (ts ToolSelector) GetEnabledToolsByName() (map[string]ToolSelection, bool) {
+	enabledTools := make(map[string]ToolSelection, len(ts.Tools))
+	for _, tool := range ts.Tools {
+		if !ResolveFlagOverride(tool.Disabled, ResolveFlagOverride(ts.Disabled, false)) {
+			enabledTools[tool.Name] = tool
+		}
+	}
+	return enabledTools, len(enabledTools) > 0
+}
+
+// MergeWith merges this tool selector with another and returns the result.
+// The provided other values override these values if set.
+func (these ToolSelector) MergeWith(other *ToolSelector) ToolSelector {
+	resolved := these
+
+	if other != nil {
+		setIfNotNil(&resolved.Disabled, other.Disabled)
+
+		// Merge tools: other's tools override these's tools with the same name.
+		toolMap := make(map[string]ToolSelection)
+		for _, tool := range these.Tools {
+			toolMap[tool.Name] = tool
+		}
+		for _, tool := range other.Tools {
+			if existing, exists := toolMap[tool.Name]; exists {
+				// Merge existing tool with the new one.
+				merged := existing
+				setIfNotNil(&merged.Disabled, tool.Disabled)
+				setIfNotNil(&merged.MaxCalls, tool.MaxCalls)
+				setIfNotNil(&merged.Timeout, tool.Timeout)
+				setIfNotNil(&merged.MaxMemoryMB, tool.MaxMemoryMB)
+				setIfNotNil(&merged.CpuPercent, tool.CpuPercent)
+				toolMap[tool.Name] = merged
+			} else {
+				toolMap[tool.Name] = tool
+			}
+		}
+		resolved.Tools = slices.Collect(maps.Values(toolMap))
+	}
 
 	return resolved
 }

@@ -107,10 +107,12 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"Provident quas tenetur repellat deserunt ut neque culpa."},
 								ExpectedAnswer: [][]string{{"Provident quas tenetur repellat deserunt ut neque culpa."}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
 								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -130,10 +132,12 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"Facere aperiam recusandae totam magnam nulla corrupti."},
 								ExpectedAnswer: [][]string{{"Aperiam assumenda id provident ratione eos molestiae."}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
 								Explanation: []string{"Response does not match any of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -150,9 +154,10 @@ func TestRunnerRun(t *testing.T) {
 							Answer:     AnswerDetails{},
 							Validation: ValidationDetails{},
 							Error: ErrorDetails{
-								Title:   "Execution Error",
-								Message: "mock error",
-								Usage:   expectedUsage,
+								Title:     "Execution Error",
+								Message:   "mock error",
+								Usage:     expectedUsage,
+								ToolUsage: map[string]ToolUsage{},
 							},
 						},
 						Duration: 7211609999927884 * time.Nanosecond,
@@ -171,10 +176,12 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"Facere aperiam recusandae totam magnam nulla corrupti."},
 								ExpectedAnswer: [][]string{{"Veritatis aliquid accusantium dolore voluptate optio dolor."}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
 								Explanation: []string{"Response does not match any of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -194,10 +201,12 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"Omnis omnis ea quia et ut est."},
 								ExpectedAnswer: [][]string{{"Omnis omnis ea quia et ut est."}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
 								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -214,9 +223,10 @@ func TestRunnerRun(t *testing.T) {
 							Answer:     AnswerDetails{},
 							Validation: ValidationDetails{},
 							Error: ErrorDetails{
-								Title:   "Feature Not Supported",
-								Message: "feature not supported by provider: mock not supported",
-								Usage:   expectedUsage,
+								Title:     "Feature Not Supported",
+								Message:   "feature not supported by provider: mock not supported",
+								Usage:     expectedUsage,
+								ToolUsage: map[string]ToolUsage{},
 							},
 						},
 						Duration: 7211609999927884 * time.Nanosecond,
@@ -235,11 +245,13 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"Facere aperiam recusandae totam magnam nulla corrupti."},
 								ExpectedAnswer: [][]string{{"rerum nam illo"}, {"dolore praesentium non"}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Semantic Assessment",
 								Explanation: []string{"Response is not semantically equivalent to any of the accepted answers.", "", "Judge reasoning:", "mock success"},
 								Usage:       expectedUsage,
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -259,11 +271,13 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"corporis et ipsa"},
 								ExpectedAnswer: [][]string{{"corporis et ipsa"}, {"nesciunt sed quia"}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Semantic Assessment",
 								Explanation: []string{"Response is semantically equivalent to one of the accepted answers.", "", "Judge reasoning:", "mock success"},
 								Usage:       expectedUsage,
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -283,10 +297,12 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"Provident quas tenetur repellat deserunt ut neque culpa."},
 								ExpectedAnswer: [][]string{{"Provident quas tenetur repellat deserunt ut neque culpa."}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
 								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -306,10 +322,12 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"Aperiam assumenda id provident ratione eos molestiae."},
 								ExpectedAnswer: [][]string{{"Aperiam assumenda id provident ratione eos molestiae."}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
 								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -329,10 +347,12 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"Doloribus quis incidunt velit quia."},
 								ExpectedAnswer: [][]string{{"Doloribus quis incidunt velit quia."}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
 								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -352,10 +372,12 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"Veritatis aliquid accusantium dolore voluptate optio dolor."},
 								ExpectedAnswer: [][]string{{"Veritatis aliquid accusantium dolore voluptate optio dolor."}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
 								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -375,10 +397,12 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"Omnis omnis ea quia et ut est."},
 								ExpectedAnswer: [][]string{{"Omnis omnis ea quia et ut est."}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
 								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -398,10 +422,12 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"Unde accusantium sit et enim temporibus qui distinctio assumenda."},
 								ExpectedAnswer: [][]string{{"Unde accusantium sit et enim temporibus qui distinctio assumenda."}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
 								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -421,11 +447,13 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"rerum nam illo"},
 								ExpectedAnswer: [][]string{{"rerum nam illo"}, {"dolore praesentium non"}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Semantic Assessment",
 								Explanation: []string{"Response is semantically equivalent to one of the accepted answers.", "", "Judge reasoning:", "mock success"},
 								Usage:       expectedUsage,
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -445,11 +473,13 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"corporis et ipsa"},
 								ExpectedAnswer: [][]string{{"corporis et ipsa"}, {"nesciunt sed quia"}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Semantic Assessment",
 								Explanation: []string{"Response is semantically equivalent to one of the accepted answers.", "", "Judge reasoning:", "mock success"},
 								Usage:       expectedUsage,
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -471,10 +501,12 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"Provident quas tenetur repellat deserunt ut neque culpa."},
 								ExpectedAnswer: [][]string{{"Provident quas tenetur repellat deserunt ut neque culpa."}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
 								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -494,10 +526,12 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"Aperiam assumenda id provident ratione eos molestiae."},
 								ExpectedAnswer: [][]string{{"Aperiam assumenda id provident ratione eos molestiae."}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
 								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -517,10 +551,12 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"Doloribus quis incidunt velit quia."},
 								ExpectedAnswer: [][]string{{"Doloribus quis incidunt velit quia."}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
 								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -540,10 +576,12 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"Veritatis aliquid accusantium dolore voluptate optio dolor."},
 								ExpectedAnswer: [][]string{{"Veritatis aliquid accusantium dolore voluptate optio dolor."}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
 								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -563,10 +601,12 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"Omnis omnis ea quia et ut est."},
 								ExpectedAnswer: [][]string{{"Omnis omnis ea quia et ut est."}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
 								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -586,10 +626,12 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"Unde accusantium sit et enim temporibus qui distinctio assumenda."},
 								ExpectedAnswer: [][]string{{"Unde accusantium sit et enim temporibus qui distinctio assumenda."}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Response Assessment",
 								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -609,11 +651,13 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"rerum nam illo"},
 								ExpectedAnswer: [][]string{{"rerum nam illo"}, {"dolore praesentium non"}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Semantic Assessment",
 								Explanation: []string{"Response is semantically equivalent to one of the accepted answers.", "", "Judge reasoning:", "mock success"},
 								Usage:       expectedUsage,
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -633,11 +677,13 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"corporis et ipsa"},
 								ExpectedAnswer: [][]string{{"corporis et ipsa"}, {"nesciunt sed quia"}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{
 								Title:       "Semantic Assessment",
 								Explanation: []string{"Response is semantically equivalent to one of the accepted answers.", "", "Judge reasoning:", "mock success"},
 								Usage:       expectedUsage,
+								ToolUsage:   map[string]ToolUsage{},
 							},
 							Error: ErrorDetails{},
 						},
@@ -672,7 +718,7 @@ func TestRunnerRun(t *testing.T) {
 						},
 					},
 				},
-			}, zerolog.Nop()),
+			}, nil, zerolog.Nop()),
 			args: args{
 				context.Background(),
 				[]config.Task{
@@ -705,12 +751,14 @@ func TestRunnerRun(t *testing.T) {
 								ActualAnswer:   []string{"error"},
 								ExpectedAnswer: [][]string{{"Expected answer"}},
 								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
 							},
 							Validation: ValidationDetails{},
 							Error: ErrorDetails{
-								Title:   "Validation Error",
-								Message: "judge evaluation failed: mock error",
-								Usage:   expectedUsage,
+								Title:     "Validation Error",
+								Message:   "judge evaluation failed: mock error",
+								Usage:     expectedUsage,
+								ToolUsage: map[string]ToolUsage{},
 							},
 						},
 						Duration: 7211609999927884 * time.Nanosecond,
@@ -781,7 +829,7 @@ func TestRunnerRunWithRetry(t *testing.T) {
 						},
 					},
 				},
-			}, []config.JudgeConfig{}, zerolog.New(zerolog.NewTestWriter(t)))
+			}, []config.JudgeConfig{}, nil, zerolog.New(zerolog.NewTestWriter(t)))
 
 			tasks := []config.Task{
 				{
@@ -816,6 +864,106 @@ func TestRunnerRunWithRetry(t *testing.T) {
 				assert.Zero(t, result.Details.Validation, "Error should not have Validation details")
 				assert.NotZero(t, result.Details.Error, "Error should have Error details")
 				assert.Contains(t, result.Details.Error.Message, tt.expectedInDetails)
+			}
+		})
+	}
+}
+
+func TestRunnerRunWithTools(t *testing.T) {
+	// Define tools for the test.
+	tools := []config.ToolConfig{
+		{Name: "tool1"},
+		{Name: "tool2"},
+	}
+
+	// Create runner with tools using createMockRunnerFromConfig.
+	runner := createMockRunnerFromConfig(t, []config.ProviderConfig{
+		{
+			Name: "mock provider 1",
+			Runs: []config.RunConfig{
+				{Name: "mock", Model: "test-model"},
+			},
+		},
+	}, []config.JudgeConfig{}, tools, zerolog.Nop())
+
+	// Helper function to verify tool usage.
+	verifyToolUsage := func(t *testing.T, toolUsage map[string]ToolUsage) {
+		require.NotNil(t, toolUsage, "ToolUsage should not be nil")
+		assert.Len(t, toolUsage, 2, "Should have usage for 2 tools")
+
+		for _, tool := range tools {
+			tu, exists := toolUsage[tool.Name]
+			assert.True(t, exists, "Tool %s should have usage", tool.Name)
+			assert.Equal(t, int64(2), *tu.CallCount, "CallCount should be 2 for tool %s", tool.Name)
+			expectedDuration := 150 * time.Millisecond
+			assert.Equal(t, &expectedDuration, tu.TotalDuration, "TotalDuration should be 150ms for tool %s", tool.Name)
+		}
+	}
+
+	// Helper function to verify token usage.
+	verifyTokenUsage := func(t *testing.T, usage TokenUsage) {
+		expectedInputTokens := int64(8200209999917998)
+		assert.Equal(t, &expectedInputTokens, usage.InputTokens, "InputTokens should match")
+		assert.Nil(t, usage.OutputTokens, "OutputTokens should be nil")
+	}
+
+	tests := []struct {
+		name           string
+		task           config.Task
+		wantResultKind ResultKind
+	}{
+		{
+			name: "success with tools",
+			task: config.Task{
+				Name:           "test_task_with_tools",
+				ExpectedResult: utils.NewValueSet("test_task_with_tools"), // mock returns task name as answer
+			},
+			wantResultKind: Success,
+		},
+		{
+			name: "failure with tools",
+			task: config.Task{
+				Name:           "failure",
+				ExpectedResult: utils.NewValueSet("different_expected"), // won't match the mock failure response
+			},
+			wantResultKind: Failure,
+		},
+		{
+			name: "error with tools",
+			task: config.Task{
+				Name:           "error",
+				ExpectedResult: utils.NewValueSet("some_expected"),
+			},
+			wantResultKind: Error,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Run the task.
+			results, err := runner.Run(context.Background(), []config.Task{tt.task})
+			require.NoError(t, err)
+
+			// Verify results.
+			allResults := results.GetResults()
+			require.Contains(t, allResults, "mock provider 1")
+
+			providerResults := allResults["mock provider 1"]
+			require.Len(t, providerResults, 1, "Should have exactly one result")
+
+			result := providerResults[0]
+			assert.Equal(t, tt.wantResultKind, result.Kind, "Result kind should match expected")
+			assert.Equal(t, tt.task.Name, result.Task, "Task name should match")
+			assert.Equal(t, "mock", result.Run, "Should use mock run")
+
+			// Check usage in appropriate details based on result kind.
+			switch tt.wantResultKind {
+			case Success, Failure:
+				verifyTokenUsage(t, result.Details.Answer.Usage)
+				verifyToolUsage(t, result.Details.Answer.ToolUsage)
+			case Error:
+				verifyTokenUsage(t, result.Details.Error.Usage)
+				verifyToolUsage(t, result.Details.Error.ToolUsage)
 			}
 		})
 	}
@@ -859,11 +1007,11 @@ func createMockRunner(t *testing.T) Runner {
 				},
 			},
 		},
-	}, zerolog.Nop())
+	}, nil, zerolog.Nop())
 }
 
-func createMockRunnerFromConfig(t *testing.T, cfg []config.ProviderConfig, judges []config.JudgeConfig, logger zerolog.Logger) Runner {
-	runner, err := NewDefaultRunner(context.Background(), cfg, judges, logger)
+func createMockRunnerFromConfig(t *testing.T, cfg []config.ProviderConfig, judges []config.JudgeConfig, tools []config.ToolConfig, logger zerolog.Logger) Runner {
+	runner, err := NewDefaultRunner(context.Background(), cfg, judges, tools, logger)
 	if err != nil {
 		t.Fatalf("failed to create runner: %v", err)
 	}
@@ -888,6 +1036,7 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 					Validation: ValidationDetails{
 						Title:       "validation success",
 						Explanation: []string{"mock validation pass"},
+						ToolUsage:   map[string]ToolUsage{},
 					},
 					Error: ErrorDetails{},
 				},
@@ -906,6 +1055,7 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 					Validation: ValidationDetails{
 						Title:       "validation failed",
 						Explanation: []string{"mock validation fail"},
+						ToolUsage:   map[string]ToolUsage{},
 					},
 					Error: ErrorDetails{},
 				},
@@ -924,6 +1074,7 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 					Validation: ValidationDetails{
 						Title:       "validation success",
 						Explanation: []string{"mock validation pass"},
+						ToolUsage:   map[string]ToolUsage{},
 					},
 					Error: ErrorDetails{},
 				},
@@ -942,6 +1093,7 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 					Validation: ValidationDetails{
 						Title:       "validation success",
 						Explanation: []string{"mock validation pass"},
+						ToolUsage:   map[string]ToolUsage{},
 					},
 					Error: ErrorDetails{},
 				},
@@ -958,8 +1110,9 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 					Answer:     AnswerDetails{},
 					Validation: ValidationDetails{},
 					Error: ErrorDetails{
-						Title:   "error",
-						Message: "mock error",
+						Title:     "error",
+						Message:   "mock error",
+						ToolUsage: map[string]ToolUsage{},
 					},
 				},
 			},
@@ -977,6 +1130,7 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 					Validation: ValidationDetails{
 						Title:       "validation failed",
 						Explanation: []string{"mock validation fail"},
+						ToolUsage:   map[string]ToolUsage{},
 					},
 					Error: ErrorDetails{},
 				},
@@ -995,6 +1149,7 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 					Validation: ValidationDetails{
 						Title:       "validation success",
 						Explanation: []string{"mock validation pass"},
+						ToolUsage:   map[string]ToolUsage{},
 					},
 					Error: ErrorDetails{},
 				},
@@ -1009,8 +1164,9 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 					Answer:     AnswerDetails{},
 					Validation: ValidationDetails{},
 					Error: ErrorDetails{
-						Title:   "not_supported",
-						Message: "mock not supported",
+						Title:     "not_supported",
+						Message:   "mock not supported",
+						ToolUsage: map[string]ToolUsage{},
 					},
 				},
 			},
@@ -1030,6 +1186,7 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 					Validation: ValidationDetails{
 						Title:       "validation success",
 						Explanation: []string{"mock validation pass"},
+						ToolUsage:   map[string]ToolUsage{},
 					},
 					Error: ErrorDetails{},
 				},
@@ -1069,6 +1226,7 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 								Validation: ValidationDetails{
 									Title:       "validation success",
 									Explanation: []string{"mock validation pass"},
+									ToolUsage:   map[string]ToolUsage{},
 								},
 								Error: ErrorDetails{},
 							},
@@ -1087,6 +1245,7 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 								Validation: ValidationDetails{
 									Title:       "validation success",
 									Explanation: []string{"mock validation pass"},
+									ToolUsage:   map[string]ToolUsage{},
 								},
 								Error: ErrorDetails{},
 							},
@@ -1107,6 +1266,7 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 								Validation: ValidationDetails{
 									Title:       "validation failed",
 									Explanation: []string{"mock validation fail"},
+									ToolUsage:   map[string]ToolUsage{},
 								},
 								Error: ErrorDetails{},
 							},
@@ -1129,6 +1289,7 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 								Validation: ValidationDetails{
 									Title:       "validation success",
 									Explanation: []string{"mock validation pass"},
+									ToolUsage:   map[string]ToolUsage{},
 								},
 								Error: ErrorDetails{},
 							},
@@ -1156,8 +1317,9 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 								Answer:     AnswerDetails{},
 								Validation: ValidationDetails{},
 								Error: ErrorDetails{
-									Title:   "error",
-									Message: "mock error",
+									Title:     "error",
+									Message:   "mock error",
+									ToolUsage: map[string]ToolUsage{},
 								},
 							},
 						},
@@ -1177,6 +1339,7 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 								Validation: ValidationDetails{
 									Title:       "validation failed",
 									Explanation: []string{"mock validation fail"},
+									ToolUsage:   map[string]ToolUsage{},
 								},
 								Error: ErrorDetails{},
 							},
@@ -1197,6 +1360,7 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 								Validation: ValidationDetails{
 									Title:       "validation success",
 									Explanation: []string{"mock validation pass"},
+									ToolUsage:   map[string]ToolUsage{},
 								},
 								Error: ErrorDetails{},
 							},
@@ -1213,8 +1377,9 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 								Answer:     AnswerDetails{},
 								Validation: ValidationDetails{},
 								Error: ErrorDetails{
-									Title:   "not_supported",
-									Message: "mock not supported",
+									Title:     "not_supported",
+									Message:   "mock not supported",
+									ToolUsage: map[string]ToolUsage{},
 								},
 							},
 						},
@@ -1245,6 +1410,7 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 								Validation: ValidationDetails{
 									Title:       "validation success",
 									Explanation: []string{"mock validation pass"},
+									ToolUsage:   map[string]ToolUsage{},
 								},
 								Error: ErrorDetails{},
 							},
@@ -1351,7 +1517,7 @@ func TestRunnerIntegrationWithValidation(t *testing.T) {
 				{Name: "custom", Model: "test-model"}, // uses task name as answer
 			},
 		},
-	}, []config.JudgeConfig{}, zerolog.Nop())
+	}, []config.JudgeConfig{}, nil, zerolog.Nop())
 	require.NoError(t, err)
 
 	tests := []struct {

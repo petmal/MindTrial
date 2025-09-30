@@ -125,7 +125,8 @@ func (f *Factory) getJudgeValidator(ctx context.Context, judge config.JudgeSelec
 	}
 
 	// Create judge validator.
-	validator, err := NewJudgeValidator(ctx, judgeConfig, *judgeRunVariant)
+	// Judge validators currently do not use any tools, so we pass nil for availableTools.
+	validator, err := NewJudgeValidator(ctx, judgeConfig, *judgeRunVariant, nil)
 	if err != nil {
 		return nil, err
 	}

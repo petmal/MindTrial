@@ -1226,6 +1226,23 @@
                                         </details>
                                         {{- end }}
                                     {{- end }}
+                                    {{- with $toolUsage := $ad.ToolUsage }}
+                                        {{- if $toolUsage }}
+                                        <details>
+                                            <summary>Tool Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;">
+                                                {{- range $toolName, $usage := $toolUsage }}
+                                                    <dt>{{$toolName}}</dt>
+                                                    <dd>
+                                                        {{- with $usage.CallCount }}{{.}} call(s){{ end -}}
+                                                        {{- if and $usage.CallCount $usage.TotalDuration }} taking {{ end -}}
+                                                        {{- with $usage.TotalDuration }}{{.}}{{ end -}}
+                                                    </dd>
+                                                {{- end }}
+                                            </dl>
+                                        </details>
+                                        {{- end }}
+                                    {{- end }}
                                 </section>
                                 {{- end -}}
                                 {{- end -}}
@@ -1248,6 +1265,23 @@
                                             <dl class="tech-details" style="margin-top:0.4em;">
                                                 {{- with $vu.InputTokens }}<dt>Input</dt><dd>{{.}}</dd>{{ end -}}
                                                 {{- with $vu.OutputTokens }}<dt>Output</dt><dd>{{.}}</dd>{{ end -}}
+                                            </dl>
+                                        </details>
+                                        {{- end }}
+                                    {{- end }}
+                                    {{- with $toolUsage := $vd.ToolUsage }}
+                                        {{- if $toolUsage }}
+                                        <details>
+                                            <summary>Tool Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;">
+                                                {{- range $toolName, $usage := $toolUsage }}
+                                                    <dt>{{$toolName}}</dt>
+                                                    <dd>
+                                                        {{- with $usage.CallCount }}{{.}} call(s){{ end -}}
+                                                        {{- if and $usage.CallCount $usage.TotalDuration }} taking {{ end -}}
+                                                        {{- with $usage.TotalDuration }}{{.}}{{ end -}}
+                                                    </dd>
+                                                {{- end }}
                                             </dl>
                                         </details>
                                         {{- end }}
@@ -1279,6 +1313,23 @@
                                             <dl class="tech-details" style="margin-top:0.4em;">
                                                 {{- with $eu.InputTokens }}<dt>Input</dt><dd>{{.}}</dd>{{ end -}}
                                                 {{- with $eu.OutputTokens }}<dt>Output</dt><dd>{{.}}</dd>{{ end -}}
+                                            </dl>
+                                        </details>
+                                        {{- end }}
+                                    {{- end }}
+                                    {{- with $toolUsage := $ed.ToolUsage }}
+                                        {{- if $toolUsage }}
+                                        <details>
+                                            <summary>Tool Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;">
+                                                {{- range $toolName, $usage := $toolUsage }}
+                                                    <dt>{{$toolName}}</dt>
+                                                    <dd>
+                                                        {{- with $usage.CallCount }}{{.}} call(s){{ end -}}
+                                                        {{- if and $usage.CallCount $usage.TotalDuration }} taking {{ end -}}
+                                                        {{- with $usage.TotalDuration }}{{.}}{{ end -}}
+                                                    </dd>
+                                                {{- end }}
                                             </dl>
                                         </details>
                                         {{- end }}

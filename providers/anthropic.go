@@ -15,32 +15,35 @@ import (
 	anthropicoption "github.com/anthropics/anthropic-sdk-go/option"
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
+	"github.com/petmal/mindtrial/providers/tools"
 )
 
 const responseFormatterToolName = "record_summary"
 const defaultMaxTokens = 2048
 
 // NewAnthropic creates a new Anthropic provider instance with the given configuration.
-func NewAnthropic(cfg config.AnthropicClientConfig) *Anthropic {
+func NewAnthropic(cfg config.AnthropicClientConfig, availableTools []config.ToolConfig) *Anthropic {
 	opts := []anthropicoption.RequestOption{anthropicoption.WithAPIKey(cfg.APIKey)}
 	if cfg.RequestTimeout != nil {
 		opts = append(opts, anthropicoption.WithRequestTimeout(*cfg.RequestTimeout))
 	}
 	return &Anthropic{
-		client: anthropic.NewClient(opts...),
+		client:         anthropic.NewClient(opts...),
+		availableTools: availableTools,
 	}
 }
 
 // Anthropic implements the Provider interface for Anthropic generative models.
 type Anthropic struct {
-	client anthropic.Client
+	client         anthropic.Client
+	availableTools []config.ToolConfig
 }
 
 func (o Anthropic) Name() string {
 	return config.ANTHROPIC
 }
 
-func (o *Anthropic) Run(ctx context.Context, _ logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
 	schema, err := ResultJSONSchema(task.ResponseResultFormat)
 	if err != nil {
 		return result, err
@@ -62,6 +65,45 @@ func (o *Anthropic) Run(ctx context.Context, _ logging.Logger, cfg config.RunCon
 			},
 		},
 		ToolChoice: anthropic.ToolChoiceParamOfTool(responseFormatterToolName),
+	}
+
+	// Setup tools if any.
+	var executor *tools.DockerToolExecutor
+	toolSelector := task.GetResolvedToolSelector()
+	if enabledTools, hasTools := toolSelector.GetEnabledToolsByName(); hasTools {
+		var err error
+		executor, err = tools.NewDockerToolExecutor(ctx)
+		if err != nil {
+			return result, fmt.Errorf("%w: %w", ErrToolSetup, err)
+		}
+		defer executor.Close()
+		for toolName, toolSelection := range enabledTools {
+			// Find the tool config from available tools.
+			toolCfg, found := findToolByName(o.availableTools, toolName)
+			if !found {
+				return result, fmt.Errorf("%w: %s", ErrToolNotFound, toolName)
+			}
+			tool := tools.NewDockerTool(toolCfg, toolSelection.MaxCalls, toolSelection.Timeout, toolSelection.MaxMemoryMB, toolSelection.CpuPercent)
+			executor.RegisterTool(tool)
+			toolInputSchema, err := MapToJSONSchema(toolCfg.Parameters)
+			if err != nil {
+				return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
+			}
+			request.Tools = append(request.Tools, anthropic.ToolUnionParam{
+				OfTool: &anthropic.ToolParam{
+					Name:        toolCfg.Name,
+					Description: anthropic.String(toolCfg.Description),
+					InputSchema: anthropic.ToolInputSchemaParam{
+						Properties: toolInputSchema.Properties,
+						Required:   toolInputSchema.Required,
+					},
+				},
+			})
+		}
+		// If user tools are present, allow auto tool choice.
+		request.ToolChoice = anthropic.ToolChoiceUnionParam{
+			OfAuto: &anthropic.ToolChoiceAutoParam{},
+		}
 	}
 
 	if answerFormatInstruction := DefaultAnswerFormatInstruction(task); answerFormatInstruction != "" {
@@ -106,29 +148,48 @@ func (o *Anthropic) Run(ctx context.Context, _ logging.Logger, cfg config.RunCon
 		}
 	}
 
-	resp, err := timed(func() (*anthropic.Message, error) {
-		return o.client.Messages.New(ctx, request)
-	}, &result.duration)
-	if err != nil {
-		return result, fmt.Errorf("%w: %v", ErrGenerateResponse, err)
-	}
+	// Conversation loop to handle tool calls.
+	for {
+		resp, err := timed(func() (*anthropic.Message, error) {
+			return o.client.Messages.New(ctx, request)
+		}, &result.duration)
+		result.recordToolUsage(executor.GetUsageStats())
+		if err != nil {
+			return result, fmt.Errorf("%w: %v", ErrGenerateResponse, err)
+		} else if resp == nil {
+			return result, nil // return current result state
+		}
 
-	if resp != nil {
 		recordUsage(&resp.Usage.InputTokens, &resp.Usage.OutputTokens, &result.usage)
+
+		// Append assistant message to conversation history before handling tool calls.
+		request.Messages = append(request.Messages, resp.ToParam())
+
 		for _, block := range resp.Content {
-			switch block := block.AsAny().(type) {
+			switch block := block.AsAny().(type) { //nolint:gocritic
 			case anthropic.ToolUseBlock:
+				// No tool calls, this is the final response.
 				if block.Name == responseFormatterToolName {
 					if err = json.Unmarshal(block.Input, &result); err != nil {
 						return result, NewErrUnmarshalResponse(err, block.Input, []byte(resp.StopReason))
 					}
-					break
+					return result, nil
 				}
+
+				// Handle tool calls.
+				toolResult, err := executor.ExecuteTool(ctx, logger, block.Name, json.RawMessage(block.Input))
+				isError := err != nil
+				content := string(toolResult)
+				if isError {
+					content = formatToolExecutionError(err)
+				}
+				// Tool results must be sent in a user message.
+				request.Messages = append(request.Messages, anthropic.NewUserMessage(
+					anthropic.NewToolResultBlock(block.ID, content, isError),
+				))
 			}
 		}
-	}
-
-	return result, nil
+	} // move to the next conversation turn
 }
 
 func (o *Anthropic) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []anthropic.ContentBlockParamUnion, err error) {

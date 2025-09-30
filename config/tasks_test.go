@@ -1498,6 +1498,143 @@ func TestJudgePrompt_MergeWith(t *testing.T) {
 	}
 }
 
+func TestToolSelector_MergeWith(t *testing.T) {
+	tests := []struct {
+		name     string
+		base     ToolSelector
+		other    *ToolSelector
+		expected ToolSelector
+	}{
+		{
+			name:     "both nil/empty",
+			base:     ToolSelector{},
+			other:    nil,
+			expected: ToolSelector{},
+		},
+		{
+			name: "base has values, other nil",
+			base: ToolSelector{
+				Disabled: testutils.Ptr(false),
+				Tools: []ToolSelection{
+					{
+						Name:     "tool1",
+						Disabled: testutils.Ptr(false),
+						MaxCalls: testutils.Ptr(10),
+					},
+				},
+			},
+			other: nil,
+			expected: ToolSelector{
+				Disabled: testutils.Ptr(false),
+				Tools: []ToolSelection{
+					{
+						Name:     "tool1",
+						Disabled: testutils.Ptr(false),
+						MaxCalls: testutils.Ptr(10),
+					},
+				},
+			},
+		},
+		{
+			name: "other overrides base disabled",
+			base: ToolSelector{
+				Disabled: testutils.Ptr(false),
+			},
+			other: &ToolSelector{
+				Disabled: testutils.Ptr(true),
+			},
+			expected: ToolSelector{
+				Disabled: testutils.Ptr(true),
+			},
+		},
+		{
+			name: "merge tools - other's tools override same names",
+			base: ToolSelector{
+				Tools: []ToolSelection{
+					{
+						Name:     "tool1",
+						MaxCalls: testutils.Ptr(5),
+					},
+					{
+						Name:     "tool2",
+						Disabled: testutils.Ptr(true),
+					},
+				},
+			},
+			other: &ToolSelector{
+				Tools: []ToolSelection{
+					{
+						Name:     "tool1",
+						MaxCalls: testutils.Ptr(10),
+					},
+					{
+						Name: "tool3",
+						Timeout: testutils.Ptr(30 * time.Second),
+					},
+				},
+			},
+			expected: ToolSelector{
+				Tools: []ToolSelection{
+					{
+						Name:     "tool1",
+						MaxCalls: testutils.Ptr(10),
+					},
+					{
+						Name:     "tool2",
+						Disabled: testutils.Ptr(true),
+					},
+					{
+						Name: "tool3",
+						Timeout: testutils.Ptr(30 * time.Second),
+					},
+				},
+			},
+		},
+		{
+			name: "merge tools - partial override of tool properties",
+			base: ToolSelector{
+				Tools: []ToolSelection{
+					{
+						Name:        "tool1",
+						Disabled:    testutils.Ptr(false),
+						MaxCalls:    testutils.Ptr(5),
+						Timeout:     testutils.Ptr(10 * time.Second),
+						MaxMemoryMB: testutils.Ptr(256),
+					},
+				},
+			},
+			other: &ToolSelector{
+				Tools: []ToolSelection{
+					{
+						Name:        "tool1",
+						MaxCalls:    testutils.Ptr(15),
+						CpuPercent:  testutils.Ptr(50),
+					},
+				},
+			},
+			expected: ToolSelector{
+				Tools: []ToolSelection{
+					{
+						Name:        "tool1",
+						Disabled:    testutils.Ptr(false),
+						MaxCalls:    testutils.Ptr(15),
+						Timeout:     testutils.Ptr(10 * time.Second),
+						MaxMemoryMB: testutils.Ptr(256),
+						CpuPercent:  testutils.Ptr(50),
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.base.MergeWith(tt.other)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
 func TestTask_ResolveValidationRules(t *testing.T) {
 	tests := []struct {
 		name         string
