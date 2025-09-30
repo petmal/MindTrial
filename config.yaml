@@ -104,15 +104,21 @@ config:
           model-parameters:
             max-tokens: 8192
             thinking-budget-tokens: 2048
+        - name: "Claude 4.5 Sonnet - latest (extended thinking)"
+          model: "claude-sonnet-4-5"
+          max-requests-per-minute: 10
+          model-parameters:
+            max-tokens: 8192
+            thinking-budget-tokens: 2048
     - name: deepseek
       client-config:
         api-key: ""
         request-timeout: 15m
       runs:
-        - name: "DeepSeek-V3.1 - latest (thinking mode)"
+        - name: "DeepSeek-V3.2 - latest (thinking mode)"
           model: "deepseek-reasoner"
           max-requests-per-minute: 15
-        - name: "DeepSeek-V3.1 - latest (non-thinking mode)"
+        - name: "DeepSeek-V3.2 - latest (non-thinking mode)"
           model: "deepseek-chat"
           max-requests-per-minute: 15
     - name: mistralai
