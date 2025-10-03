@@ -96,6 +96,8 @@ func (r Results) ProviderResultsByRunAndKind(provider string) map[string]map[Res
 
 // RunResult represents the outcome of executing a single task.
 type RunResult struct {
+	// TraceID is a globally unique identifier for this specific task result, used for tracing and correlation.
+	TraceID string
 	// Kind indicates the result status.
 	Kind ResultKind
 	// Task is the name of the executed task.

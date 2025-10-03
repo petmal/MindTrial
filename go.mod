@@ -7,23 +7,24 @@ retract v0.4.0 // no longer available, use v0.4.1 instead
 require (
 	github.com/charmbracelet/x/term v0.2.1
 	github.com/containerd/errdefs v1.0.0
-	github.com/docker/docker v28.4.0+incompatible
+	github.com/docker/docker v28.5.0+incompatible
 	github.com/google/uuid v1.6.0
 	github.com/invopop/jsonschema v0.13.0
 	github.com/kaptinlin/jsonrepair v0.2.2
+	github.com/oklog/ulid/v2 v2.1.1
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
 	github.com/sashabaranov/go-openai v1.41.2
 	github.com/sethvargo/go-retry v0.3.0
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/time v0.13.0
-	google.golang.org/genai v1.26.0
+	google.golang.org/genai v1.27.0
 	gopkg.in/validator.v2 v2.0.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
 	cloud.google.com/go v0.123.0 // indirect
-	cloud.google.com/go/auth v0.16.5 // indirect
+	cloud.google.com/go/auth v0.17.0 // indirect
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
@@ -88,7 +89,7 @@ require (
 	golang.org/x/text v0.29.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250929231259-57b25ae835d4 // indirect
 	google.golang.org/grpc v1.75.1 // indirect
-	google.golang.org/protobuf v1.36.9 // indirect
+	google.golang.org/protobuf v1.36.10 // indirect
 	gotest.tools/v3 v3.5.2 // indirect
 )
 
@@ -103,5 +104,5 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rs/zerolog v1.34.0
 	github.com/sergi/go-diff v1.4.0
-	golang.org/x/exp v0.0.0-20250911091902-df9299821621
+	golang.org/x/exp v0.0.0-20251002181428-27f1f14c8bb9
 )

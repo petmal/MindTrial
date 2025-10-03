@@ -113,6 +113,10 @@
     td.details-toggle-cell { min-width:130px; vertical-align: top; text-align:right; }
     td.details-toggle-cell .details { white-space:nowrap; }
     td.details-toggle-cell .details-content { margin-top:8px; text-align:left; }
+    .details-icons { display: flex; gap: 8px; margin-top: 8px; align-items: center; justify-content: flex-end; }
+    .icon-btn { cursor: pointer; background: none; border: none; padding: 4px; font-size: 1.1em; opacity: 0.6; transition: opacity 0.2s; }
+    .icon-btn:hover { opacity: 1; }
+    .icon-btn:focus { outline: 2px solid var(--primary-color); border-radius: 2px; }
     .answer-list { margin: 0; padding-left: 1.5em; }
         .answer-list li { margin-bottom: 1em; }
         .answer-list.single { list-style-type: none; padding-left: 0; }
@@ -346,6 +350,16 @@
                 btn.setAttribute('aria-expanded', show ? 'true' : 'false');
                 btn.textContent = show ? 'Hide Details' : 'Show Details';
             }
+        }
+
+        function copyTraceID(traceID, btn) {
+            navigator.clipboard.writeText(traceID).then(() => {
+                const originalTitle = btn.title;
+                btn.title = 'Copied!';
+                setTimeout(() => { btn.title = originalTitle; }, 2000);
+            }).catch(() => {
+                btn.title = 'Failed to copy';
+            });
         }
 
         function updateVisibleCount(table) {
@@ -1359,6 +1373,10 @@
                                         </details>
                                 </section>
                             </div>
+                            <div class="details-icons">
+                                <button class="icon-btn" onclick="copyTraceID('01JEDE7Z8X0000000000000001', this)" title="Copy Trace ID: 01JEDE7Z8X0000000000000001" aria-label="Copy Trace ID">📋</button>
+                                <span class="icon-btn" title="Tools used: calculator, data_formatter, file_processor, memory_tool, validator, web_search" aria-hidden="true">🔧</span>
+                            </div>
                         </td>
                     </tr>
                     <tr id="run-provider-name-run-failure-task-name" itemscope itemtype="https://schema.org/Question" data-provider="provider-name" data-run="run-failure" data-task="task-name" data-status="failed" data-duration="10000">
@@ -1429,6 +1447,10 @@
                                     </details>
                                 </section>
                             </div>
+                            <div class="details-icons">
+                                <button class="icon-btn" onclick="copyTraceID('01JEDE7Z8X0000000000000002', this)" title="Copy Trace ID: 01JEDE7Z8X0000000000000002" aria-label="Copy Trace ID">📋</button>
+                                <span class="icon-btn" title="Tools used: json_parser" aria-hidden="true">🔧</span>
+                            </div>
                         </td>
                     </tr>
                     <tr id="run-provider-name-run-success-multiple-answers-task-name" itemscope itemtype="https://schema.org/Question" data-provider="provider-name" data-run="run-success-multiple-answers" data-task="task-name" data-status="passed" data-duration="17000">
@@ -1489,6 +1511,9 @@
                                         </div>
                                     </details>
                                 </section>
+                            </div>
+                            <div class="details-icons">
+                                <button class="icon-btn" onclick="copyTraceID('01JEDE7Z8X0000000000000003', this)" title="Copy Trace ID: 01JEDE7Z8X0000000000000003" aria-label="Copy Trace ID">📋</button>
                             </div>
                         </td>
                     </tr>
@@ -1565,6 +1590,10 @@
                                         </details>
                                 </section>
                             </div>
+                            <div class="details-icons">
+                                <button class="icon-btn" onclick="copyTraceID('01JEDE7Z8X0000000000000004', this)" title="Copy Trace ID: 01JEDE7Z8X0000000000000004" aria-label="Copy Trace ID">📋</button>
+                                <span class="icon-btn" title="Tools used: grammar_analyzer, spell_checker" aria-hidden="true">🔧</span>
+                            </div>
                         </td>
                     </tr>
                     <tr id="run-provider-name-run-error-task-name" itemscope itemtype="https://schema.org/Question" data-provider="provider-name" data-run="run-error" data-task="task-name" data-status="error" data-duration="0">
@@ -1604,6 +1633,10 @@
                                             </dl>
                                         </details>
                                 </section>
+                            </div>
+                            <div class="details-icons">
+                                <button class="icon-btn" onclick="copyTraceID('01JEDE7Z8X0000000000000005', this)" title="Copy Trace ID: 01JEDE7Z8X0000000000000005" aria-label="Copy Trace ID">📋</button>
+                                <span class="icon-btn" title="Tools used: config_loader, file_reader" aria-hidden="true">🔧</span>
                             </div>
                         </td>
                     </tr>
@@ -1650,6 +1683,9 @@ Sunt in culpa qui officia deserunt mollit anim.
                                             <dl class="tech-details" style="margin-top:0.4em;"><dt>Input</dt><dd>10</dd><dt>Output</dt><dd>0</dd></dl>
                                         </details>
                                 </section>
+                            </div>
+                            <div class="details-icons">
+                                <button class="icon-btn" onclick="copyTraceID('01JEDE7Z8X0000000000000006', this)" title="Copy Trace ID: 01JEDE7Z8X0000000000000006" aria-label="Copy Trace ID">📋</button>
                             </div>
                         </td>
                     </tr>
@@ -1700,6 +1736,9 @@ Id est laborum et dolorum fuga
                                             <dl class="tech-details" style="margin-top:0.4em;"><dt>Input</dt><dd>1234</dd><dt>Output</dt><dd>5678</dd></dl>
                                         </details>
                                 </section>
+                            </div>
+                            <div class="details-icons">
+                                <button class="icon-btn" onclick="copyTraceID('01JEDE7Z8X0000000000000007', this)" title="Copy Trace ID: 01JEDE7Z8X0000000000000007" aria-label="Copy Trace ID">📋</button>
                             </div>
                         </td>
                     </tr>
@@ -1753,6 +1792,9 @@ Context: within object literal
                                             <dl class="tech-details" style="margin-top:0.4em;"><dt>Output</dt><dd>333</dd></dl>
                                         </details>
                                 </section>
+                            </div>
+                            <div class="details-icons">
+                                <button class="icon-btn" onclick="copyTraceID('01JEDE7Z8X0000000000000008', this)" title="Copy Trace ID: 01JEDE7Z8X0000000000000008" aria-label="Copy Trace ID">📋</button>
                             </div>
                         </td>
                     </tr>
@@ -1873,6 +1915,10 @@ Context: within object literal
                                         </details>
                                 </section>
                             </div>
+                            <div class="details-icons">
+                                <button class="icon-btn" onclick="copyTraceID('01JEDE7Z8X0000000000000009', this)" title="Copy Trace ID: 01JEDE7Z8X0000000000000009" aria-label="Copy Trace ID">📋</button>
+                                <span class="icon-btn" title="Tools used: json_parser, schema_validator, validator" aria-hidden="true">🔧</span>
+                            </div>
                         </td>
                     </tr>
                     <tr id="run-provider-name-run-structured-failure-task-name" itemscope itemtype="https://schema.org/Question" data-provider="provider-name" data-run="run-structured-failure" data-task="task-name" data-status="failed" data-duration="38000">
@@ -1964,6 +2010,9 @@ Context: within object literal
                                             <dl class="tech-details" style="margin-top:0.4em;"><dt>Input</dt><dd>89</dd><dt>Output</dt><dd>15</dd></dl>
                                         </details>
                                 </section>
+                            </div>
+                            <div class="details-icons">
+                                <button class="icon-btn" onclick="copyTraceID('01JEDE7Z8X0000000000000010', this)" title="Copy Trace ID: 01JEDE7Z8X0000000000000010" aria-label="Copy Trace ID">📋</button>
                             </div>
                         </td>
                     </tr></tbody>

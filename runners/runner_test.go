@@ -781,7 +781,17 @@ func TestRunnerRun(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				assert.Equal(t, tt.want, got.GetResults())
+
+				// Clear random TraceID from results before comparison.
+				results := got.GetResults()
+				for provider := range results {
+					for i := range results[provider] {
+						assert.NotEmpty(t, results[provider][i].TraceID, "TraceID should not be empty")
+						results[provider][i].TraceID = ""
+					}
+				}
+
+				assert.Equal(t, tt.want, results)
 			}
 		})
 	}

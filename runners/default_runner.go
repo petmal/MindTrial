@@ -15,6 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/oklog/ulid/v2"
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
 	"github.com/petmal/mindtrial/pkg/utils"
@@ -244,11 +245,15 @@ func (r *defaultRunner) runTasks(ctx context.Context, logger logging.Logger, pro
 		executor := execution.NewExecutor(provider, run)
 
 		for _, task := range tasks {
-			runResult := RunResult{}
-			logger.Message(ctx, logging.LevelInfo, "%s: %s: %s: starting task...", provider.Name(), run.Name, task.Name)
+			runResult := RunResult{TraceID: ulid.Make().String()}
+
+			// Create prefixed logger for this specific task.
+			taskLogger := logger.WithContext(fmt.Sprintf("[%s] %s: %s: %s: ", runResult.TraceID, provider.Name(), run.Name, task.Name))
+
+			taskLogger.Message(ctx, logging.LevelInfo, "starting task...")
 			runStart := time.Now()
-			r.runTask(ctx, logger, executor, task, &runResult)
-			logger.Message(ctx, logging.LevelInfo, "%s: %s: %s: task has finished in %s.", provider.Name(), run.Name, task.Name, time.Since(runStart))
+			r.runTask(ctx, taskLogger, executor, task, &runResult)
+			taskLogger.Message(ctx, logging.LevelInfo, "task has finished in %s.", time.Since(runStart))
 			rs.appendResult(runResult)
 			rs.emitProgressEvent()
 		}
@@ -257,9 +262,6 @@ func (r *defaultRunner) runTasks(ctx context.Context, logger logging.Logger, pro
 }
 
 func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, executor *execution.Executor, task config.Task, runResult *RunResult) {
-	// Create prefixed logger for this specific task.
-	taskLogger := logger.WithContext(fmt.Sprintf("%s: %s: %s: ", executor.Provider.Name(), executor.RunConfig.Name, task.Name))
-
 	// Resolve validation rules for this task.
 	resolvedValidationRules := task.GetResolvedValidationRules()
 
@@ -293,10 +295,10 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 		}
 	}()
 
-	result, err := executor.Execute(ctx, taskLogger, task)
+	result, err := executor.Execute(ctx, logger, task)
 	usage := result.GetUsage()
-	taskLogger.Message(ctx, logging.LevelDebug, "token usage: [in:%s, out:%s]", logging.FormatLogInt64(usage.InputTokens), logging.FormatLogInt64(usage.OutputTokens))
-	taskLogger.Message(ctx, logging.LevelTrace, "prompts:\n%s", logging.FormatLogText(result.GetPrompts()))
+	logger.Message(ctx, logging.LevelDebug, "token usage: [in:%s, out:%s]", logging.FormatLogInt64(usage.InputTokens), logging.FormatLogInt64(usage.OutputTokens))
+	logger.Message(ctx, logging.LevelTrace, "prompts:\n%s", logging.FormatLogText(result.GetPrompts()))
 	if err != nil { //nolint:gocritic
 		runResult.Kind = Error
 		runResult.Got = err.Error()
@@ -328,12 +330,12 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 				}
 			}
 			populateErrorDetails(&runResult.Details.Error, err)
-			taskLogger.Error(ctx, logging.LevelError, err, "task finished with error")
+			logger.Error(ctx, logging.LevelError, err, "task finished with error")
 		}
 	} else {
-		taskLogger.Message(ctx, logging.LevelDebug, "using %s for response evaluation", validator.GetName())
+		logger.Message(ctx, logging.LevelDebug, "using %s for response evaluation", validator.GetName())
 
-		validationResult, err := validator.IsCorrect(ctx, taskLogger, resolvedValidationRules, task.ExpectedResult, result, task.Prompt, task.ResponseResultFormat)
+		validationResult, err := validator.IsCorrect(ctx, logger, resolvedValidationRules, task.ExpectedResult, result, task.Prompt, task.ResponseResultFormat)
 		if err != nil { //nolint:gocritic
 			runResult.Kind = Error
 			runResult.Got = result.GetFinalAnswerContent()

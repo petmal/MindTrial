@@ -21,6 +21,7 @@ import (
 var mockResults = runners.Results{
 	"provider-name": []runners.RunResult{
 		{
+			TraceID:  "01JEDE7Z8X0000000000000001",
 			Provider: "provider-name",
 			Task:     "task-name",
 			Run:      "run-success",
@@ -79,6 +80,7 @@ var mockResults = runners.Results{
 			},
 		},
 		{
+			TraceID:  "01JEDE7Z8X0000000000000002",
 			Provider: "provider-name",
 			Task:     "task-name",
 			Run:      "run-failure",
@@ -110,6 +112,7 @@ var mockResults = runners.Results{
 			},
 		},
 		{
+			TraceID:  "01JEDE7Z8X0000000000000003",
 			Provider: "provider-name",
 			Task:     "task-name",
 			Run:      "run-success-multiple-answers",
@@ -136,6 +139,7 @@ var mockResults = runners.Results{
 			},
 		},
 		{
+			TraceID:  "01JEDE7Z8X0000000000000004",
 			Provider: "provider-name",
 			Task:     "task-name",
 			Run:      "run-failure-multiple-answers",
@@ -172,6 +176,7 @@ var mockResults = runners.Results{
 			},
 		},
 		{
+			TraceID:  "01JEDE7Z8X0000000000000005",
 			Provider: "provider-name",
 			Task:     "task-name",
 			Run:      "run-error",
@@ -204,6 +209,7 @@ var mockResults = runners.Results{
 			},
 		},
 		{
+			TraceID:  "01JEDE7Z8X0000000000000006",
 			Provider: "provider-name",
 			Task:     "task-name",
 			Run:      "run-not-supported",
@@ -233,6 +239,7 @@ var mockResults = runners.Results{
 			},
 		},
 		{
+			TraceID:  "01JEDE7Z8X0000000000000007",
 			Provider: "provider-name",
 			Task:     "task-name",
 			Run:      "run-validation-error",
@@ -266,6 +273,7 @@ var mockResults = runners.Results{
 			},
 		},
 		{
+			TraceID:  "01JEDE7Z8X0000000000000008",
 			Provider: "provider-name",
 			Task:     "task-name",
 			Run:      "run-parsing-error",
@@ -303,6 +311,7 @@ var mockResults = runners.Results{
 			},
 		},
 		{
+			TraceID:  "01JEDE7Z8X0000000000000009",
 			Provider: "provider-name",
 			Task:     "task-name",
 			Run:      "run-structured-success",
@@ -402,6 +411,7 @@ var mockResults = runners.Results{
 			},
 		},
 		{
+			TraceID:  "01JEDE7Z8X0000000000000010",
 			Provider: "provider-name",
 			Task:     "task-name",
 			Run:      "run-structured-failure",

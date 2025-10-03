@@ -1568,7 +1568,7 @@ func TestToolSelector_MergeWith(t *testing.T) {
 						MaxCalls: testutils.Ptr(10),
 					},
 					{
-						Name: "tool3",
+						Name:    "tool3",
 						Timeout: testutils.Ptr(30 * time.Second),
 					},
 				},
@@ -1584,7 +1584,7 @@ func TestToolSelector_MergeWith(t *testing.T) {
 						Disabled: testutils.Ptr(true),
 					},
 					{
-						Name: "tool3",
+						Name:    "tool3",
 						Timeout: testutils.Ptr(30 * time.Second),
 					},
 				},
@@ -1606,9 +1606,9 @@ func TestToolSelector_MergeWith(t *testing.T) {
 			other: &ToolSelector{
 				Tools: []ToolSelection{
 					{
-						Name:        "tool1",
-						MaxCalls:    testutils.Ptr(15),
-						CpuPercent:  testutils.Ptr(50),
+						Name:       "tool1",
+						MaxCalls:   testutils.Ptr(15),
+						CpuPercent: testutils.Ptr(50),
 					},
 				},
 			},
@@ -1630,7 +1630,9 @@ func TestToolSelector_MergeWith(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.base.MergeWith(tt.other)
-			assert.Equal(t, tt.expected, result)
+
+			assert.Equal(t, tt.expected.Disabled, result.Disabled)
+			assertToolSelectionsMatch(t, tt.expected.Tools, result.Tools)
 		})
 	}
 }

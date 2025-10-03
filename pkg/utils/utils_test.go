@@ -471,33 +471,70 @@ func TestValidateAgainstSchema(t *testing.T) {
 func TestSortedKeys(t *testing.T) {
 	tests := []struct {
 		name string
-		m    map[int]interface{}
+		maps []map[int]interface{}
 		want []int
 	}{
 		{
 			name: "empty map",
-			m:    map[int]interface{}{},
+			maps: []map[int]interface{}{{}},
+			want: []int{},
+		},
+		{
+			name: "nil map",
+			maps: []map[int]interface{}{nil},
 			want: []int{},
 		},
 		{
 			name: "single element",
-			m:    map[int]interface{}{1: nil},
+			maps: []map[int]interface{}{{1: nil}},
 			want: []int{1},
 		},
 		{
 			name: "multiple elements",
-			m:    map[int]interface{}{3: nil, 1: nil, 2: nil},
+			maps: []map[int]interface{}{{3: nil, 1: nil, 2: nil}},
 			want: []int{1, 2, 3},
 		},
 		{
 			name: "negative and positive keys",
-			m:    map[int]interface{}{-1: nil, 2: nil, -3: nil, 0: nil},
+			maps: []map[int]interface{}{{-1: nil, 2: nil, -3: nil, 0: nil}},
 			want: []int{-3, -1, 0, 2},
+		},
+		{
+			name: "varargs with multiple maps",
+			maps: []map[int]interface{}{
+				{2: nil, 4: nil},
+				{1: nil, 3: nil},
+				{5: nil, 2: nil}, // 2 is duplicate
+			},
+			want: []int{1, 2, 3, 4, 5},
+		},
+		{
+			name: "varargs with empty maps",
+			maps: []map[int]interface{}{
+				{},
+				{1: nil, 2: nil},
+				{},
+			},
+			want: []int{1, 2},
+		},
+		{
+			name: "varargs with nil maps",
+			maps: []map[int]interface{}{
+				nil,
+				{1: nil, 2: nil},
+				nil,
+			},
+			want: []int{1, 2},
+		},
+		{
+			name: "varargs with no maps",
+			maps: []map[int]interface{}{},
+			want: []int{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, SortedKeys(tt.m))
+			assert.Equal(t, tt.want, SortedKeys(tt.maps...))
 		})
 	}
 }

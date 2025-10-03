@@ -25,7 +25,7 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
-	"github.com/google/uuid"
+	"github.com/oklog/ulid/v2"
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
 )
@@ -227,7 +227,7 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 	}
 
 	// Generate a unique container name.
-	containerName := fmt.Sprintf("%s-tool-%s", tool.name, uuid.New().String())
+	containerName := fmt.Sprintf("%s-tool-%s", tool.name, ulid.Make().String())
 
 	// Create the container.
 	createResp, err := d.client.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, containerName)

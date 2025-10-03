@@ -113,6 +113,10 @@
     td.details-toggle-cell { min-width:130px; vertical-align: top; text-align:right; }
     td.details-toggle-cell .details { white-space:nowrap; }
     td.details-toggle-cell .details-content { margin-top:8px; text-align:left; }
+    .details-icons { display: flex; gap: 8px; margin-top: 8px; align-items: center; justify-content: flex-end; }
+    .icon-btn { cursor: pointer; background: none; border: none; padding: 4px; font-size: 1.1em; opacity: 0.6; transition: opacity 0.2s; }
+    .icon-btn:hover { opacity: 1; }
+    .icon-btn:focus { outline: 2px solid var(--primary-color); border-radius: 2px; }
     .answer-list { margin: 0; padding-left: 1.5em; }
         .answer-list li { margin-bottom: 1em; }
         .answer-list.single { list-style-type: none; padding-left: 0; }
@@ -346,6 +350,16 @@
                 btn.setAttribute('aria-expanded', show ? 'true' : 'false');
                 btn.textContent = show ? 'Hide Details' : 'Show Details';
             }
+        }
+
+        function copyTraceID(traceID, btn) {
+            navigator.clipboard.writeText(traceID).then(() => {
+                const originalTitle = btn.title;
+                btn.title = 'Copied!';
+                setTimeout(() => { btn.title = originalTitle; }, 2000);
+            }).catch(() => {
+                btn.title = 'Failed to copy';
+            });
         }
 
         function updateVisibleCount(table) {

@@ -47,6 +47,7 @@ func NewHTMLFormatter() Formatter {
 		"FormatAnswer":            FormatAnswer,
 		"SortResultsByProvider":   utils.SortedKeys[string, []runners.RunResult],
 		"SortResultsByRunAndKind": utils.SortedKeys[string, map[runners.ResultKind][]runners.RunResult],
+		"SortToolsByName":         utils.SortedKeys[string, runners.ToolUsage],
 		"CountByKind":             CountByKind,
 		"TotalDuration":           TotalDuration,
 		"RoundToMS":               RoundToMS,

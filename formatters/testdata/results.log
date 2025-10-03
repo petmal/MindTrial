@@ -1,12 +1,12 @@
-Provider      |Run         |Task      |Status |Duration |Answer                               |
-provider-name |run-success |task-name |Passed |1m35s    |Quos aut rerum quaerat qui ad culpa. |
-provider-name |run-failure |task-name |Failed |10s      |@@ -1,67 +1,36 @@
+TraceID                    |Provider      |Run         |Task      |Status |Duration |Answer                               |
+01JEDE7Z8X0000000000000001 |provider-name |run-success |task-name |Passed |1m35s    |Quos aut rerum quaerat qui ad culpa. |
+01JEDE7Z8X0000000000000002 |provider-name |run-failure |task-name |Failed |10s      |@@ -1,67 +1,36 @@
 -Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui
 +Ipsam ea et optio explicabo eius et
  .
-              |
-provider-name |run-success-multiple-answers |task-name |Passed |17s    |Quos aut rerum quaerat qui ad culpa. |
-provider-name |run-failure-multiple-answers |task-name |Failed |3m0.8s |[
+                           |
+01JEDE7Z8X0000000000000003 |provider-name |run-success-multiple-answers |task-name |Passed |17s    |Quos aut rerum quaerat qui ad culpa. |
+01JEDE7Z8X0000000000000004 |provider-name |run-failure-multiple-answers |task-name |Failed |3m0.8s |[
     @@ -1,48 +1,36 @@
     -Dolores saepe ad sed rerum autem iure minima
     +Ipsam ea et optio explicabo eius
@@ -18,12 +18,12 @@ provider-name |run-failure-multiple-answers |task-name |Failed |3m0.8s |[
     +Ipsam ea et optio explicabo eius et
      .
     
-]             |
-provider-name |run-error              |task-name |Error   |0s        |error message                              |
-provider-name |run-not-supported      |task-name |Skipped |500ms     |Sequi molestiae iusto sit sit dolorum aut. |
-provider-name |run-validation-error   |task-name |Error   |2s        |Adipiscing elit sed do eiusmod tempor.     |
-provider-name |run-parsing-error      |task-name |Error   |5m14.159s |Invalid JSON: {broken                      |
-provider-name |run-structured-success |task-name |Passed  |42s       |[
+]                          |
+01JEDE7Z8X0000000000000005 |provider-name |run-error              |task-name |Error   |0s        |error message                              |
+01JEDE7Z8X0000000000000006 |provider-name |run-not-supported      |task-name |Skipped |500ms     |Sequi molestiae iusto sit sit dolorum aut. |
+01JEDE7Z8X0000000000000007 |provider-name |run-validation-error   |task-name |Error   |2s        |Adipiscing elit sed do eiusmod tempor.     |
+01JEDE7Z8X0000000000000008 |provider-name |run-parsing-error      |task-name |Error   |5m14.159s |Invalid JSON: {broken                      |
+01JEDE7Z8X0000000000000009 |provider-name |run-structured-success |task-name |Passed  |42s       |[
   {
     "level": "INFO",
     "message": "User 'admin' logged in successfully.",
@@ -35,8 +35,8 @@ provider-name |run-structured-success |task-name |Passed  |42s       |[
     "message": "System memory usage is high.",
     "timestamp": "2025-09-14T10:31:15Z"
   }
-]             |
-provider-name |run-structured-failure |task-name |Failed |38s |[
+]                          |
+01JEDE7Z8X0000000000000010 |provider-name |run-structured-failure |task-name |Failed |38s |[
     @@ -11,12 +11,13 @@
      %22: %22
     -INFO

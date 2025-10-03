@@ -1401,10 +1401,44 @@ func TestLoadTasksFromFile(t *testing.T) {
 						got.TaskConfig.Tasks[i].Files[j].base64 = nil
 						got.TaskConfig.Tasks[i].Files[j].typeValue = nil
 					}
+
+					assertToolSelectionsMatch(t,
+						tt.want.TaskConfig.Tasks[i].resolvedToolSelector.Tools,
+						got.TaskConfig.Tasks[i].resolvedToolSelector.Tools)
+
+					// Clear Tools slices to allow assert.Equal to compare the rest.
+					got.TaskConfig.Tasks[i].resolvedToolSelector.Tools = nil
+					tt.want.TaskConfig.Tasks[i].resolvedToolSelector.Tools = nil
 				}
 				assert.Equal(t, tt.want, got)
 			}
 		})
+	}
+}
+
+// assertToolSelectionsMatch compares two []ToolSelection slices, ignoring order.
+func assertToolSelectionsMatch(t *testing.T, expected, actual []ToolSelection) {
+	t.Helper()
+
+	require.Len(t, actual, len(expected), "ToolSelection slice length mismatch")
+
+	// Create a map of expected tools by name for easy lookup.
+	expectedToolsByName := make(map[string]ToolSelection)
+	for _, tool := range expected {
+		expectedToolsByName[tool.Name] = tool
+	}
+
+	// Verify each actual tool matches an expected tool.
+	for _, actualTool := range actual {
+		expectedTool, found := expectedToolsByName[actualTool.Name]
+		require.True(t, found, "Unexpected tool in actual: %s", actualTool.Name)
+
+		assert.Equal(t, expectedTool.Name, actualTool.Name)
+		assert.Equal(t, expectedTool.Disabled, actualTool.Disabled)
+		assert.Equal(t, expectedTool.MaxCalls, actualTool.MaxCalls)
+		assert.Equal(t, expectedTool.Timeout, actualTool.Timeout)
+		assert.Equal(t, expectedTool.MaxMemoryMB, actualTool.MaxMemoryMB)
+		assert.Equal(t, expectedTool.CpuPercent, actualTool.CpuPercent)
 	}
 }
 

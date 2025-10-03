@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"regexp"
 	"slices"
 
@@ -139,12 +140,21 @@ func ValidateAgainstSchema(schema map[string]interface{}, values ...interface{})
 	return nil
 }
 
-// SortedKeys returns a sorted slice of map keys.
-func SortedKeys[K cmp.Ordered, V any](m map[K]V) (keys []K) {
-	keys = make([]K, 0, len(m))
-	for key := range m {
-		keys = append(keys, key)
+// SortedKeys returns a sorted slice of unique keys from one or more maps.
+// When multiple maps are provided, it collects all unique keys and returns them sorted.
+// If no keys are found, returns an empty slice.
+func SortedKeys[K cmp.Ordered, V any](m ...map[K]V) []K {
+	// Collect unique keys using a map for deduplication.
+	keySet := make(map[K]struct{})
+	for _, mapItem := range m {
+		for key := range mapItem {
+			keySet[key] = struct{}{}
+		}
 	}
-	slices.Sort(keys)
-	return
+
+	// Return sorted keys, or empty slice if no keys found.
+	if sorted := slices.Sorted(maps.Keys(keySet)); sorted != nil {
+		return sorted
+	}
+	return []K{}
 }
