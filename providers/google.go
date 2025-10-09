@@ -188,7 +188,11 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 							return result, fmt.Errorf("%w: failed to marshal function args: %v", ErrToolUse, err)
 						}
 						response := map[string]interface{}{}
-						if toolResult, err := executor.ExecuteTool(ctx, logger, part.FunctionCall.Name, json.RawMessage(argsBytes)); err != nil {
+						data, err := taskFilesToDataMap(ctx, task.Files)
+						if err != nil {
+							return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
+						}
+						if toolResult, err := executor.ExecuteTool(ctx, logger, part.FunctionCall.Name, json.RawMessage(argsBytes), data); err != nil {
 							response["error"] = formatToolExecutionError(err)
 						} else {
 							response["result"] = string(toolResult)

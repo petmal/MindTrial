@@ -170,7 +170,11 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 				if err != nil {
 					return result, fmt.Errorf("%w: failed to extract tool arguments: %v", ErrToolUse, err)
 				}
-				toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, args)
+				data, err := taskFilesToDataMap(ctx, task.Files)
+				if err != nil {
+					return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
+				}
+				toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, args, data)
 				content := string(toolResult)
 				if err != nil {
 					content = formatToolExecutionError(err)

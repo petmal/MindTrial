@@ -13,6 +13,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
@@ -172,11 +174,11 @@ func newTestExecutor(t *testing.T, mock *dockerAPIMock) *DockerToolExecutor {
 
 func newTestTool(name string) *DockerTool {
 	return &DockerTool{
-		name:         name,
-		image:        "alpine:latest",
-		command:      []string{"/bin/echo"},
-		env:          map[string]string{"FOO": "BAR"},
-		fileMappings: map[string]string{"input": "/workspace/input.txt"},
+		name:           name,
+		image:          "alpine:latest",
+		command:        []string{"/bin/echo"},
+		env:            map[string]string{"FOO": "BAR"},
+		parameterFiles: map[string]string{"input": "/workspace/input.txt"},
 	}
 }
 
@@ -184,7 +186,7 @@ func newTestContext() (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), 5*time.Second)
 }
 
-func configureSuccessfulExecution(t *testing.T, mock *dockerAPIMock, tool *DockerTool, expectedFileContent, logOutput string) func() string {
+func configureSuccessfulExecution(t *testing.T, mock *dockerAPIMock, tool *DockerTool, expectedFileContent, logOutput string, expectedAuxiliaryFiles map[string][]byte) func() string {
 	var mountedFile string
 
 	mock.onCreate = func(w http.ResponseWriter, r *http.Request) {
@@ -197,17 +199,40 @@ func configureSuccessfulExecution(t *testing.T, mock *dockerAPIMock, tool *Docke
 		assert.Equal(t, tool.image, req.Image)
 		assert.Equal(t, tool.command, req.Cmd)
 		assert.ElementsMatch(t, []string{"FOO=BAR"}, req.Env)
-		if len(req.HostConfig.Mounts) != 1 {
-			t.Fatalf("expected exactly one mount, got %d", len(req.HostConfig.Mounts))
+
+		// Calculate expected mount count: parameter file + auxiliary files.
+		expectedMountCount := 1 + len(expectedAuxiliaryFiles)
+
+		if len(req.HostConfig.Mounts) != expectedMountCount {
+			t.Fatalf("expected %d mounts, got %d", expectedMountCount, len(req.HostConfig.Mounts))
 		}
-		mount := req.HostConfig.Mounts[0]
-		assert.Equal(t, "/workspace/input.txt", mount.Target)
-		mountedFile = mount.Source
-		data, err := os.ReadFile(mount.Source)
-		if err != nil {
-			t.Fatalf("failed to read mounted file: %v", err)
+
+		// Find parameter file mount and auxiliary file mounts.
+		var parameterMount, auxiliaryMounts []struct{ Source, Target string }
+		for _, mount := range req.HostConfig.Mounts {
+			if mount.Target == "/workspace/input.txt" {
+				parameterMount = append(parameterMount, struct{ Source, Target string }{mount.Source, mount.Target})
+				mountedFile = mount.Source
+			} else if expectedAuxiliaryFiles != nil && strings.HasPrefix(mount.Target, filepath.ToSlash(tool.auxiliaryDir)) {
+				auxiliaryMounts = append(auxiliaryMounts, struct{ Source, Target string }{mount.Source, mount.Target})
+			}
 		}
+
+		// Verify parameter file mount.
+		assert.Len(t, parameterMount, 1)
+		data := testutils.ReadFile(t, parameterMount[0].Source)
 		assert.Equal(t, expectedFileContent, string(data))
+
+		// Verify auxiliary file mounts if expected.
+		assert.Len(t, auxiliaryMounts, len(expectedAuxiliaryFiles))
+		for _, auxMount := range auxiliaryMounts {
+			fileName := path.Base(auxMount.Target)
+			expectedContent, exists := expectedAuxiliaryFiles[fileName]
+			assert.True(t, exists, "unexpected auxiliary file: %s", fileName)
+
+			actualContent := testutils.ReadFile(t, auxMount.Source)
+			assert.Equal(t, expectedContent, actualContent, "auxiliary file %s content mismatch", fileName)
+		}
 
 		expectedMemory := int64(0)
 		if tool.maxMemoryMB != nil {
@@ -256,6 +281,53 @@ func configureSuccessfulExecution(t *testing.T, mock *dockerAPIMock, tool *Docke
 	}
 }
 
+func TestWriteTempFile(t *testing.T) {
+	tempDir := t.TempDir()
+
+	tests := []struct {
+		name     string
+		content  interface{}
+		expected string
+	}{
+		{
+			name:     "string content",
+			content:  "hello world",
+			expected: "hello world",
+		},
+		{
+			name:     "byte slice content",
+			content:  []byte("hello world"),
+			expected: "hello world",
+		},
+		{
+			name:     "binary content",
+			content:  []byte{0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x00, 0xFF},
+			expected: "Hello\x00\xFF",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var filePath string
+			var err error
+
+			switch v := tt.content.(type) {
+			case string:
+				filePath, err = writeTempFile(tempDir, "test", v)
+			case []byte:
+				filePath, err = writeTempFile(tempDir, "test", v)
+			}
+
+			require.NoError(t, err)
+			require.NotEmpty(t, filePath)
+			defer os.Remove(filePath)
+
+			content := testutils.ReadFile(t, filePath)
+			require.Equal(t, tt.expected, string(content))
+		})
+	}
+}
+
 func TestDockerToolExecutorExecuteTool_Success(t *testing.T) {
 	mock := newDockerAPIMock(t)
 	executor := newTestExecutor(t, mock)
@@ -266,12 +338,12 @@ func TestDockerToolExecutorExecuteTool_Success(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
 
 	payload := `{"input":"payload"}`
-	mountedFileFn := configureSuccessfulExecution(t, mock, tool, "payload", `{"status":"ok"}`)
+	mountedFileFn := configureSuccessfulExecution(t, mock, tool, "payload", `{"status":"ok"}`, nil)
 
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	result, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(payload))
+	result, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(payload), nil)
 	require.NoError(t, err)
 	assert.JSONEq(t, `{"status":"ok"}`, string(result))
 
@@ -299,13 +371,13 @@ func TestDockerToolExecutorExecuteTool_ResourceLimits(t *testing.T) {
 	tool.cpuPercent = &cpuPercent
 	executor.RegisterTool(tool)
 
-	configureSuccessfulExecution(t, mock, tool, "payload", `{"status":"ok"}`)
+	configureSuccessfulExecution(t, mock, tool, "payload", `{"status":"ok"}`, nil)
 
 	logger := testutils.NewTestLogger(t)
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`))
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
 	require.NoError(t, err)
 }
 
@@ -319,7 +391,7 @@ func TestDockerToolExecutorExecuteTool_ToolNotRegistered(t *testing.T) {
 
 	executor := &DockerToolExecutor{client: nil}
 
-	_, err := executor.ExecuteTool(ctx, logger, "missing", json.RawMessage(`{}`))
+	_, err := executor.ExecuteTool(ctx, logger, "missing", json.RawMessage(`{}`), nil)
 	require.Error(t, err)
 	assert.Equal(t, "tool not available: missing", err.Error())
 }
@@ -332,7 +404,7 @@ func TestDockerToolExecutorExecuteTool_UnsupportedToolType(t *testing.T) {
 	executor := &DockerToolExecutor{}
 	executor.tools.Store("bad", 123)
 
-	_, err := executor.ExecuteTool(ctx, logger, "bad", json.RawMessage(`{}`))
+	_, err := executor.ExecuteTool(ctx, logger, "bad", json.RawMessage(`{}`), nil)
 	require.Error(t, err)
 	assert.Equal(t, "tool \"bad\" encountered an error: tool internal error: unsupported tool type: int", err.Error())
 }
@@ -346,16 +418,16 @@ func TestDockerToolExecutorExecuteTool_MaxCallsExceeded(t *testing.T) {
 	tool.maxCalls = &maxCalls
 	executor.RegisterTool(tool)
 
-	configureSuccessfulExecution(t, mock, tool, "payload", `{"ok":true}`)
+	configureSuccessfulExecution(t, mock, tool, "payload", `{"ok":true}`, nil)
 
 	logger := testutils.NewTestLogger(t)
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`))
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
 	require.NoError(t, err)
 
-	_, err = executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`))
+	_, err = executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
 	require.Error(t, err)
 	expected := "tool max calls exceeded: tool \"limited-tool\" has exceeded its maximum call limit of 1 for this session. Do not call this tool again during the current conversation"
 	assert.Equal(t, expected, err.Error())
@@ -376,7 +448,7 @@ func TestDockerToolExecutorExecuteTool_InvalidArguments(t *testing.T) {
 	tool := newTestTool("invalid-args")
 	executor.RegisterTool(tool)
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`[]`))
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`[]`), nil)
 	require.Error(t, err)
 	expected := "tool \"invalid-args\" encountered an error: invalid tool arguments: failed to parse input arguments as JSON object (expected format: {\"argName\": \"value\", ...}): json: cannot unmarshal array into Go value of type map[string]interface {}"
 	assert.Equal(t, expected, err.Error())
@@ -400,7 +472,7 @@ func TestDockerToolExecutorExecuteTool_CreateContainerError(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`))
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
 	require.Error(t, err)
 	expected := "tool \"create-error\" encountered an error: tool internal error: failed to create tool container (image: \"alpine:latest\"): Error response from daemon: {\"message\":\"create error\"}"
 	assert.Equal(t, expected, err.Error())
@@ -413,7 +485,7 @@ func TestDockerToolExecutorExecuteTool_NonZeroExit(t *testing.T) {
 	tool := newTestTool("exit-failure")
 	executor.RegisterTool(tool)
 
-	configureSuccessfulExecution(t, mock, tool, "payload", "ignored")
+	configureSuccessfulExecution(t, mock, tool, "payload", "ignored", nil)
 
 	mock.onWait = func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -434,7 +506,7 @@ func TestDockerToolExecutorExecuteTool_NonZeroExit(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`))
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
 	require.Error(t, err)
 	expected := "tool \"exit-failure\" encountered an error: tool execution failed: tool container exited with code 2: fatal error"
 	assert.Equal(t, expected, err.Error())
@@ -447,7 +519,7 @@ func TestDockerToolExecutorExecuteTool_LogRetrievalError(t *testing.T) {
 	tool := newTestTool("log-error")
 	executor.RegisterTool(tool)
 
-	configureSuccessfulExecution(t, mock, tool, "payload", "ignored")
+	configureSuccessfulExecution(t, mock, tool, "payload", "ignored", nil)
 
 	mock.onLogs = func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -460,7 +532,7 @@ func TestDockerToolExecutorExecuteTool_LogRetrievalError(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`))
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
 	require.Error(t, err)
 	expected := "tool \"log-error\" encountered an error: tool internal error: failed to retrieve tool output from tool container: failed to get tool container logs: Error response from daemon: {\"message\":\"log failure\"}"
 	assert.Equal(t, expected, err.Error())
@@ -473,7 +545,7 @@ func TestDockerToolExecutorExecuteTool_LogFetchFailureFallback(t *testing.T) {
 	tool := newTestTool("log-fallback")
 	executor.RegisterTool(tool)
 
-	configureSuccessfulExecution(t, mock, tool, "payload", "ignored")
+	configureSuccessfulExecution(t, mock, tool, "payload", "ignored", nil)
 
 	mock.onWait = func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -504,7 +576,7 @@ func TestDockerToolExecutorExecuteTool_LogFetchFailureFallback(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`))
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
 	require.Error(t, err)
 	expected := "tool \"log-fallback\" encountered an error: tool execution failed: tool container exited with code 3"
 	assert.Equal(t, expected, err.Error())
@@ -518,7 +590,7 @@ func TestDockerToolExecutorExecuteTool_EmptyOutput(t *testing.T) {
 	tool := newTestTool("empty-output")
 	executor.RegisterTool(tool)
 
-	configureSuccessfulExecution(t, mock, tool, "payload", "")
+	configureSuccessfulExecution(t, mock, tool, "payload", "", nil)
 
 	mock.onLogs = func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/vnd.docker.raw-stream")
@@ -532,7 +604,7 @@ func TestDockerToolExecutorExecuteTool_EmptyOutput(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`))
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
 	require.Error(t, err)
 	expected := "tool \"empty-output\" encountered an error: tool execution failed: tool returned no output"
 	assert.Equal(t, expected, err.Error())
@@ -547,7 +619,7 @@ func TestDockerToolExecutorExecuteTool_Timeout(t *testing.T) {
 	tool.timeout = &timeout
 	executor.RegisterTool(tool)
 
-	configureSuccessfulExecution(t, mock, tool, "payload", "ignored")
+	configureSuccessfulExecution(t, mock, tool, "payload", "ignored", nil)
 
 	mock.onWait = func(_ http.ResponseWriter, r *http.Request) {
 		<-r.Context().Done()
@@ -557,7 +629,7 @@ func TestDockerToolExecutorExecuteTool_Timeout(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`))
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
 	require.Error(t, err)
 	expected := "tool \"timeout\" encountered an error: tool execution timeout: execution timed out after 50ms"
 	assert.Equal(t, expected, err.Error())
@@ -570,7 +642,7 @@ func TestDockerToolExecutorExecuteTool_ContextCanceled(t *testing.T) {
 	tool := newTestTool("canceled")
 	executor.RegisterTool(tool)
 
-	configureSuccessfulExecution(t, mock, tool, "payload", "ignored")
+	configureSuccessfulExecution(t, mock, tool, "payload", "ignored", nil)
 
 	waitStarted := make(chan struct{})
 	mock.onWait = func(_ http.ResponseWriter, r *http.Request) {
@@ -589,7 +661,7 @@ func TestDockerToolExecutorExecuteTool_ContextCanceled(t *testing.T) {
 		cancel()
 	}()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`))
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
 	require.Error(t, err)
 	expected := "tool \"canceled\" encountered an error: tool internal error: execution was cancelled"
 	assert.Equal(t, expected, err.Error())
@@ -602,7 +674,7 @@ func TestDockerToolExecutorExecuteTool_ContainerStartError(t *testing.T) {
 	tool := newTestTool("start-error")
 	executor.RegisterTool(tool)
 
-	configureSuccessfulExecution(t, mock, tool, "payload", "ignored")
+	configureSuccessfulExecution(t, mock, tool, "payload", "ignored", nil)
 
 	mock.onStart = func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -615,7 +687,7 @@ func TestDockerToolExecutorExecuteTool_ContainerStartError(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`))
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
 	require.Error(t, err)
 	expected := "tool \"start-error\" encountered an error: tool internal error: failed to start tool container: Error response from daemon: {\"message\":\"start failed\"}"
 	assert.Equal(t, expected, err.Error())
@@ -628,7 +700,7 @@ func TestDockerToolExecutorExecuteTool_ContainerWaitError(t *testing.T) {
 	tool := newTestTool("wait-error")
 	executor.RegisterTool(tool)
 
-	configureSuccessfulExecution(t, mock, tool, "payload", "ignored")
+	configureSuccessfulExecution(t, mock, tool, "payload", "ignored", nil)
 
 	mock.onWait = func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -641,7 +713,7 @@ func TestDockerToolExecutorExecuteTool_ContainerWaitError(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`))
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
 	require.Error(t, err)
 	expected := "tool \"wait-error\" encountered an error: tool internal error: failed waiting for tool to finish execution: Error response from daemon: {\"message\":\"wait failed\"}"
 	assert.Equal(t, expected, err.Error())
@@ -655,12 +727,47 @@ func TestDockerToolExecutorExecuteTool_FileMappingJSONValue(t *testing.T) {
 	executor.RegisterTool(tool)
 
 	expectedFileContent := `{"key":"value"}`
-	configureSuccessfulExecution(t, mock, tool, expectedFileContent, `{"status":"ok"}`)
+	configureSuccessfulExecution(t, mock, tool, expectedFileContent, `{"status":"ok"}`, nil)
 
 	logger := testutils.NewTestLogger(t)
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":{"key":"value"}}`))
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":{"key":"value"}}`), nil)
 	require.NoError(t, err)
+}
+
+func TestDockerToolExecutorExecuteTool_WithAuxiliaryFiles(t *testing.T) {
+	mock := newDockerAPIMock(t)
+	executor := newTestExecutor(t, mock)
+
+	tool := newTestTool("auxiliary-tool")
+	tool.auxiliaryDir = "/app/data"
+	executor.RegisterTool(tool)
+
+	logger := testutils.NewTestLogger(t)
+
+	payload := `{"input":"test payload"}`
+
+	// Create auxiliary data files.
+	auxiliaryFiles := map[string][]byte{
+		"sample-input.txt": []byte("Hello, World!"),
+		"config.json":      []byte(`{"key": "value", "number": 42}`),
+		"image-data.bin":   {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}, // PNG header
+	}
+
+	configureSuccessfulExecution(t, mock, tool, "test payload", `{"status":"processed"}`, auxiliaryFiles)
+
+	ctx, cancel := newTestContext()
+	defer cancel()
+
+	result, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(payload), auxiliaryFiles)
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"status":"processed"}`, string(result))
+
+	stats := executor.GetUsageStats()
+	usage, ok := stats[tool.name]
+	require.True(t, ok)
+	assert.Equal(t, int64(1), usage.CallCount)
+	assert.Positive(t, usage.TotalTimeNs)
 }

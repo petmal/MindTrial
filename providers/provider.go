@@ -386,3 +386,17 @@ func findToolByName(availableTools []config.ToolConfig, name string) (*config.To
 func formatToolExecutionError(err error) string {
 	return fmt.Sprintf("Tool execution failed: %v", err)
 }
+
+// taskFilesToDataMap converts a slice of TaskFile to a map of filename to binary content data.
+func taskFilesToDataMap(ctx context.Context, files []config.TaskFile) (map[string][]byte, error) {
+	dataMap := make(map[string][]byte, len(files))
+	for _, file := range files {
+		content, err := file.Content(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read content for file %q: %w", file.Name, err)
+		}
+		dataMap[file.Name] = content
+	}
+
+	return dataMap, nil
+}

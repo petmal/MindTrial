@@ -205,7 +205,11 @@ func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConf
 			// Handle tool calls.
 			for _, toolCall := range candidate.Message.ToolCalls {
 				args := json.RawMessage(toolCall.Function.Arguments)
-				toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, args)
+				data, err := taskFilesToDataMap(ctx, task.Files)
+				if err != nil {
+					return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
+				}
+				toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, args, data)
 				content := string(toolResult)
 				if err != nil {
 					content = formatToolExecutionError(err)

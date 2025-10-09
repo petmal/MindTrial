@@ -205,18 +205,21 @@ config:
         IMPORTANT:
         - Only the Python standard library is available. No third-party packages (like pandas or numpy) can be imported.
         - The environment has no network access.
+        - Any files mentioned in the conversation (shown as [file: filename]) are automatically mounted to /app/data/ with their exact filenames.
+        - Use standard file operations like open('/app/data/filename', 'r') to read attached files, where 'filename' matches the name shown in [file: filename] references.
         - The code must print its final result to standard output to be returned.
       parameters:
         type: object
         properties:
           code:
             type: string
-            description: "A string containing a self-contained Python 3 script. The script must use the `print()` function to return a final result. Example: `print(sum([i for i in range(101) if i % 2 == 0]))`"
+            description: "A string containing a self-contained Python 3 script. The script must use the `print()` function to return a final result. Example: `print(sum([i for i in range(101) if i % 2 == 0]))`. To read attached files, use open('/app/data/filename', 'r') where 'filename' matches what appears in [file: filename] references."
         required:
           - code
         additionalProperties: false
-      file_mappings:
+      parameter-files:
         code: /app/main.py
+      auxiliary-dir: /app/data
       command:
         - python
         - /app/main.py

@@ -13,6 +13,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
@@ -61,8 +63,8 @@ func (d *DockerToolExecutor) RegisterTool(tool *DockerTool) {
 	d.tools.Store(tool.name, tool)
 }
 
-// ExecuteTool executes a tool by name with the given arguments.
-func (d *DockerToolExecutor) ExecuteTool(ctx context.Context, logger logging.Logger, toolName string, args json.RawMessage) (json.RawMessage, error) {
+// ExecuteTool executes a tool by name with the given arguments and auxiliary data files.
+func (d *DockerToolExecutor) ExecuteTool(ctx context.Context, logger logging.Logger, toolName string, args json.RawMessage, data map[string][]byte) (json.RawMessage, error) {
 	toolValue, exists := d.tools.Load(toolName)
 	if !exists {
 		return nil, fmt.Errorf("%w: %s", ErrToolNotAvailable, toolName)
@@ -83,19 +85,11 @@ func (d *DockerToolExecutor) ExecuteTool(ctx context.Context, logger logging.Log
 		}
 	}
 
-	// Apply timeout if specified.
-	execCtx := ctx
-	if tool.timeout != nil {
-		var cancel context.CancelFunc
-		execCtx, cancel = context.WithTimeout(ctx, *tool.timeout)
-		defer cancel()
-	}
-
 	// Create a logger with tool name prefix.
 	toolLogger := logger.WithContext(fmt.Sprintf("%s: ", toolName))
 
 	// Execute the tool.
-	result, err := d.executeDockerTool(execCtx, toolLogger, tool, args)
+	result, err := d.executeDockerTool(ctx, toolLogger, tool, args, data)
 	if err != nil {
 		return nil, fmt.Errorf("tool %q encountered an error: %w", toolName, err)
 	}
@@ -127,8 +121,8 @@ func (d *DockerToolExecutor) readContainerLogs(ctx context.Context, containerID 
 	return buffer.String(), nil
 }
 
-// executeDockerTool executes a Docker tool with the given arguments.
-func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger logging.Logger, tool *DockerTool, args json.RawMessage) (json.RawMessage, error) {
+// executeDockerTool executes a Docker tool with the given arguments and auxiliary data files.
+func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger logging.Logger, tool *DockerTool, args json.RawMessage, data map[string][]byte) (json.RawMessage, error) {
 	logger.Message(ctx, logging.LevelInfo, "starting setup")
 
 	// Parse the arguments.
@@ -147,9 +141,9 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 	defer os.RemoveAll(tempDir) // clean up temp directory after execution
 	logger.Message(ctx, logging.LevelDebug, "created temporary workspace directory: %s", tempDir)
 
-	// Write file mappings and create individual file mounts.
+	// Write parameter files and create individual file mounts.
 	var mounts []mount.Mount
-	for argName, containerPath := range tool.fileMappings {
+	for argName, containerPath := range tool.parameterFiles {
 		if argValue, exists := argMap[argName]; exists {
 			// Convert argument value to string.
 			var content string
@@ -180,6 +174,30 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 			})
 
 			logger.Message(ctx, logging.LevelDebug, "mounted temporary file %s to container path %s for argument %q", tempFilePath, containerPath, argName)
+		}
+	}
+
+	// Mount data files to auxiliary directory if configured.
+	// Each file is mounted using its unique name exactly as provided.
+	if tool.auxiliaryDir != "" {
+		for fileName, fileContent := range data {
+			// Create temporary file for the data file.
+			tempFilePath, err := writeTempFile(tempDir, fileName, fileContent)
+			if err != nil {
+				return nil, fmt.Errorf("%w: failed to create temporary file for auxiliary data file %q: %v", ErrToolInternal, fileName, err)
+			}
+
+			// Create container path for the data file.
+			containerPath := path.Join(filepath.ToSlash(tool.auxiliaryDir), fileName)
+
+			// Create a bind mount for this data file.
+			mounts = append(mounts, mount.Mount{
+				Type:   mount.TypeBind,
+				Source: tempFilePath,
+				Target: containerPath,
+			})
+
+			logger.Message(ctx, logging.LevelDebug, "mounted auxiliary data file %q from %s to container path %s", fileName, tempFilePath, containerPath)
 		}
 	}
 
@@ -247,13 +265,22 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 		}
 	}()
 
+	// Apply timeout if specified.
+	execCtx := ctx
+	if tool.timeout != nil {
+		var cancel context.CancelFunc
+		execCtx, cancel = context.WithTimeout(ctx, *tool.timeout)
+		defer cancel()
+	}
+
 	// Start the container and wait for completion.
 	startTime := time.Now()
 	logger.Message(ctx, logging.LevelInfo, "starting execution")
-	status, err := d.runContainer(ctx, createResp.ID)
+	status, err := d.runContainer(execCtx, createResp.ID)
 	duration := time.Since(startTime)
 	d.recordUsage(tool.name, duration)
 
+	// Handle execution errors.
 	switch {
 	case errors.Is(err, context.DeadlineExceeded):
 		return nil, fmt.Errorf("%w: execution timed out after %s", ErrToolTimeout, tool.getTimeoutValue())
@@ -300,16 +327,28 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 	return json.RawMessage(result), nil
 }
 
+// TextOrData is a constraint for types that can be written to files.
+type TextOrData interface {
+	~string | ~[]byte
+}
+
 // writeTempFile creates a temporary file with the given content and returns its path.
-func writeTempFile(tempDir, prefix string, content string) (string, error) {
+func writeTempFile[T TextOrData](tempDir string, prefix string, content T) (string, error) {
 	tempFile, err := os.CreateTemp(tempDir, prefix+"-*")
 	if err != nil {
 		return "", err
 	}
 	defer tempFile.Close()
 
-	if _, err := tempFile.WriteString(content); err != nil {
-		return "", err
+	switch v := any(content).(type) {
+	case string:
+		if _, err := tempFile.WriteString(v); err != nil {
+			return "", err
+		}
+	case []byte:
+		if _, err := tempFile.Write(v); err != nil {
+			return "", err
+		}
 	}
 
 	return tempFile.Name(), nil
@@ -366,33 +405,35 @@ func (d *DockerToolExecutor) GetUsageStats() map[string]ToolUsage {
 }
 
 type DockerTool struct {
-	name         string
-	image        string
-	description  string
-	parameters   map[string]interface{}
-	fileMappings map[string]string
-	command      []string
-	env          map[string]string
-	maxCalls     *int
-	timeout      *time.Duration
-	maxMemoryMB  *int
-	cpuPercent   *int
+	name           string
+	image          string
+	description    string
+	parameters     map[string]interface{}
+	parameterFiles map[string]string
+	auxiliaryDir   string
+	command        []string
+	env            map[string]string
+	maxCalls       *int
+	timeout        *time.Duration
+	maxMemoryMB    *int
+	cpuPercent     *int
 }
 
 // NewDockerTool creates a new Docker tool.
 func NewDockerTool(cfg *config.ToolConfig, maxCalls *int, timeout *time.Duration, maxMemoryMB *int, cpuPercent *int) *DockerTool {
 	return &DockerTool{
-		name:         cfg.Name,
-		image:        cfg.Image,
-		description:  cfg.Description,
-		parameters:   cfg.Parameters,
-		fileMappings: cfg.FileMappings,
-		command:      cfg.Command,
-		env:          cfg.Env,
-		maxCalls:     maxCalls,
-		timeout:      timeout,
-		maxMemoryMB:  maxMemoryMB,
-		cpuPercent:   cpuPercent,
+		name:           cfg.Name,
+		image:          cfg.Image,
+		description:    cfg.Description,
+		parameters:     cfg.Parameters,
+		parameterFiles: cfg.ParameterFiles,
+		auxiliaryDir:   cfg.AuxiliaryDir,
+		command:        cfg.Command,
+		env:            cfg.Env,
+		maxCalls:       maxCalls,
+		timeout:        timeout,
+		maxMemoryMB:    maxMemoryMB,
+		cpuPercent:     cpuPercent,
 	}
 }
 

@@ -629,7 +629,7 @@ func TestLoadConfigFromFile(t *testing.T) {
               type: string
               description: "Python code to execute"
           command: ["python", "-c"]
-          file_mappings:
+          parameter-files:
             code: "/tmp/code.py"
           env:
             PYTHONPATH: "/usr/local/lib/python3.9"
@@ -666,9 +666,9 @@ func TestLoadConfigFromFile(t *testing.T) {
 									"description": "Python code to execute",
 								},
 							},
-							Command:      []string{"python", "-c"},
-							FileMappings: map[string]string{"code": "/tmp/code.py"},
-							Env:          map[string]string{"PYTHONPATH": "/usr/local/lib/python3.9"},
+							Command:        []string{"python", "-c"},
+							ParameterFiles: map[string]string{"code": "/tmp/code.py"},
+							Env:            map[string]string{"PYTHONPATH": "/usr/local/lib/python3.9"},
 						},
 					},
 				},

@@ -177,7 +177,11 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 				}
 
 				// Handle tool calls.
-				toolResult, err := executor.ExecuteTool(ctx, logger, block.Name, json.RawMessage(block.Input))
+				data, err := taskFilesToDataMap(ctx, task.Files)
+				if err != nil {
+					return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
+				}
+				toolResult, err := executor.ExecuteTool(ctx, logger, block.Name, json.RawMessage(block.Input), data)
 				isError := err != nil
 				content := string(toolResult)
 				if isError {

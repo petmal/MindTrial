@@ -189,7 +189,11 @@ func (o *OpenAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunC
 
 			// Handle tool calls.
 			for _, toolCall := range candidate.Message.ToolCalls {
-				toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, json.RawMessage(toolCall.Function.Arguments))
+				data, err := taskFilesToDataMap(ctx, task.Files)
+				if err != nil {
+					return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
+				}
+				toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, json.RawMessage(toolCall.Function.Arguments), data)
 				content := string(toolResult)
 				if err != nil {
 					content = formatToolExecutionError(err)

@@ -238,10 +238,14 @@ type ToolConfig struct {
 	// - Use "additionalProperties": false for objects to prevent unexpected parameters
 	// - Provide comprehensive descriptions that explain parameter purpose and format
 	Parameters map[string]interface{} `yaml:"parameters" validate:"required"`
-	// FileMappings maps parameter field names to file paths where argument values should be written.
+	// ParameterFiles maps parameter field names to file paths where argument values should be written.
 	// This allows passing large or complex data to tools via files instead of inline JSON.
 	// The tool's command should read these files as needed.
-	FileMappings map[string]string `yaml:"file_mappings,omitempty"`
+	ParameterFiles map[string]string `yaml:"parameter-files,omitempty"`
+	// AuxiliaryDir specifies the directory path where task files will be automatically available.
+	// If set, all files attached to a task will be copied to this directory using each file's
+	// `TaskFile.Name` exactly as provided.
+	AuxiliaryDir string `yaml:"auxiliary-dir,omitempty"`
 	// Command specifies the command to execute as a list of its components.
 	Command []string `yaml:"command,omitempty"`
 	// Env specifies additional environment variables to set.

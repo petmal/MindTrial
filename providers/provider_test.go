@@ -7,6 +7,7 @@
 package providers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -18,6 +19,7 @@ import (
 	"github.com/petmal/mindtrial/pkg/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 )
 
 func TestTimed(t *testing.T) {
@@ -896,4 +898,60 @@ func TestFindToolByName(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestTaskFilesToDataMap(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("empty files", func(t *testing.T) {
+		result, err := taskFilesToDataMap(ctx, []config.TaskFile{})
+		require.NoError(t, err)
+		assert.Equal(t, map[string][]byte{}, result)
+	})
+
+	t.Run("single file", func(t *testing.T) {
+		mockData := []byte("test content")
+		filePath := testutils.CreateMockFile(t, "test-*.txt", mockData)
+
+		taskFile := mockTaskFile(t, "test", filePath, "text/plain")
+
+		result, err := taskFilesToDataMap(ctx, []config.TaskFile{taskFile})
+		require.NoError(t, err)
+		assert.Equal(t, map[string][]byte{"test": mockData}, result)
+	})
+
+	t.Run("multiple files", func(t *testing.T) {
+		mockData1 := []byte("content 1")
+		mockData2 := []byte("content 2")
+		filePath1 := testutils.CreateMockFile(t, "test1-*.txt", mockData1)
+		filePath2 := testutils.CreateMockFile(t, "test2-*.txt", mockData2)
+
+		taskFile1 := mockTaskFile(t, "file1.txt", filePath1, "text/plain")
+		taskFile2 := mockTaskFile(t, "file2.txt", filePath2, "text/plain")
+
+		result, err := taskFilesToDataMap(ctx, []config.TaskFile{taskFile1, taskFile2})
+		require.NoError(t, err)
+		expected := map[string][]byte{
+			"file1.txt": mockData1,
+			"file2.txt": mockData2,
+		}
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("file read error", func(t *testing.T) {
+		taskFile := mockTaskFile(t, "nonexistent.txt", "/nonexistent/path.txt", "text/plain")
+
+		result, err := taskFilesToDataMap(ctx, []config.TaskFile{taskFile})
+		require.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "failed to read content for file \"nonexistent.txt\"")
+	})
+}
+
+func mockTaskFile(t *testing.T, name string, uri string, mimeType string) config.TaskFile {
+	// Use YAML unmarshaling to properly initialize the TaskFile functions.
+	yamlStr := fmt.Sprintf("name: %s\nuri: %s\ntype: %s", name, uri, mimeType)
+	var file config.TaskFile
+	require.NoError(t, yaml.Unmarshal([]byte(yamlStr), &file))
+	return file
 }
