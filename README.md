@@ -744,6 +744,7 @@ config:
         - The environment has no network access.
         - Any files mentioned in the conversation (shown as [file: filename]) are automatically mounted to /app/data/ with their exact filenames.
         - Use standard file operations like open('/app/data/filename', 'r') to read attached files, where 'filename' matches the name shown in [file: filename] references.
+        - The environment is ephemeral: any files created or changes made will be lost after the script finishes, and will not persist across tool calls.
         - The code must print its final result to standard output to be returned.
       parameters:
         type: object

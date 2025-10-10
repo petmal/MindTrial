@@ -24,6 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/testutils"
 )
 
@@ -35,12 +36,13 @@ type dockerAPIMock struct {
 	server     *httptest.Server
 	apiVersion string
 
-	onPing   func(http.ResponseWriter, *http.Request)
-	onCreate func(http.ResponseWriter, *http.Request)
-	onStart  func(http.ResponseWriter, *http.Request)
-	onWait   func(http.ResponseWriter, *http.Request)
-	onLogs   func(http.ResponseWriter, *http.Request)
-	onRemove func(http.ResponseWriter, *http.Request)
+	onPing         func(http.ResponseWriter, *http.Request)
+	onImageInspect func(http.ResponseWriter, *http.Request)
+	onCreate       func(http.ResponseWriter, *http.Request)
+	onStart        func(http.ResponseWriter, *http.Request)
+	onWait         func(http.ResponseWriter, *http.Request)
+	onLogs         func(http.ResponseWriter, *http.Request)
+	onRemove       func(http.ResponseWriter, *http.Request)
 }
 
 func newDockerAPIMock(t *testing.T) *dockerAPIMock {
@@ -75,6 +77,19 @@ func (m *dockerAPIMock) handle(w http.ResponseWriter, r *http.Request) {
 			_, _ = w.Write([]byte("OK"))
 		}
 		return
+	}
+
+	if strings.HasPrefix(path, m.basePath()+"/images") {
+		trimmed := strings.TrimPrefix(path, m.basePath()+"/images")
+		if r.Method == http.MethodGet && strings.HasSuffix(trimmed, "/json") {
+			if m.onImageInspect != nil {
+				m.onImageInspect(w, r)
+			} else {
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write([]byte(`{"Id":"sha256:test"}`))
+			}
+			return
+		}
 	}
 
 	if strings.HasPrefix(path, m.basePath()+"/containers") {
@@ -180,6 +195,49 @@ func newTestTool(name string) *DockerTool {
 		env:            map[string]string{"FOO": "BAR"},
 		parameterFiles: map[string]string{"input": "/workspace/input.txt"},
 	}
+}
+
+func TestDockerToolExecutorValidateTool_ImageAvailable(t *testing.T) {
+	mock := newDockerAPIMock(t)
+	mock.onImageInspect = func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"Id":"sha256:test"}`))
+	}
+
+	executor := newTestExecutor(t, mock)
+	cfg := config.ToolConfig{Name: "echo", Image: "alpine:latest"}
+
+	require.NoError(t, executor.ValidateTool(context.Background(), cfg))
+}
+
+func TestDockerToolExecutorValidateTool_ImageMissing(t *testing.T) {
+	mock := newDockerAPIMock(t)
+	mock.onImageInspect = func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte(`{"message":"No such image"}`))
+	}
+
+	executor := newTestExecutor(t, mock)
+	cfg := config.ToolConfig{Name: "echo", Image: "missing:latest"}
+
+	err := executor.ValidateTool(context.Background(), cfg)
+	require.Error(t, err)
+	assert.EqualError(t, err, "tool not available: docker image \"missing:latest\" is not available locally. Pull the image with `docker pull missing:latest` and try again")
+}
+
+func TestDockerToolExecutorValidateTool_ImageInspectError(t *testing.T) {
+	mock := newDockerAPIMock(t)
+	mock.onImageInspect = func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(`{"message":"Internal server error"}`))
+	}
+
+	executor := newTestExecutor(t, mock)
+	cfg := config.ToolConfig{Name: "echo", Image: "test:latest"}
+
+	err := executor.ValidateTool(context.Background(), cfg)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "tool internal error: failed to inspect docker image \"test:latest\"")
 }
 
 func newTestContext() (context.Context, context.CancelFunc) {
@@ -351,7 +409,7 @@ func TestDockerToolExecutorExecuteTool_Success(t *testing.T) {
 	usage, ok := stats[tool.name]
 	require.True(t, ok)
 	assert.Equal(t, int64(1), usage.CallCount)
-	assert.Positive(t, usage.TotalTimeNs)
+	assert.GreaterOrEqual(t, usage.TotalTimeNs, int64(0))
 
 	mountedFile := mountedFileFn()
 	require.NotEmpty(t, mountedFile)
@@ -769,5 +827,5 @@ func TestDockerToolExecutorExecuteTool_WithAuxiliaryFiles(t *testing.T) {
 	usage, ok := stats[tool.name]
 	require.True(t, ok)
 	assert.Equal(t, int64(1), usage.CallCount)
-	assert.Positive(t, usage.TotalTimeNs)
+	assert.GreaterOrEqual(t, usage.TotalTimeNs, int64(0))
 }

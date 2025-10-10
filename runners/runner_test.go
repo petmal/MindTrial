@@ -8,6 +8,7 @@ package runners
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/testutils"
 	"github.com/petmal/mindtrial/pkg/utils"
+	"github.com/petmal/mindtrial/validators"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -1029,6 +1031,131 @@ func createMockRunnerFromConfig(t *testing.T, cfg []config.ProviderConfig, judge
 	return runner
 }
 
+type stubToolValidator struct {
+	validatedTools []string
+	validateErr    error
+	closed         bool
+}
+
+func (s *stubToolValidator) ValidateTool(ctx context.Context, cfg config.ToolConfig) error {
+	s.validatedTools = append(s.validatedTools, cfg.Name)
+	if s.validateErr != nil {
+		return s.validateErr
+	}
+	return nil
+}
+
+func (s *stubToolValidator) Close() error {
+	s.closed = true
+	return nil
+}
+
+func TestDefaultRunnerAssertCanRun(t *testing.T) {
+	tests := []struct {
+		name          string
+		tools         []config.ToolConfig
+		taskToolNames []string
+		validateErr   error
+		expectedTools []string
+		expectedError string
+		wantErr       bool
+	}{
+		{
+			name: "validates single tool",
+			tools: []config.ToolConfig{
+				{Name: "echo", Image: "alpine:latest"},
+				{Name: "cat", Image: "linux:latest"},
+			},
+			taskToolNames: []string{"echo"},
+			expectedTools: []string{"echo"},
+			wantErr:       false,
+		},
+		{
+			name: "validates multiple tools",
+			tools: []config.ToolConfig{
+				{Name: "echo", Image: "alpine:latest"},
+				{Name: "cat", Image: "linux:latest"},
+			},
+			taskToolNames: []string{"echo", "cat"},
+			expectedTools: []string{"echo", "cat"},
+			wantErr:       false,
+		},
+		{
+			name: "deduplicates tools - validates each tool once",
+			tools: []config.ToolConfig{
+				{Name: "echo", Image: "alpine:latest"},
+				{Name: "cat", Image: "alpine:latest"},
+			},
+			taskToolNames: []string{"echo", "cat"},
+			expectedTools: []string{"echo", "cat"},
+			wantErr:       false,
+		},
+		{
+			name: "reports validation failure",
+			tools: []config.ToolConfig{
+				{Name: "echo", Image: "alpine:latest"},
+			},
+			taskToolNames: []string{"echo"},
+			validateErr:   errors.New("docker image missing"), //nolint:err113
+			expectedTools: []string{"echo"},
+			expectedError: "could not start because:\ntool 'echo' cannot be used: docker image missing",
+			wantErr:       true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			stub := &stubToolValidator{validateErr: tt.validateErr}
+
+			runner := &defaultRunner{
+				validatorFactory: validators.NewFactory(nil),
+				tools:            tt.tools,
+				toolValidator:    stub,
+			}
+
+			task := newToolTask(t, tt.taskToolNames...)
+
+			err := runner.assertCanRun(ctx, []config.Task{task})
+			if tt.wantErr {
+				require.Error(t, err)
+				require.EqualError(t, err, tt.expectedError)
+			} else {
+				require.NoError(t, err)
+			}
+			assert.ElementsMatch(t, tt.expectedTools, stub.validatedTools)
+			assert.False(t, stub.closed)
+
+			runner.Close(ctx)
+			assert.True(t, stub.closed)
+		})
+	}
+}
+
+func newToolTask(t *testing.T, toolNames ...string) config.Task {
+	t.Helper()
+
+	toolSelections := make([]config.ToolSelection, len(toolNames))
+	for i, name := range toolNames {
+		toolSelections[i] = config.ToolSelection{Name: name}
+	}
+
+	task := config.Task{
+		Name:                 "tool-task",
+		Prompt:               "use tool",
+		ResponseResultFormat: config.NewResponseFormat("text"),
+		ExpectedResult:       utils.NewValueSet("expected"),
+		ToolSelector: &config.ToolSelector{
+			Tools: toolSelections,
+		},
+	}
+
+	require.NoError(t, task.ResolveValidationRules(config.ValidationRules{}))
+	task.ResolveToolSelector(config.ToolSelector{})
+
+	return task
+}
+
 func TestProviderResultsByRunAndKind(t *testing.T) {
 	mockResults := Results{
 		"mock provider 1": []RunResult{
@@ -1452,6 +1579,7 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 		})
 	}
 }
+
 func TestRunResultGetID(t *testing.T) {
 	tests := []struct {
 		name      string

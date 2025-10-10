@@ -63,6 +63,24 @@ func (d *DockerToolExecutor) RegisterTool(tool *DockerTool) {
 	d.tools.Store(tool.name, tool)
 }
 
+// ValidateTool ensures the Docker image referenced by the tool configuration is available locally.
+func (d *DockerToolExecutor) ValidateTool(ctx context.Context, cfg config.ToolConfig) error {
+	if cfg.Image == "" {
+		return fmt.Errorf("%w: docker image is not configured for tool %q", ErrToolInternal, cfg.Name)
+	}
+
+	if _, err := d.client.ImageInspect(ctx, cfg.Image); err != nil {
+		switch {
+		case errdefs.IsNotFound(err):
+			return fmt.Errorf("%w: docker image %q is not available locally. Pull the image with `docker pull %s` and try again", ErrToolNotAvailable, cfg.Image, cfg.Image)
+		default:
+			return fmt.Errorf("%w: failed to inspect docker image %q: %v", ErrToolInternal, cfg.Image, err)
+		}
+	}
+
+	return nil
+}
+
 // ExecuteTool executes a tool by name with the given arguments and auxiliary data files.
 func (d *DockerToolExecutor) ExecuteTool(ctx context.Context, logger logging.Logger, toolName string, args json.RawMessage, data map[string][]byte) (json.RawMessage, error) {
 	toolValue, exists := d.tools.Load(toolName)

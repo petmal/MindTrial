@@ -10,7 +10,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"slices"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -21,11 +20,17 @@ import (
 	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/petmal/mindtrial/providers"
 	"github.com/petmal/mindtrial/providers/execution"
+	providertools "github.com/petmal/mindtrial/providers/tools"
 	"github.com/petmal/mindtrial/validators"
 	"github.com/rs/zerolog"
 )
 
 const asyncEventBufferSize = 3
+
+type toolValidator interface {
+	ValidateTool(ctx context.Context, cfg config.ToolConfig) error
+	Close() error
+}
 
 type eventEmitter interface {
 	emitProgressEvent()
@@ -111,11 +116,20 @@ func (r *asyncResultSet) emitMessageEvent(message string) {
 // in parallel. The individual runs on a single provider are executed sequentially.
 // It returns an error if any provider initialization fails.
 func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, judges []config.JudgeConfig, tools []config.ToolConfig, logger zerolog.Logger) (Runner, error) {
+	toolValidator, err := providertools.NewDockerToolExecutor(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize tool validator: %w", err)
+	}
+
 	targets := make(map[providers.Provider][]config.RunConfig, len(cfg))
 	totalTargetCount := 0
 	for _, providerConfig := range cfg {
 		client, err := providers.NewProvider(ctx, providerConfig, tools)
 		if err != nil {
+			if cleanupErr := toolValidator.Close(); cleanupErr != nil {
+				logger.Warn().Err(cleanupErr).Msg("failed to close tool validator")
+			}
+
 			return nil, fmt.Errorf("failed to initialize task runner: %w", err)
 		}
 		targets[client] = providerConfig.Runs
@@ -130,6 +144,7 @@ func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, judges [
 		validatorFactory: validatorFactory,
 		tools:            tools,
 		logger:           logger,
+		toolValidator:    toolValidator,
 	}, nil
 }
 
@@ -139,10 +154,18 @@ type defaultRunner struct {
 	validatorFactory *validators.Factory
 	tools            []config.ToolConfig
 	logger           zerolog.Logger
+	toolValidator    toolValidator
 }
 
-func (r *defaultRunner) assertCanRun(tasks []config.Task) error {
+func (r *defaultRunner) assertCanRun(ctx context.Context, tasks []config.Task) error {
 	var taskErrors []error
+	availableTools := make(map[string]config.ToolConfig, len(r.tools))
+	for _, toolCfg := range r.tools {
+		availableTools[toolCfg.Name] = toolCfg
+	}
+
+	validatedTools := make(map[string]bool)
+
 	for _, task := range tasks {
 		// Resolve validation rules for this task.
 		resolvedValidationRules := task.GetResolvedValidationRules()
@@ -158,10 +181,18 @@ func (r *defaultRunner) assertCanRun(tasks []config.Task) error {
 		resolvedToolSelector := task.GetResolvedToolSelector()
 		enabledTools, _ := resolvedToolSelector.GetEnabledToolsByName()
 		for toolName := range enabledTools {
-			if !slices.ContainsFunc(r.tools, func(tool config.ToolConfig) bool {
-				return tool.Name == toolName
-			}) {
+			toolCfg, exists := availableTools[toolName]
+			if !exists {
 				taskErrors = append(taskErrors, fmt.Errorf("%w: task '%s' requires tool '%s' that does not exist in tools", ErrToolNotFound, task.Name, toolName))
+				continue
+			}
+
+			// Validate tool if not already validated.
+			if _, alreadyValidated := validatedTools[toolName]; !alreadyValidated {
+				if err := r.toolValidator.ValidateTool(ctx, toolCfg); err != nil {
+					taskErrors = append(taskErrors, fmt.Errorf("tool '%s' cannot be used: %w", toolName, err))
+				}
+				validatedTools[toolName] = true
 			}
 		}
 	}
@@ -173,7 +204,7 @@ func (r *defaultRunner) assertCanRun(tasks []config.Task) error {
 }
 
 func (r *defaultRunner) Start(ctx context.Context, tasks []config.Task) (AsyncResultSet, error) {
-	if err := r.assertCanRun(tasks); err != nil {
+	if err := r.assertCanRun(ctx, tasks); err != nil {
 		return nil, err
 	}
 
@@ -206,7 +237,7 @@ func (r *defaultRunner) Start(ctx context.Context, tasks []config.Task) (AsyncRe
 }
 
 func (r *defaultRunner) Run(ctx context.Context, tasks []config.Task) (ResultSet, error) {
-	if err := r.assertCanRun(tasks); err != nil {
+	if err := r.assertCanRun(ctx, tasks); err != nil {
 		return nil, err
 	}
 
@@ -382,6 +413,12 @@ func (r *defaultRunner) Close(ctx context.Context) {
 	}
 	if err := r.validatorFactory.Close(ctx); err != nil {
 		r.logger.Warn().Err(err).Msg("failed to close validator factory")
+	}
+
+	if r.toolValidator != nil {
+		if err := r.toolValidator.Close(); err != nil {
+			r.logger.Warn().Err(err).Msg("failed to close tool validator")
+		}
 	}
 }
 
