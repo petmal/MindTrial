@@ -207,7 +207,8 @@ config:
         - The environment has no network access.
         - Any files mentioned in the conversation (shown as [file: filename]) are automatically mounted to /app/data/ with their exact filenames.
         - Use standard file operations like open('/app/data/filename', 'r') to read attached files, where 'filename' matches the name shown in [file: filename] references.
-        - The environment is ephemeral: any files created or changes made will be lost after the script finishes, and will not persist across tool calls.
+        - A persistent shared directory is available at /app/shared/ that persists across ALL tool calls within the same task (regardless of which tool is being called). Files created in this directory will be available in any subsequent tool call.
+        - Any files or changes outside of /app/shared/ are ephemeral and will be reset between tool calls.
         - The code must print its final result to standard output to be returned.
       parameters:
         type: object
@@ -221,6 +222,7 @@ config:
       parameter-files:
         code: /app/main.py
       auxiliary-dir: /app/data
+      shared-dir: /app/shared
       command:
         - python
         - /app/main.py

@@ -180,7 +180,10 @@ func newTestExecutor(t *testing.T, mock *dockerAPIMock) *DockerToolExecutor {
 
 	cli.NegotiateAPIVersion(context.Background())
 
-	executor := &DockerToolExecutor{client: cli}
+	executor := &DockerToolExecutor{
+		client:       cli,
+		getSharedDir: newSharedDirFactory(),
+	}
 	t.Cleanup(func() {
 		_ = executor.Close()
 	})
@@ -258,20 +261,27 @@ func configureSuccessfulExecution(t *testing.T, mock *dockerAPIMock, tool *Docke
 		assert.Equal(t, tool.command, req.Cmd)
 		assert.ElementsMatch(t, []string{"FOO=BAR"}, req.Env)
 
-		// Calculate expected mount count: parameter file + auxiliary files.
+		// Calculate expected mount count: parameter file + auxiliary files + shared dir.
 		expectedMountCount := 1 + len(expectedAuxiliaryFiles)
+		if tool.sharedDir != "" {
+			expectedMountCount++
+		}
 
 		if len(req.HostConfig.Mounts) != expectedMountCount {
 			t.Fatalf("expected %d mounts, got %d", expectedMountCount, len(req.HostConfig.Mounts))
 		}
 
-		// Find parameter file mount and auxiliary file mounts.
+		// Find parameter file mount, auxiliary file mounts, and shared dir mount.
 		var parameterMount, auxiliaryMounts []struct{ Source, Target string }
+		var sharedDirMount *struct{ Source, Target string }
 		for _, mount := range req.HostConfig.Mounts {
-			if mount.Target == "/workspace/input.txt" {
+			switch {
+			case mount.Target == "/workspace/input.txt":
 				parameterMount = append(parameterMount, struct{ Source, Target string }{mount.Source, mount.Target})
 				mountedFile = mount.Source
-			} else if expectedAuxiliaryFiles != nil && strings.HasPrefix(mount.Target, filepath.ToSlash(tool.auxiliaryDir)) {
+			case tool.sharedDir != "" && mount.Target == tool.sharedDir:
+				sharedDirMount = &struct{ Source, Target string }{mount.Source, mount.Target}
+			case expectedAuxiliaryFiles != nil && strings.HasPrefix(mount.Target, filepath.ToSlash(tool.auxiliaryDir)):
 				auxiliaryMounts = append(auxiliaryMounts, struct{ Source, Target string }{mount.Source, mount.Target})
 			}
 		}
@@ -280,6 +290,12 @@ func configureSuccessfulExecution(t *testing.T, mock *dockerAPIMock, tool *Docke
 		assert.Len(t, parameterMount, 1)
 		data := testutils.ReadFile(t, parameterMount[0].Source)
 		assert.Equal(t, expectedFileContent, string(data))
+
+		// Verify shared dir mount if expected.
+		if tool.sharedDir != "" {
+			assert.NotNil(t, sharedDirMount, "shared directory mount not found")
+			assert.Equal(t, tool.sharedDir, sharedDirMount.Target)
+		}
 
 		// Verify auxiliary file mounts if expected.
 		assert.Len(t, auxiliaryMounts, len(expectedAuxiliaryFiles))
@@ -828,4 +844,46 @@ func TestDockerToolExecutorExecuteTool_WithAuxiliaryFiles(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, int64(1), usage.CallCount)
 	assert.GreaterOrEqual(t, usage.TotalTimeNs, int64(0))
+}
+
+func TestDockerToolExecutorExecuteTool_WithSharedDirectory(t *testing.T) {
+	mock := newDockerAPIMock(t)
+	executor := newTestExecutor(t, mock)
+
+	tool := newTestTool("shared-dir-tool")
+	tool.sharedDir = "/app/shared"
+	executor.RegisterTool(tool)
+
+	logger := testutils.NewTestLogger(t)
+
+	payload := `{"input":"first call"}`
+
+	// Configure first execution.
+	configureSuccessfulExecution(t, mock, tool, "first call", `{"status":"first"}`, nil)
+
+	ctx, cancel := newTestContext()
+	defer cancel()
+
+	// First call - shared directory should be created.
+	result, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(payload), nil)
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"status":"first"}`, string(result))
+
+	// Configure second execution.
+	payload2 := `{"input":"second call"}`
+	configureSuccessfulExecution(t, mock, tool, "second call", `{"status":"second"}`, nil)
+
+	// Second call - shared directory should be reused.
+	result, err = executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(payload2), nil)
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"status":"second"}`, string(result))
+
+	stats := executor.GetUsageStats()
+	usage, ok := stats[tool.name]
+	require.True(t, ok)
+	assert.Equal(t, int64(2), usage.CallCount)
+
+	// Verify cleanup on Close.
+	err = executor.Close()
+	require.NoError(t, err)
 }

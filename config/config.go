@@ -245,7 +245,13 @@ type ToolConfig struct {
 	// AuxiliaryDir specifies the directory path where task files will be automatically available.
 	// If set, all files attached to a task will be copied to this directory using each file's
 	// `TaskFile.Name` exactly as provided.
+	// This directory is ephemeral: files are reset between tool calls and do not persist
+	// across multiple invocations.
 	AuxiliaryDir string `yaml:"auxiliary-dir,omitempty"`
+	// SharedDir specifies the directory path that persists across all tool calls within a single task.
+	// If set, files created in this directory will be available for any subsequent tool calls but
+	// will be removed when the task completes.
+	SharedDir string `yaml:"shared-dir,omitempty"`
 	// Command specifies the command to execute as a list of its components.
 	Command []string `yaml:"command,omitempty"`
 	// Env specifies additional environment variables to set.

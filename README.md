@@ -723,7 +723,8 @@ Tools must be defined in `config.yaml` under the `tools` section. Each tool defi
 - **description**: A detailed description of what the tool does and how to use it. This description is provided to the LLM to help it understand when and how to use the tool. Be specific and avoid ambiguity to help the LLM choose the correct tool and provide appropriate parameters.
 - **parameters**: JSON schema defining the tool's input parameters. The LLM will generate the actual parameter values based on this schema. Provide comprehensive descriptions that explain parameter purpose and format.
 - **parameter-files**: Mapping of parameter names to container file paths where argument values should be written. Argument values are converted to strings, non-string values are marshaled to JSON. The tool's command should read these files as needed.
-- **auxiliary-dir**: Directory path inside the container where task files will be automatically mounted. If specified, copies of all files attached to the task will be mounted to this directory using each file's unique reference `name` exactly as provided.
+- **auxiliary-dir**: Directory path inside the container where task files will be automatically mounted. If specified, copies of all files attached to the task will be mounted to this directory using each file's unique reference `name` exactly as provided. Files in this directory are reset between tool calls.
+- **shared-dir**: Directory path inside the container that persists across all tool calls within a single task. If specified, files created in this directory will be available for any subsequent tool calls but will be removed when the task completes.
 - **command**: Command to run inside the container. The standard output of the command execution is captured and passed back to the LLM as is.
 - **env**: Environment variables to set in the container.
 
@@ -744,7 +745,8 @@ config:
         - The environment has no network access.
         - Any files mentioned in the conversation (shown as [file: filename]) are automatically mounted to /app/data/ with their exact filenames.
         - Use standard file operations like open('/app/data/filename', 'r') to read attached files, where 'filename' matches the name shown in [file: filename] references.
-        - The environment is ephemeral: any files created or changes made will be lost after the script finishes, and will not persist across tool calls.
+        - A persistent shared directory is available at /app/shared/ that persists across ALL tool calls within the same task (regardless of which tool is being called). Files created in this directory will be available in any subsequent tool call.
+        - Any files or changes outside of /app/shared/ are ephemeral and will be reset between tool calls.
         - The code must print its final result to standard output to be returned.
       parameters:
         type: object
@@ -758,6 +760,7 @@ config:
       parameter-files:
         code: /app/main.py
       auxiliary-dir: /app/data
+      shared-dir: /app/shared
       command:
         - python
         - /app/main.py

@@ -631,6 +631,8 @@ func TestLoadConfigFromFile(t *testing.T) {
           command: ["python", "-c"]
           parameter-files:
             code: "/tmp/code.py"
+          auxiliary-dir: "/tmp/data"
+          shared-dir: "/tmp/shared"
           env:
             PYTHONPATH: "/usr/local/lib/python3.9"
 `)),
@@ -668,6 +670,8 @@ func TestLoadConfigFromFile(t *testing.T) {
 							},
 							Command:        []string{"python", "-c"},
 							ParameterFiles: map[string]string{"code": "/tmp/code.py"},
+							AuxiliaryDir:   "/tmp/data",
+							SharedDir:      "/tmp/shared",
 							Env:            map[string]string{"PYTHONPATH": "/usr/local/lib/python3.9"},
 						},
 					},

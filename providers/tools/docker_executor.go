@@ -34,15 +34,30 @@ import (
 
 // DockerToolExecutor executes tools within Docker containers.
 type DockerToolExecutor struct {
-	client *client.Client
-	tools  sync.Map // map[string]*DockerTool
-	usage  sync.Map // map[string]*ToolUsage
+	client        *client.Client
+	tools         sync.Map // map[string]*DockerTool
+	usage         sync.Map // map[string]*ToolUsage
+	getSharedDir  func(context.Context, *DockerToolExecutor) (string, error)
+	sharedDirPath atomic.Pointer[string] // stores the actual shared directory path if created
 }
 
 // ToolUsage tracks usage statistics for a tool.
 type ToolUsage struct {
 	CallCount   int64
 	TotalTimeNs int64
+}
+
+// newSharedDirFactory creates a factory function that lazily creates a shared temporary directory.
+// The directory is created once on the first call and the same path is returned for all subsequent calls.
+func newSharedDirFactory() func(context.Context, *DockerToolExecutor) (string, error) {
+	return config.OnceWithContext(func(ctx context.Context, state *DockerToolExecutor) (sharedDir string, err error) {
+		sharedDir, err = os.MkdirTemp("", "mindtrial-tool-shared-*")
+		if err != nil {
+			return "", fmt.Errorf("failed to create shared temporary directory: %w", err)
+		}
+		state.sharedDirPath.Store(&sharedDir)
+		return
+	})
 }
 
 // NewDockerToolExecutor creates a new Docker tool executor.
@@ -53,8 +68,9 @@ func NewDockerToolExecutor(ctx context.Context) (*DockerToolExecutor, error) {
 	}
 
 	return &DockerToolExecutor{
-		client: cli,
-		tools:  sync.Map{},
+		client:       cli,
+		tools:        sync.Map{},
+		getSharedDir: newSharedDirFactory(),
 	}, nil
 }
 
@@ -114,8 +130,13 @@ func (d *DockerToolExecutor) ExecuteTool(ctx context.Context, logger logging.Log
 	return result, nil
 }
 
-// Close closes the Docker client connection.
+// Close closes the Docker client connection and cleans up shared directories.
 func (d *DockerToolExecutor) Close() error {
+	// Clean up shared directory if it was created.
+	if sharedDirPtr := d.sharedDirPath.Load(); sharedDirPtr != nil {
+		defer os.RemoveAll(*sharedDirPtr)
+	}
+
 	if d.client != nil {
 		return d.client.Close()
 	}
@@ -217,6 +238,22 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 
 			logger.Message(ctx, logging.LevelDebug, "mounted auxiliary data file %q from %s to container path %s", fileName, tempFilePath, containerPath)
 		}
+	}
+
+	// Mount shared directory if configured.
+	if tool.sharedDir != "" {
+		sharedTempDir, err := d.getSharedDir(ctx, d)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v", ErrToolInternal, err)
+		}
+
+		mounts = append(mounts, mount.Mount{
+			Type:   mount.TypeBind,
+			Source: sharedTempDir,
+			Target: tool.sharedDir,
+		})
+
+		logger.Message(ctx, logging.LevelDebug, "mounted shared directory from %s to container path %s", sharedTempDir, tool.sharedDir)
 	}
 
 	// Prepare environment variables.
@@ -429,6 +466,7 @@ type DockerTool struct {
 	parameters     map[string]interface{}
 	parameterFiles map[string]string
 	auxiliaryDir   string
+	sharedDir      string
 	command        []string
 	env            map[string]string
 	maxCalls       *int
@@ -446,6 +484,7 @@ func NewDockerTool(cfg *config.ToolConfig, maxCalls *int, timeout *time.Duration
 		parameters:     cfg.Parameters,
 		parameterFiles: cfg.ParameterFiles,
 		auxiliaryDir:   cfg.AuxiliaryDir,
+		sharedDir:      cfg.SharedDir,
 		command:        cfg.Command,
 		env:            cfg.Env,
 		maxCalls:       maxCalls,
