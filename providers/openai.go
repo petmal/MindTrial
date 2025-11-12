@@ -63,7 +63,7 @@ func (o *OpenAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunC
 			if modelParams.ReasoningEffort != nil {
 				request.ReasoningEffort = *modelParams.ReasoningEffort
 			}
-			if modelParams.TextResponseFormat || modelParams.EnableLegacyJsonMode {
+			if modelParams.TextResponseFormat || modelParams.LegacyJsonMode != nil {
 				responseFormatInstruction, err := DefaultResponseFormatInstruction(task.ResponseResultFormat)
 				if err != nil {
 					return result, err
@@ -73,12 +73,18 @@ func (o *OpenAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunC
 					Content: result.recordPrompt(responseFormatInstruction),
 				})
 
-				// For TextResponseFormat, change the response format to plain text; otherwise keep JSON schema.
+				// For TextResponseFormat, change the response format to plain text.
 				if modelParams.TextResponseFormat {
 					request.ResponseFormat = &openai.ChatCompletionResponseFormat{
 						Type: openai.ChatCompletionResponseFormatTypeText,
 					}
+				} else if modelParams.LegacyJsonMode != nil && *modelParams.LegacyJsonMode == config.LegacyJsonObject {
+					// For LegacyJsonObject mode, use json_object response format without schema validation.
+					request.ResponseFormat = &openai.ChatCompletionResponseFormat{
+						Type: openai.ChatCompletionResponseFormatTypeJSONObject,
+					}
 				}
+				// For LegacyJsonSchema mode (or nil), keep the default json_schema format.
 			}
 			if modelParams.Temperature != nil {
 				request.Temperature = *modelParams.Temperature

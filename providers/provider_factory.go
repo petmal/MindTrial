@@ -33,6 +33,8 @@ func NewProvider(ctx context.Context, cfg config.ProviderConfig, availableTools 
 		return NewXAI(cfg.ClientConfig.(config.XAIClientConfig), availableTools)
 	case config.ALIBABA:
 		return NewAlibaba(cfg.ClientConfig.(config.AlibabaClientConfig), availableTools), nil
+	case config.MOONSHOTAI:
+		return NewMoonshotAI(cfg.ClientConfig.(config.MoonshotAIClientConfig), availableTools), nil
 	}
 	return nil, fmt.Errorf("%w: %s", ErrUnknownProviderName, cfg.Name)
 }

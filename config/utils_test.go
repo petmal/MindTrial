@@ -197,6 +197,12 @@ func TestLoadConfigFromFile(t *testing.T) {
       runs:
           - name: "Qwen"
             model: "qwen-turbo"
+    - name: moonshotai
+      client-config:
+          api-key: "sk-moonshot-test-key"
+      runs:
+          - name: "Kimi"
+            model: "kimi-k2"
 `)),
 			},
 			want: &Config{
@@ -297,6 +303,20 @@ func TestLoadConfigFromFile(t *testing.T) {
 								{
 									Name:                 "Qwen",
 									Model:                "qwen-turbo",
+									MaxRequestsPerMinute: 0,
+								},
+							},
+							Disabled: false,
+						},
+						{
+							Name: "moonshotai",
+							ClientConfig: MoonshotAIClientConfig{
+								APIKey: "sk-moonshot-test-key",
+							},
+							Runs: []RunConfig{
+								{
+									Name:                 "Kimi",
+									Model:                "kimi-k2",
 									MaxRequestsPerMinute: 0,
 								},
 							},
@@ -423,6 +443,19 @@ func TestLoadConfigFromFile(t *testing.T) {
                     max-tokens: 2048
                     seed: 12345
                     disable-legacy-json-mode: true
+        - name: moonshotai
+          client-config:
+              api-key: "sk-moonshot-test-key"
+              endpoint: "https://api.moonshot.6ee41fa3-1279-4f8c-a348-c9a00c6f5b06.ai/v1"
+          runs:
+              - name: "Kimi K2"
+                model: "kimi-k2"
+                model-parameters:
+                    temperature: 0.6
+                    top-p: 0.9
+                    max-tokens: 2048
+                    presence-penalty: 0.1
+                    frequency-penalty: 0.2
 `)),
 			},
 			want: &Config{
@@ -594,6 +627,28 @@ func TestLoadConfigFromFile(t *testing.T) {
 										MaxTokens:             testutils.Ptr(int32(2048)),
 										Seed:                  testutils.Ptr(uint32(12345)),
 										DisableLegacyJsonMode: testutils.Ptr(true),
+									},
+								},
+							},
+							Disabled: false,
+						},
+						{
+							Name: "moonshotai",
+							ClientConfig: MoonshotAIClientConfig{
+								APIKey:   "sk-moonshot-test-key",
+								Endpoint: "https://api.moonshot.6ee41fa3-1279-4f8c-a348-c9a00c6f5b06.ai/v1",
+							},
+							Runs: []RunConfig{
+								{
+									Name:                 "Kimi K2",
+									Model:                "kimi-k2",
+									MaxRequestsPerMinute: 0,
+									ModelParams: MoonshotAIModelParams{
+										Temperature:      testutils.Ptr(float32(0.6)),
+										TopP:             testutils.Ptr(float32(0.9)),
+										MaxTokens:        testutils.Ptr(int32(2048)),
+										PresencePenalty:  testutils.Ptr(float32(0.1)),
+										FrequencyPenalty: testutils.Ptr(float32(0.2)),
 									},
 								},
 							},

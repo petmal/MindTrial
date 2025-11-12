@@ -177,6 +177,23 @@ config:
           max-requests-per-minute: 30
           model-parameters:
             text-response-format: true
+    - name: moonshotai
+      retry-policy:
+        max-retry-attempts: 5
+        initial-delay-seconds: 30
+      client-config:
+        api-key: ""
+      runs:
+        - name: "Kimi - latest (vision)"
+          model: "kimi-latest"
+          max-requests-per-minute: 3
+          model-parameters:
+            temperature: 0.6
+        - name: "Kimi K2 - latest (thinking)"
+          model: "kimi-k2-thinking"
+          max-requests-per-minute: 3
+          model-parameters:
+            temperature: 1.0
   judges:
     - name: "default"
       provider:

@@ -45,7 +45,7 @@ func (a *Alibaba) Run(ctx context.Context, logger logging.Logger, cfg config.Run
 	// Initialize model parameters for OpenAI provider.
 	// Enable legacy mode by default for better interoperability.
 	openAIParams := config.OpenAIModelParams{
-		EnableLegacyJsonMode: true,
+		LegacyJsonMode: config.LegacyJsonSchema.Ptr(),
 	}
 
 	if cfg.ModelParams != nil {
@@ -78,5 +78,7 @@ func (a *Alibaba) copyToOpenAIParams(alibabaParams config.AlibabaModelParams, op
 	// when `response_format` is `json_object`.
 	// The legacy mode forces inclusion of the default response format instruction.
 	// Disable legacy mode only if explicitly set.
-	openAIParams.EnableLegacyJsonMode = alibabaParams.DisableLegacyJsonMode == nil || !*alibabaParams.DisableLegacyJsonMode
+	if alibabaParams.DisableLegacyJsonMode != nil && *alibabaParams.DisableLegacyJsonMode {
+		openAIParams.LegacyJsonMode = nil
+	}
 }

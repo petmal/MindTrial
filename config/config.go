@@ -33,7 +33,31 @@ const (
 	XAI string = "xai"
 	// ALIBABA identifies the Alibaba provider.
 	ALIBABA string = "alibaba"
+	// MOONSHOTAI identifies the Moonshot AI provider.
+	MOONSHOTAI string = "moonshotai"
 )
+
+// LegacyJsonMode specifies the compatibility mode for JSON response formatting.
+type LegacyJsonMode int
+
+const (
+	// LegacyJsonSchema adds a text-based JSON format instruction to the prompt
+	// while keeping the json_schema response format with strict schema validation.
+	// Use this mode for providers that require explicit JSON formatting guidance
+	// in the prompt but support structured schema-based responses (e.g., Alibaba Qwen models).
+	LegacyJsonSchema LegacyJsonMode = iota
+
+	// LegacyJsonObject adds a text-based JSON format instruction to the prompt
+	// and switches the response format to json_object mode without schema validation.
+	// Use this mode for providers that only support basic JSON object responses
+	// (e.g., Moonshot AI Kimi models).
+	LegacyJsonObject
+)
+
+// Ptr returns a pointer to the LegacyJsonMode value.
+func (l LegacyJsonMode) Ptr() *LegacyJsonMode {
+	return &l
+}
 
 // ErrInvalidConfigProperty indicates invalid configuration.
 var ErrInvalidConfigProperty = errors.New("invalid configuration property")
@@ -102,7 +126,7 @@ func (ac AppConfig) GetJudgesWithEnabledRuns() []JudgeConfig {
 // ProviderConfig defines settings for an AI provider.
 type ProviderConfig struct {
 	// Name specifies unique identifier of the provider.
-	Name string `yaml:"name" validate:"required,oneof=openai google anthropic deepseek mistralai xai alibaba"`
+	Name string `yaml:"name" validate:"required,oneof=openai google anthropic deepseek mistralai xai alibaba moonshotai"`
 
 	// ClientConfig holds provider-specific client settings.
 	ClientConfig ClientConfig `yaml:"client-config" validate:"required"`
@@ -208,6 +232,22 @@ type AlibabaClientConfig struct {
 func (c AlibabaClientConfig) GetEndpoint() string {
 	if c.Endpoint == "" {
 		return "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+	}
+	return c.Endpoint
+}
+
+// MoonshotAIClientConfig represents Moonshot AI provider settings.
+type MoonshotAIClientConfig struct {
+	// APIKey is the API key for the Moonshot AI provider.
+	APIKey string `yaml:"api-key" validate:"required"`
+	// Endpoint specifies the network endpoint URL for the API.
+	Endpoint string `yaml:"endpoint" validate:"omitempty,url"`
+}
+
+// GetEndpoint returns the endpoint URL for Moonshot AI, defaulting to the public API base when not specified.
+func (c MoonshotAIClientConfig) GetEndpoint() string {
+	if c.Endpoint == "" {
+		return "https://api.moonshot.ai/v1"
 	}
 	return c.Endpoint
 }
@@ -335,6 +375,7 @@ type OpenAIModelParams struct {
 
 	// MaxTokens controls the maximum number of tokens available to the model for generating a response.
 	// This field is for internal use only and not exposed in YAML configuration.
+	//
 	// Deprecated: Use `MaxCompletionTokens` instead for user configuration.
 	MaxTokens *int32 `yaml:"-"`
 
@@ -343,10 +384,12 @@ type OpenAIModelParams struct {
 	// This field is for internal use only and not exposed in YAML configuration.
 	Seed *int64 `yaml:"-"`
 
-	// EnableLegacyJsonMode forces inclusion of the default response format instruction
-	// in the prompt even when using structured JSON response mode.
+	// LegacyJsonMode specifies a compatibility mode for JSON response formatting.
+	// When set to LegacyJsonSchema, adds format instruction to prompt while keeping json_schema response format.
+	// When set to LegacyJsonObject, adds format instruction to prompt and uses json_object response format.
+	// When nil, uses default behavior (no format instruction, json_schema response format).
 	// This field is for internal use only and not exposed in YAML configuration.
-	EnableLegacyJsonMode bool `yaml:"-"`
+	LegacyJsonMode *LegacyJsonMode `yaml:"-"`
 }
 
 // GoogleAIModelParams represents Google AI model-specific settings.
@@ -567,6 +610,37 @@ type AlibabaModelParams struct {
 	DisableLegacyJsonMode *bool `yaml:"disable-legacy-json-mode" validate:"omitempty"`
 }
 
+// MoonshotAIModelParams represents Moonshot AI model-specific settings.
+type MoonshotAIModelParams struct {
+	// Temperature controls the randomness or "creativity" of the model's outputs.
+	// Values range from 0.0 to 1.0, with lower values making the output more focused and deterministic.
+	// The default value is 0.0.
+	// Moonshot AI recommends 0.6 for kimi-k2 models and 1.0 for kimi-k2-thinking models.
+	// It is generally recommended to alter this or `TopP` but not both.
+	Temperature *float32 `yaml:"temperature" validate:"omitempty,min=0,max=1"`
+
+	// TopP controls diversity via nucleus sampling.
+	// Values range from 0.0 to 1.0, with lower values making the output more focused.
+	// The default value is 1.0.
+	// It is generally recommended to alter this or `Temperature` but not both.
+	TopP *float32 `yaml:"top-p" validate:"omitempty,min=0,max=1"`
+
+	// MaxTokens controls the maximum number of tokens available to the model for generating a response.
+	MaxTokens *int32 `yaml:"max-tokens" validate:"omitempty,min=0"`
+
+	// PresencePenalty penalizes new tokens based on whether they appear in the text so far.
+	// Values range from -2.0 to 2.0, with positive values encouraging the model to use new tokens,
+	// increasing the model's likelihood to talk about new topics.
+	// The default value is 0.0.
+	PresencePenalty *float32 `yaml:"presence-penalty" validate:"omitempty,min=-2,max=2"`
+
+	// FrequencyPenalty penalizes new tokens based on their frequency in the text so far.
+	// Values range from -2.0 to 2.0, with positive values encouraging the model to use less frequent tokens,
+	// decreasing the model's likelihood to repeat the same line verbatim.
+	// The default value is 0.0.
+	FrequencyPenalty *float32 `yaml:"frequency-penalty" validate:"omitempty,min=-2,max=2"`
+}
+
 // JudgeConfig defines configuration for an LLM judge used for semantic evaluation of complex open-ended task responses.
 // Judges analyze the meaning and quality of answers rather than performing exact text matching,
 // enabling evaluation of subjective or creative tasks where multiple valid interpretations exist.
@@ -652,6 +726,12 @@ func (pc *ProviderConfig) UnmarshalYAML(value *yaml.Node) error {
 			return err
 		}
 		pc.ClientConfig = cfg
+	case MOONSHOTAI:
+		cfg := MoonshotAIClientConfig{}
+		if err := temp.ClientConfig.Decode(&cfg); err != nil {
+			return err
+		}
+		pc.ClientConfig = cfg
 	default:
 		return fmt.Errorf("%w: unknown client-config for provider: %s", ErrInvalidConfigProperty, temp.Name)
 	}
@@ -721,6 +801,12 @@ func decodeRuns(provider string, value *yaml.Node, out *[]RunConfig) error {
 				(*out)[i].ModelParams = params
 			case ALIBABA:
 				params := AlibabaModelParams{}
+				if err := temp[i].ModelParams.Decode(&params); err != nil {
+					return err
+				}
+				(*out)[i].ModelParams = params
+			case MOONSHOTAI:
+				params := MoonshotAIModelParams{}
 				if err := temp[i].ModelParams.Decode(&params); err != nil {
 					return err
 				}

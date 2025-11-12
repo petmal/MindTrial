@@ -6,7 +6,7 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/petmal/mindtrial)](https://go.dev/)
 [![Go Reference](https://pkg.go.dev/badge/github.com/petmal/mindtrial.svg)](https://pkg.go.dev/github.com/petmal/mindtrial)
 
-**MindTrial** lets you test a single AI language model (LLM) or evaluate multiple models side-by-side. It supports providers like OpenAI, Google, Anthropic, DeepSeek, Mistral AI, xAI, and Alibaba. You can create your own custom tasks with text prompts, plain text or structured JSON response formats, optional file attachments, and tool use for enhanced capabilities; validate responses through exact value matching or an LLM judge for semantic evaluation; and get results in easy-to-read HTML and CSV formats.
+**MindTrial** lets you test a single AI language model (LLM) or evaluate multiple models side-by-side. It supports providers like OpenAI, Google, Anthropic, DeepSeek, Mistral AI, xAI, Alibaba, and Moonshot AI. You can create your own custom tasks with text prompts, plain text or structured JSON response formats, optional file attachments, and tool use for enhanced capabilities; validate responses through exact value matching or an LLM judge for semantic evaluation; and get results in easy-to-read HTML and CSV formats.
 
 ## Quick Start Guide
 
@@ -115,15 +115,18 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **mistralai**: Mistral AI models
 > - **xai**: xAI (Grok) models
 > - **alibaba**: Alibaba (Qwen) models
+> - **moonshotai**: Moonshot AI (Kimi) models
 
 > [!NOTE]
 > **Anthropic** and **DeepSeek** providers support configurable request timeout in the `client-config` section:
 >
 > - **request-timeout**: Sets the timeout duration for API requests (i.e. thinking).
 >
-> **Alibaba** provider supports endpoint configuration in the `client-config` section:
+> **Alibaba** and **Moonshot AI** providers support endpoint configuration in the `client-config` section:
 >
-> - **endpoint**: Specifies the network endpoint URL for the API. If not specified, defaults to the *Singapore* endpoint (`https://dashscope-intl.aliyuncs.com/compatible-mode/v1`) for better international access. For *China* mainland, use `https://dashscope.aliyuncs.com/compatible-mode/v1`.
+> - **endpoint**: Specifies the network endpoint URL for the API. If not specified, defaults are:
+>   - **Alibaba**: *Singapore* endpoint (`https://dashscope-intl.aliyuncs.com/compatible-mode/v1`) for better international access. For *China* mainland, use `https://dashscope.aliyuncs.com/compatible-mode/v1`.
+>   - **Moonshot AI**: Public API endpoint (`https://api.moonshot.ai/v1`).
 
 > [!NOTE]
 > Some models support additional model-specific runtime configuration parameters.
@@ -195,6 +198,14 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **frequency-penalty**: Penalizes new tokens based on their frequency in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use less frequent tokens.
 > - **seed**: Makes text generation more deterministic by using the same seed value. When using the same seed and keeping other parameters unchanged, the model makes best-effort to return consistent outputs for identical inputs.
 > - **disable-legacy-json-mode**: Compatibility toggle that controls legacy prompt injection for JSON formatting. Default: `false` (legacy mode on), which adds an explicit JSON formatting instruction to the prompt for improved compatibility with most Qwen models. Setting this to `true` disables the legacy prompt injection. For best compatibility and reliable JSON responses, keep this set to `false` unless you are certain the target model works correctly without legacy prompt injection.
+>
+> Currently supported parameters for **Moonshot AI** models include:
+>
+> - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 1.0, default: 0.0). Higher values make output more random, while lower values make it more focused and deterministic. Moonshot AI recommends 0.6 for `kimi-k2` models and 1.0 for `kimi-k2-thinking` models.
+> - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0, default: 1.0). Lower values produce more focused outputs. Generally, change either this or temperature, but not both at the same time.
+> - **max-tokens**: Controls the maximum number of tokens to generate for the chat completion.
+> - **presence-penalty**: Penalizes new tokens based on whether they appear in the text (range: -2.0 to 2.0, default: 0.0). Positive values increase the likelihood of the model discussing new topics.
+> - **frequency-penalty**: Penalizes new tokens based on their existing frequency in the text (range: -2.0 to 2.0, default: 0.0). Positive values reduce the likelihood of the model repeating the same phrases verbatim.
 
 > [!NOTE]
 > The results will be saved to `<output-dir>/<output-basename>.<format>`. If the result output file already exists, it will be replaced. If the log file already exists, it will be appended to.
