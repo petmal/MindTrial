@@ -387,6 +387,9 @@ func TestLoadConfigFromFile(t *testing.T) {
                 model: "gemini-pro"
                 model-parameters:
                     text-response-format: true
+                    text-response-format-with-tools: true
+                    thinking-level: high
+                    media-resolution: medium
                     temperature: 0.7
                     top-p: 0.95
                     top-k: 40
@@ -541,13 +544,16 @@ func TestLoadConfigFromFile(t *testing.T) {
 									Model:                "gemini-pro",
 									MaxRequestsPerMinute: 0,
 									ModelParams: GoogleAIModelParams{
-										TextResponseFormat: true,
-										Temperature:        testutils.Ptr(float32(0.7)),
-										TopP:               testutils.Ptr(float32(0.95)),
-										TopK:               testutils.Ptr(int32(40)),
-										PresencePenalty:    testutils.Ptr(float32(0.1)),
-										FrequencyPenalty:   testutils.Ptr(float32(0.1)),
-										Seed:               testutils.Ptr(int32(42)),
+										TextResponseFormat:          true,
+										TextResponseFormatWithTools: true,
+										ThinkingLevel:               testutils.Ptr("high"),
+										MediaResolution:             testutils.Ptr("medium"),
+										Temperature:                 testutils.Ptr(float32(0.7)),
+										TopP:                        testutils.Ptr(float32(0.95)),
+										TopK:                        testutils.Ptr(int32(40)),
+										PresencePenalty:             testutils.Ptr(float32(0.1)),
+										FrequencyPenalty:            testutils.Ptr(float32(0.1)),
+										Seed:                        testutils.Ptr(int32(42)),
 									},
 								},
 							},

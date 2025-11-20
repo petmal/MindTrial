@@ -84,16 +84,47 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 				Mode: genai.FunctionCallingConfigModeAuto,
 			},
 		}
-
-		// When using tools, we need to switch to text response format.
-		// This is a known limitation of the Google API.
-		forceTextResponseFormat = true
 	}
 
 	// Handle model parameters.
 	if cfg.ModelParams != nil {
 		if modelParams, ok := cfg.ModelParams.(config.GoogleAIModelParams); ok {
-			forceTextResponseFormat = forceTextResponseFormat || modelParams.TextResponseFormat // do not change back to `false` once enabled
+			// Apply TextResponseFormat (all tasks) or TextResponseFormatWithTools (only tasks with tools).
+			forceTextResponseFormat = modelParams.TextResponseFormat ||
+				(len(generateConfig.Tools) > 0 && modelParams.TextResponseFormatWithTools)
+
+			// Apply ThinkingLevel parameter.
+			if modelParams.ThinkingLevel != nil {
+				var thinkingLevel genai.ThinkingLevel
+				switch *modelParams.ThinkingLevel {
+				case "low":
+					thinkingLevel = genai.ThinkingLevelLow
+				case "high":
+					thinkingLevel = genai.ThinkingLevelHigh
+				default:
+					thinkingLevel = genai.ThinkingLevelUnspecified
+				}
+				generateConfig.ThinkingConfig = &genai.ThinkingConfig{
+					ThinkingLevel: thinkingLevel,
+				}
+			}
+
+			// Apply MediaResolution parameter.
+			if modelParams.MediaResolution != nil {
+				var mediaResolution genai.MediaResolution
+				switch *modelParams.MediaResolution {
+				case "low":
+					mediaResolution = genai.MediaResolutionLow
+				case "medium":
+					mediaResolution = genai.MediaResolutionMedium
+				case "high":
+					mediaResolution = genai.MediaResolutionHigh
+				default:
+					mediaResolution = genai.MediaResolutionUnspecified
+				}
+				generateConfig.MediaResolution = mediaResolution
+			}
+
 			if modelParams.Temperature != nil {
 				generateConfig.Temperature = modelParams.Temperature
 			}
@@ -180,8 +211,11 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 				// Append assistant message to conversation history before handling tool calls.
 				contents = append(contents, candidate.Content)
 
+				// Check for function calls first.
+				hasFunctionCalls := false
 				for _, part := range candidate.Content.Parts {
 					if part.FunctionCall != nil {
+						hasFunctionCalls = true
 						// Execute tool.
 						argsBytes, err := json.Marshal(part.FunctionCall.Args)
 						if err != nil {
@@ -205,7 +239,17 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 						)
 						functionResponseContent.Parts[0].FunctionResponse.ID = part.FunctionCall.ID
 						contents = append(contents, functionResponseContent)
-					} else if part.Text != "" {
+					}
+				}
+
+				// If we handled function calls, we continue the conversation loop.
+				if hasFunctionCalls {
+					continue
+				}
+
+				// If no function calls, look for text response.
+				for _, part := range candidate.Content.Parts {
+					if part.Text != "" {
 						// Final response.
 						content := []byte(part.Text)
 						if generateConfig.ResponseJsonSchema == nil {

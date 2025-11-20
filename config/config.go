@@ -396,7 +396,29 @@ type OpenAIModelParams struct {
 type GoogleAIModelParams struct {
 	// TextResponseFormat indicates whether to use plain-text response format
 	// for compatibility with models that do not support JSON.
+	// This setting applies to all tasks, including those with and without tools enabled.
 	TextResponseFormat bool `yaml:"text-response-format" validate:"omitempty"`
+
+	// TextResponseFormatWithTools forces plain-text response format when tools are enabled.
+	// If true, forces plain-text mode when tools are used (required for pre-Gemini 3 models).
+	// If false or unset, uses JSON schema mode with tools (Gemini 3+ default behavior).
+	// This setting only applies to tasks with tools enabled.
+	TextResponseFormatWithTools bool `yaml:"text-response-format-with-tools" validate:"omitempty"`
+
+	// ThinkingLevel controls the maximum depth of the model's internal reasoning process.
+	// Valid values: "low", "high". Gemini 3 Pro defaults to "high" if not specified.
+	// - "low": Minimizes latency and cost, best for simple instruction following
+	// - "high": Maximizes reasoning depth, the model may take longer but output is more carefully reasoned
+	ThinkingLevel *string `yaml:"thinking-level" validate:"omitempty,oneof=low high"`
+
+	// MediaResolution controls the maximum number of tokens allocated per input image or video frame.
+	// Valid values: "low", "medium", "high". Higher resolutions improve fine text reading and small detail
+	// identification but increase token usage and latency.
+	// - "low": 280 tokens for images, 70 tokens per video frame
+	// - "medium": 560 tokens for images, 70 tokens per video frame (same as low for video)
+	// - "high": 1120 tokens for images, 280 tokens per video frame
+	// If unspecified, the model uses optimal defaults based on media type.
+	MediaResolution *string `yaml:"media-resolution" validate:"omitempty,oneof=low medium high"`
 
 	// Temperature controls the randomness or "creativity" of the model's outputs.
 	// Values range from 0.0 to 2.0, with lower values making the output more focused and deterministic.

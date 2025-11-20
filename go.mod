@@ -17,7 +17,7 @@ require (
 	github.com/sethvargo/go-retry v0.3.0
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/time v0.14.0
-	google.golang.org/genai v1.34.0
+	google.golang.org/genai v1.36.0
 	gopkg.in/validator.v2 v2.0.1
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -83,19 +83,19 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.38.0 // indirect
 	go.opentelemetry.io/otel/metric v1.38.0 // indirect
 	go.opentelemetry.io/otel/trace v1.38.0 // indirect
-	golang.org/x/crypto v0.44.0 // indirect
+	golang.org/x/crypto v0.45.0 // indirect
 	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/sync v0.18.0 // indirect
 	golang.org/x/sys v0.38.0 // indirect
 	golang.org/x/text v0.31.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251111163417-95abcf5c77ba // indirect
-	google.golang.org/grpc v1.76.0 // indirect
+	google.golang.org/grpc v1.77.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 	gotest.tools/v3 v3.5.2 // indirect
 )
 
 require (
-	github.com/anthropics/anthropic-sdk-go v1.17.0
+	github.com/anthropics/anthropic-sdk-go v1.18.1
 	github.com/charmbracelet/bubbles/v2 v2.0.0-beta.1
 	github.com/charmbracelet/bubbletea/v2 v2.0.0-beta.1
 	github.com/charmbracelet/lipgloss/v2 v2.0.0-beta.1
@@ -105,5 +105,5 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rs/zerolog v1.34.0
 	github.com/sergi/go-diff v1.4.0
-	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546
+	golang.org/x/exp v0.0.0-20251113190631-e25ba8c21ef6
 )

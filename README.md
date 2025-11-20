@@ -152,8 +152,11 @@ This file defines the tool's settings and target model configurations evaluated 
 >
 > Currently supported parameters for **Google** models include:
 >
-> - **text-response-format**: If `true`, use plain-text response format (less reliable) for compatibility with models that do not support `JSON`.
-> - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 2.0, default: 1.0). Lower values produce more focused and deterministic outputs.
+> - **text-response-format**: If `true`, use plain-text response format (less reliable) for compatibility with models that do not support `JSON`. This setting applies to all tasks, including those with and without tools enabled.
+> - **text-response-format-with-tools**: If `true`, forces plain-text response format when tools are enabled (required for pre-Gemini 3 models). If `false` or unset, uses JSON schema mode with tools (Gemini 3+ default behavior). This setting only applies to tasks with tools enabled.
+> - **thinking-level**: Controls the maximum depth of the model's internal reasoning process (values: `low`, `high`). Gemini 3 Pro defaults to `high` if not specified. `low` minimizes latency and cost for simple tasks, while `high` maximizes reasoning depth for complex tasks (the model may take longer but output is more carefully reasoned).
+> - **media-resolution**: Controls the maximum number of tokens allocated per input image (values: `low`, `medium`, `high`). Higher resolutions improve fine text reading and small detail identification but increase token usage and latency. `low` uses 280 tokens; `medium` uses 560 tokens; `high` uses 1120 tokens. If unspecified, the model uses optimal defaults.
+> - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 2.0, default: 1.0). Lower values produce more focused and deterministic outputs. For Gemini 3, it's recommended to keep temperature at default 1.0 for optimal reasoning performance.
 > - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0). Lower values produce more focused outputs.
 > - **top-k**: Limits tokens considered for each position to top K options. Higher values allow more diverse outputs.
 > - **presence-penalty**: Penalizes new tokens based on whether they appear in the text so far. Positive values discourage reuse of tokens, increasing vocabulary. Negative values encourage token reuse.
@@ -274,6 +277,21 @@ config:
           max-requests-per-minute: 3
           model-parameters:
             reasoning-effort: "high"
+    - name: google
+      client-config:
+        api-key: "<your-api-key>"
+      runs:
+        - name: "Gemini 2.5 Pro - latest"
+          model: "gemini-2.5-pro"
+          max-requests-per-minute: 3
+          model-parameters:
+            text-response-format-with-tools: true
+        - name: "Gemini 3 Pro - latest"
+          model: "gemini-3-pro-preview"
+          max-requests-per-minute: 3
+          model-parameters:
+            thinking-level: "high"
+            media-resolution: "high"
     - name: anthropic
       client-config:
         api-key: "<your-api-key>"

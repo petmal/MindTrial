@@ -677,7 +677,7 @@ task-config:
     - name: "visual - logic math - v1"
       prompt: |-
         The attached picture has 3 scales loaded with objects (square, circle and triangle).
-        If the first two scales are in balance, which object is needed in place of "?", to balancde the third scale?
+        If the first two scales are in balance, which object is needed in place of "?", to balance the third scale?
       response-result-format: |-
         <name of the object>
       expected-result:
@@ -1144,7 +1144,7 @@ task-config:
           type: "image/png"
     - name: "visual - deduction - v4"
       prompt: |-
-        The attached picture shows diagram of a rose garden with four fenced plots.
+        The attached picture shows a diagram of a rose garden with four fenced plots.
         The fences are represented by thin lines in the picture.
         Determine which of the plots has the longest fence.
         You can assume that all roses are identical.
@@ -1161,8 +1161,8 @@ task-config:
       prompt: |-
         The attached picture contains a plot of September mean maximum temperatures in England during the period from 1884 to 2023.
         The various horizontal lines mark values of particular interest (e.g., the lowest temperature recorded in the period).
-        It seems like the red-line is missing despite of it being in the plot's legend.
-        Assuming this was not an omission or technical issue, provide the most plausible explanation of why is the red line not visible in the plot.
+        It seems like the red line is missing despite it being in the plot's legend.
+        Assuming this was not an omission or technical issue, provide the most plausible explanation of why the red line is not visible in the plot.
       response-result-format: |-
         Concise explanation of why the red line is not visible.
       expected-result: |-
