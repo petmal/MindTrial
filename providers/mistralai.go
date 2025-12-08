@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
+	"strings"
 
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
@@ -194,13 +195,18 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 func (o *MistralAI) isFileUploadSupported(model string) bool {
 	// Mistral AI models with vision capabilities.
 	// See: https://docs.mistral.ai/capabilities/vision/
-	return slices.Contains([]string{
-		"pixtral-12b-latest",
-		"pixtral-12b-2409", // legacy model name
-		"pixtral-large-latest",
-		"mistral-medium-latest",
-		"mistral-small-latest",
-	}, model)
+	// Supported: mistral-large, mistral-medium, mistral-small, ministral, pixtral, magistral
+	// Not supported: mistral-embed, mistral-moderation, mistral-nemo, codestral, devstral, voxtral
+	return slices.ContainsFunc([]string{
+		"mistral-large-",
+		"mistral-medium-",
+		"mistral-small-",
+		"ministral-",
+		"pixtral-",
+		"magistral-",
+	}, func(prefix string) bool {
+		return strings.HasPrefix(model, prefix)
+	})
 }
 
 func (o *MistralAI) isTransientResponse(response *http.Response) bool {
