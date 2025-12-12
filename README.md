@@ -135,7 +135,8 @@ This file defines the tool's settings and target model configurations evaluated 
 > Currently supported parameters for **OpenAI** models include:
 >
 > - **text-response-format**: If `true`, use plain-text response format (less reliable) for compatibility with models that do not support `JSON`.
-> - **reasoning-effort**: Controls effort on reasoning for reasoning models (i.e. *low*, *medium*, *high*).
+> - **reasoning-effort**: Controls effort on reasoning for reasoning models. (values: `none`, `minimal`, `low`, `medium`, `high`, `xhigh`). Legacy models may not support all values.
+> - **verbosity**: Controls how many output tokens are generated. (values: `low`, `medium`, `high`). May not be supported by legacy models.
 > - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 2.0, default: 1.0). Lower values produce more focused and deterministic outputs.
 > - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0, default: 1.0). Lower values produce more focused outputs.
 > - **presence-penalty**: Penalizes new tokens based on their presence in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use new tokens.

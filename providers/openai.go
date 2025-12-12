@@ -63,6 +63,9 @@ func (o *OpenAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunC
 			if modelParams.ReasoningEffort != nil {
 				request.ReasoningEffort = *modelParams.ReasoningEffort
 			}
+			if modelParams.Verbosity != nil {
+				request.Verbosity = *modelParams.Verbosity
+			}
 			if modelParams.TextResponseFormat || modelParams.LegacyJsonMode != nil {
 				responseFormatInstruction, err := DefaultResponseFormatInstruction(task.ResponseResultFormat)
 				if err != nil {

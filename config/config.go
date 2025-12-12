@@ -338,8 +338,13 @@ type ModelParams interface{}
 // OpenAIModelParams represents OpenAI model-specific settings.
 type OpenAIModelParams struct {
 	// ReasoningEffort controls effort level on reasoning for reasoning models.
+	// Valid values are: "none", "minimal", "low", "medium", "high", "xhigh".
+	ReasoningEffort *string `yaml:"reasoning-effort" validate:"omitempty,oneof=none minimal low medium high xhigh"`
+
+	// Verbosity determines how many output tokens are generated.
 	// Valid values are: "low", "medium", "high".
-	ReasoningEffort *string `yaml:"reasoning-effort" validate:"omitempty,oneof=low medium high"`
+	// Note: May not be supported by legacy models.
+	Verbosity *string `yaml:"verbosity" validate:"omitempty,oneof=low medium high"`
 
 	// TextResponseFormat indicates whether to use plain-text response format
 	// for compatibility with models that do not support JSON.

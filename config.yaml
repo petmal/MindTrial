@@ -50,6 +50,12 @@ config:
           max-requests-per-minute: 20
           model-parameters:
             reasoning-effort: "high"
+        - name: "GPT-5.2 - latest (xhigh reasoning)"
+          model: "gpt-5.2"
+          max-requests-per-minute: 20
+          model-parameters:
+            reasoning-effort: "xhigh"
+            verbosity: "medium"
     - name: google
       client-config:
         api-key: ""
