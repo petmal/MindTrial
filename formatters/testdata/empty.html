@@ -412,7 +412,7 @@
 
             rows.sort((a, b) => {
                 let valA, valB;
-                if (column.startsWith('duration') || column.startsWith('passed') || column.startsWith('failed') || column.startsWith('error') || column.startsWith('skipped')) {
+                if (column.startsWith('duration') || column.startsWith('passed') || column.startsWith('failed') || column.startsWith('error') || column.startsWith('skipped') || column.startsWith('passrate') || column.startsWith('accuracy') || column.startsWith('errorrate')) {
                     valA = parseFloat(a.dataset[column]);
                     valB = parseFloat(b.dataset[column]);
                 } else {
@@ -994,7 +994,7 @@
         <section aria-labelledby="runsummary" itemscope itemtype="https://schema.org/Table" itemprop="hasPart">
             <h2 id="runsummary" itemprop="headline">Summary</h2>
             <meta itemprop="alternativeHeadline" content="AI Model Evaluation Run Summary">
-            <meta itemprop="description" content="Summary of success, failure, error, and skipped counts, along with total duration for each AI provider and run configuration.">
+            <meta itemprop="description" content="Summary of passed, failed, error, and skipped counts, along with pass rate, accuracy, error rate, and total duration for each AI provider and run configuration. Pass Rate = Passed/(Passed+Failed+Error). Accuracy = Passed/(Passed+Failed). Error Rate = Error/(Passed+Failed+Error). Skipped tasks are excluded from rate calculations. Rates default to 0 when the denominator is 0.">
             <table id="summary-table">
                 <caption class="visually-hidden">Run result summary by provider and run.</caption>
                 <thead>
@@ -1036,6 +1036,24 @@
                             <div class="header-with-sort">
                                 <span>Skipped</span>
                                 <span class="sort-btn" data-column="skipped" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Pass Rate (%)</span>
+                                <span class="sort-btn" data-column="passrate" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Accuracy (%)</span>
+                                <span class="sort-btn" data-column="accuracy" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Error Rate (%)</span>
+                                <span class="sort-btn" data-column="errorrate" data-direction="asc">↕️</span>
                             </div>
                         </th>
                         <th scope="col">

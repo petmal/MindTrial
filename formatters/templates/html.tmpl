@@ -418,7 +418,7 @@
 
             rows.sort((a, b) => {
                 let valA, valB;
-                if (column.startsWith('duration') || column.startsWith('passed') || column.startsWith('failed') || column.startsWith('error') || column.startsWith('skipped')) {
+                if (column.startsWith('duration') || column.startsWith('passed') || column.startsWith('failed') || column.startsWith('error') || column.startsWith('skipped') || column.startsWith('passrate') || column.startsWith('accuracy') || column.startsWith('errorrate')) {
                     valA = parseFloat(a.dataset[column]);
                     valB = parseFloat(b.dataset[column]);
                 } else {
@@ -1000,7 +1000,7 @@
         <section aria-labelledby="runsummary" itemscope itemtype="https://schema.org/Table" itemprop="hasPart">
             <h2 id="runsummary" itemprop="headline">Summary</h2>
             <meta itemprop="alternativeHeadline" content="AI Model Evaluation Run Summary">
-            <meta itemprop="description" content="Summary of success, failure, error, and skipped counts, along with total duration for each AI provider and run configuration.">
+            <meta itemprop="description" content="Summary of passed, failed, error, and skipped counts, along with pass rate, accuracy, error rate, and total duration for each AI provider and run configuration. Pass Rate = Passed/(Passed+Failed+Error). Accuracy = Passed/(Passed+Failed). Error Rate = Error/(Passed+Failed+Error). Skipped tasks are excluded from rate calculations. Rates default to 0 when the denominator is 0.">
             <table id="summary-table">
                 <caption class="visually-hidden">Run result summary by provider and run.</caption>
                 <thead>
@@ -1046,6 +1046,24 @@
                         </th>
                         <th scope="col">
                             <div class="header-with-sort">
+                                <span>Pass Rate (%)</span>
+                                <span class="sort-btn" data-column="passrate" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Accuracy (%)</span>
+                                <span class="sort-btn" data-column="accuracy" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Error Rate (%)</span>
+                                <span class="sort-btn" data-column="errorrate" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
                                 <span>Total Duration</span>
                                 <span class="sort-btn" data-column="duration" data-direction="asc">↕️</span>
                             </div>
@@ -1058,7 +1076,7 @@
                     {{- $summary := $results.ProviderResultsByRunAndKind $provider -}}
                     {{- range $run := SortResultsByRunAndKind $summary -}}
                     {{- $group := index $summary $run }}
-                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="{{$provider}}" data-run="{{$run}}" data-passed="{{CountByKind $group 0}}" data-failed="{{CountByKind $group 1}}" data-error="{{CountByKind $group 2}}" data-skipped="{{CountByKind $group 3}}" data-duration="{{(TotalDuration $group 0 1 2 3).Milliseconds}}">
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="{{$provider}}" data-run="{{$run}}" data-passed="{{CountByKind $group 0}}" data-failed="{{CountByKind $group 1}}" data-error="{{CountByKind $group 2}}" data-skipped="{{CountByKind $group 3}}" data-passrate="{{printf "%.2f" (Percent (PassRate $group))}}" data-accuracy="{{printf "%.2f" (Percent (AccuracyRate $group))}}" data-errorrate="{{printf "%.2f" (Percent (ErrorRate $group))}}" data-duration="{{(TotalDuration $group 0 1 2 3).Milliseconds}}">
                         <td>
                             <input type="checkbox" class="run-compare-checkbox" data-provider="{{$provider}}" data-run="{{$run}}" title="Select for comparison">
                         </td>
@@ -1070,6 +1088,9 @@
                         <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Failed"><span itemprop="value">{{CountByKind $group 1}}</span></td>
                         <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error"><span itemprop="value">{{CountByKind $group 2}}</span></td>
                         <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Skipped"><span itemprop="value">{{CountByKind $group 3}}</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Pass Rate (%)"><meta itemprop="unitText" content="%"><span itemprop="value">{{printf "%.2f" (Percent (PassRate $group))}}</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Accuracy (%)"><meta itemprop="unitText" content="%"><span itemprop="value">{{printf "%.2f" (Percent (AccuracyRate $group))}}</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error Rate (%)"><meta itemprop="unitText" content="%"><span itemprop="value">{{printf "%.2f" (Percent (ErrorRate $group))}}</span></td>
                         <td>
                             {{- $roundedTotal := (TotalDuration $group 0 1 2 3 | RoundToMS) -}}
                             <time itemprop="observationPeriod" datetime="PT{{printf "%.3f" ($roundedTotal.Seconds)}}S">{{$roundedTotal}}</time>

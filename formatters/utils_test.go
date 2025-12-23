@@ -176,6 +176,148 @@ func TestTotalDuration(t *testing.T) {
 	}
 }
 
+func TestPassRate(t *testing.T) {
+	tests := []struct {
+		name          string
+		resultsByKind map[runners.ResultKind][]runners.RunResult
+		want          float64
+	}{
+		{
+			name:          "no attempted tasks",
+			resultsByKind: map[runners.ResultKind][]runners.RunResult{},
+			want:          0,
+		},
+		{
+			name: "all passed",
+			resultsByKind: map[runners.ResultKind][]runners.RunResult{
+				runners.Success: {{}, {}, {}},
+			},
+			want: 1,
+		},
+		{
+			name: "all attempted (passed+failed)",
+			resultsByKind: map[runners.ResultKind][]runners.RunResult{
+				runners.Success: {{}, {}},
+				runners.Failure: {{}},
+			},
+			// passed/(passed+failed+error) = 2/(2+1+0) = 2/3
+			want: 2.0 / 3.0,
+		},
+		{
+			name: "mix of attempted and skipped",
+			resultsByKind: map[runners.ResultKind][]runners.RunResult{
+				runners.Success:      {{}},
+				runners.Failure:      {{}},
+				runners.Error:        {{}, {}},
+				runners.NotSupported: {{}, {}, {}},
+			},
+			// passed/(passed+failed+error) = 1/(1+1+2) = 0.25 (skipped excluded)
+			want: 0.25,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.InDelta(t, tt.want, PassRate(tt.resultsByKind), 1e-9)
+		})
+	}
+}
+
+func TestAccuracyRate(t *testing.T) {
+	tests := []struct {
+		name          string
+		resultsByKind map[runners.ResultKind][]runners.RunResult
+		want          float64
+	}{
+		{
+			name:          "no completed tasks",
+			resultsByKind: map[runners.ResultKind][]runners.RunResult{},
+			want:          0,
+		},
+		{
+			name: "all passed",
+			resultsByKind: map[runners.ResultKind][]runners.RunResult{
+				runners.Success: {{}, {}, {}},
+			},
+			want: 1,
+		},
+		{
+			name: "half passed",
+			resultsByKind: map[runners.ResultKind][]runners.RunResult{
+				runners.Success:      {{}, {}},
+				runners.Failure:      {{}, {}},
+				runners.Error:        {{}, {}, {}},
+				runners.NotSupported: {{}, {}, {}},
+			},
+			// passed/(passed+failed) = 2/4 = 0.5 (errors and skipped excluded)
+			want: 0.5,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.InDelta(t, tt.want, AccuracyRate(tt.resultsByKind), 1e-9)
+		})
+	}
+}
+
+func TestErrorRate(t *testing.T) {
+	tests := []struct {
+		name          string
+		resultsByKind map[runners.ResultKind][]runners.RunResult
+		want          float64
+	}{
+		{
+			name:          "no attempted tasks",
+			resultsByKind: map[runners.ResultKind][]runners.RunResult{},
+			want:          0,
+		},
+		{
+			name: "all errors",
+			resultsByKind: map[runners.ResultKind][]runners.RunResult{
+				runners.Error: {{}, {}},
+			},
+			want: 1,
+		},
+		{
+			name: "mix of completed and errors",
+			resultsByKind: map[runners.ResultKind][]runners.RunResult{
+				runners.Success:      {{}, {}, {}},
+				runners.Failure:      {{}},
+				runners.Error:        {{}, {}},
+				runners.NotSupported: {{}, {}},
+			},
+			// errors/(passed+failed+error) = 2/(3+1+2)=2/6=0.333...
+			want: 2.0 / 6.0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.InDelta(t, tt.want, ErrorRate(tt.resultsByKind), 1e-9)
+		})
+	}
+}
+
+func TestPercent(t *testing.T) {
+	tests := []struct {
+		name string
+		rate float64
+		want float64
+	}{
+		{name: "zero", rate: 0, want: 0},
+		{name: "one", rate: 1, want: 100},
+		{name: "rounds down to 2 decimals", rate: 1.0 / 3.0, want: 33.33},
+		{name: "rounds up to 2 decimals", rate: 2.0 / 3.0, want: 66.67},
+		{name: "exact 2 decimals", rate: 0.125, want: 12.5},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.InDelta(t, tt.want, Percent(tt.rate), 1e-9)
+		})
+	}
+}
+
 func TestFormatAnswer(t *testing.T) {
 	tests := []struct {
 		name    string

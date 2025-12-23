@@ -51,6 +51,10 @@ func NewHTMLFormatter() Formatter {
 		"CountByKind":             CountByKind,
 		"TotalDuration":           TotalDuration,
 		"RoundToMS":               RoundToMS,
+		"PassRate":                PassRate,
+		"AccuracyRate":            AccuracyRate,
+		"ErrorRate":               ErrorRate,
+		"Percent":                 Percent,
 		"Timestamp":               Timestamp,
 		"SafeHTML": func(s string) template.HTML {
 			return template.HTML(s) //nolint:gosec
