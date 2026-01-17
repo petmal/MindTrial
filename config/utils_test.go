@@ -161,6 +161,12 @@ func TestLoadConfigFromFile(t *testing.T) {
       runs:
         - name: "Avon"
           model: "protocol"
+    - name: openrouter
+      client-config:
+          api-key: "sk-openrouter-test-key"
+      runs:
+        - name: "Router"
+          model: "openai/gpt-4"
     - name: google
       client-config:
           api-key: "df2270f9-d4e1-4761-b809-bee219390d00"
@@ -219,6 +225,20 @@ func TestLoadConfigFromFile(t *testing.T) {
 								{
 									Name:                 "Avon",
 									Model:                "protocol",
+									MaxRequestsPerMinute: 0,
+								},
+							},
+							Disabled: false,
+						},
+						{
+							Name: "openrouter",
+							ClientConfig: OpenRouterClientConfig{
+								APIKey: "sk-openrouter-test-key",
+							},
+							Runs: []RunConfig{
+								{
+									Name:                 "Router",
+									Model:                "openai/gpt-4",
 									MaxRequestsPerMinute: 0,
 								},
 							},
@@ -354,6 +374,29 @@ func TestLoadConfigFromFile(t *testing.T) {
                     presence-penalty: 0.1
                     frequency-penalty: 0.1
                     max-completion-tokens: 4096
+        - name: openrouter
+          client-config:
+              api-key: "sk-openrouter-optional-test"
+          runs:
+              - name: "OpenRouter GPT"
+                model: "openai/gpt-5"
+                model-parameters:
+                    response-format: json-object
+                    temperature: 0.7
+                    top-p: 0.95
+                    top-k: 40
+                    min-p: 0.05
+                    top-a: 0.1
+                    presence-penalty: 0.1
+                    frequency-penalty: 0.2
+                    repetition-penalty: 1.1
+                    max-tokens: 2048
+                    seed: 42
+                    parallel-tool-calls: false
+                    verbosity: low
+                    provider:
+                        order:
+                          - "OpenAI"
         - name: anthropic
           client-config:
               api-key: "c86be894-ad2e-4c7f-b0bd-4397df9f234f"
@@ -489,6 +532,40 @@ func TestLoadConfigFromFile(t *testing.T) {
 								},
 							},
 							Disabled: true,
+						},
+						{
+							Name: "openrouter",
+							ClientConfig: OpenRouterClientConfig{
+								APIKey: "sk-openrouter-optional-test",
+							},
+							Runs: []RunConfig{
+								{
+									Name:                 "OpenRouter GPT",
+									Model:                "openai/gpt-5",
+									MaxRequestsPerMinute: 0,
+									ModelParams: OpenRouterModelParams{
+										ResponseFormat:    testutils.Ptr(ModelResponseFormatJSONObject),
+										Temperature:       testutils.Ptr(float32(0.7)),
+										TopP:              testutils.Ptr(float32(0.95)),
+										TopK:              testutils.Ptr(int32(40)),
+										MinP:              testutils.Ptr(float32(0.05)),
+										TopA:              testutils.Ptr(float32(0.1)),
+										PresencePenalty:   testutils.Ptr(float32(0.1)),
+										FrequencyPenalty:  testutils.Ptr(float32(0.2)),
+										RepetitionPenalty: testutils.Ptr(float32(1.1)),
+										MaxTokens:         testutils.Ptr(int32(2048)),
+										Seed:              testutils.Ptr(int64(42)),
+										ParallelToolCalls: testutils.Ptr(false),
+										Verbosity:         testutils.Ptr("low"),
+										Extra: map[string]any{
+											"provider": map[string]any{
+												"order": []any{"OpenAI"},
+											},
+										},
+									},
+								},
+							},
+							Disabled: false,
 						},
 						{
 							Name: "anthropic",

@@ -31,6 +31,8 @@ func NewProvider(ctx context.Context, cfg config.ProviderConfig, availableTools 
 		return NewMistralAI(cfg.ClientConfig.(config.MistralAIClientConfig), availableTools)
 	case config.XAI:
 		return NewXAI(cfg.ClientConfig.(config.XAIClientConfig), availableTools)
+	case config.OPENROUTER:
+		return NewOpenRouter(cfg.ClientConfig.(config.OpenRouterClientConfig), availableTools), nil
 	case config.ALIBABA:
 		return NewAlibaba(cfg.ClientConfig.(config.AlibabaClientConfig), availableTools), nil
 	case config.MOONSHOTAI:

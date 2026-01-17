@@ -21,6 +21,8 @@ import (
 const (
 	// OPENAI identifies the OpenAI provider.
 	OPENAI string = "openai"
+	// OPENROUTER identifies the OpenRouter provider.
+	OPENROUTER string = "openrouter"
 	// GOOGLE identifies the Google AI provider.
 	GOOGLE string = "google"
 	// ANTHROPIC identifies the Anthropic provider.
@@ -126,7 +128,7 @@ func (ac AppConfig) GetJudgesWithEnabledRuns() []JudgeConfig {
 // ProviderConfig defines settings for an AI provider.
 type ProviderConfig struct {
 	// Name specifies unique identifier of the provider.
-	Name string `yaml:"name" validate:"required,oneof=openai google anthropic deepseek mistralai xai alibaba moonshotai"`
+	Name string `yaml:"name" validate:"required,oneof=openai openrouter google anthropic deepseek mistralai xai alibaba moonshotai"`
 
 	// ClientConfig holds provider-specific client settings.
 	ClientConfig ClientConfig `yaml:"client-config" validate:"required"`
@@ -184,6 +186,22 @@ type ClientConfig interface{}
 type OpenAIClientConfig struct {
 	// APIKey is the API key for the OpenAI provider.
 	APIKey string `yaml:"api-key" validate:"required"`
+}
+
+// OpenRouterClientConfig represents OpenRouter provider settings.
+type OpenRouterClientConfig struct {
+	// APIKey is the API key for the OpenRouter provider.
+	APIKey string `yaml:"api-key" validate:"required"`
+	// Endpoint specifies the network endpoint URL for the API.
+	Endpoint string `yaml:"endpoint" validate:"omitempty,url"`
+}
+
+// GetEndpoint returns the endpoint URL for OpenRouter, defaulting to the public API base when not specified.
+func (c OpenRouterClientConfig) GetEndpoint() string {
+	if c.Endpoint == "" {
+		return "https://openrouter.ai/api/v1"
+	}
+	return c.Endpoint
 }
 
 // GoogleAIClientConfig represents Google AI provider settings.
@@ -395,6 +413,95 @@ type OpenAIModelParams struct {
 	// When nil, uses default behavior (no format instruction, json_schema response format).
 	// This field is for internal use only and not exposed in YAML configuration.
 	LegacyJsonMode *LegacyJsonMode `yaml:"-"`
+}
+
+// ModelResponseFormat configures how a model should format its responses.
+type ModelResponseFormat string
+
+const (
+	// ResponseFormatJSONSchema uses strict schema-based structured outputs (default).
+	ModelResponseFormatJSONSchema ModelResponseFormat = "json-schema"
+	// ResponseFormatJSONObject uses json_object mode (no schema validation).
+	ModelResponseFormatJSONObject ModelResponseFormat = "json-object"
+	// ResponseFormatText uses plain text response format (least reliable).
+	ModelResponseFormatText ModelResponseFormat = "text"
+)
+
+// OpenRouterModelParams represents OpenRouter model-specific settings.
+//
+// OpenRouter accepts a superset of OpenAI-compatible chat completion parameters.
+// MindTrial supports a typed subset of commonly used parameters and also allows
+// passing through arbitrary OpenRouter/model-specific parameters via Extra.
+type OpenRouterModelParams struct {
+	// ResponseFormat configures how the model should format the response.
+	//
+	// OpenRouter exposes this via the `response_format` request field.
+	// - "json-schema": request structured outputs using a JSON schema (default)
+	// - "json-object": request valid JSON output (no schema validation)
+	// - "text": plain text output
+	//
+	// Note: MindTrial controls OpenRouter's `response_format` request field to ensure
+	// it can reliably parse results. Use this enum instead of passing `response_format`
+	// via Extra.
+	ResponseFormat *ModelResponseFormat `yaml:"response-format" validate:"omitempty,oneof=json-schema json-object text"`
+
+	// Temperature controls the randomness or "creativity" of the model's outputs.
+	// Values range from 0.0 to 2.0, with lower values making the output more focused and deterministic.
+	// The default value is 1.0.
+	// It is generally recommended to alter this or `TopP` but not both.
+	Temperature *float32 `yaml:"temperature" validate:"omitempty,min=0,max=2"`
+
+	// TopP limits token selection to the smallest set whose probabilities sum to P.
+	// Range: 0.0 to 1.0. Default: 1.0.
+	TopP *float32 `yaml:"top-p" validate:"omitempty,min=0,max=1"`
+
+	// TopK limits token selection to the top K candidates.
+	// Value 0 disables this setting.
+	// Range: 0 or above. Default: 0.
+	TopK *int32 `yaml:"top-k" validate:"omitempty,min=0"`
+
+	// MinP filters tokens below a minimum probability relative to the most likely token.
+	// Range: 0.0 to 1.0. Default: 0.0.
+	MinP *float32 `yaml:"min-p" validate:"omitempty,min=0,max=1"`
+
+	// TopA considers only tokens with sufficiently high probability relative to the most likely token.
+	// Range: 0.0 to 1.0. Default: 0.0.
+	TopA *float32 `yaml:"top-a" validate:"omitempty,min=0,max=1"`
+
+	// PresencePenalty adjusts how often the model repeats tokens already used in the input.
+	// Range: -2.0 to 2.0. Default: 0.0.
+	PresencePenalty *float32 `yaml:"presence-penalty" validate:"omitempty,min=-2,max=2"`
+
+	// FrequencyPenalty controls repetition based on how often tokens appear in the input.
+	// Range: -2.0 to 2.0. Default: 0.0.
+	FrequencyPenalty *float32 `yaml:"frequency-penalty" validate:"omitempty,min=-2,max=2"`
+
+	// RepetitionPenalty reduces repetition of tokens from the input.
+	// Range: 0.0 to 2.0. Default: 1.0.
+	RepetitionPenalty *float32 `yaml:"repetition-penalty" validate:"omitempty,min=0,max=2"`
+
+	// MaxTokens sets an upper limit on the number of tokens the model can generate.
+	// Range: 1 or above. The maximum usable value is model context length minus prompt length.
+	MaxTokens *int32 `yaml:"max-tokens" validate:"omitempty,min=1"`
+
+	// Seed enables deterministic sampling when supported.
+	Seed *int64 `yaml:"seed" validate:"omitempty"`
+
+	// ParallelToolCalls enables parallel function calling during tool use.
+	// Default: true.
+	ParallelToolCalls *bool `yaml:"parallel-tool-calls" validate:"omitempty"`
+
+	// Verbosity constrains how verbose the model's response should be.
+	// Values: "low", "medium", "high". Default: "medium".
+	Verbosity *string `yaml:"verbosity" validate:"omitempty,oneof=low medium high"`
+
+	// Extra holds arbitrary OpenRouter/model-specific parameters.
+	//
+	// These values are attached to the outgoing request JSON using the OpenAI SDK's
+	// SetExtraFields helper. If both a typed parameter and an equivalent extra parameter
+	// are specified (e.g., MaxTokens and max_tokens in Extra), the extra parameter takes
+	// precedence and the API receives the extra parameter's value.
+	Extra map[string]any `yaml:",inline"`
 }
 
 // GoogleAIModelParams represents Google AI model-specific settings.
@@ -717,6 +824,12 @@ func (pc *ProviderConfig) UnmarshalYAML(value *yaml.Node) error {
 			return err
 		}
 		pc.ClientConfig = cfg
+	case OPENROUTER:
+		cfg := OpenRouterClientConfig{}
+		if err := temp.ClientConfig.Decode(&cfg); err != nil {
+			return err
+		}
+		pc.ClientConfig = cfg
 	case GOOGLE:
 		cfg := GoogleAIClientConfig{}
 		if err := temp.ClientConfig.Decode(&cfg); err != nil {
@@ -792,6 +905,12 @@ func decodeRuns(provider string, value *yaml.Node, out *[]RunConfig) error {
 			switch provider {
 			case OPENAI:
 				params := OpenAIModelParams{}
+				if err := temp[i].ModelParams.Decode(&params); err != nil {
+					return err
+				}
+				(*out)[i].ModelParams = params
+			case OPENROUTER:
+				params := OpenRouterModelParams{}
 				if err := temp[i].ModelParams.Decode(&params); err != nil {
 					return err
 				}

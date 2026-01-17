@@ -6,7 +6,7 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/petmal/mindtrial)](https://go.dev/)
 [![Go Reference](https://pkg.go.dev/badge/github.com/petmal/mindtrial.svg)](https://pkg.go.dev/github.com/petmal/mindtrial)
 
-**MindTrial** lets you test a single AI language model (LLM) or evaluate multiple models side-by-side. It supports providers like OpenAI, Google, Anthropic, DeepSeek, Mistral AI, xAI, Alibaba, and Moonshot AI. You can create your own custom tasks with text prompts, plain text or structured JSON response formats, optional file attachments, and tool use for enhanced capabilities; validate responses through exact value matching or an LLM judge for semantic evaluation; and get results in easy-to-read HTML and CSV formats.
+**MindTrial** lets you test a single AI language model (LLM) or evaluate multiple models side-by-side. It supports providers like OpenAI, Google, Anthropic, DeepSeek, Mistral AI, xAI, Alibaba, Moonshot AI, and OpenRouter. You can create your own custom tasks with text prompts, plain text or structured JSON response formats, optional file attachments, and tool use for enhanced capabilities; validate responses through exact value matching or an LLM judge for semantic evaluation; and get results in easy-to-read HTML and CSV formats.
 
 ## Quick Start Guide
 
@@ -116,6 +116,7 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **xai**: xAI (Grok) models
 > - **alibaba**: Alibaba (Qwen) models
 > - **moonshotai**: Moonshot AI (Kimi) models
+> - **openrouter**: OpenRouter-hosted models
 
 > [!NOTE]
 > **Anthropic** and **DeepSeek** providers support configurable request timeout in the `client-config` section:
@@ -142,6 +143,24 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **presence-penalty**: Penalizes new tokens based on their presence in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use new tokens.
 > - **frequency-penalty**: Penalizes new tokens based on their frequency in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use less frequent tokens.
 > - **max-completion-tokens**: Controls the maximum number of tokens available to the model for generating a response.
+
+> Currently supported parameters for **OpenRouter** models include:
+>
+> - **response-format**: Controls response format (values: `json-schema`, `json-object`, `text`, default: `json-schema`). MindTrial adjusts its parsing logic based on this value, so always use this typed parameter rather than passing `response_format` directly (see note below about extra parameters).
+> - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 2.0, default: 1.0). Lower values produce more focused and deterministic outputs.
+> - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0, default: 1.0). Lower values produce more focused outputs.
+> - **top-k**: Limits token selection to top K candidates (range: 0 or above, default: 0). Value 0 disables this setting.
+> - **min-p**: Filters tokens below minimum probability relative to most likely token (range: 0.0 to 1.0, default: 0.0).
+> - **top-a**: Considers tokens with sufficiently high probability relative to most likely token (range: 0.0 to 1.0, default: 0.0).
+> - **presence-penalty**: Penalizes token repetition based on presence in input (range: -2.0 to 2.0, default: 0.0).
+> - **frequency-penalty**: Penalizes token repetition based on frequency in input (range: -2.0 to 2.0, default: 0.0).
+> - **repetition-penalty**: Reduces repetition of tokens from input (range: 0.0 to 2.0, default: 1.0).
+> - **max-tokens**: Sets upper limit on generated tokens (range: 1 or above, limited by model context).
+> - **seed**: Enables deterministic sampling when supported.
+> - **parallel-tool-calls**: Enables parallel function calling during tool use (default: true).
+> - **verbosity**: Controls response verbosity (values: `low`, `medium`, `high`, default: `medium`).
+>
+> Any additional parameters not listed above can be specified directly in `model-parameters` and will be forwarded to the OpenRouter API. Use for provider-specific or OpenRouter-specific parameters. Prefer typed parameters where they exist. Note: if both a typed parameter and an equivalent extra parameter are specified (e.g., `max-tokens: 100` and `max_tokens: 500`), the extra parameter takes precedence and the API will receive the extra parameter's value.
 >
 > Currently supported parameters for **Anthropic** models include:
 >
@@ -278,6 +297,25 @@ config:
           max-requests-per-minute: 3
           model-parameters:
             reasoning-effort: "high"
+    - name: openrouter
+      retry-policy:
+        max-retry-attempts: 5
+        initial-delay-seconds: 30
+      client-config:
+        api-key: "<your-api-key>"
+      runs:
+        - name: "OpenAI GPT-5.2 (xhigh reasoning)"
+          model: "openai/gpt-5.2"
+          max-requests-per-minute: 20
+          model-parameters:
+            verbosity: "medium"
+            # Pass-through parameters use OpenAI API naming (underscores).
+            reasoning_effort: "xhigh"
+        - name: "Google Gemma 3 27B IT (free)"
+          model: "google/gemma-3-27b-it:free"
+          max-requests-per-minute: 3
+          model-parameters:
+            response-format: "text"
     - name: google
       client-config:
         api-key: "<your-api-key>"

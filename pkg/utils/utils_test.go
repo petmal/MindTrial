@@ -58,6 +58,48 @@ func TestNoPanic(t *testing.T) {
 	}
 }
 
+func TestPtr(t *testing.T) {
+	tests := []struct {
+		name  string
+		value interface{}
+	}{
+		{name: "int", value: 42},
+		{name: "string", value: "hello"},
+		{name: "float64", value: 3.14},
+		{name: "bool", value: true},
+		{name: "struct", value: struct{ X int }{X: 10}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch v := tt.value.(type) {
+			case int:
+				ptr := Ptr(v)
+				require.NotNil(t, ptr)
+				assert.Equal(t, v, *ptr)
+				assert.Equal(t, &v, ptr)
+			case string:
+				ptr := Ptr(v)
+				require.NotNil(t, ptr)
+				assert.Equal(t, v, *ptr)
+			case float64:
+				ptr := Ptr(v)
+				require.NotNil(t, ptr)
+				assert.InEpsilon(t, v, *ptr, 0.0001)
+			case bool:
+				ptr := Ptr(v)
+				require.NotNil(t, ptr)
+				assert.Equal(t, v, *ptr)
+			case struct{ X int }:
+				ptr := Ptr(v)
+				require.NotNil(t, ptr)
+				assert.Equal(t, v, *ptr)
+				assert.Equal(t, 10, ptr.X)
+			}
+		})
+	}
+}
+
 func TestJSONFromMarkdown(t *testing.T) {
 	type args struct {
 		content string

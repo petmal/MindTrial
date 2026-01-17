@@ -56,6 +56,25 @@ config:
           model-parameters:
             reasoning-effort: "xhigh"
             verbosity: "medium"
+    - name: openrouter
+      retry-policy:
+        max-retry-attempts: 5
+        initial-delay-seconds: 30
+      client-config:
+        api-key: ""
+      runs:
+        - name: "OpenAI GPT-5.2 (xhigh reasoning)"
+          model: "openai/gpt-5.2"
+          max-requests-per-minute: 20
+          model-parameters:
+            verbosity: "medium"
+            # Pass-through parameters use OpenAI API naming (underscores).
+            reasoning_effort: "xhigh"
+        - name: "Google Gemma 3 27B IT (free)"
+          model: "google/gemma-3-27b-it:free"
+          max-requests-per-minute: 3
+          model-parameters:
+            response-format: "text"
     - name: google
       client-config:
         api-key: ""

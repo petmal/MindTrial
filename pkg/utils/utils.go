@@ -52,6 +52,11 @@ func ConvertIntPtr[From constraints.Integer, To constraints.Integer](ptr *From) 
 	return nil
 }
 
+// Ptr returns a pointer to the given value.
+func Ptr[T any](value T) *T {
+	return &value
+}
+
 // NoPanic executes the provided function and recovers from any panic by converting it to error if that occurs.
 func NoPanic(fn func() error) (err error) {
 	defer func() {
