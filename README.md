@@ -143,7 +143,7 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **presence-penalty**: Penalizes new tokens based on their presence in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use new tokens.
 > - **frequency-penalty**: Penalizes new tokens based on their frequency in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use less frequent tokens.
 > - **max-completion-tokens**: Controls the maximum number of tokens available to the model for generating a response.
-
+>
 > Currently supported parameters for **OpenRouter** models include:
 >
 > - **response-format**: Controls response format (values: `json-schema`, `json-object`, `text`, default: `json-schema`). MindTrial adjusts its parsing logic based on this value, so always use this typed parameter rather than passing `response_format` directly (see note below about extra parameters).
