@@ -63,15 +63,19 @@ func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConf
 	req.SetPresencePenaltyNil()
 	req.SetFrequencyPenaltyNil()
 
-	// Configure response format schema.
-	responseSchema, err := ResultJSONSchemaRaw(task.ResponseResultFormat)
-	if err != nil {
-		return result, err
+	// Configure default response format.
+	if cfg.DisableStructuredOutput {
+		req.SetResponseFormat(xai.ResponseFormatOneOfAsResponseFormat(xai.NewResponseFormatOneOf("text")))
+	} else {
+		responseSchema, err := ResultJSONSchemaRaw(task.ResponseResultFormat)
+		if err != nil {
+			return result, err
+		}
+		schema := map[string]interface{}{
+			"schema": responseSchema,
+		}
+		req.SetResponseFormat(xai.ResponseFormatOneOf2AsResponseFormat(xai.NewResponseFormatOneOf2(schema, "json_schema")))
 	}
-	schema := map[string]interface{}{
-		"schema": responseSchema,
-	}
-	req.SetResponseFormat(xai.ResponseFormatOneOf2AsResponseFormat(xai.NewResponseFormatOneOf2(schema, "json_schema")))
 
 	// Apply model-specific parameters.
 	if cfg.ModelParams != nil {
@@ -103,6 +107,11 @@ func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConf
 	}
 
 	// Add system instruction if available.
+	if cfg.DisableStructuredOutput {
+		sysContent := xai.StringAsContent(xai.PtrString(result.recordPrompt(DefaultUnstructuredResponseInstruction())))
+		req.Messages = append(req.Messages, xai.MessageOneOfAsMessage(xai.NewMessageOneOf(sysContent, "system")))
+	}
+
 	if answerFormatInstruction := DefaultAnswerFormatInstruction(task); answerFormatInstruction != "" {
 		sysContent := xai.StringAsContent(xai.PtrString(result.recordPrompt(answerFormatInstruction)))
 		req.Messages = append(req.Messages, xai.MessageOneOfAsMessage(xai.NewMessageOneOf(sysContent, "system")))
@@ -110,7 +119,9 @@ func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConf
 
 	// Add structured user messages.
 	parts, err := o.createPromptMessageParts(ctx, task.Prompt, task.Files, &result)
-	if err != nil {
+	if errors.Is(err, ErrFeatureNotSupported) {
+		return result, err
+	} else if err != nil {
 		return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
 	}
 
@@ -181,14 +192,22 @@ func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConf
 				// No tool calls, this is the final response.
 				if contentPtr, ok := candidate.Message.GetContentOk(); ok && contentPtr != nil {
 					content := *contentPtr
-					if err := json.Unmarshal([]byte(content), &result); err != nil {
-						// Stop reason may be present.
-						var stopReason []byte
-						if candidate.FinishReason.IsSet() {
-							if fr := candidate.FinishReason.Get(); fr != nil {
-								stopReason = []byte(*fr)
-							}
+
+					// Stop reason may be present.
+					var stopReason []byte
+					if candidate.FinishReason.IsSet() {
+						if fr := candidate.FinishReason.Get(); fr != nil {
+							stopReason = []byte(*fr)
 						}
+					}
+
+					var err error
+					if cfg.DisableStructuredOutput {
+						err = UnmarshalUnstructuredResponse(ctx, logger, []byte(content), &result)
+					} else {
+						err = json.Unmarshal([]byte(content), &result)
+					}
+					if err != nil {
 						return result, NewErrUnmarshalResponse(err, []byte(content), stopReason)
 					}
 					return result, nil

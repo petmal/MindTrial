@@ -332,6 +332,15 @@ type RunConfig struct {
 	// If set, overrides the parent ProviderConfig.Disabled value.
 	Disabled *bool `yaml:"disabled" validate:"omitempty"`
 
+	// DisableStructuredOutput forces text response format and expects the model to return
+	// the final answer directly without the structured Result wrapper (title, explanation, final_answer).
+	// When enabled:
+	// - Providers use plain text response format instead of JSON schema.
+	// - If model parameters explicitly set a non-text response format, the provider returns ErrFeatureNotSupported.
+	// - Tasks with schema-based response-result-format are skipped.
+	// - Cannot be used with judge configurations.
+	DisableStructuredOutput bool `yaml:"disable-structured-output" validate:"omitempty"`
+
 	// ModelParams holds any model-specific configuration parameters.
 	ModelParams ModelParams `yaml:"model-parameters" validate:"omitempty"`
 
@@ -794,6 +803,21 @@ func (jc JudgeConfig) Resolve(excludeDisabledRuns bool) JudgeConfig {
 	return resolved
 }
 
+// ErrInvalidJudgeVariant is returned when a judge variant has invalid configuration.
+var ErrInvalidJudgeVariant = errors.New("invalid judge variant configuration")
+
+// Validate checks the judge configuration for invalid settings.
+// Returns an error if any run variant has DisableStructuredOutput enabled,
+// which is not allowed for judge configurations.
+func (jc JudgeConfig) Validate() error {
+	for _, run := range jc.Provider.Runs {
+		if run.DisableStructuredOutput {
+			return fmt.Errorf("%w: variant '%s' has disable-structured-output enabled which is not allowed for judge configurations", ErrInvalidJudgeVariant, run.Name)
+		}
+	}
+	return nil
+}
+
 // UnmarshalYAML implements custom YAML unmarshaling for ProviderConfig.
 // It handles provider-specific client configuration based on provider name.
 func (pc *ProviderConfig) UnmarshalYAML(value *yaml.Node) error {
@@ -881,12 +905,13 @@ func (pc *ProviderConfig) UnmarshalYAML(value *yaml.Node) error {
 
 func decodeRuns(provider string, value *yaml.Node, out *[]RunConfig) error {
 	var temp []struct {
-		Name                 string       `yaml:"name"`
-		Model                string       `yaml:"model"`
-		MaxRequestsPerMinute int          `yaml:"max-requests-per-minute"`
-		Disabled             *bool        `yaml:"disabled"`
-		ModelParams          yaml.Node    `yaml:"model-parameters"`
-		RetryPolicy          *RetryPolicy `yaml:"retry-policy"`
+		Name                    string       `yaml:"name"`
+		Model                   string       `yaml:"model"`
+		MaxRequestsPerMinute    int          `yaml:"max-requests-per-minute"`
+		Disabled                *bool        `yaml:"disabled"`
+		DisableStructuredOutput bool         `yaml:"disable-structured-output"`
+		ModelParams             yaml.Node    `yaml:"model-parameters"`
+		RetryPolicy             *RetryPolicy `yaml:"retry-policy"`
 	}
 
 	if err := value.Decode(&temp); err != nil {
@@ -899,6 +924,7 @@ func decodeRuns(provider string, value *yaml.Node, out *[]RunConfig) error {
 		(*out)[i].Model = temp[i].Model
 		(*out)[i].MaxRequestsPerMinute = temp[i].MaxRequestsPerMinute
 		(*out)[i].Disabled = temp[i].Disabled
+		(*out)[i].DisableStructuredOutput = temp[i].DisableStructuredOutput
 		(*out)[i].RetryPolicy = temp[i].RetryPolicy
 
 		if !temp[i].ModelParams.IsZero() {

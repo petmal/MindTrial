@@ -23,6 +23,76 @@ import (
 
 var mockDirPathWithPlaceholders = filepath.Join(".", "base", "{{.Year}}", "{{.Month}}", "{{.Day}}", "{{.Hour}}", "{{.Minute}}", "{{.Second}}")
 
+func TestJudgeConfigValidate(t *testing.T) {
+	tests := []struct {
+		name    string
+		judge   JudgeConfig
+		wantErr bool
+	}{
+		{
+			name: "valid judge without disable-structured-output",
+			judge: JudgeConfig{
+				Name: "test-judge",
+				Provider: ProviderConfig{
+					Name: "openai",
+					Runs: []RunConfig{
+						{
+							Name:  "default",
+							Model: "gpt-4o",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid judge with disable-structured-output enabled",
+			judge: JudgeConfig{
+				Name: "test-judge",
+				Provider: ProviderConfig{
+					Name: "openai",
+					Runs: []RunConfig{
+						{
+							Name:                    "default",
+							Model:                   "gpt-4o",
+							DisableStructuredOutput: true,
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "valid judge with disable-structured-output explicitly false",
+			judge: JudgeConfig{
+				Name: "test-judge",
+				Provider: ProviderConfig{
+					Name: "openai",
+					Runs: []RunConfig{
+						{
+							Name:                    "default",
+							Model:                   "gpt-4o",
+							DisableStructuredOutput: false,
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.judge.Validate()
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.ErrorIs(t, err, ErrInvalidJudgeVariant)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestLoadConfigFromFile(t *testing.T) {
 	type args struct {
 		ctx  context.Context
@@ -366,6 +436,7 @@ func TestLoadConfigFromFile(t *testing.T) {
                 disabled: true
                 model: "directional"
                 max-requests-per-minute: 3
+                disable-structured-output: true
                 model-parameters:
                     reasoning-effort: high
                     text-response-format: true
@@ -516,10 +587,11 @@ func TestLoadConfigFromFile(t *testing.T) {
 							},
 							Runs: []RunConfig{
 								{
-									Name:                 "Sports",
-									Model:                "directional",
-									MaxRequestsPerMinute: 3,
-									Disabled:             testutils.Ptr(true),
+									Name:                    "Sports",
+									Model:                   "directional",
+									MaxRequestsPerMinute:    3,
+									Disabled:                testutils.Ptr(true),
+									DisableStructuredOutput: true,
 									ModelParams: OpenAIModelParams{
 										ReasoningEffort:     testutils.Ptr("high"),
 										TextResponseFormat:  true,
@@ -913,6 +985,36 @@ func TestLoadConfigFromFile(t *testing.T) {
               runs:
                   - name: "default"
                     model: "gpt-4o"
+`)),
+			},
+			wantErr: true,
+		},
+		{
+			name: "config with judge using disable-structured-output",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`config:
+    task-source: "tasks.yaml"
+    output-dir: "."
+    providers:
+        - name: openai
+          client-config:
+              api-key: "primary-key"
+          runs:
+              - name: "primary"
+                model: "gpt-4"
+    judges:
+        - name: "invalid-judge"
+          provider:
+              name: openai
+              client-config:
+                  api-key: "judge-key"
+              runs:
+                  - name: "default"
+                    model: "gpt-4o"
+                    disable-structured-output: true
 `)),
 			},
 			wantErr: true,

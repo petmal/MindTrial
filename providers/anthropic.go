@@ -9,6 +9,7 @@ package providers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	anthropic "github.com/anthropics/anthropic-sdk-go"
@@ -44,15 +45,18 @@ func (o Anthropic) Name() string {
 }
 
 func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
-	schema, err := ResultJSONSchema(task.ResponseResultFormat)
-	if err != nil {
-		return result, err
-	}
-
 	request := anthropic.MessageNewParams{
 		MaxTokens: defaultMaxTokens,
 		Model:     anthropic.Model(cfg.Model),
-		Tools: []anthropic.ToolUnionParam{
+	}
+
+	// Only add structured output tool when not disabled.
+	if !cfg.DisableStructuredOutput {
+		schema, err := ResultJSONSchema(task.ResponseResultFormat)
+		if err != nil {
+			return result, err
+		}
+		request.Tools = []anthropic.ToolUnionParam{
 			{
 				OfTool: &anthropic.ToolParam{
 					Name:        responseFormatterToolName,
@@ -63,8 +67,8 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 					},
 				},
 			},
-		},
-		ToolChoice: anthropic.ToolChoiceParamOfTool(responseFormatterToolName),
+		}
+		request.ToolChoice = anthropic.ToolChoiceParamOfTool(responseFormatterToolName)
 	}
 
 	// Setup tools if any.
@@ -106,12 +110,16 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 		}
 	}
 
+	if cfg.DisableStructuredOutput {
+		request.System = append(request.System, anthropic.TextBlockParam{
+			Text: result.recordPrompt(DefaultUnstructuredResponseInstruction()),
+		})
+	}
+
 	if answerFormatInstruction := DefaultAnswerFormatInstruction(task); answerFormatInstruction != "" {
-		request.System = []anthropic.TextBlockParam{
-			{
-				Text: result.recordPrompt(answerFormatInstruction),
-			},
-		}
+		request.System = append(request.System, anthropic.TextBlockParam{
+			Text: result.recordPrompt(answerFormatInstruction),
+		})
 	}
 	if cfg.ModelParams != nil {
 		if modelParams, ok := cfg.ModelParams.(config.AnthropicModelParams); ok {
@@ -140,12 +148,14 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 		}
 	}
 
-	if promptParts, err := o.createPromptMessageParts(ctx, task.Prompt, task.Files, &result); err != nil {
+	promptParts, err := o.createPromptMessageParts(ctx, task.Prompt, task.Files, &result)
+	if errors.Is(err, ErrFeatureNotSupported) {
+		return result, err
+	} else if err != nil {
 		return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
-	} else {
-		request.Messages = []anthropic.MessageParam{
-			anthropic.NewUserMessage(promptParts...),
-		}
+	}
+	request.Messages = []anthropic.MessageParam{
+		anthropic.NewUserMessage(promptParts...),
 	}
 
 	// Conversation loop to handle tool calls.
@@ -155,7 +165,7 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 		}, &result.duration)
 		result.recordToolUsage(executor.GetUsageStats())
 		if err != nil {
-			return result, fmt.Errorf("%w: %v", ErrGenerateResponse, err)
+			return result, WrapErrGenerateResponse(err)
 		} else if resp == nil {
 			return result, nil // return current result state
 		}
@@ -167,6 +177,16 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 
 		for _, block := range resp.Content {
 			switch block := block.AsAny().(type) { //nolint:gocritic
+			case anthropic.TextBlock:
+				// Handle text response when structured output is disabled.
+				if cfg.DisableStructuredOutput {
+					if err = UnmarshalUnstructuredResponse(ctx, logger, []byte(block.Text), &result); err != nil {
+						return result, NewErrUnmarshalResponse(err, []byte(block.Text), []byte(resp.StopReason))
+					}
+					return result, nil
+				}
+				// In structured mode, text blocks are ignored (response comes via tool call).
+				logger.Message(ctx, logging.LevelDebug, "Ignoring text block in structured output mode: %s", block.Text)
 			case anthropic.ToolUseBlock:
 				// No tool calls, this is the final response.
 				if block.Name == responseFormatterToolName {

@@ -43,8 +43,11 @@ func (m MoonshotAI) Name() string {
 func (m *MoonshotAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
 	// Initialize model parameters for OpenAI provider.
 	// Kimi models only support json_object mode and require explicit JSON format guidance in the prompt.
-	openAIParams := config.OpenAIModelParams{
-		LegacyJsonMode: config.LegacyJsonObject.Ptr(),
+	openAIParams := config.OpenAIModelParams{}
+
+	// Set json_object mode by default, unless structured output is disabled
+	if !cfg.DisableStructuredOutput {
+		openAIParams.LegacyJsonMode = config.LegacyJsonObject.Ptr()
 	}
 
 	if cfg.ModelParams != nil {

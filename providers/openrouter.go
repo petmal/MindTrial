@@ -51,8 +51,7 @@ func (o OpenRouter) Name() string {
 
 func (o *OpenRouter) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
 	openAIV3Params := openAIV3ModelParams{
-		ResponseFormat: ResponseFormatJSONSchema.Ptr(),
-		ExtraFields:    map[string]any{},
+		ExtraFields: map[string]any{},
 	}
 
 	if cfg.ModelParams != nil {

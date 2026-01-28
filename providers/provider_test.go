@@ -789,6 +789,79 @@ func TestAnswerUnmarshalEdgeCases(t *testing.T) {
 	}
 }
 
+func TestUnmarshalUnstructuredResponse(t *testing.T) {
+	tests := []struct {
+		name           string
+		content        string
+		expectedAnswer any
+	}{
+		{
+			name:           "raw text",
+			content:        "hello world",
+			expectedAnswer: "hello world",
+		},
+		{
+			name:           "json string literal",
+			content:        `"hello world"`,
+			expectedAnswer: `"hello world"`,
+		},
+		{
+			name:           "null",
+			content:        `null`,
+			expectedAnswer: "null",
+		},
+		{
+			name:           "json object with content field",
+			content:        `{"content":"extracted value"}`,
+			expectedAnswer: `{"content":"extracted value"}`,
+		},
+		{
+			name:           "json object without content field",
+			content:        `{"key":"value","number":42}`,
+			expectedAnswer: `{"key":"value","number":42}`,
+		},
+		{
+			name:           "json array",
+			content:        `["item1","item2","item3"]`,
+			expectedAnswer: `["item1","item2","item3"]`,
+		},
+		{
+			name:           "number",
+			content:        `123.45`,
+			expectedAnswer: `123.45`,
+		},
+		{
+			name:           "boolean",
+			content:        `true`,
+			expectedAnswer: `true`,
+		},
+		{
+			name:           "malformed json",
+			content:        `{invalid}`,
+			expectedAnswer: `{invalid}`,
+		},
+		{
+			name:           "empty content",
+			content:        "",
+			expectedAnswer: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			logger := testutils.NewTestLogger(t)
+			var result Result
+
+			err := UnmarshalUnstructuredResponse(context.Background(), logger, []byte(tt.content), &result)
+
+			require.NoError(t, err)
+			assert.Equal(t, "Unstructured Response", result.Title)
+			assert.Equal(t, "Response obtained with structured output disabled.", result.Explanation)
+			assert.Equal(t, tt.expectedAnswer, result.FinalAnswer.Content)
+		})
+	}
+}
+
 func TestFormatToolExecutionError(t *testing.T) {
 	tests := []struct {
 		name     string

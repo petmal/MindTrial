@@ -40,22 +40,33 @@ func (o OpenAI) Name() string {
 }
 
 func (o *OpenAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
-	schema, err := ResultJSONSchema(task.ResponseResultFormat)
-	if err != nil {
-		return result, err
-	}
+	// Check if structured output is disabled.
+	disableStructuredOutput := cfg.HasStructuredOutputDisabled()
+
 	request := openai.ChatCompletionRequest{
 		Model:    cfg.Model,
 		Messages: []openai.ChatCompletionMessage{},
-		ResponseFormat: &openai.ChatCompletionResponseFormat{
+		N:        1, // generate only one candidate response
+	}
+
+	// Set response format based on structured output mode.
+	if disableStructuredOutput {
+		request.ResponseFormat = &openai.ChatCompletionResponseFormat{
+			Type: openai.ChatCompletionResponseFormatTypeText,
+		}
+	} else {
+		schema, err := ResultJSONSchema(task.ResponseResultFormat)
+		if err != nil {
+			return result, err
+		}
+		request.ResponseFormat = &openai.ChatCompletionResponseFormat{
 			Type: openai.ChatCompletionResponseFormatTypeJSONSchema,
 			JSONSchema: &openai.ChatCompletionResponseFormatJSONSchema{
 				Name:   "response",
 				Schema: schema,
 				Strict: true,
 			},
-		},
-		N: 1, // generate only one candidate response
+		}
 	}
 
 	if cfg.ModelParams != nil {
@@ -66,7 +77,8 @@ func (o *OpenAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunC
 			if modelParams.Verbosity != nil {
 				request.Verbosity = *modelParams.Verbosity
 			}
-			if modelParams.TextResponseFormat || modelParams.LegacyJsonMode != nil {
+			// Add response format instruction only when structured output is enabled.
+			if !disableStructuredOutput && (modelParams.TextResponseFormat || modelParams.LegacyJsonMode != nil) {
 				responseFormatInstruction, err := DefaultResponseFormatInstruction(task.ResponseResultFormat)
 				if err != nil {
 					return result, err
@@ -115,10 +127,11 @@ func (o *OpenAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunC
 		}
 	}
 
-	if promptMessage, err := o.createPromptMessage(ctx, task.Prompt, task.Files, &result); err != nil {
-		return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
-	} else {
-		request.Messages = append(request.Messages, promptMessage)
+	if disableStructuredOutput {
+		request.Messages = append(request.Messages, openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleUser, // NOTE: system role not supported by all models
+			Content: result.recordPrompt(DefaultUnstructuredResponseInstruction()),
+		})
 	}
 
 	if answerFormatInstruction := DefaultAnswerFormatInstruction(task); answerFormatInstruction != "" {
@@ -128,6 +141,14 @@ func (o *OpenAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunC
 				Content: result.recordPrompt(answerFormatInstruction),
 			})
 	}
+
+	promptMessage, err := o.createPromptMessage(ctx, task.Prompt, task.Files, &result)
+	if errors.Is(err, ErrFeatureNotSupported) {
+		return result, err
+	} else if err != nil {
+		return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
+	}
+	request.Messages = append(request.Messages, promptMessage)  
 
 	// Setup tools if any.
 	var executor *tools.DockerToolExecutor
@@ -181,13 +202,20 @@ func (o *OpenAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunC
 			if len(candidate.Message.ToolCalls) == 0 {
 				// No tool calls, this is the final response.
 				content := candidate.Message.Content
-				if request.ResponseFormat.Type == openai.ChatCompletionResponseFormatTypeText {
-					content, err = utils.RepairTextJSON(content)
-					if err != nil {
-						return result, NewErrUnmarshalResponse(err, []byte(candidate.Message.Content), []byte(candidate.FinishReason))
+
+				var err error
+				if disableStructuredOutput {
+					err = UnmarshalUnstructuredResponse(ctx, logger, []byte(content), &result)
+				} else {
+					if request.ResponseFormat.Type == openai.ChatCompletionResponseFormatTypeText {
+						content, err = utils.RepairTextJSON(content)
+						if err != nil {
+							return result, NewErrUnmarshalResponse(err, []byte(candidate.Message.Content), []byte(candidate.FinishReason))
+						}
 					}
+					err = json.Unmarshal([]byte(content), &result)
 				}
-				if err = json.Unmarshal([]byte(content), &result); err != nil {
+				if err != nil {
 					return result, NewErrUnmarshalResponse(err, []byte(candidate.Message.Content), []byte(candidate.FinishReason))
 				}
 				return result, nil

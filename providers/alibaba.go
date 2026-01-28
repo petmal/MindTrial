@@ -43,9 +43,11 @@ func (a Alibaba) Name() string {
 
 func (a *Alibaba) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
 	// Initialize model parameters for OpenAI provider.
-	// Enable legacy mode by default for better interoperability.
-	openAIParams := config.OpenAIModelParams{
-		LegacyJsonMode: config.LegacyJsonSchema.Ptr(),
+	openAIParams := config.OpenAIModelParams{}
+
+	// Set legacy schema mode by default for better interoperability, unless structured output is disabled
+	if !cfg.DisableStructuredOutput {
+		openAIParams.LegacyJsonMode = config.LegacyJsonSchema.Ptr()
 	}
 
 	if cfg.ModelParams != nil {

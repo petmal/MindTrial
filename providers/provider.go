@@ -29,6 +29,8 @@ var (
 	ErrCreateClient = errors.New("failed to create client")
 	// ErrInvalidModelParams is returned when model parameters are invalid.
 	ErrInvalidModelParams = errors.New("invalid model parameters for run")
+	// ErrIncompatibleResponseFormat is returned when disable-structured-output is used with a non-text response format.
+	ErrIncompatibleResponseFormat = errors.New("disable-structured-output requires response format to be plain text")
 	// ErrCompileResponseSchema is returned when response schema compilation fails.
 	ErrCompileResponseSchema = errors.New("failed to compile response schema")
 	// ErrMalformedSchema is returned when raw schema data cannot be converted to a valid schema object.
@@ -239,6 +241,25 @@ func DefaultAnswerFormatInstruction(task config.Task) string {
 // DefaultTaskFileNameInstruction generates default task file name instruction to be passed to AI models that require it.
 func DefaultTaskFileNameInstruction(file config.TaskFile) string {
 	return fmt.Sprintf("[file: %s]", file.Name)
+}
+
+// DefaultUnstructuredResponseInstruction generates the default instruction for unstructured response mode.
+func DefaultUnstructuredResponseInstruction() string {
+	return "Return only: The definitive answer to the task or question, provided as plain text. This should directly address what was asked and strictly follow any formatting instructions provided."
+}
+
+// UnmarshalUnstructuredResponse parses a raw response in unstructured output mode.
+// It unmarshals content directly into result.FinalAnswer as a string, bypassing the standard Result structure.
+// This is used when DisableStructuredOutput is enabled and the model returns only the final answer.
+// The Title and Explanation fields are populated with placeholder values since the model
+// does not provide structured metadata in this mode.
+func UnmarshalUnstructuredResponse(ctx context.Context, logger logging.Logger, content []byte, result *Result) error {
+	logger.Message(ctx, logging.LevelWarn, "parsing response in unstructured output mode")
+
+	result.Title = "Unstructured Response"
+	result.Explanation = "Response obtained with structured output disabled."
+	result.FinalAnswer.Content = string(content)
+	return nil
 }
 
 // Usage represents aggregated usage statistics for a response, including both token

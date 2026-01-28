@@ -54,18 +54,22 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 	request.SetModel(cfg.Model)
 	request.SetN(1)
 
-	responseSchema, err := ResultJSONSchemaRaw(task.ResponseResultFormat)
-	if err != nil {
-		return result, err
-	}
-	schema := mistralai.NewJsonSchema("response", responseSchema)
-	schema.SetDescription(mistralai.Description{
-		String: mistralai.PtrString("Record the response using well-structured JSON."),
-	})
-
+	// Configure response format.
 	responseFormat := mistralai.NewResponseFormatWithDefaults()
-	responseFormat.SetType(mistralai.JSON_SCHEMA)
-	responseFormat.SetJsonSchema(*schema)
+	if cfg.DisableStructuredOutput {
+		responseFormat.SetType(mistralai.TEXT)
+	} else {
+		responseSchema, err := ResultJSONSchemaRaw(task.ResponseResultFormat)
+		if err != nil {
+			return result, err
+		}
+		schema := mistralai.NewJsonSchema("response", responseSchema)
+		schema.SetDescription(mistralai.Description{
+			String: mistralai.PtrString("Record the response using well-structured JSON."),
+		})
+		responseFormat.SetType(mistralai.JSON_SCHEMA)
+		responseFormat.SetJsonSchema(*schema)
+	}
 	request.SetResponseFormat(*responseFormat)
 
 	if cfg.ModelParams != nil {
@@ -78,6 +82,13 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 		}
 	}
 
+	if cfg.DisableStructuredOutput {
+		request.Messages = append(request.Messages, mistralai.SystemMessageAsChatCompletionRequestMessagesInner(
+			mistralai.NewSystemMessage(mistralai.Content4{
+				String: mistralai.PtrString(result.recordPrompt(DefaultUnstructuredResponseInstruction())),
+			})))
+	}
+
 	if answerFormatInstruction := DefaultAnswerFormatInstruction(task); answerFormatInstruction != "" {
 		request.Messages = append(request.Messages, mistralai.SystemMessageAsChatCompletionRequestMessagesInner(
 			mistralai.NewSystemMessage(mistralai.Content4{
@@ -86,7 +97,9 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 	}
 
 	contentParts, err := o.createPromptMessageParts(ctx, task.Prompt, task.Files, &result)
-	if err != nil {
+	if errors.Is(err, ErrFeatureNotSupported) {
+		return result, err
+	} else if err != nil {
 		return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
 	}
 
@@ -154,7 +167,14 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 				if message, ok := candidate.Message.GetContentOk(); ok {
 					if message != nil && message.String != nil {
 						content := *message.String
-						if err := json.Unmarshal([]byte(content), &result); err != nil {
+
+						var err error
+						if cfg.DisableStructuredOutput {
+							err = UnmarshalUnstructuredResponse(ctx, logger, []byte(content), &result)
+						} else {
+							err = json.Unmarshal([]byte(content), &result)
+						}
+						if err != nil {
 							return result, NewErrUnmarshalResponse(err, []byte(content), []byte(candidate.FinishReason))
 						}
 						return result, nil

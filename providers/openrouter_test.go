@@ -7,11 +7,43 @@
 package providers
 
 import (
+	"context"
 	"testing"
 
 	"github.com/petmal/mindtrial/config"
+	"github.com/petmal/mindtrial/pkg/testutils"
 	"github.com/stretchr/testify/require"
 )
+
+func TestOpenRouter_Run_IncompatibleResponseFormat(t *testing.T) {
+	logger := testutils.NewTestLogger(t)
+	p := &OpenRouter{} // nil client is sufficient to exercise parameter mapping and validation
+
+	runCfg := config.RunConfig{
+		Name:                    "test-run",
+		Model:                   "openrouter-test",
+		DisableStructuredOutput: true,
+		ModelParams: config.OpenRouterModelParams{
+			ResponseFormat: testutils.Ptr(config.ModelResponseFormatJSONObject), // JSONObject is incompatible with DisableStructuredOutput
+		},
+	}
+	task := config.Task{Name: "t"}
+	_, err := p.Run(context.Background(), logger, runCfg, task)
+	require.ErrorIs(t, err, ErrIncompatibleResponseFormat)
+}
+
+func TestOpenRouter_FileTypeNotSupported(t *testing.T) {
+	logger := testutils.NewTestLogger(t)
+	p := &OpenRouter{} // nil client is sufficient to exercise early validation
+
+	runCfg := config.RunConfig{Name: "test-run", Model: "openrouter-test"}
+	task := config.Task{
+		Name:  "bad_file_type",
+		Files: []config.TaskFile{mockTaskFile(t, "file.txt", "file://file.txt", "text/plain")},
+	}
+	_, err := p.Run(context.Background(), logger, runCfg, task)
+	require.ErrorIs(t, err, ErrFileNotSupported)
+}
 
 func TestOpenRouterCopyToOpenAIV3Params(t *testing.T) {
 	buildParams := func(t *testing.T, cfg config.RunConfig) openAIV3ModelParams {

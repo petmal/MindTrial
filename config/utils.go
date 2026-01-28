@@ -56,6 +56,13 @@ func LoadConfigFromFile(ctx context.Context, path string) (*Config, error) {
 		}
 	}
 
+	// Validate judge configurations.
+	for _, judge := range cfg.Config.Judges {
+		if err := judge.Validate(); err != nil {
+			return cfg, fmt.Errorf("invalid judge configuration: invalid parameters for judge '%s': %w", judge.Name, err)
+		}
+	}
+
 	return cfg, nil
 }
 

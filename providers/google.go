@@ -9,6 +9,7 @@ package providers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/petmal/mindtrial/config"
@@ -50,7 +51,7 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 		CandidateCount: 1,
 	}
 
-	forceTextResponseFormat := false
+	forceTextResponseFormat := cfg.DisableStructuredOutput
 
 	// Setup tools if any.
 	var executor *tools.DockerToolExecutor
@@ -90,7 +91,9 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 	if cfg.ModelParams != nil {
 		if modelParams, ok := cfg.ModelParams.(config.GoogleAIModelParams); ok {
 			// Apply TextResponseFormat (all tasks) or TextResponseFormatWithTools (only tasks with tools).
-			forceTextResponseFormat = modelParams.TextResponseFormat ||
+			// Preserve disableStructuredOutput - it always forces text format.
+			forceTextResponseFormat = cfg.DisableStructuredOutput ||
+				modelParams.TextResponseFormat ||
 				(len(generateConfig.Tools) > 0 && modelParams.TextResponseFormatWithTools)
 
 			// Apply ThinkingLevel parameter.
@@ -155,12 +158,14 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 	if forceTextResponseFormat {
 		generateConfig.ResponseMIMEType = "text/plain"
 		generateConfig.ResponseJsonSchema = nil
-		responseFormatInstruction, err := DefaultResponseFormatInstruction(task.ResponseResultFormat)
-		if err != nil {
-			return result, err
+		// Add response format instruction only when not in unstructured mode.
+		if !cfg.DisableStructuredOutput {
+			responseFormatInstruction, err := DefaultResponseFormatInstruction(task.ResponseResultFormat)
+			if err != nil {
+				return result, err
+			}
+			systemParts = append(systemParts, genai.NewPartFromText(result.recordPrompt(responseFormatInstruction)))
 		}
-		// Add response format instruction to system instructions.
-		systemParts = append(systemParts, genai.NewPartFromText(result.recordPrompt(responseFormatInstruction)))
 	} else {
 		responseSchema, err := ResultJSONSchemaRaw(task.ResponseResultFormat)
 		if err != nil {
@@ -168,6 +173,10 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 		}
 		generateConfig.ResponseMIMEType = "application/json"
 		generateConfig.ResponseJsonSchema = responseSchema
+	}
+
+	if cfg.DisableStructuredOutput {
+		systemParts = append(systemParts, genai.NewPartFromText(result.recordPrompt(DefaultUnstructuredResponseInstruction())))
 	}
 
 	// Add answer format instruction to system instructions.
@@ -182,7 +191,9 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 
 	// Create prompt content.
 	promptParts, err := o.createPromptMessageParts(ctx, task.Prompt, task.Files, &result)
-	if err != nil {
+	if errors.Is(err, ErrFeatureNotSupported) {
+		return result, err
+	} else if err != nil {
 		return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
 	}
 
@@ -196,7 +207,7 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 		}, &result.duration)
 		result.recordToolUsage(executor.GetUsageStats())
 		if err != nil {
-			return result, fmt.Errorf("%w: %v", ErrGenerateResponse, err)
+			return result, WrapErrGenerateResponse(err)
 		} else if resp == nil {
 			return result, nil // return current result state
 		}
@@ -251,15 +262,21 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 				for _, part := range candidate.Content.Parts {
 					if part.Text != "" {
 						// Final response.
-						content := []byte(part.Text)
-						if generateConfig.ResponseJsonSchema == nil {
-							repaired, err := utils.RepairTextJSON(part.Text)
-							if err != nil {
-								return result, NewErrUnmarshalResponse(err, []byte(part.Text), []byte(string(candidate.FinishReason)))
+						var err error
+						if cfg.DisableStructuredOutput {
+							err = UnmarshalUnstructuredResponse(ctx, logger, []byte(part.Text), &result)
+						} else {
+							content := []byte(part.Text)
+							if generateConfig.ResponseJsonSchema == nil {
+								repaired, err := utils.RepairTextJSON(part.Text)
+								if err != nil {
+									return result, NewErrUnmarshalResponse(err, []byte(part.Text), []byte(string(candidate.FinishReason)))
+								}
+								content = []byte(repaired)
 							}
-							content = []byte(repaired)
+							err = json.Unmarshal(content, &result)
 						}
-						if err := json.Unmarshal(content, &result); err != nil {
+						if err != nil {
 							return result, NewErrUnmarshalResponse(err, []byte(part.Text), []byte(string(candidate.FinishReason)))
 						}
 						return result, nil

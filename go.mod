@@ -12,20 +12,20 @@ require (
 	github.com/invopop/jsonschema v0.13.0
 	github.com/kaptinlin/jsonrepair v0.2.2
 	github.com/oklog/ulid/v2 v2.1.1
-	github.com/openai/openai-go/v3 v3.16.0
+	github.com/openai/openai-go/v3 v3.17.0
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
 	github.com/sashabaranov/go-openai v1.41.2
 	github.com/sethvargo/go-retry v0.3.0
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/time v0.14.0
-	google.golang.org/genai v1.42.0
+	google.golang.org/genai v1.44.0
 	gopkg.in/validator.v2 v2.0.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
 	cloud.google.com/go v0.123.0 // indirect
-	cloud.google.com/go/auth v0.18.0 // indirect
+	cloud.google.com/go/auth v0.18.1 // indirect
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
@@ -38,7 +38,7 @@ require (
 	github.com/charmbracelet/x/input v0.3.4 // indirect
 	github.com/charmbracelet/x/windows v0.2.0 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
-	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
+	github.com/clipperhouse/uax29/v2 v2.4.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
@@ -90,14 +90,14 @@ require (
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.40.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260114163908-3f89685c29c3 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260128011058-8636f8732409 // indirect
 	google.golang.org/grpc v1.78.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gotest.tools/v3 v3.5.2 // indirect
 )
 
 require (
-	github.com/anthropics/anthropic-sdk-go v1.19.0
+	github.com/anthropics/anthropic-sdk-go v1.20.0
 	github.com/charmbracelet/bubbles/v2 v2.0.0-beta.1
 	github.com/charmbracelet/bubbletea/v2 v2.0.0-beta.1
 	github.com/charmbracelet/lipgloss/v2 v2.0.0-beta.1

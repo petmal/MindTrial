@@ -9,6 +9,7 @@ package providers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	deepseek "github.com/cohesion-org/deepseek-go"
@@ -45,9 +46,17 @@ func (o Deepseek) Name() string {
 }
 
 func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
-	responseFormatInstruction, err := DefaultResponseFormatInstruction(task.ResponseResultFormat) // NOTE: required with JSONMode
-	if err != nil {
-		return result, err
+	// Initialize the response instruction depending on structured/unstructured mode.
+	// In structured mode this will contain the JSON schema instruction; in unstructured
+	// mode this becomes the unstructured response instruction.
+	var responseFormatInstruction string
+	if cfg.DisableStructuredOutput {
+		responseFormatInstruction = DefaultUnstructuredResponseInstruction()
+	} else {
+		responseFormatInstruction, err = DefaultResponseFormatInstruction(task.ResponseResultFormat) // NOTE: required with JSONMode
+		if err != nil {
+			return result, err
+		}
 	}
 
 	var request any
@@ -56,12 +65,14 @@ func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 			return result, ErrFileUploadNotSupported
 		}
 
-		messages := []deepseek.ChatCompletionMessageWithImage{
-			{
+		messages := []deepseek.ChatCompletionMessageWithImage{}
+		if responseFormatInstruction != "" {
+			messages = append(messages, deepseek.ChatCompletionMessageWithImage{
 				Role:    deepseek.ChatMessageRoleSystem,
 				Content: result.recordPrompt(responseFormatInstruction),
-			},
+			})
 		}
+
 		if answerFormatInstruction := DefaultAnswerFormatInstruction(task); answerFormatInstruction != "" {
 			messages = append(messages, deepseek.ChatCompletionMessageWithImage{
 				Role:    deepseek.ChatMessageRoleSystem,
@@ -70,7 +81,9 @@ func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 		}
 
 		promptParts, err := o.createPromptMessageParts(ctx, task.Prompt, task.Files, &result)
-		if err != nil {
+		if errors.Is(err, ErrFeatureNotSupported) {
+			return result, err
+		} else if err != nil {
 			return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
 		}
 		messages = append(messages, deepseek.ChatCompletionMessageWithImage{
@@ -81,14 +94,15 @@ func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 		request = &deepseek.ChatCompletionRequestWithImage{
 			Model:    cfg.Model,
 			Messages: messages,
-			JSONMode: true,
+			JSONMode: !cfg.DisableStructuredOutput,
 		}
 	} else {
-		messages := []deepseek.ChatCompletionMessage{
-			{
+		messages := []deepseek.ChatCompletionMessage{}
+		if responseFormatInstruction != "" {
+			messages = append(messages, deepseek.ChatCompletionMessage{
 				Role:    deepseek.ChatMessageRoleSystem,
 				Content: result.recordPrompt(responseFormatInstruction),
-			},
+			})
 		}
 		if answerFormatInstruction := DefaultAnswerFormatInstruction(task); answerFormatInstruction != "" {
 			messages = append(messages, deepseek.ChatCompletionMessage{
@@ -104,7 +118,7 @@ func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 		request = &deepseek.ChatCompletionRequest{
 			Model:    cfg.Model,
 			Messages: messages,
-			JSONMode: true,
+			JSONMode: !cfg.DisableStructuredOutput,
 		}
 	}
 
@@ -149,7 +163,8 @@ func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 		}, &result.duration)
 		result.recordToolUsage(executor.GetUsageStats())
 		if err != nil {
-			return result, fmt.Errorf("%w: %v", ErrGenerateResponse, err)
+
+			return result, WrapErrGenerateResponse(err)
 		} else if resp == nil {
 			return result, nil // return current result state
 		}
@@ -158,7 +173,13 @@ func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 		for _, candidate := range resp.Choices {
 			if len(candidate.Message.ToolCalls) == 0 {
 				// No tool calls, this is the final response.
-				if err := deepseek.NewJSONExtractor(nil).ExtractJSON(resp, &result); err != nil {
+				var err error
+				if cfg.DisableStructuredOutput {
+					err = UnmarshalUnstructuredResponse(ctx, logger, []byte(candidate.Message.Content), &result)
+				} else {
+					err = deepseek.NewJSONExtractor(nil).ExtractJSON(resp, &result)
+				}
+				if err != nil {
 					return result, NewErrUnmarshalResponse(err, []byte(candidate.Message.Content), []byte(candidate.FinishReason))
 				}
 				return result, nil

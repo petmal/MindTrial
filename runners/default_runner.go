@@ -273,6 +273,10 @@ func (r *defaultRunner) runTasks(ctx context.Context, logger logging.Logger, pro
 		if run.MaxRequestsPerMinute > 0 {
 			logger.Message(ctx, logging.LevelInfo, "%s: %s: request rate limited to %d requests/min.", provider.Name(), run.Name, run.MaxRequestsPerMinute)
 		}
+		skipTasksWithSchemaResultFormat := run.DisableStructuredOutput
+		if skipTasksWithSchemaResultFormat {
+			logger.Message(ctx, logging.LevelInfo, "%s: %s: structured output disabled for this configuration.", provider.Name(), run.Name)
+		}
 		executor := execution.NewExecutor(provider, run)
 
 		for _, task := range tasks {
@@ -283,7 +287,7 @@ func (r *defaultRunner) runTasks(ctx context.Context, logger logging.Logger, pro
 
 			taskLogger.Message(ctx, logging.LevelInfo, "starting task...")
 			runStart := time.Now()
-			r.runTask(ctx, taskLogger, executor, task, &runResult)
+			r.runTask(ctx, taskLogger, executor, task, skipTasksWithSchemaResultFormat, &runResult)
 			taskLogger.Message(ctx, logging.LevelInfo, "task has finished in %s.", time.Since(runStart))
 			rs.appendResult(runResult)
 			rs.emitProgressEvent()
@@ -292,7 +296,24 @@ func (r *defaultRunner) runTasks(ctx context.Context, logger logging.Logger, pro
 	logger.Message(ctx, logging.LevelInfo, "%s: all tasks in all configurations have finished on this provider in %s.", provider.Name(), time.Since(providerStart))
 }
 
-func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, executor *execution.Executor, task config.Task, runResult *RunResult) {
+func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, executor *execution.Executor, task config.Task, skipTasksWithSchemaResultFormat bool, runResult *RunResult) {
+	runResult.Task = task.Name
+	runResult.Provider = executor.Provider.Name()
+	runResult.Run = executor.RunConfig.Name
+
+	// Skip tasks with schema response format when structured output is disabled.
+	if skipTasksWithSchemaResultFormat {
+		if _, isSchema := task.ResponseResultFormat.AsSchema(); isSchema {
+			runResult.Kind = NotSupported
+			runResult.Got = "task requires schema response format but disable-structured-output is enabled for this configuration"
+			runResult.Details.Error = ErrorDetails{
+				Title:   "Incompatible Response Format",
+				Message: "task requires schema response format but disable-structured-output is enabled for this configuration",
+			}
+			return
+		}
+	}
+
 	// Resolve validation rules for this task.
 	resolvedValidationRules := task.GetResolvedValidationRules()
 
@@ -308,12 +329,10 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 		return
 	}
 
-	runResult.Task = task.Name
-	runResult.Provider = executor.Provider.Name()
-	runResult.Run = executor.RunConfig.Name
 	runResult.Want = task.ExpectedResult.Map(func(value interface{}) interface{} {
 		return validator.ToCanonical(resolvedValidationRules, value)
 	})
+
 	defer func() {
 		if p := recover(); p != nil {
 			msg := fmt.Sprintf("%v", p)

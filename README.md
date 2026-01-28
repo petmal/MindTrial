@@ -104,6 +104,20 @@ This file defines the tool's settings and target model configurations evaluated 
   - **runs**: List of runs (i.e. model configurations) for this provider. Unless disabled, all configurations will be trialed.
     - **name**: A unique display-friendly name to be shown in the results.
     - **model**: Model name must be exactly as defined by the backend service's API (e.g. *gpt-4o-mini*).
+    - **disable-structured-output**: Disable structured JSON responses for this run and force plain-text answers.
+      When enabled, MindTrial:
+      - treats the model's entire response as the **final answer** (title and explanation are filled with placeholders)
+      - forces the model to use plain-text response mode
+      - skips tasks that require schema-based (`response-result-format`) JSON outputs
+
+> [!TIP]
+> If the model can output JSON *as plain text* but cannot follow a provider-enforced schema, prefer `text-response-format`. Use `disable-structured-output` only when the model cannot reliably output JSON at all.
+
+> [!IMPORTANT]
+> For models that accept an explicit `response-format` parameter (e.g. OpenRouter), ensure the response format is unset or set to plain text when `disable-structured-output` is enabled; otherwise the run will fail.
+
+> [!IMPORTANT]
+> The `disable-structured-output` flag cannot be used in judge configurations, as judges require structured responses for evaluation.
 
 > [!IMPORTANT]
 > All provider names must match exactly:
@@ -374,6 +388,10 @@ config:
       runs:
         - name: "Qwen3-Max-Preview"
           model: "qwen3-max-preview"
+          max-requests-per-minute: 30
+        - name: "Qwen3-Max-Preview - unstructured"
+          model: "qwen3-max-preview"
+          disable-structured-output: true
           max-requests-per-minute: 30
         - name: "Qwen-VL-Max-Latest"
           model: "qwen-vl-max-latest"

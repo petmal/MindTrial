@@ -769,6 +769,210 @@ func TestRunnerRun(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "test disable-structured-output",
+			r: createMockRunnerFromConfig(t, []config.ProviderConfig{
+				{
+					Name: "mock",
+					Runs: []config.RunConfig{
+						{
+							Name: "pass",
+						},
+						{
+							Name:                    "pass",
+							DisableStructuredOutput: true,
+						},
+					},
+				},
+			}, []config.JudgeConfig{
+				{
+					Name: "test-judge",
+					Provider: config.ProviderConfig{
+						Name: "mock",
+						Runs: []config.RunConfig{
+							{
+								Name: "judge_evaluation",
+							},
+						},
+					},
+				},
+			}, nil, zerolog.Nop()),
+			args: args{
+				context.Background(),
+				[]config.Task{
+					{
+						Name:           "string_task",
+						ExpectedResult: utils.NewValueSet("string answer"),
+					},
+					{
+						Name:                 "schema_task",
+						ResponseResultFormat: config.NewResponseFormat(map[string]interface{}{"type": "string"}),
+						ExpectedResult:       utils.NewValueSet("schema answer"),
+					},
+					{
+						Name:           "judge_task",
+						ExpectedResult: utils.NewValueSet("judge answer"),
+						ValidationRules: &config.ValidationRules{
+							Judge: config.JudgeSelector{
+								Enabled: testutils.Ptr(true),
+								Name:    testutils.Ptr("test-judge"),
+								Variant: testutils.Ptr("judge_evaluation"),
+							},
+						},
+					},
+				},
+			},
+			want: Results{
+				"mock": []RunResult{
+					// structured run - all tasks succeed
+					{
+						Kind:     Success,
+						Task:     "string_task",
+						Provider: "mock",
+						Run:      "pass",
+						Got:      "string answer",
+						Want:     utils.NewValueSet("string answer"),
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "string_task",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"string answer"},
+								ExpectedAnswer: [][]string{{"string answer"}},
+								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
+							},
+							Error: ErrorDetails{},
+						},
+						Duration: 7211609999927884 * time.Nanosecond,
+					},
+					{
+						Kind:     Success,
+						Task:     "schema_task",
+						Provider: "mock",
+						Run:      "pass",
+						Got:      "schema answer",
+						Want:     utils.NewValueSet("schema answer"),
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "schema_task",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"schema answer"},
+								ExpectedAnswer: [][]string{{"schema answer"}},
+								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
+							},
+							Error: ErrorDetails{},
+						},
+						Duration: 7211609999927884 * time.Nanosecond,
+					},
+					{
+						Kind:     Success,
+						Task:     "judge_task",
+						Provider: "mock",
+						Run:      "pass",
+						Got:      "judge answer",
+						Want:     utils.NewValueSet("judge answer"),
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "judge_task",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"judge answer"},
+								ExpectedAnswer: [][]string{{"judge answer"}},
+								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
+							},
+							Validation: ValidationDetails{
+								Title:       "Semantic Assessment",
+								Explanation: []string{"Response is semantically equivalent to one of the accepted answers.", "", "Judge reasoning:", "mock success"},
+								Usage:       expectedUsage,
+								ToolUsage:   map[string]ToolUsage{},
+							},
+							Error: ErrorDetails{},
+						},
+						Duration: 7211609999927884 * time.Nanosecond,
+					},
+					// unstructured run - schema task skipped, others succeed
+					{
+						Kind:     Success,
+						Task:     "string_task",
+						Provider: "mock",
+						Run:      "pass",
+						Got:      "string answer",
+						Want:     utils.NewValueSet("string answer"),
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "string_task",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"string answer"},
+								ExpectedAnswer: [][]string{{"string answer"}},
+								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
+							},
+							Error: ErrorDetails{},
+						},
+						Duration: 7211609999927884 * time.Nanosecond,
+					},
+					{
+						Kind:     NotSupported,
+						Task:     "schema_task",
+						Provider: "mock",
+						Run:      "pass",
+						Got:      "task requires schema response format but disable-structured-output is enabled for this configuration",
+						Details: Details{
+							Answer:     AnswerDetails{},
+							Validation: ValidationDetails{},
+							Error: ErrorDetails{
+								Title:   "Incompatible Response Format",
+								Message: "task requires schema response format but disable-structured-output is enabled for this configuration",
+							},
+						},
+						Duration: 0,
+					},
+					{
+						Kind:     Success,
+						Task:     "judge_task",
+						Provider: "mock",
+						Run:      "pass",
+						Got:      "judge answer",
+						Want:     utils.NewValueSet("judge answer"),
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "judge_task",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"judge answer"},
+								ExpectedAnswer: [][]string{{"judge answer"}},
+								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
+							},
+							Validation: ValidationDetails{
+								Title:       "Semantic Assessment",
+								Explanation: []string{"Response is semantically equivalent to one of the accepted answers.", "", "Judge reasoning:", "mock success"},
+								Usage:       expectedUsage,
+								ToolUsage:   map[string]ToolUsage{},
+							},
+							Error: ErrorDetails{},
+						},
+						Duration: 7211609999927884 * time.Nanosecond,
+					},
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
