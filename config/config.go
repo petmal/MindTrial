@@ -39,28 +39,6 @@ const (
 	MOONSHOTAI string = "moonshotai"
 )
 
-// LegacyJsonMode specifies the compatibility mode for JSON response formatting.
-type LegacyJsonMode int
-
-const (
-	// LegacyJsonSchema adds a text-based JSON format instruction to the prompt
-	// while keeping the json_schema response format with strict schema validation.
-	// Use this mode for providers that require explicit JSON formatting guidance
-	// in the prompt but support structured schema-based responses (e.g., Alibaba Qwen models).
-	LegacyJsonSchema LegacyJsonMode = iota
-
-	// LegacyJsonObject adds a text-based JSON format instruction to the prompt
-	// and switches the response format to json_object mode without schema validation.
-	// Use this mode for providers that only support basic JSON object responses
-	// (e.g., Moonshot AI Kimi models).
-	LegacyJsonObject
-)
-
-// Ptr returns a pointer to the LegacyJsonMode value.
-func (l LegacyJsonMode) Ptr() *LegacyJsonMode {
-	return &l
-}
-
 // ErrInvalidConfigProperty indicates invalid configuration.
 var ErrInvalidConfigProperty = errors.New("invalid configuration property")
 
@@ -415,13 +393,6 @@ type OpenAIModelParams struct {
 	// attempt to return the same result for the same inputs with the same seed value and parameters.
 	// This field is for internal use only and not exposed in YAML configuration.
 	Seed *int64 `yaml:"-"`
-
-	// LegacyJsonMode specifies a compatibility mode for JSON response formatting.
-	// When set to LegacyJsonSchema, adds format instruction to prompt while keeping json_schema response format.
-	// When set to LegacyJsonObject, adds format instruction to prompt and uses json_object response format.
-	// When nil, uses default behavior (no format instruction, json_schema response format).
-	// This field is for internal use only and not exposed in YAML configuration.
-	LegacyJsonMode *LegacyJsonMode `yaml:"-"`
 }
 
 // ModelResponseFormat configures how a model should format its responses.

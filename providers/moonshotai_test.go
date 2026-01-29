@@ -12,6 +12,7 @@ import (
 
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/testutils"
+	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -47,4 +48,57 @@ func TestMoonshotAI_FileTypeNotSupported(t *testing.T) {
 	}
 	_, err := p.Run(context.Background(), logger, runCfg, task)
 	require.ErrorIs(t, err, ErrFileNotSupported)
+}
+
+func TestMoonshotAICopyToOpenAIV3Params(t *testing.T) {
+	buildParams := func(t *testing.T, cfg config.RunConfig) openAIV3ModelParams {
+		params := openAIV3ModelParams{}
+		if cfg.ModelParams == nil {
+			return params
+		}
+		moonshotAIParams, ok := cfg.ModelParams.(config.MoonshotAIModelParams)
+		require.True(t, ok)
+		provider := &MoonshotAI{}
+		provider.copyToOpenAIV3Params(moonshotAIParams, &params)
+		return params
+	}
+
+	t.Run("numeric parameters with type conversion", func(t *testing.T) {
+		cfg := config.RunConfig{
+			Name: "run",
+			ModelParams: config.MoonshotAIModelParams{
+				Temperature:      utils.Ptr(float32(0.7)),
+				TopP:             utils.Ptr(float32(0.9)),
+				PresencePenalty:  utils.Ptr(float32(0.5)),
+				FrequencyPenalty: utils.Ptr(float32(0.3)),
+				MaxTokens:        utils.Ptr(int32(1000)),
+			},
+		}
+		params := buildParams(t, cfg)
+		// Assert float32 -> float64 conversion
+		require.IsType(t, (*float64)(nil), params.Temperature)
+		require.IsType(t, (*float64)(nil), params.TopP)
+		require.IsType(t, (*float64)(nil), params.PresencePenalty)
+		require.IsType(t, (*float64)(nil), params.FrequencyPenalty)
+		require.InDelta(t, 0.7, *params.Temperature, 0.0001)
+		require.InDelta(t, 0.9, *params.TopP, 0.0001)
+		require.InDelta(t, 0.5, *params.PresencePenalty, 0.0001)
+		require.InDelta(t, 0.3, *params.FrequencyPenalty, 0.0001)
+		// Assert int32 -> int64 conversion
+		require.IsType(t, (*int64)(nil), params.MaxTokens)
+		require.Equal(t, int64(1000), *params.MaxTokens)
+	})
+
+	t.Run("nil parameters remain nil", func(t *testing.T) {
+		cfg := config.RunConfig{
+			Name:        "run",
+			ModelParams: config.MoonshotAIModelParams{},
+		}
+		params := buildParams(t, cfg)
+		require.Nil(t, params.Temperature)
+		require.Nil(t, params.TopP)
+		require.Nil(t, params.PresencePenalty)
+		require.Nil(t, params.FrequencyPenalty)
+		require.Nil(t, params.MaxTokens)
+	})
 }

@@ -8,31 +8,23 @@ package providers
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
-	"net/http"
-	"slices"
 
+	"github.com/openai/openai-go/v3/option"
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
 	"github.com/petmal/mindtrial/pkg/utils"
-	"github.com/petmal/mindtrial/providers/tools"
-	openai "github.com/sashabaranov/go-openai"
 )
 
 // NewOpenAI creates a new OpenAI provider instance with the given configuration.
 func NewOpenAI(cfg config.OpenAIClientConfig, availableTools []config.ToolConfig) *OpenAI {
-	return &OpenAI{
-		client:         openai.NewClient(cfg.APIKey),
-		availableTools: availableTools,
-	}
+	openaiProvider := newOpenAIV3Provider(availableTools, option.WithAPIKey(cfg.APIKey))
+	return &OpenAI{openaiProvider: openaiProvider}
 }
 
 // OpenAI implements the Provider interface for OpenAI generative models.
 type OpenAI struct {
-	client         *openai.Client
-	availableTools []config.ToolConfig
+	openaiProvider *openAIV3Provider
 }
 
 func (o OpenAI) Name() string {
@@ -40,262 +32,49 @@ func (o OpenAI) Name() string {
 }
 
 func (o *OpenAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
-	// Check if structured output is disabled.
-	disableStructuredOutput := cfg.HasStructuredOutputDisabled()
-
-	request := openai.ChatCompletionRequest{
-		Model:    cfg.Model,
-		Messages: []openai.ChatCompletionMessage{},
-		N:        1, // generate only one candidate response
-	}
-
-	// Set response format based on structured output mode.
-	if disableStructuredOutput {
-		request.ResponseFormat = &openai.ChatCompletionResponseFormat{
-			Type: openai.ChatCompletionResponseFormatTypeText,
-		}
-	} else {
-		schema, err := ResultJSONSchema(task.ResponseResultFormat)
-		if err != nil {
-			return result, err
-		}
-		request.ResponseFormat = &openai.ChatCompletionResponseFormat{
-			Type: openai.ChatCompletionResponseFormatTypeJSONSchema,
-			JSONSchema: &openai.ChatCompletionResponseFormatJSONSchema{
-				Name:   "response",
-				Schema: schema,
-				Strict: true,
-			},
-		}
-	}
+	openAIV3Params := openAIV3ModelParams{}
 
 	if cfg.ModelParams != nil {
-		if modelParams, ok := cfg.ModelParams.(config.OpenAIModelParams); ok {
-			if modelParams.ReasoningEffort != nil {
-				request.ReasoningEffort = *modelParams.ReasoningEffort
-			}
-			if modelParams.Verbosity != nil {
-				request.Verbosity = *modelParams.Verbosity
-			}
-			// Add response format instruction only when structured output is enabled.
-			if !disableStructuredOutput && (modelParams.TextResponseFormat || modelParams.LegacyJsonMode != nil) {
-				responseFormatInstruction, err := DefaultResponseFormatInstruction(task.ResponseResultFormat)
-				if err != nil {
-					return result, err
-				}
-				request.Messages = append(request.Messages, openai.ChatCompletionMessage{
-					Role:    openai.ChatMessageRoleUser, // NOTE: system role not supported by all models
-					Content: result.recordPrompt(responseFormatInstruction),
-				})
-
-				// For TextResponseFormat, change the response format to plain text.
-				if modelParams.TextResponseFormat {
-					request.ResponseFormat = &openai.ChatCompletionResponseFormat{
-						Type: openai.ChatCompletionResponseFormatTypeText,
-					}
-				} else if modelParams.LegacyJsonMode != nil && *modelParams.LegacyJsonMode == config.LegacyJsonObject {
-					// For LegacyJsonObject mode, use json_object response format without schema validation.
-					request.ResponseFormat = &openai.ChatCompletionResponseFormat{
-						Type: openai.ChatCompletionResponseFormatTypeJSONObject,
-					}
-				}
-				// For LegacyJsonSchema mode (or nil), keep the default json_schema format.
-			}
-			if modelParams.Temperature != nil {
-				request.Temperature = *modelParams.Temperature
-			}
-			if modelParams.TopP != nil {
-				request.TopP = *modelParams.TopP
-			}
-			if modelParams.MaxCompletionTokens != nil {
-				request.MaxCompletionTokens = int(*modelParams.MaxCompletionTokens)
-			}
-			if modelParams.MaxTokens != nil {
-				request.MaxTokens = int(*modelParams.MaxTokens)
-			}
-			if modelParams.PresencePenalty != nil {
-				request.PresencePenalty = *modelParams.PresencePenalty
-			}
-			if modelParams.FrequencyPenalty != nil {
-				request.FrequencyPenalty = *modelParams.FrequencyPenalty
-			}
-			if modelParams.Seed != nil {
-				request.Seed = utils.ConvertIntPtr[int64, int](modelParams.Seed)
-			}
+		if openAIModelParams, ok := cfg.ModelParams.(config.OpenAIModelParams); ok {
+			o.copyToOpenAIV3Params(openAIModelParams, &openAIV3Params)
 		} else {
 			return result, fmt.Errorf("%w: %s", ErrInvalidModelParams, cfg.Name)
 		}
 	}
 
-	if disableStructuredOutput {
-		request.Messages = append(request.Messages, openai.ChatCompletionMessage{
-			Role:    openai.ChatMessageRoleUser, // NOTE: system role not supported by all models
-			Content: result.recordPrompt(DefaultUnstructuredResponseInstruction()),
-		})
-	}
-
-	if answerFormatInstruction := DefaultAnswerFormatInstruction(task); answerFormatInstruction != "" {
-		request.Messages = append(request.Messages,
-			openai.ChatCompletionMessage{
-				Role:    openai.ChatMessageRoleUser, // NOTE: system role not supported by all models
-				Content: result.recordPrompt(answerFormatInstruction),
-			})
-	}
-
-	promptMessage, err := o.createPromptMessage(ctx, task.Prompt, task.Files, &result)
-	if errors.Is(err, ErrFeatureNotSupported) {
-		return result, err
-	} else if err != nil {
-		return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
-	}
-	request.Messages = append(request.Messages, promptMessage)  
-
-	// Setup tools if any.
-	var executor *tools.DockerToolExecutor
-	toolSelector := task.GetResolvedToolSelector()
-	if enabledTools, hasTools := toolSelector.GetEnabledToolsByName(); hasTools {
-		var err error
-		executor, err = tools.NewDockerToolExecutor(ctx)
-		if err != nil {
-			return result, fmt.Errorf("%w: %w", ErrToolSetup, err)
-		}
-		defer executor.Close()
-		for toolName, toolSelection := range enabledTools {
-			// Find the tool config from available tools.
-			toolCfg, found := findToolByName(o.availableTools, toolName)
-			if !found {
-				return result, fmt.Errorf("%w: %s", ErrToolNotFound, toolName)
-			}
-			tool := tools.NewDockerTool(toolCfg, toolSelection.MaxCalls, toolSelection.Timeout, toolSelection.MaxMemoryMB, toolSelection.CpuPercent)
-			executor.RegisterTool(tool)
-			request.Tools = append(request.Tools, openai.Tool{
-				Type: "function",
-				Function: &openai.FunctionDefinition{
-					Name:        toolCfg.Name,
-					Description: toolCfg.Description,
-					Strict:      false,
-					Parameters:  toolCfg.Parameters,
-				},
-			})
-		}
-		// If user tools are present, allow auto tool choice.
-		request.ToolChoice = "auto"
-	}
-
-	// Conversation loop to handle tool calls.
-	for {
-		resp, err := timed(func() (openai.ChatCompletionResponse, error) {
-			response, err := o.client.CreateChatCompletion(ctx, request)
-			if err != nil && o.isTransientResponse(err) {
-				return response, WrapErrRetryable(err)
-			}
-			return response, err
-		}, &result.duration)
-		if err != nil {
-			return result, WrapErrGenerateResponse(err)
-		}
-
-		recordUsage(&resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, &result.usage)
-		result.recordToolUsage(executor.GetUsageStats())
-
-		for _, candidate := range resp.Choices {
-			if len(candidate.Message.ToolCalls) == 0 {
-				// No tool calls, this is the final response.
-				content := candidate.Message.Content
-
-				var err error
-				if disableStructuredOutput {
-					err = UnmarshalUnstructuredResponse(ctx, logger, []byte(content), &result)
-				} else {
-					if request.ResponseFormat.Type == openai.ChatCompletionResponseFormatTypeText {
-						content, err = utils.RepairTextJSON(content)
-						if err != nil {
-							return result, NewErrUnmarshalResponse(err, []byte(candidate.Message.Content), []byte(candidate.FinishReason))
-						}
-					}
-					err = json.Unmarshal([]byte(content), &result)
-				}
-				if err != nil {
-					return result, NewErrUnmarshalResponse(err, []byte(candidate.Message.Content), []byte(candidate.FinishReason))
-				}
-				return result, nil
-			}
-
-			// Append assistant message to conversation history before handling tool calls.
-			request.Messages = append(request.Messages, candidate.Message)
-
-			// Handle tool calls.
-			for _, toolCall := range candidate.Message.ToolCalls {
-				data, err := taskFilesToDataMap(ctx, task.Files)
-				if err != nil {
-					return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
-				}
-				toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, json.RawMessage(toolCall.Function.Arguments), data)
-				content := string(toolResult)
-				if err != nil {
-					content = formatToolExecutionError(err)
-				}
-				request.Messages = append(request.Messages, openai.ChatCompletionMessage{
-					Role:       openai.ChatMessageRoleTool,
-					Content:    content,
-					ToolCallID: toolCall.ID,
-				})
-			}
-		}
-	} // move to the next conversation turn
-}
-
-func (o *OpenAI) createPromptMessage(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (message openai.ChatCompletionMessage, err error) {
-	message.Role = openai.ChatMessageRoleUser
-
-	if len(files) > 0 {
-		for _, file := range files {
-			if fileType, err := file.TypeValue(ctx); err != nil {
-				return message, err
-			} else if !isSupportedImageType(fileType) {
-				return message, fmt.Errorf("%w: %s", ErrFileNotSupported, fileType)
-			}
-			dataURL, err := file.GetDataURL(ctx)
-			if err != nil {
-				return message, err
-			}
-			// Attach file name as a separate text part before the image, for reference.
-			message.MultiContent = append(message.MultiContent, openai.ChatMessagePart{
-				Type: openai.ChatMessagePartTypeText,
-				Text: result.recordPrompt(DefaultTaskFileNameInstruction(file)),
-			})
-			message.MultiContent = append(message.MultiContent, openai.ChatMessagePart{
-				Type: openai.ChatMessagePartTypeImageURL,
-				ImageURL: &openai.ChatMessageImageURL{
-					URL:    dataURL,
-					Detail: openai.ImageURLDetailAuto,
-				},
-			})
-		}
-
-		message.MultiContent = append(message.MultiContent, openai.ChatMessagePart{
-			Type: openai.ChatMessagePartTypeText,
-			Text: result.recordPrompt(promptText),
-		}) // append the prompt text after the file data for improved context integrity
-	} else {
-		message.Content = result.recordPrompt(promptText)
-	}
-
-	return message, nil
-}
-
-func (o *OpenAI) isTransientResponse(err error) bool {
-	var apiError *openai.APIError
-	if errors.As(err, &apiError) {
-		return slices.Contains([]int{
-			http.StatusTooManyRequests,
-			http.StatusInternalServerError,
-			http.StatusServiceUnavailable,
-		}, apiError.HTTPStatusCode)
-	}
-	return false
+	cfg.ModelParams = openAIV3Params
+	return o.openaiProvider.Run(ctx, logger, cfg, task)
 }
 
 func (o *OpenAI) Close(ctx context.Context) error {
-	return nil
+	return o.openaiProvider.Close(ctx)
+}
+
+// copyToOpenAIV3Params copies relevant fields from OpenAIModelParams to openAIV3ModelParams.
+func (o *OpenAI) copyToOpenAIV3Params(openAIModelParams config.OpenAIModelParams, openAIV3Params *openAIV3ModelParams) {
+	if openAIModelParams.TextResponseFormat {
+		openAIV3Params.ResponseFormat = ResponseFormatText.Ptr()
+	}
+
+	openAIV3Params.ReasoningEffort = openAIModelParams.ReasoningEffort
+	openAIV3Params.Verbosity = openAIModelParams.Verbosity
+	if openAIModelParams.Temperature != nil {
+		openAIV3Params.Temperature = utils.Ptr(float64(*openAIModelParams.Temperature))
+	}
+	if openAIModelParams.TopP != nil {
+		openAIV3Params.TopP = utils.Ptr(float64(*openAIModelParams.TopP))
+	}
+	if openAIModelParams.MaxCompletionTokens != nil {
+		openAIV3Params.MaxCompletionTokens = utils.Ptr(int64(*openAIModelParams.MaxCompletionTokens))
+	}
+	if openAIModelParams.MaxTokens != nil {
+		openAIV3Params.MaxTokens = utils.Ptr(int64(*openAIModelParams.MaxTokens))
+	}
+	if openAIModelParams.PresencePenalty != nil {
+		openAIV3Params.PresencePenalty = utils.Ptr(float64(*openAIModelParams.PresencePenalty))
+	}
+	if openAIModelParams.FrequencyPenalty != nil {
+		openAIV3Params.FrequencyPenalty = utils.Ptr(float64(*openAIModelParams.FrequencyPenalty))
+	}
+	openAIV3Params.Seed = openAIModelParams.Seed
 }

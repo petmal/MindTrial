@@ -14,7 +14,6 @@ require (
 	github.com/oklog/ulid/v2 v2.1.1
 	github.com/openai/openai-go/v3 v3.17.0
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
-	github.com/sashabaranov/go-openai v1.41.2
 	github.com/sethvargo/go-retry v0.3.0
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/time v0.14.0
