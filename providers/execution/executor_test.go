@@ -242,3 +242,113 @@ func TestExecutor_Execute_ContextCanceled(t *testing.T) {
 	require.Error(t, err)
 	assert.Equal(t, context.Canceled, err)
 }
+
+func TestExecutor_Execute_PreservesMetadataOnError(t *testing.T) {
+	provider, err := createMockProvider("test-provider")
+	require.NoError(t, err)
+
+	logger := testutils.NewTestLogger(t)
+
+	t.Run("retriable error preserves result metadata", func(t *testing.T) {
+		runConfig := config.RunConfig{
+			Name:  "mock",
+			Model: "test-model",
+			RetryPolicy: &config.RetryPolicy{
+				MaxRetryAttempts:    1,
+				InitialDelaySeconds: 1,
+			},
+		}
+
+		task := config.Task{
+			Name:           "retry_3", // provider will return retryable errors before succeeding
+			ExpectedResult: utils.NewValueSet("expected answer"),
+		}
+
+		// Direct provider call returns a populated Result even when it returns an error.
+		directResult, directErr := provider.Run(context.Background(), logger, runConfig, task)
+		require.Error(t, directErr)
+		assert.NotEmpty(t, directResult.GetPrompts(), "provider should populate prompts on attempt")
+		assert.NotNil(t, directResult.GetUsage().InputTokens, "provider should populate usage on attempt")
+
+		// Executor should preserve the last attempt's Result.
+		executor := NewExecutor(provider, runConfig)
+		execResult, execErr := executor.Execute(context.Background(), logger, task)
+		require.Error(t, execErr)
+		assert.NotEmpty(t, execResult.GetPrompts(), "executor should preserve prompts from last attempt")
+		assert.NotNil(t, execResult.GetUsage().InputTokens, "executor should preserve usage from last attempt")
+	})
+
+	t.Run("hard error preserves result metadata", func(t *testing.T) {
+		runConfig := config.RunConfig{
+			Name:  "mock",
+			Model: "test-model",
+			// even without retry policy, executor should preserve attempt's result on error
+		}
+
+		task := config.Task{
+			Name:           "error",
+			ExpectedResult: utils.NewValueSet("expected answer"),
+		}
+
+		directResult, directErr := provider.Run(context.Background(), logger, runConfig, task)
+		require.Error(t, directErr)
+		assert.NotEmpty(t, directResult.GetPrompts(), "provider should populate prompts on hard error")
+		assert.NotNil(t, directResult.GetUsage().InputTokens, "provider should populate usage on hard error")
+
+		executor := NewExecutor(provider, runConfig)
+		execResult, execErr := executor.Execute(context.Background(), logger, task)
+		require.Error(t, execErr)
+		assert.NotEmpty(t, execResult.GetPrompts(), "executor should preserve prompts on hard error")
+		assert.NotNil(t, execResult.GetUsage().InputTokens, "executor should preserve usage on hard error")
+	})
+}
+
+func TestExecutor_Execute_PreservesMetadataOnSuccess(t *testing.T) {
+	provider, err := createMockProvider("test-provider")
+	require.NoError(t, err)
+
+	logger := testutils.NewTestLogger(t)
+
+	t.Run("without retry", func(t *testing.T) {
+		runConfig := config.RunConfig{
+			Name:  "mock",
+			Model: "test-model",
+		}
+		executor := NewExecutor(provider, runConfig)
+		task := config.Task{
+			Name:           "success",
+			ExpectedResult: utils.NewValueSet("expected answer"),
+		}
+
+		directRes, directErr := provider.Run(context.Background(), logger, runConfig, task)
+		require.NoError(t, directErr)
+		assert.NotEmpty(t, directRes.GetPrompts(), "provider should populate prompts on success")
+		assert.NotNil(t, directRes.GetUsage().InputTokens, "provider should populate usage on success")
+
+		res, err := executor.Execute(context.Background(), logger, task)
+		require.NoError(t, err)
+		assert.NotEmpty(t, res.GetPrompts(), "prompts must be populated on success")
+		assert.NotNil(t, res.GetUsage().InputTokens, "usage must be populated on success")
+	})
+
+	t.Run("with retry", func(t *testing.T) {
+		runConfig := config.RunConfig{
+			Name:  "mock",
+			Model: "test-model",
+			RetryPolicy: &config.RetryPolicy{
+				MaxRetryAttempts:    2,
+				InitialDelaySeconds: 1,
+			},
+		}
+		executor := NewExecutor(provider, runConfig)
+		task := config.Task{
+			Name:           "retry_1: success",
+			ExpectedResult: utils.NewValueSet("expected answer"),
+		}
+
+		res, err := executor.Execute(context.Background(), logger, task)
+		require.NoError(t, err)
+		assert.NotEmpty(t, res.GetPrompts(), "prompts must be populated on retry success")
+		assert.NotNil(t, res.GetUsage().InputTokens, "usage must be populated on retry success")
+	})
+}

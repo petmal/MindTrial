@@ -71,7 +71,7 @@ func (e *Executor) Execute(ctx context.Context, logger logging.Logger, task conf
 	return e.executeOnce(ctx, logger, task)
 }
 
-func (e *Executor) executeWithRetry(ctx context.Context, logger logging.Logger, task config.Task) (providers.Result, error) {
+func (e *Executor) executeWithRetry(ctx context.Context, logger logging.Logger, task config.Task) (result providers.Result, err error) {
 	backoff := retry.NewExponential(time.Duration(e.RunConfig.RetryPolicy.InitialDelaySeconds) * time.Second)
 	backoff = retry.WithMaxRetries(uint64(e.RunConfig.RetryPolicy.MaxRetryAttempts), backoff)
 	backoff = BackoffWithCallback(func(nextRetryAttempt uint64, nextDelay time.Duration) {
@@ -79,9 +79,13 @@ func (e *Executor) executeWithRetry(ctx context.Context, logger logging.Logger, 
 			nextRetryAttempt, e.RunConfig.RetryPolicy.MaxRetryAttempts, nextDelay)
 	}, backoff)
 
-	return retry.DoValue(ctx, backoff, func(ctx context.Context) (providers.Result, error) {
-		return e.executeOnce(ctx, logger, task)
+	err = retry.Do(ctx, backoff, func(ctx context.Context) error {
+		executionResult, executionError := e.executeOnce(ctx, logger, task)
+		result = executionResult // capture the last attempt's result
+		return executionError
 	})
+
+	return result, err
 }
 
 func (e *Executor) executeOnce(ctx context.Context, logger logging.Logger, task config.Task) (result providers.Result, err error) {
