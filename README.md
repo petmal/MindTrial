@@ -109,6 +109,12 @@ This file defines the tool's settings and target model configurations evaluated 
       - treats the model's entire response as the **final answer** (title and explanation are filled with placeholders)
       - forces the model to use plain-text response mode
       - skips tasks that require schema-based (`response-result-format`) JSON outputs
+    - **text-only**: Skip tasks that require file attachments (e.g. images).
+      When enabled, only tasks without file attachments will be executed.
+      This is useful for text-only models that cannot process images or other files.
+
+> [!TIP]
+> Use `text-only` for models that do not support vision capabilities, such as text-only language models hosted on platforms like OpenRouter.
 
 > [!TIP]
 > If the model can output JSON *as plain text* but cannot follow a provider-enforced schema, prefer `text-response-format`. Use `disable-structured-output` only when the model cannot reliably output JSON at all.
@@ -403,6 +409,16 @@ config:
           max-requests-per-minute: 30
           model-parameters:
             text-response-format: true
+    - name: moonshotai
+      client-config:
+        api-key: "<your-api-key>"
+      runs:
+        - name: "Kimi K2 - latest (thinking)"
+          model: "kimi-k2-thinking"
+          text-only: true  # Skip tasks with file attachments
+          max-requests-per-minute: 3
+          model-parameters:
+            temperature: 1.0
 ```
 
 ### tasks.yaml

@@ -310,6 +310,11 @@ type RunConfig struct {
 	// If set, overrides the parent ProviderConfig.Disabled value.
 	Disabled *bool `yaml:"disabled" validate:"omitempty"`
 
+	// TextOnly skips tasks that require file attachments (e.g. images).
+	// When enabled, only tasks without file attachments will be executed.
+	// This is useful for text-only models that cannot process images or other files.
+	TextOnly bool `yaml:"text-only" validate:"omitempty"`
+
 	// DisableStructuredOutput forces text response format and expects the model to return
 	// the final answer directly without the structured Result wrapper (title, explanation, final_answer).
 	// When enabled:
@@ -880,6 +885,7 @@ func decodeRuns(provider string, value *yaml.Node, out *[]RunConfig) error {
 		Model                   string       `yaml:"model"`
 		MaxRequestsPerMinute    int          `yaml:"max-requests-per-minute"`
 		Disabled                *bool        `yaml:"disabled"`
+		TextOnly                bool         `yaml:"text-only"`
 		DisableStructuredOutput bool         `yaml:"disable-structured-output"`
 		ModelParams             yaml.Node    `yaml:"model-parameters"`
 		RetryPolicy             *RetryPolicy `yaml:"retry-policy"`
@@ -895,6 +901,7 @@ func decodeRuns(provider string, value *yaml.Node, out *[]RunConfig) error {
 		(*out)[i].Model = temp[i].Model
 		(*out)[i].MaxRequestsPerMinute = temp[i].MaxRequestsPerMinute
 		(*out)[i].Disabled = temp[i].Disabled
+		(*out)[i].TextOnly = temp[i].TextOnly
 		(*out)[i].DisableStructuredOutput = temp[i].DisableStructuredOutput
 		(*out)[i].RetryPolicy = temp[i].RetryPolicy
 

@@ -973,6 +973,137 @@ func TestRunnerRun(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "test text-only",
+			r: createMockRunnerFromConfig(t, []config.ProviderConfig{
+				{
+					Name: "mock",
+					Runs: []config.RunConfig{
+						{
+							Name: "pass",
+						},
+						{
+							Name:     "pass",
+							TextOnly: true,
+						},
+					},
+				},
+			}, nil, nil, zerolog.Nop()),
+			args: args{
+				context.Background(),
+				[]config.Task{
+					{
+						Name:           "text_task",
+						ExpectedResult: utils.NewValueSet("text answer"),
+					},
+					{
+						Name:           "file_task",
+						ExpectedResult: utils.NewValueSet("file answer"),
+						Files: []config.TaskFile{
+							mockTaskFile(t, "test.jpg", "image/jpeg", "test.jpg"),
+						},
+					},
+				},
+			},
+			want: Results{
+				"mock": []RunResult{
+					// normal run - both tasks succeed
+					{
+						Kind:     Success,
+						Task:     "text_task",
+						Provider: "mock",
+						Run:      "pass",
+						Got:      "text answer",
+						Want:     utils.NewValueSet("text answer"),
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "text_task",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"text answer"},
+								ExpectedAnswer: [][]string{{"text answer"}},
+								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
+							},
+							Error: ErrorDetails{},
+						},
+						Duration: 7211609999927884 * time.Nanosecond,
+					},
+					{
+						Kind:     Success,
+						Task:     "file_task",
+						Provider: "mock",
+						Run:      "pass",
+						Got:      "file answer",
+						Want:     utils.NewValueSet("file answer"),
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "file_task",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"file answer"},
+								ExpectedAnswer: [][]string{{"file answer"}},
+								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
+							},
+							Error: ErrorDetails{},
+						},
+						Duration: 7211609999927884 * time.Nanosecond,
+					},
+					// text-only run - text task succeeds, file task skipped
+					{
+						Kind:     Success,
+						Task:     "text_task",
+						Provider: "mock",
+						Run:      "pass",
+						Got:      "text answer",
+						Want:     utils.NewValueSet("text answer"),
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "text_task",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"text answer"},
+								ExpectedAnswer: [][]string{{"text answer"}},
+								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
+							},
+							Error: ErrorDetails{},
+						},
+						Duration: 7211609999927884 * time.Nanosecond,
+					},
+					{
+						Kind:     NotSupported,
+						Task:     "file_task",
+						Provider: "mock",
+						Run:      "pass",
+						Got:      "task requires file attachments but text-only mode is enabled for this configuration",
+						Details: Details{
+							Answer:     AnswerDetails{},
+							Validation: ValidationDetails{},
+							Error: ErrorDetails{
+								Title:   "Feature Disabled",
+								Message: "task requires file attachments but text-only mode is enabled for this configuration",
+							},
+						},
+						Duration: 0,
+					},
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1358,6 +1489,15 @@ func newToolTask(t *testing.T, toolNames ...string) config.Task {
 	task.ResolveToolSelector(config.ToolSelector{})
 
 	return task
+}
+
+func mockTaskFile(t *testing.T, name, mediaType, uri string) config.TaskFile {
+	t.Helper()
+	f := config.TaskFile{Name: name, Type: mediaType}
+	if err := f.URI.Parse(uri); err != nil {
+		t.Fatalf("failed to parse task file uri: %v", err)
+	}
+	return f
 }
 
 func TestProviderResultsByRunAndKind(t *testing.T) {

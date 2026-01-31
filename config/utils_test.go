@@ -567,6 +567,7 @@ func TestLoadConfigFromFile(t *testing.T) {
           runs:
               - name: "Kimi K2"
                 model: "kimi-k2"
+                text-only: true
                 model-parameters:
                     temperature: 0.6
                     top-p: 0.9
@@ -798,6 +799,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 									Name:                 "Kimi K2",
 									Model:                "kimi-k2",
 									MaxRequestsPerMinute: 0,
+									TextOnly:             true,
 									ModelParams: MoonshotAIModelParams{
 										Temperature:      testutils.Ptr(float32(0.6)),
 										TopP:             testutils.Ptr(float32(0.9)),
