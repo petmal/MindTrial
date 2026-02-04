@@ -560,6 +560,7 @@ func TestLoadConfigFromFile(t *testing.T) {
                     max-tokens: 2048
                     seed: 12345
                     disable-legacy-json-mode: true
+                    stream: true
         - name: moonshotai
           client-config:
               api-key: "sk-moonshot-test-key"
@@ -783,6 +784,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 										MaxTokens:             testutils.Ptr(int32(2048)),
 										Seed:                  testutils.Ptr(uint32(12345)),
 										DisableLegacyJsonMode: testutils.Ptr(true),
+										Stream:                true,
 									},
 								},
 							},

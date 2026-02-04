@@ -129,6 +129,29 @@ func TestAlibabaCopyToOpenAIV3Params(t *testing.T) {
 		require.Equal(t, ResponseFormatText, *params.ResponseFormat)
 	})
 
+	t.Run("Stream enables streaming mode", func(t *testing.T) {
+		cfg := config.RunConfig{
+			Name: "run",
+			ModelParams: config.AlibabaModelParams{
+				Stream: true,
+			},
+		}
+		params := buildParams(t, cfg)
+		require.NotNil(t, params.Stream)
+		require.True(t, *params.Stream)
+	})
+
+	t.Run("Stream disabled by default", func(t *testing.T) {
+		cfg := config.RunConfig{
+			Name: "run",
+			ModelParams: config.AlibabaModelParams{
+				Stream: false,
+			},
+		}
+		params := buildParams(t, cfg)
+		require.Nil(t, params.Stream) // false bool value should not set the pointer
+	})
+
 	t.Run("nil parameters remain nil", func(t *testing.T) {
 		cfg := config.RunConfig{
 			Name:        "run",
@@ -142,5 +165,6 @@ func TestAlibabaCopyToOpenAIV3Params(t *testing.T) {
 		require.Nil(t, params.FrequencyPenalty)
 		require.Nil(t, params.MaxTokens)
 		require.Nil(t, params.Seed)
+		require.Nil(t, params.Stream)
 	})
 }

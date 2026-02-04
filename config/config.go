@@ -727,6 +727,12 @@ type AlibabaModelParams struct {
 	// in the prompt to guide the model to respond in a structured JSON format.
 	// This is necessary for models that do not fully support schema-based structured JSON output.
 	DisableLegacyJsonMode *bool `yaml:"disable-legacy-json-mode" validate:"omitempty"`
+
+	// Stream enables streaming mode for the API response.
+	// Some models (e.g. QvQ, QwQ) require streaming to be enabled.
+	// When enabled, responses are streamed incrementally and buffered internally
+	// before processing. This is functionally transparent to the user.
+	Stream bool `yaml:"stream" validate:"omitempty"`
 }
 
 // MoonshotAIModelParams represents Moonshot AI model-specific settings.

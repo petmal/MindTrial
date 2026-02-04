@@ -53,6 +53,8 @@ var (
 	ErrToolNotFound = errors.New("tool not found in available tools")
 	// ErrRetryable is returned when an operation can be retried.
 	ErrRetryable = errors.New("retryable error")
+	// ErrStreamResponse is returned when a streaming response cannot be properly assembled.
+	ErrStreamResponse = errors.New("failed to assemble streaming response")
 )
 
 var supportedImageMimeTypes = map[string]bool{

@@ -234,6 +234,7 @@ This file defines the tool's settings and target model configurations evaluated 
 > Currently supported parameters for **Alibaba** models include:
 >
 > - **text-response-format**: If `true`, use plain-text response format (less reliable) for compatibility with models that do not support `JSON` (for example, when thinking is enabled on certain Qwen models).
+> - **stream**: If `true`, enables streaming mode for the API response. Some models (e.g. QwQ, QVQ, and Qwen-Omni) require streaming to be enabled. Responses are streamed incrementally and buffered internally before processing.
 > - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 2.0, default: 1.0). Lower values produce more focused and deterministic outputs.
 > - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0). Lower values produce more focused outputs.
 > - **max-tokens**: Controls the maximum number of tokens available to the model for generating a response.
@@ -409,6 +410,11 @@ config:
           max-requests-per-minute: 30
           model-parameters:
             text-response-format: true
+        - name: "QVQ-Max (vision reasoning)"
+          model: "qvq-max"
+          max-requests-per-minute: 30
+          model-parameters:
+            stream: true  # Required for QvQ models
     - name: moonshotai
       client-config:
         api-key: "<your-api-key>"

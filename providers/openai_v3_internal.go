@@ -52,6 +52,10 @@ type openAIV3ModelParams struct {
 
 	// ExtraFields are applied to the JSON request body.
 	ExtraFields map[string]any
+
+	// Stream enables streaming mode for the API response.
+	// When true, uses NewStreaming() instead of New() and buffers the response.
+	Stream *bool
 }
 
 // ResponseFormat specifies the response format mode for the internal OpenAI-compatible provider.
@@ -175,6 +179,12 @@ func (o *openAIV3Provider) Run(ctx context.Context, logger logging.Logger, cfg c
 			if modelParams.Seed != nil {
 				request.Seed = param.NewOpt(*modelParams.Seed)
 			}
+			if modelParams.Stream != nil && *modelParams.Stream {
+				// Enable usage reporting in streaming mode.
+				request.StreamOptions = openai.ChatCompletionStreamOptionsParam{
+					IncludeUsage: param.NewOpt(true),
+				}
+			}
 		} else {
 			return result, fmt.Errorf("%w: %s", ErrInvalidModelParams, cfg.Name)
 		}
@@ -226,7 +236,7 @@ func (o *openAIV3Provider) Run(ctx context.Context, logger logging.Logger, cfg c
 	// Conversation loop to handle tool calls.
 	for {
 		resp, err := timed(func() (*openai.ChatCompletion, error) {
-			response, err := o.client.Chat.Completions.New(ctx, request)
+			response, err := o.handleRequest(ctx, request)
 			if err != nil && o.isTransientResponse(err) {
 				return response, WrapErrRetryable(err)
 			}
@@ -316,8 +326,36 @@ func (o *openAIV3Provider) isTransientResponse(err error) bool {
 			http.StatusInternalServerError,
 			http.StatusServiceUnavailable,
 		}, apiErr.StatusCode)
+	} else if errors.Is(err, ErrStreamResponse) {
+		return true
 	}
 	return false
+}
+
+// handleRequest dispatches the request to the appropriate handler based on streaming mode.
+func (o *openAIV3Provider) handleRequest(ctx context.Context, request openai.ChatCompletionNewParams) (*openai.ChatCompletion, error) {
+	if request.StreamOptions.IncludeUsage.Value {
+		return o.handleStreamingRequest(ctx, request)
+	}
+	return o.client.Chat.Completions.New(ctx, request)
+}
+
+// handleStreamingRequest executes a streaming chat completion request, accumulating chunks into a complete response.
+func (o *openAIV3Provider) handleStreamingRequest(ctx context.Context, request openai.ChatCompletionNewParams) (resp *openai.ChatCompletion, err error) {
+	stream := o.client.Chat.Completions.NewStreaming(ctx, request)
+	defer stream.Close()
+
+	var acc openai.ChatCompletionAccumulator
+	for stream.Next() {
+		chunk := stream.Current()
+		if !acc.AddChunk(chunk) {
+			return nil, ErrStreamResponse
+		}
+	}
+	if err = stream.Err(); err != nil {
+		return nil, err
+	}
+	return &acc.ChatCompletion, nil
 }
 
 func (o *openAIV3Provider) Close(ctx context.Context) error {

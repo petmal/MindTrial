@@ -71,6 +71,9 @@ func (a *Alibaba) copyToOpenAIV3Params(alibabaParams config.AlibabaModelParams, 
 	if alibabaParams.TextResponseFormat {
 		openAIV3Params.ResponseFormat = ResponseFormatText.Ptr()
 	}
+	if alibabaParams.Stream {
+		openAIV3Params.Stream = utils.Ptr(true)
+	}
 	if alibabaParams.Temperature != nil {
 		openAIV3Params.Temperature = utils.Ptr(float64(*alibabaParams.Temperature))
 	}
