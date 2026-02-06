@@ -481,6 +481,11 @@ func TestLoadConfigFromFile(t *testing.T) {
                     temperature: 0.7
                     top-p: 0.95
                     top-k: 40
+              - name: "Claude Opus 4.6"
+                model: "claude-opus-4-6"
+                model-parameters:
+                    max-tokens: 16000
+                    effort: medium
         - name: deepseek
           client-config:
               api-key: "b8d40c7c-b169-49a9-9a5c-291741e86daa"
@@ -658,6 +663,15 @@ func TestLoadConfigFromFile(t *testing.T) {
 										Temperature:          testutils.Ptr(float64(0.7)),
 										TopP:                 testutils.Ptr(float64(0.95)),
 										TopK:                 testutils.Ptr(int64(40)),
+									},
+								},
+								{
+									Name:                 "Claude Opus 4.6",
+									Model:                "claude-opus-4-6",
+									MaxRequestsPerMinute: 0,
+									ModelParams: AnthropicModelParams{
+										MaxTokens: testutils.Ptr(int64(16000)),
+										Effort:    testutils.Ptr("medium"),
 									},
 								},
 							},

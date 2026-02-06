@@ -126,10 +126,19 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 			if modelParams.MaxTokens != nil {
 				request.MaxTokens = *modelParams.MaxTokens
 			}
-			if modelParams.ThinkingBudgetTokens != nil {
-				request.Thinking = anthropic.ThinkingConfigParamOfEnabled(*modelParams.ThinkingBudgetTokens)
+			if modelParams.Effort != nil || modelParams.ThinkingBudgetTokens != nil {
+				if modelParams.Effort != nil {
+					// Adaptive thinking: Claude dynamically allocates reasoning depth.
+					adaptive := anthropic.NewThinkingConfigAdaptiveParam()
+					request.Thinking = anthropic.ThinkingConfigParamUnion{
+						OfAdaptive: &adaptive,
+					}
+					request.OutputConfig.Effort = anthropic.OutputConfigEffort(*modelParams.Effort)
+				} else {
+					// Fixed budget: allocates a set number of tokens for reasoning.
+					request.Thinking = anthropic.ThinkingConfigParamOfEnabled(*modelParams.ThinkingBudgetTokens)
+				}
 				// Thinking may not be enabled when tool_choice forces tool use.
-				// Use Auto instead.
 				request.ToolChoice = anthropic.ToolChoiceUnionParam{
 					OfAuto: &anthropic.ToolChoiceAutoParam{},
 				}

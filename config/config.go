@@ -555,10 +555,18 @@ type AnthropicModelParams struct {
 	// This includes the thinking budget for reasoning models.
 	MaxTokens *int64 `yaml:"max-tokens" validate:"omitempty,min=0"`
 
-	// ThinkingBudgetTokens specifies the number of tokens the model can use for its internal reasoning process.
-	// It must be at least 1024 and less than `MaxTokens`.
-	// If set, this enables enhanced reasoning capabilities for the model.
+	// ThinkingBudgetTokens enables extended thinking with a fixed token budget, giving the model
+	// more reasoning capacity on complex tasks. Must be at least 1024 and less than MaxTokens.
+	// Ignored when Effort is also set. If neither is set, extended thinking is disabled.
 	ThinkingBudgetTokens *int64 `yaml:"thinking-budget-tokens" validate:"omitempty,min=1024,ltfield=MaxTokens"`
+
+	// Effort enables adaptive extended thinking and guides how deeply the model reasons before responding,
+	// from quick answers ("low") to thorough multi-step reasoning ("max").
+	// Valid values: "low", "medium", "high", "max".
+	// If neither is set, extended thinking is disabled.
+	// When set, ThinkingBudgetTokens is ignored.
+	// Use MaxTokens to cap total output (thinking + response text).
+	Effort *string `yaml:"effort" validate:"omitempty,oneof=low medium high max"`
 
 	// Temperature controls the randomness or "creativity" of responses.
 	// Values range from 0.0 to 1.0, with lower values making the output more focused.

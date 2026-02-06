@@ -185,7 +185,8 @@ This file defines the tool's settings and target model configurations evaluated 
 > Currently supported parameters for **Anthropic** models include:
 >
 > - **max-tokens**: Controls the maximum number of tokens available to the model for generating a response.
-> - **thinking-budget-tokens**: Enables enhanced reasoning capabilities when set. Specifies the number of tokens the model can use for its internal reasoning process. Must be at least 1024 and less than `max-tokens`.
+> - **thinking-budget-tokens**: Enables extended thinking with a fixed token budget, giving the model more reasoning capacity on complex tasks. Must be at least 1024 and less than `max-tokens`. Ignored when `effort` is also set. If neither is set, extended thinking is disabled.
+> - **effort**: Enables adaptive extended thinking and guides how deeply the model reasons before responding, from quick answers (`low`) to thorough multi-step reasoning (`max`) (values: `low`, `medium`, `high`, `max`). If neither is set, extended thinking is disabled. When set, `thinking-budget-tokens` is ignored. Use `max-tokens` to cap total output (thinking + response text).
 > - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 1.0, default: 1.0). Lower values produce more focused and deterministic outputs.
 > - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0). Lower values produce more focused outputs.
 > - **top-k**: Limits tokens considered for each position to top K options. Higher values allow more diverse outputs.
@@ -367,6 +368,12 @@ config:
           model-parameters:
             max-tokens: 8192
             thinking-budget-tokens: 2048
+        - name: "Claude 4.6 Opus - latest (max adaptive thinking)"
+          model: "claude-opus-4-6"
+          max-requests-per-minute: 5
+          model-parameters:
+            max-tokens: 8192
+            effort: max
     - name: deepseek
       client-config:
         api-key: "<your-api-key>"
