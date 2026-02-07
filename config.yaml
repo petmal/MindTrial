@@ -75,6 +75,35 @@ config:
           max-requests-per-minute: 3
           model-parameters:
             response-format: "text"
+        - name: "Prime Intellect INTELLECT-3 (text-only)"
+          model: "prime-intellect/intellect-3"
+          max-requests-per-minute: 10
+          text-only: true
+        - name: "Inception Mercury (diffusion, text-only)"
+          model: "inception/mercury"
+          max-requests-per-minute: 10
+          disable-structured-output: true
+          text-only: true
+          model-parameters:
+            response-format: "text"
+        - name: "ByteDance Seed 1.6"
+          model: "bytedance-seed/seed-1.6"
+          max-requests-per-minute: 10
+        - name: "Z.AI GLM 4.6V"
+          model: "z-ai/glm-4.6v"
+          max-requests-per-minute: 10
+          disable-structured-output: true
+        - name: "Z.AI GLM 4.7 (text-only)"
+          model: "z-ai/glm-4.7"
+          max-requests-per-minute: 10
+          disable-structured-output: true
+          text-only: true
+        - name: "StepFun Step3"
+          model: "stepfun-ai/step3"
+          max-requests-per-minute: 10
+          disable-structured-output: true
+          model-parameters:
+            response-format: "text"
     - name: google
       client-config:
         api-key: ""
@@ -196,6 +225,9 @@ config:
         - name: "Grok 4 - latest (reasoning)"
           model: "grok-4-latest"
           max-requests-per-minute: 30
+        - name: "Grok 4.1 Fast - latest (reasoning)"
+          model: "grok-4-1-fast-reasoning-latest"
+          max-requests-per-minute: 30
     - name: alibaba
       retry-policy:
         max-retry-attempts: 5
@@ -222,6 +254,20 @@ config:
           max-requests-per-minute: 30
           model-parameters:
             text-response-format: true
+        - name: "Qwen3-Max-2026-01-23"
+          model: "qwen3-max-2026-01-23"
+          max-requests-per-minute: 30
+        - name: "QVQ-Max"
+          model: "qvq-max"
+          max-requests-per-minute: 30
+          model-parameters:
+            stream: true
+        - name: "Qwen-QwQ-Plus"
+          model: "qwq-plus"
+          text-only: true
+          max-requests-per-minute: 30
+          model-parameters:
+            stream: true
     - name: moonshotai
       retry-policy:
         max-retry-attempts: 5
@@ -239,6 +285,10 @@ config:
           max-requests-per-minute: 3
           model-parameters:
             temperature: 1.0
+        - name: "Kimi K2.5 - latest (thinking)"
+          model: "kimi-k2.5"
+          disable-structured-output: true
+          max-requests-per-minute: 3
   judges:
     - name: "default"
       provider:
