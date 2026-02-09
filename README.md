@@ -432,6 +432,7 @@ config:
           max-requests-per-minute: 3
           model-parameters:
             temperature: 1.0
+            max-tokens: 16000
 ```
 
 ### tasks.yaml

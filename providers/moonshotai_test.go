@@ -8,11 +8,14 @@ package providers
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
+	openai "github.com/openai/openai-go/v3"
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/testutils"
 	"github.com/petmal/mindtrial/pkg/utils"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -100,5 +103,201 @@ func TestMoonshotAICopyToOpenAIV3Params(t *testing.T) {
 		require.Nil(t, params.PresencePenalty)
 		require.Nil(t, params.FrequencyPenalty)
 		require.Nil(t, params.MaxTokens)
+	})
+}
+
+func TestMoonshotAICompletionHandler_ToParam(t *testing.T) {
+	ctx := context.Background()
+	logger := testutils.NewTestLogger(t)
+
+	t.Run("preserves reasoning_content from non-streaming response", func(t *testing.T) {
+		handler := &moonshotAICompletionHandler{}
+
+		// Simulate a Moonshot API response containing reasoning_content.
+		responseJSON := `{
+			"role": "assistant",
+			"content": "The answer is 42.",
+			"reasoning_content": "Let me think step by step...",
+			"tool_calls": [
+				{
+					"id": "call_123",
+					"type": "function",
+					"function": {
+						"name": "run_code",
+						"arguments": "{\"code\": \"print(42)\"}"
+					}
+				}
+			]
+		}`
+		var message openai.ChatCompletionMessage
+		require.NoError(t, json.Unmarshal([]byte(responseJSON), &message))
+
+		result := handler.ToParam(ctx, logger, message)
+
+		// Verify standard fields are preserved.
+		require.NotNil(t, result.OfAssistant)
+		assert.Equal(t, "The answer is 42.", result.OfAssistant.Content.OfString.Value)
+		require.Len(t, result.OfAssistant.ToolCalls, 1)
+		assert.Equal(t, "call_123", result.OfAssistant.ToolCalls[0].OfFunction.ID)
+		assert.Equal(t, "run_code", result.OfAssistant.ToolCalls[0].OfFunction.Function.Name)
+
+		// Verify reasoning_content is injected into the serialized JSON.
+		data, err := json.Marshal(result)
+		require.NoError(t, err)
+		var raw map[string]any
+		require.NoError(t, json.Unmarshal(data, &raw))
+		assert.Equal(t, "Let me think step by step...", raw["reasoning_content"])
+	})
+
+	t.Run("handles missing reasoning_content", func(t *testing.T) {
+		handler := &moonshotAICompletionHandler{}
+
+		// Simulate a response without reasoning_content (e.g., thinking disabled).
+		responseJSON := `{
+			"role": "assistant",
+			"content": "Hello!",
+			"tool_calls": []
+		}`
+		var message openai.ChatCompletionMessage
+		require.NoError(t, json.Unmarshal([]byte(responseJSON), &message))
+
+		result := handler.ToParam(ctx, logger, message)
+
+		// Verify standard fields are preserved.
+		require.NotNil(t, result.OfAssistant)
+		assert.Equal(t, "Hello!", result.OfAssistant.Content.OfString.Value)
+
+		// Verify no reasoning_content in serialized output.
+		data, err := json.Marshal(result)
+		require.NoError(t, err)
+		var raw map[string]any
+		require.NoError(t, json.Unmarshal(data, &raw))
+		assert.NotContains(t, raw, "reasoning_content")
+	})
+
+	t.Run("handles null reasoning_content", func(t *testing.T) {
+		handler := &moonshotAICompletionHandler{}
+
+		responseJSON := `{
+			"role": "assistant",
+			"content": "Result.",
+			"reasoning_content": null
+		}`
+		var message openai.ChatCompletionMessage
+		require.NoError(t, json.Unmarshal([]byte(responseJSON), &message))
+
+		result := handler.ToParam(ctx, logger, message)
+
+		require.NotNil(t, result.OfAssistant)
+		assert.Equal(t, "Result.", result.OfAssistant.Content.OfString.Value)
+
+		// Null reasoning_content should not be injected.
+		data, err := json.Marshal(result)
+		require.NoError(t, err)
+		var raw map[string]any
+		require.NoError(t, json.Unmarshal(data, &raw))
+		assert.NotContains(t, raw, "reasoning_content")
+	})
+
+	t.Run("accumulates reasoning_content across streaming chunks", func(t *testing.T) {
+		handler := &moonshotAICompletionHandler{}
+
+		chunks := []string{
+			`{"choices": [{"delta": {"reasoning_content": "Let me "}}]}`,
+			`{"choices": [{"delta": {"reasoning_content": "think step "}}]}`,
+			`{"choices": [{"delta": {"reasoning_content": "by step..."}}]}`,
+		}
+		for _, raw := range chunks {
+			var chunk openai.ChatCompletionChunk
+			require.NoError(t, json.Unmarshal([]byte(raw), &chunk))
+			assert.True(t, handler.AddChunk(ctx, logger, chunk))
+		}
+
+		// Streaming response: message metadata is unpopulated, reasoning comes from chunks.
+		var message openai.ChatCompletionMessage
+		require.NoError(t, json.Unmarshal([]byte(`{"role": "assistant", "content": "The answer is 42."}`), &message))
+
+		result := handler.ToParam(ctx, logger, message)
+
+		data, err := json.Marshal(result)
+		require.NoError(t, err)
+		var raw map[string]any
+		require.NoError(t, json.Unmarshal(data, &raw))
+		assert.Equal(t, "Let me think step by step...", raw["reasoning_content"])
+	})
+
+	t.Run("handles streaming chunks without reasoning_content", func(t *testing.T) {
+		handler := &moonshotAICompletionHandler{}
+
+		// Regular content chunks without reasoning_content.
+		chunks := []string{
+			`{"choices": [{"delta": {"content": "Hello"}}]}`,
+			`{"choices": [{"delta": {"content": " world"}}]}`,
+		}
+		for _, raw := range chunks {
+			var chunk openai.ChatCompletionChunk
+			require.NoError(t, json.Unmarshal([]byte(raw), &chunk))
+			assert.True(t, handler.AddChunk(ctx, logger, chunk))
+		}
+
+		var message openai.ChatCompletionMessage
+		require.NoError(t, json.Unmarshal([]byte(`{"role": "assistant", "content": "Hello world"}`), &message))
+
+		result := handler.ToParam(ctx, logger, message)
+
+		// No reasoning_content should be injected.
+		data, err := json.Marshal(result)
+		require.NoError(t, err)
+		var raw map[string]any
+		require.NoError(t, json.Unmarshal(data, &raw))
+		assert.NotContains(t, raw, "reasoning_content")
+	})
+
+	t.Run("streaming reasoning takes precedence over message metadata", func(t *testing.T) {
+		handler := &moonshotAICompletionHandler{}
+
+		// Accumulate reasoning from streaming chunks.
+		chunkJSON := `{"choices": [{"delta": {"reasoning_content": "Streaming thought."}}]}`
+		var chunk openai.ChatCompletionChunk
+		require.NoError(t, json.Unmarshal([]byte(chunkJSON), &chunk))
+		assert.True(t, handler.AddChunk(ctx, logger, chunk))
+
+		// Message also has reasoning_content in metadata (should be overridden by streaming).
+		responseJSON := `{
+			"role": "assistant",
+			"content": "Result.",
+			"reasoning_content": "Metadata thought."
+		}`
+		var message openai.ChatCompletionMessage
+		require.NoError(t, json.Unmarshal([]byte(responseJSON), &message))
+
+		result := handler.ToParam(ctx, logger, message)
+
+		data, err := json.Marshal(result)
+		require.NoError(t, err)
+		var raw map[string]any
+		require.NoError(t, json.Unmarshal(data, &raw))
+		assert.Equal(t, "Streaming thought.", raw["reasoning_content"])
+	})
+
+	t.Run("handles null reasoning_content in streaming chunks", func(t *testing.T) {
+		handler := &moonshotAICompletionHandler{}
+
+		chunkJSON := `{"choices": [{"delta": {"reasoning_content": null}}]}`
+		var chunk openai.ChatCompletionChunk
+		require.NoError(t, json.Unmarshal([]byte(chunkJSON), &chunk))
+		assert.True(t, handler.AddChunk(ctx, logger, chunk))
+
+		var message openai.ChatCompletionMessage
+		require.NoError(t, json.Unmarshal([]byte(`{"role": "assistant", "content": "Result."}`), &message))
+
+		result := handler.ToParam(ctx, logger, message)
+
+		// Null reasoning_content should not be injected.
+		data, err := json.Marshal(result)
+		require.NoError(t, err)
+		var raw map[string]any
+		require.NoError(t, json.Unmarshal(data, &raw))
+		assert.NotContains(t, raw, "reasoning_content")
 	})
 }

@@ -24,11 +24,62 @@ import (
 	"github.com/petmal/mindtrial/providers/tools"
 )
 
+// CompletionAccumulator handles the accumulation of streaming chat completion chunks
+// into a final ChatCompletion response. It is used by handleStreamingRequest to
+// delegate chunk processing.
+type CompletionAccumulator interface {
+	// AddChunk feeds a streaming chunk to the accumulator. Returns false if
+	// the chunk could not be accumulated (indicating a stream error).
+	AddChunk(ctx context.Context, logger logging.Logger, chunk openai.ChatCompletionChunk) bool
+
+	// Result returns the fully accumulated ChatCompletion after streaming ends.
+	Result() *openai.ChatCompletion
+}
+
+// CompletionHandler extends CompletionAccumulator with response message conversion.
+// It manages the full lifecycle of a chat completion API call: accumulating streaming
+// chunks and converting response messages into request parameters for subsequent turns.
+//
+// Delegating providers can supply a custom implementation to preserve non-standard
+// fields (e.g. reasoning_content) that the SDK's ChatCompletionAccumulator drops.
+// A fresh instance is created per API call via the NewCompletionHandler factory.
+type CompletionHandler interface {
+	CompletionAccumulator
+
+	// ToParam converts a response message into a request parameter for the next
+	// conversation turn. Implementations may inject non-standard fields captured
+	// during streaming or extracted from non-streaming message metadata.
+	ToParam(ctx context.Context, logger logging.Logger, message openai.ChatCompletionMessage) openai.ChatCompletionMessageParamUnion
+}
+
+// defaultCompletionHandler is the standard CompletionHandler that delegates to
+// the SDK's ChatCompletionAccumulator and uses the default ToParam() conversion.
+type defaultCompletionHandler struct {
+	acc openai.ChatCompletionAccumulator
+}
+
+func (h *defaultCompletionHandler) AddChunk(_ context.Context, _ logging.Logger, chunk openai.ChatCompletionChunk) bool {
+	return h.acc.AddChunk(chunk)
+}
+
+func (h *defaultCompletionHandler) Result() *openai.ChatCompletion {
+	return &h.acc.ChatCompletion
+}
+
+func (h *defaultCompletionHandler) ToParam(_ context.Context, _ logging.Logger, message openai.ChatCompletionMessage) openai.ChatCompletionMessageParamUnion {
+	return message.ToParam()
+}
+
 // openAIV3Provider is an OpenAI-compatible provider implementation using
 // OpenAI's official Go SDK v3.
 type openAIV3Provider struct {
 	client         openai.Client
 	availableTools []config.ToolConfig
+
+	// NewCompletionHandler is a factory that creates a fresh CompletionHandler
+	// for each API call (both streaming and non-streaming). When nil, the
+	// defaultCompletionHandler is used.
+	NewCompletionHandler func() CompletionHandler
 }
 
 // openAIV3ModelParams is an internal model configuration used by openAIV3Provider.
@@ -235,8 +286,11 @@ func (o *openAIV3Provider) Run(ctx context.Context, logger logging.Logger, cfg c
 
 	// Conversation loop to handle tool calls.
 	for {
+		// Create a fresh completion handler for each API call.
+		handler := o.newCompletionHandler()
+
 		resp, err := timed(func() (*openai.ChatCompletion, error) {
-			response, err := o.handleRequest(ctx, request)
+			response, err := o.handleRequest(ctx, logger, request, handler)
 			if err != nil && o.isTransientResponse(err) {
 				return response, WrapErrRetryable(err)
 			}
@@ -273,7 +327,7 @@ func (o *openAIV3Provider) Run(ctx context.Context, logger logging.Logger, cfg c
 			}
 
 			// Append assistant message to conversation history before handling tool calls.
-			request.Messages = append(request.Messages, candidate.Message.ToParam())
+			request.Messages = append(request.Messages, handler.ToParam(ctx, logger, candidate.Message))
 
 			for _, toolCall := range candidate.Message.ToolCalls {
 				data, err := taskFilesToDataMap(ctx, task.Files)
@@ -332,30 +386,38 @@ func (o *openAIV3Provider) isTransientResponse(err error) bool {
 	return false
 }
 
+// newCompletionHandler returns a fresh CompletionHandler for the current API call.
+// If a custom factory is set, it is used; otherwise, the defaultCompletionHandler is returned.
+func (o *openAIV3Provider) newCompletionHandler() CompletionHandler {
+	if o.NewCompletionHandler != nil {
+		return o.NewCompletionHandler()
+	}
+	return &defaultCompletionHandler{}
+}
+
 // handleRequest dispatches the request to the appropriate handler based on streaming mode.
-func (o *openAIV3Provider) handleRequest(ctx context.Context, request openai.ChatCompletionNewParams) (*openai.ChatCompletion, error) {
+func (o *openAIV3Provider) handleRequest(ctx context.Context, logger logging.Logger, request openai.ChatCompletionNewParams, acc CompletionAccumulator) (*openai.ChatCompletion, error) {
 	if request.StreamOptions.IncludeUsage.Value {
-		return o.handleStreamingRequest(ctx, request)
+		return o.handleStreamingRequest(ctx, logger, request, acc)
 	}
 	return o.client.Chat.Completions.New(ctx, request)
 }
 
-// handleStreamingRequest executes a streaming chat completion request, accumulating chunks into a complete response.
-func (o *openAIV3Provider) handleStreamingRequest(ctx context.Context, request openai.ChatCompletionNewParams) (resp *openai.ChatCompletion, err error) {
+// handleStreamingRequest executes a streaming chat completion request,
+// delegating chunk accumulation to the provided CompletionAccumulator.
+func (o *openAIV3Provider) handleStreamingRequest(ctx context.Context, logger logging.Logger, request openai.ChatCompletionNewParams, acc CompletionAccumulator) (resp *openai.ChatCompletion, err error) {
 	stream := o.client.Chat.Completions.NewStreaming(ctx, request)
 	defer stream.Close()
 
-	var acc openai.ChatCompletionAccumulator
 	for stream.Next() {
-		chunk := stream.Current()
-		if !acc.AddChunk(chunk) {
+		if !acc.AddChunk(ctx, logger, stream.Current()) {
 			return nil, ErrStreamResponse
 		}
 	}
 	if err = stream.Err(); err != nil {
 		return nil, err
 	}
-	return &acc.ChatCompletion, nil
+	return acc.Result(), nil
 }
 
 func (o *openAIV3Provider) Close(ctx context.Context) error {

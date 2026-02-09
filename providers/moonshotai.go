@@ -8,9 +8,14 @@ package providers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"log/slog"
+	"strings"
 
+	openai "github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/option"
+	"github.com/openai/openai-go/v3/packages/respjson"
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
 	"github.com/petmal/mindtrial/pkg/utils"
@@ -23,6 +28,9 @@ func NewMoonshotAI(cfg config.MoonshotAIClientConfig, availableTools []config.To
 		option.WithBaseURL(cfg.GetEndpoint()),
 	}
 	openaiProvider := newOpenAIV3Provider(availableTools, openAIV3Opts...)
+	openaiProvider.NewCompletionHandler = func() CompletionHandler {
+		return &moonshotAICompletionHandler{}
+	}
 
 	return &MoonshotAI{openaiProvider: openaiProvider}
 }
@@ -80,4 +88,71 @@ func (m *MoonshotAI) copyToOpenAIV3Params(moonshotAIParams config.MoonshotAIMode
 	if moonshotAIParams.FrequencyPenalty != nil {
 		openAIV3Params.FrequencyPenalty = utils.Ptr(float64(*moonshotAIParams.FrequencyPenalty))
 	}
+}
+
+// moonshotAICompletionHandler extends the default completion handler to preserve
+// the non-standard reasoning_content field required by Moonshot AI's thinking models
+// (e.g., kimi-k2.5, kimi-k2-thinking) during multi-turn tool-call conversations.
+//
+// See: https://platform.moonshot.ai/docs/guide/use-kimi-k2-thinking-model#accessing-the-reasoning-content
+type moonshotAICompletionHandler struct {
+	defaultCompletionHandler
+	reasoning strings.Builder
+}
+
+// reasoningContentKey is the non-standard field name used by Moonshot AI's thinking models
+// to convey step-by-step reasoning alongside the assistant's response.
+const reasoningContentKey = "reasoning_content"
+
+func (h *moonshotAICompletionHandler) AddChunk(ctx context.Context, logger logging.Logger, chunk openai.ChatCompletionChunk) bool {
+	for _, choice := range chunk.Choices {
+		if raw, ok := extractExtraFieldRaw(choice.Delta.JSON.ExtraFields, reasoningContentKey); ok {
+			var delta string
+			if err := json.Unmarshal([]byte(raw), &delta); err != nil {
+				logger.Error(ctx, slog.LevelWarn, err, "failed to unmarshal reasoning_content from chunk delta")
+			} else {
+				h.reasoning.WriteString(delta)
+			}
+		}
+	}
+	return h.defaultCompletionHandler.AddChunk(ctx, logger, chunk)
+}
+
+func (h *moonshotAICompletionHandler) ToParam(ctx context.Context, logger logging.Logger, message openai.ChatCompletionMessage) openai.ChatCompletionMessageParamUnion {
+	param := h.defaultCompletionHandler.ToParam(ctx, logger, message)
+
+	// Prefer streaming-accumulated reasoning_content (non-empty builder means streaming was used).
+	if h.reasoning.Len() > 0 {
+		h.setReasoningContent(param.OfAssistant, h.reasoning.String())
+		return param
+	}
+
+	// Fall back to non-streaming: extract from message JSON metadata.
+	if raw, ok := extractExtraFieldRaw(message.JSON.ExtraFields, reasoningContentKey); ok {
+		var reasoningContent string
+		if err := json.Unmarshal([]byte(raw), &reasoningContent); err != nil {
+			logger.Error(ctx, slog.LevelWarn, err, "failed to unmarshal reasoning_content from response metadata")
+		} else {
+			h.setReasoningContent(param.OfAssistant, reasoningContent)
+		}
+	}
+	return param
+}
+
+// extractExtraFieldRaw returns the raw JSON string for a non-standard field if it is
+// present and non-null. The SDK's respjson.Field.Valid() returns false for ExtraFields,
+// so presence is checked via Raw() instead.
+func extractExtraFieldRaw(extraFields map[string]respjson.Field, key string) (string, bool) {
+	if field, ok := extraFields[key]; ok && field.Raw() != "" && field.Raw() != "null" {
+		return field.Raw(), true
+	}
+	return "", false
+}
+
+// setReasoningContent injects reasoning_content into an assistant message parameter
+// via SetExtraFields.
+func (h *moonshotAICompletionHandler) setReasoningContent(param *openai.ChatCompletionAssistantMessageParam, value string) {
+	param.SetExtraFields(map[string]any{
+		reasoningContentKey: value,
+	})
 }

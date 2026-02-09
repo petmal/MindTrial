@@ -98,6 +98,11 @@ config:
           max-requests-per-minute: 10
           disable-structured-output: true
           text-only: true
+        - name: "Z.AI GLM 5 (text-only)"
+          model: "z-ai/glm-5"
+          max-requests-per-minute: 10
+          disable-structured-output: true
+          text-only: true
         - name: "StepFun Step3"
           model: "stepfun-ai/step3"
           max-requests-per-minute: 10
@@ -275,20 +280,18 @@ config:
       client-config:
         api-key: ""
       runs:
-        - name: "Kimi - latest (vision)"
-          model: "kimi-latest"
-          max-requests-per-minute: 3
-          model-parameters:
-            temperature: 0.6
         - name: "Kimi K2 - latest (thinking)"
           model: "kimi-k2-thinking"
           max-requests-per-minute: 3
           model-parameters:
             temperature: 1.0
+            max-tokens: 16000
         - name: "Kimi K2.5 - latest (thinking)"
           model: "kimi-k2.5"
           disable-structured-output: true
           max-requests-per-minute: 3
+          model-parameters:
+            max-tokens: 16000
   judges:
     - name: "default"
       provider:
