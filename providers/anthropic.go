@@ -19,7 +19,6 @@ import (
 	"github.com/petmal/mindtrial/providers/tools"
 )
 
-const responseFormatterToolName = "record_summary"
 const defaultMaxTokens = 2048
 
 // NewAnthropic creates a new Anthropic provider instance with the given configuration.
@@ -50,25 +49,15 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 		Model:     anthropic.Model(cfg.Model),
 	}
 
-	// Only add structured output tool when not disabled.
+	// Configure native structured output via output_config.format when not disabled.
 	if !cfg.DisableStructuredOutput {
-		schema, err := ResultJSONSchema(task.ResponseResultFormat)
+		responseSchema, err := ResultJSONSchemaRaw(task.ResponseResultFormat)
 		if err != nil {
 			return result, err
 		}
-		request.Tools = []anthropic.ToolUnionParam{
-			{
-				OfTool: &anthropic.ToolParam{
-					Name:        responseFormatterToolName,
-					Description: anthropic.String("Record the response using well-structured JSON."),
-					InputSchema: anthropic.ToolInputSchemaParam{
-						Properties: schema.Properties,
-						Required:   schema.Required,
-					},
-				},
-			},
+		request.OutputConfig.Format = anthropic.JSONOutputFormatParam{
+			Schema: responseSchema,
 		}
-		request.ToolChoice = anthropic.ToolChoiceParamOfTool(responseFormatterToolName)
 	}
 
 	// Setup tools if any.
@@ -138,10 +127,6 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 					// Fixed budget: allocates a set number of tokens for reasoning.
 					request.Thinking = anthropic.ThinkingConfigParamOfEnabled(*modelParams.ThinkingBudgetTokens)
 				}
-				// Thinking may not be enabled when tool_choice forces tool use.
-				request.ToolChoice = anthropic.ToolChoiceUnionParam{
-					OfAuto: &anthropic.ToolChoiceAutoParam{},
-				}
 			}
 			if modelParams.Temperature != nil {
 				request.Temperature = anthropic.Float(*modelParams.Temperature)
@@ -181,31 +166,31 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 
 		recordUsage(&resp.Usage.InputTokens, &resp.Usage.OutputTokens, &result.usage)
 
-		// Append assistant message to conversation history before handling tool calls.
+		// Append assistant message to conversation history before processing content blocks.
 		request.Messages = append(request.Messages, resp.ToParam())
+
+		// Collect tool results from this turn. When user tools are invoked, all tool results
+		// are gathered and sent together in a single user message to maintain valid
+		// conversation structure (assistant message followed by user message with tool results).
+		var toolResults []anthropic.ContentBlockParamUnion
 
 		for _, block := range resp.Content {
 			switch block := block.AsAny().(type) { //nolint:gocritic
 			case anthropic.TextBlock:
-				// Handle text response when structured output is disabled.
 				if cfg.DisableStructuredOutput {
 					if err = UnmarshalUnstructuredResponse(ctx, logger, []byte(block.Text), &result); err != nil {
 						return result, NewErrUnmarshalResponse(err, []byte(block.Text), []byte(resp.StopReason))
 					}
 					return result, nil
 				}
-				// In structured mode, text blocks are ignored (response comes via tool call).
-				logger.Message(ctx, logging.LevelDebug, "Ignoring text block in structured output mode: %s", block.Text)
-			case anthropic.ToolUseBlock:
-				// No tool calls, this is the final response.
-				if block.Name == responseFormatterToolName {
-					if err = json.Unmarshal(block.Input, &result); err != nil {
-						return result, NewErrUnmarshalResponse(err, block.Input, []byte(resp.StopReason))
-					}
-					return result, nil
+				// In structured output mode, the text block contains the JSON response
+				// produced by output_config.format constrained decoding.
+				if err = json.Unmarshal([]byte(block.Text), &result); err != nil {
+					return result, NewErrUnmarshalResponse(err, []byte(block.Text), []byte(resp.StopReason))
 				}
+				return result, nil
 
-				// Handle tool calls.
+			case anthropic.ToolUseBlock:
 				data, err := taskFilesToDataMap(ctx, task.Files)
 				if err != nil {
 					return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
@@ -216,12 +201,22 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 				if isError {
 					content = formatToolExecutionError(err)
 				}
-				// Tool results must be sent in a user message.
-				request.Messages = append(request.Messages, anthropic.NewUserMessage(
-					anthropic.NewToolResultBlock(block.ID, content, isError),
-				))
+				toolResults = append(toolResults, anthropic.NewToolResultBlock(block.ID, content, isError))
 			}
 		}
+
+		// If tool results were collected, send them in a single user message.
+		if len(toolResults) > 0 {
+			request.Messages = append(request.Messages, anthropic.NewUserMessage(toolResults...))
+			continue
+		}
+
+		// No actionable content was found: no parseable text block and no tool calls.
+		// This can occur when the model exhausts its token budget on thinking without
+		// producing a text response.
+		return result, fmt.Errorf("%w: model response contained no actionable content (stop_reason: %s)",
+			ErrGenerateResponse, resp.StopReason,
+		)
 	} // move to the next conversation turn
 }
 
