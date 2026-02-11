@@ -11,6 +11,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"slices"
 
 	anthropic "github.com/anthropics/anthropic-sdk-go"
 	anthropicoption "github.com/anthropics/anthropic-sdk-go/option"
@@ -110,6 +112,7 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 			Text: result.recordPrompt(answerFormatInstruction),
 		})
 	}
+	var useStreaming bool
 	if cfg.ModelParams != nil {
 		if modelParams, ok := cfg.ModelParams.(config.AnthropicModelParams); ok {
 			if modelParams.MaxTokens != nil {
@@ -137,6 +140,7 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 			if modelParams.TopK != nil {
 				request.TopK = anthropic.Int(*modelParams.TopK)
 			}
+			useStreaming = modelParams.Stream
 		} else {
 			return result, fmt.Errorf("%w: %s", ErrInvalidModelParams, cfg.Name)
 		}
@@ -155,7 +159,11 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 	// Conversation loop to handle tool calls.
 	for {
 		resp, err := timed(func() (*anthropic.Message, error) {
-			return o.client.Messages.New(ctx, request)
+			response, err := o.handleRequest(ctx, request, useStreaming)
+			if err != nil && o.isTransientResponse(err) {
+				return response, WrapErrRetryable(err)
+			}
+			return response, err
 		}, &result.duration)
 		result.recordToolUsage(executor.GetUsageStats())
 		if err != nil {
@@ -177,15 +185,20 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 		for _, block := range resp.Content {
 			switch block := block.AsAny().(type) { //nolint:gocritic
 			case anthropic.TextBlock:
-				if cfg.DisableStructuredOutput {
-					if err = UnmarshalUnstructuredResponse(ctx, logger, []byte(block.Text), &result); err != nil {
-						return result, NewErrUnmarshalResponse(err, []byte(block.Text), []byte(resp.StopReason))
-					}
-					return result, nil
+				// When the text block is empty and the model hit the token budget,
+				// fall through to the default "no actionable content" error so the
+				// caller gets a descriptive message instead of a raw unmarshal error.
+				if block.Text == "" && resp.StopReason == anthropic.StopReasonMaxTokens {
+					continue
 				}
-				// In structured output mode, the text block contains the JSON response
-				// produced by output_config.format constrained decoding.
-				if err = json.Unmarshal([]byte(block.Text), &result); err != nil {
+				if cfg.DisableStructuredOutput {
+					err = UnmarshalUnstructuredResponse(ctx, logger, []byte(block.Text), &result)
+				} else {
+					// In structured output mode, the text block contains the JSON response
+					// produced by output_config.format constrained decoding.
+					err = json.Unmarshal([]byte(block.Text), &result)
+				}
+				if err != nil {
 					return result, NewErrUnmarshalResponse(err, []byte(block.Text), []byte(resp.StopReason))
 				}
 				return result, nil
@@ -218,6 +231,50 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 			ErrGenerateResponse, resp.StopReason,
 		)
 	} // move to the next conversation turn
+}
+
+// handleRequest dispatches the request to the appropriate handler based on streaming mode.
+func (o *Anthropic) handleRequest(ctx context.Context, request anthropic.MessageNewParams, stream bool) (*anthropic.Message, error) {
+	if stream {
+		return o.handleStreamingRequest(ctx, request)
+	}
+	return o.client.Messages.New(ctx, request)
+}
+
+// handleStreamingRequest executes a streaming message request, buffering all events
+// into a single [anthropic.Message] via the SDK's Accumulate method.
+// Streaming is recommended for requests with large MaxTokens values, especially
+// when extended thinking is enabled, to prevent HTTP timeouts on long-running requests.
+func (o *Anthropic) handleStreamingRequest(ctx context.Context, request anthropic.MessageNewParams) (*anthropic.Message, error) {
+	stream := o.client.Messages.NewStreaming(ctx, request)
+	defer stream.Close()
+
+	message := anthropic.Message{}
+	for stream.Next() {
+		if err := message.Accumulate(stream.Current()); err != nil {
+			return nil, ErrStreamResponse
+		}
+	}
+	if err := stream.Err(); err != nil {
+		return nil, err
+	}
+	return &message, nil
+}
+
+// isTransientResponse checks whether the error represents a transient condition
+// that the retry policy should attempt again.
+func (o *Anthropic) isTransientResponse(err error) bool {
+	var apiErr *anthropic.Error
+	if errors.As(err, &apiErr) {
+		return slices.Contains([]int{
+			http.StatusTooManyRequests,
+			http.StatusInternalServerError,
+			http.StatusServiceUnavailable,
+		}, apiErr.StatusCode)
+	} else if errors.Is(err, ErrStreamResponse) {
+		return true
+	}
+	return false
 }
 
 func (o *Anthropic) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []anthropic.ContentBlockParamUnion, err error) {

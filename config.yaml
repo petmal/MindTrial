@@ -183,12 +183,19 @@ config:
           model-parameters:
             max-tokens: 8192
             thinking-budget-tokens: 2048
-        - name: "Claude 4.6 Opus - latest (max adaptive thinking)"
+        - name: "Claude 4.6 Opus - latest (extended thinking)"
           model: "claude-opus-4-6"
           max-requests-per-minute: 10
           model-parameters:
             max-tokens: 8192
+            thinking-budget-tokens: 2048
+        - name: "Claude 4.6 Opus - latest (max adaptive thinking)"
+          model: "claude-opus-4-6"
+          max-requests-per-minute: 10
+          model-parameters:
+            max-tokens: 16384
             effort: max
+            stream: true
     - name: deepseek
       client-config:
         api-key: ""

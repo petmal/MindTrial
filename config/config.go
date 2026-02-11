@@ -583,6 +583,13 @@ type AnthropicModelParams struct {
 	// Higher values allow more diverse outputs by considering more token options.
 	// You usually only need to use `Temperature`.
 	TopK *int64 `yaml:"top-k" validate:"omitempty,min=0"`
+
+	// Stream enables streaming mode for the API response.
+	// Streaming is recommended for requests with large MaxTokens values, especially
+	// when extended thinking is enabled, to prevent HTTP timeouts on long-running requests.
+	// When enabled, responses are streamed incrementally and buffered internally
+	// before processing. This is functionally transparent to the user.
+	Stream bool `yaml:"stream" validate:"omitempty"`
 }
 
 // DeepseekModelParams represents DeepSeek model-specific settings.

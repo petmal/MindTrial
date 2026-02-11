@@ -190,6 +190,7 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 1.0, default: 1.0). Lower values produce more focused and deterministic outputs.
 > - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0). Lower values produce more focused outputs.
 > - **top-k**: Limits tokens considered for each position to top K options. Higher values allow more diverse outputs.
+> - **stream**: If `true`, enables streaming mode for the API response. Streaming is recommended for requests with large `max-tokens` values, especially when extended thinking is enabled, to prevent HTTP timeouts on long-running requests. Responses are streamed incrementally and buffered internally before processing.
 >
 > Currently supported parameters for **Google** models include:
 >
@@ -368,12 +369,14 @@ config:
           model-parameters:
             max-tokens: 8192
             thinking-budget-tokens: 2048
+            stream: true
         - name: "Claude 4.6 Opus - latest (max adaptive thinking)"
           model: "claude-opus-4-6"
           max-requests-per-minute: 5
           model-parameters:
-            max-tokens: 8192
+            max-tokens: 16384
             effort: max
+            stream: true
     - name: deepseek
       client-config:
         api-key: "<your-api-key>"

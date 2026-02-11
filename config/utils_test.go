@@ -481,6 +481,7 @@ func TestLoadConfigFromFile(t *testing.T) {
                     temperature: 0.7
                     top-p: 0.95
                     top-k: 40
+                    stream: true
               - name: "Claude Opus 4.6"
                 model: "claude-opus-4-6"
                 model-parameters:
@@ -663,6 +664,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 										Temperature:          testutils.Ptr(float64(0.7)),
 										TopP:                 testutils.Ptr(float64(0.95)),
 										TopK:                 testutils.Ptr(int64(40)),
+										Stream:               true,
 									},
 								},
 								{
