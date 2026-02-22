@@ -104,6 +104,15 @@ func TestDefaultCompletionHandler_ToParam(t *testing.T) {
 		assert.NotContains(t, raw, "reasoning_content")
 	})
 
+	t.Run("terminal stop reasons", func(t *testing.T) {
+		handler := &defaultCompletionHandler{}
+
+		assert.True(t, handler.IsTerminalStopReason("stop"))
+		assert.True(t, handler.IsTerminalStopReason("length"))
+		assert.True(t, handler.IsTerminalStopReason("content_filter"))
+		assert.False(t, handler.IsTerminalStopReason("tool_calls"))
+	})
+
 	t.Run("accumulates streaming chunks", func(t *testing.T) {
 		handler := &defaultCompletionHandler{}
 

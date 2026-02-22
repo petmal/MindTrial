@@ -187,58 +187,101 @@ func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConf
 				recordUsage(&promptTokens, &completionTokens, &result.usage)
 			}
 		}
+		if len(resp.Choices) == 0 {
+			return result, ErrNoResponseCandidates
+		}
 		for _, candidate := range resp.Choices {
-			if len(candidate.Message.ToolCalls) == 0 {
-				// No tool calls, this is the final response.
-				if contentPtr, ok := candidate.Message.GetContentOk(); ok && contentPtr != nil {
-					content := *contentPtr
+			finishReason := o.getFinishReason(candidate)
+			isTerminal := o.isTerminalStopReason(finishReason)
 
-					// Stop reason may be present.
-					var stopReason []byte
-					if candidate.FinishReason.IsSet() {
-						if fr := candidate.FinishReason.Get(); fr != nil {
-							stopReason = []byte(*fr)
-						}
+			if !isTerminal {
+				// Append assistant message for every non-terminal turn.
+				msg := o.newAssistantHistoryMessage(candidate.Message)
+				req.Messages = append(req.Messages, xai.MessageOneOf2AsMessage(msg))
+
+				textContent, _ := o.getMessageText(candidate.Message)
+				logSkippedPreambleText(ctx, logger, finishReason, textContent)
+
+				// Handle tool calls.
+				for _, toolCall := range candidate.Message.ToolCalls {
+					args := json.RawMessage(toolCall.Function.Arguments)
+					data, err := taskFilesToDataMap(ctx, task.Files)
+					if err != nil {
+						return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
 					}
-
-					var err error
+					toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, args, data)
+					content := string(toolResult)
+					if err != nil {
+						content = formatToolExecutionError(err)
+					}
+					toolMessage := xai.NewMessageOneOf3(xai.StringAsContent(&content), "tool")
+					toolMessage.SetToolCallId(toolCall.Id)
+					req.Messages = append(req.Messages, xai.MessageOneOf3AsMessage(toolMessage))
+				}
+			} else {
+				if textContent, ok := o.getMessageText(candidate.Message); ok {
 					if cfg.DisableStructuredOutput {
-						err = UnmarshalUnstructuredResponse(ctx, logger, []byte(content), &result)
+						err = UnmarshalUnstructuredResponse(ctx, logger, []byte(textContent), &result)
 					} else {
-						err = json.Unmarshal([]byte(content), &result)
+						err = json.Unmarshal([]byte(textContent), &result)
 					}
 					if err != nil {
-						return result, NewErrUnmarshalResponse(err, []byte(content), stopReason)
+						return result, NewErrUnmarshalResponse(err, []byte(textContent), []byte(finishReason))
 					}
 					return result, nil
 				}
-			}
 
-			// Append assistant message to conversation history before handling tool calls.
-			msg := xai.NewMessageOneOf2(candidate.Message.Role)
-			if contentPtr, ok := candidate.Message.GetContentOk(); ok && contentPtr != nil {
-				msg.SetContent(xai.StringAsContent(contentPtr))
-			}
-			req.Messages = append(req.Messages, xai.MessageOneOf2AsMessage(msg))
-
-			// Handle tool calls.
-			for _, toolCall := range candidate.Message.ToolCalls {
-				args := json.RawMessage(toolCall.Function.Arguments)
-				data, err := taskFilesToDataMap(ctx, task.Files)
-				if err != nil {
-					return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
-				}
-				toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, args, data)
-				content := string(toolResult)
-				if err != nil {
-					content = formatToolExecutionError(err)
-				}
-				toolMessage := xai.NewMessageOneOf3(xai.StringAsContent(&content), "tool")
-				toolMessage.SetToolCallId(toolCall.Id)
-				req.Messages = append(req.Messages, xai.MessageOneOf3AsMessage(toolMessage))
+				return result, NewErrNoActionableContent([]byte(finishReason))
 			}
 		}
 	} // move to the next conversation turn
+}
+
+func (o *XAI) isTerminalStopReason(stopReason string) bool {
+	return !slices.Contains([]string{"", "tool_calls"}, stopReason)
+}
+
+func (o *XAI) getFinishReason(candidate xai.Choice) (finishReason string) {
+	if candidate.FinishReason.IsSet() {
+		if value := candidate.FinishReason.Get(); value != nil {
+			finishReason = *value
+		}
+	}
+	return
+}
+
+func (o *XAI) newAssistantHistoryMessage(message xai.ChoiceMessage) *xai.MessageOneOf2 {
+	msg := xai.NewMessageOneOf2(message.Role)
+
+	if contentPtr, hasContent := message.GetContentOk(); hasContent {
+		if contentPtr == nil {
+			msg.SetContentNil()
+		} else {
+			msg.SetContent(xai.StringAsContent(contentPtr))
+		}
+	}
+
+	if reasoningContent, hasReasoningContent := message.GetReasoningContentOk(); hasReasoningContent {
+		if reasoningContent == nil {
+			msg.SetReasoningContentNil()
+		} else {
+			msg.SetReasoningContent(*reasoningContent)
+		}
+	}
+
+	if toolCalls, hasToolCalls := message.GetToolCallsOk(); hasToolCalls {
+		msg.SetToolCalls(toolCalls)
+	}
+
+	return msg
+}
+
+func (o *XAI) getMessageText(message xai.ChoiceMessage) (text string, ok bool) {
+	if contentPtr, hasContent := message.GetContentOk(); hasContent && contentPtr != nil {
+		text = *contentPtr
+		ok = text != ""
+	}
+	return
 }
 
 func (o *XAI) isTransientResponse(response *http.Response) bool {

@@ -301,3 +301,12 @@ func TestMoonshotAICompletionHandler_ToParam(t *testing.T) {
 		assert.NotContains(t, raw, "reasoning_content")
 	})
 }
+
+func TestMoonshotAICompletionHandler_IsTerminalStopReason(t *testing.T) {
+	var handler CompletionHandler = &moonshotAICompletionHandler{}
+
+	require.True(t, handler.IsTerminalStopReason("stop"))
+	require.True(t, handler.IsTerminalStopReason("length"))
+	require.True(t, handler.IsTerminalStopReason("content_filter"))
+	require.False(t, handler.IsTerminalStopReason("tool_calls"))
+}

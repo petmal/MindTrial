@@ -17,10 +17,60 @@ import (
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/testutils"
 	"github.com/petmal/mindtrial/pkg/utils"
+	"github.com/petmal/mindtrial/providers"
 	"github.com/petmal/mindtrial/validators"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestPopulateErrorDetails(t *testing.T) {
+	tests := []struct {
+		name    string
+		err     error
+		expects map[string][]string
+	}{
+		{
+			name: "unmarshal response includes stop reason and raw response",
+			err: providers.NewErrUnmarshalResponse(
+				errors.ErrUnsupported,
+				[]byte("{not-json}"),
+				[]byte("length"),
+			),
+			expects: map[string][]string{
+				"Stop Reason":  {"length"},
+				"Raw Response": {"{not-json}"},
+			},
+		},
+		{
+			name: "no actionable content includes stop reason",
+			err:  providers.NewErrNoActionableContent([]byte("max_tokens")),
+			expects: map[string][]string{
+				"Stop Reason": {"max_tokens"},
+			},
+		},
+		{
+			name: "api error includes response body",
+			err: providers.NewErrAPIResponse(
+				errors.ErrUnsupported,
+				[]byte("{\"error\":\"invalid\"}"),
+			),
+			expects: map[string][]string{
+				"HTTP Response": {"{\"error\":\"invalid\"}"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			errorDetails := &ErrorDetails{}
+
+			populateErrorDetails(errorDetails, tt.err)
+
+			require.NotNil(t, errorDetails.Details)
+			assert.Equal(t, tt.expects, errorDetails.Details)
+		})
+	}
+}
 
 func TestRunnerRun(t *testing.T) {
 	expectedUsage := TokenUsage{

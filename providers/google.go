@@ -11,6 +11,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
@@ -217,74 +219,107 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 		if resp.UsageMetadata != nil {
 			recordUsage(&resp.UsageMetadata.PromptTokenCount, &resp.UsageMetadata.CandidatesTokenCount, &result.usage)
 		}
+		if len(resp.Candidates) == 0 {
+			return result, ErrNoResponseCandidates
+		}
 		for _, candidate := range resp.Candidates {
-			if candidate.Content != nil {
-				// Append assistant message to conversation history before handling tool calls.
-				contents = append(contents, candidate.Content)
+			isTerminal := o.hasTerminalStopReason(candidate)
 
-				// Check for function calls first.
-				hasFunctionCalls := false
-				for _, part := range candidate.Content.Parts {
-					if part.FunctionCall != nil {
-						hasFunctionCalls = true
-						// Execute tool.
-						argsBytes, err := json.Marshal(part.FunctionCall.Args)
-						if err != nil {
-							return result, fmt.Errorf("%w: failed to marshal function args: %v", ErrToolUse, err)
-						}
-						response := map[string]interface{}{}
-						data, err := taskFilesToDataMap(ctx, task.Files)
-						if err != nil {
-							return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
-						}
-						if toolResult, err := executor.ExecuteTool(ctx, logger, part.FunctionCall.Name, json.RawMessage(argsBytes), data); err != nil {
-							response["error"] = formatToolExecutionError(err)
-						} else {
-							response["result"] = string(toolResult)
-						}
-						// Add function response with matching ID.
-						functionResponseContent := genai.NewContentFromFunctionResponse(
-							part.FunctionCall.Name,
-							response,
-							genai.RoleUser,
-						)
-						functionResponseContent.Parts[0].FunctionResponse.ID = part.FunctionCall.ID
-						contents = append(contents, functionResponseContent)
-					}
-				}
+			if !isTerminal {
+				if candidate.Content != nil {
+					// Append assistant content for every non-terminal turn.
+					contents = append(contents, candidate.Content)
 
-				// If we handled function calls, we continue the conversation loop.
-				if hasFunctionCalls {
-					continue
-				}
-
-				// If no function calls, look for text response.
-				for _, part := range candidate.Content.Parts {
-					if part.Text != "" {
-						// Final response.
-						var err error
-						if cfg.DisableStructuredOutput {
-							err = UnmarshalUnstructuredResponse(ctx, logger, []byte(part.Text), &result)
-						} else {
-							content := []byte(part.Text)
-							if generateConfig.ResponseJsonSchema == nil {
-								repaired, err := utils.RepairTextJSON(part.Text)
-								if err != nil {
-									return result, NewErrUnmarshalResponse(err, []byte(part.Text), []byte(string(candidate.FinishReason)))
-								}
-								content = []byte(repaired)
+					for _, part := range candidate.Content.Parts {
+						logSkippedPreambleText(ctx, logger, string(candidate.FinishReason), part.Text)
+						if part.FunctionCall != nil {
+							argsBytes, err := json.Marshal(part.FunctionCall.Args)
+							if err != nil {
+								return result, fmt.Errorf("%w: failed to marshal function args: %v", ErrToolUse, err)
 							}
-							err = json.Unmarshal(content, &result)
+							response := map[string]interface{}{}
+							data, err := taskFilesToDataMap(ctx, task.Files)
+							if err != nil {
+								return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
+							}
+							if toolResult, err := executor.ExecuteTool(ctx, logger, part.FunctionCall.Name, json.RawMessage(argsBytes), data); err != nil {
+								response["error"] = formatToolExecutionError(err)
+							} else {
+								response["result"] = string(toolResult)
+							}
+							functionResponseContent := genai.NewContentFromFunctionResponse(
+								part.FunctionCall.Name,
+								response,
+								genai.RoleUser,
+							)
+							functionResponseContent.Parts[0].FunctionResponse.ID = part.FunctionCall.ID
+							contents = append(contents, functionResponseContent)
 						}
-						if err != nil {
-							return result, NewErrUnmarshalResponse(err, []byte(part.Text), []byte(string(candidate.FinishReason)))
-						}
-						return result, nil
 					}
 				}
+			} else {
+				if textContent, ok := o.getMessageText(candidate); ok {
+					if cfg.DisableStructuredOutput {
+						err = UnmarshalUnstructuredResponse(ctx, logger, []byte(textContent), &result)
+					} else {
+						content := []byte(textContent)
+						if generateConfig.ResponseJsonSchema == nil {
+							repaired, err := utils.RepairTextJSON(textContent)
+							if err != nil {
+								return result, NewErrUnmarshalResponse(err, []byte(textContent), []byte(string(candidate.FinishReason)))
+							}
+							content = []byte(repaired)
+						}
+						err = json.Unmarshal(content, &result)
+					}
+					if err != nil {
+						return result, NewErrUnmarshalResponse(err, []byte(textContent), []byte(string(candidate.FinishReason)))
+					}
+					return result, nil
+				}
+
+				return result, NewErrNoActionableContent([]byte(string(candidate.FinishReason)))
 			}
 		}
 	} // move to the next conversation turn
+}
+
+func (o *GoogleAI) hasTerminalStopReason(candidate *genai.Candidate) bool {
+	var undefined genai.FinishReason
+	if candidate == nil {
+		return false
+	}
+
+	if o.hasFunctionCalls(candidate) {
+		return !slices.Contains(
+			[]genai.FinishReason{genai.FinishReasonStop, genai.FinishReasonUnspecified, undefined},
+			candidate.FinishReason,
+		)
+	}
+
+	return !slices.Contains([]genai.FinishReason{undefined, genai.FinishReasonUnspecified}, candidate.FinishReason)
+}
+
+func (o *GoogleAI) hasFunctionCalls(candidate *genai.Candidate) bool {
+	return candidate != nil &&
+		candidate.Content != nil &&
+		slices.ContainsFunc(candidate.Content.Parts, func(part *genai.Part) bool {
+			return part != nil && part.FunctionCall != nil
+		})
+}
+
+func (o *GoogleAI) getMessageText(candidate *genai.Candidate) (text string, ok bool) {
+	if candidate != nil && candidate.Content != nil {
+		var textBuilder strings.Builder
+		for _, part := range candidate.Content.Parts {
+			if part != nil {
+				textBuilder.WriteString(part.Text)
+			}
+		}
+		text = textBuilder.String()
+		ok = text != ""
+	}
+	return
 }
 
 func (o *GoogleAI) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []*genai.Part, err error) {

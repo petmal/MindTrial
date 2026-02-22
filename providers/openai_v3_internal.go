@@ -46,6 +46,10 @@ type CompletionAccumulator interface {
 type CompletionHandler interface {
 	CompletionAccumulator
 
+	// IsTerminalStopReason reports whether the response should terminate the
+	// conversation loop and trigger response parsing.
+	IsTerminalStopReason(stopReason string) bool
+
 	// ToParam converts a response message into a request parameter for the next
 	// conversation turn. Implementations may inject non-standard fields captured
 	// during streaming or extracted from non-streaming message metadata.
@@ -64,6 +68,10 @@ func (h *defaultCompletionHandler) AddChunk(_ context.Context, _ logging.Logger,
 
 func (h *defaultCompletionHandler) Result() *openai.ChatCompletion {
 	return &h.acc.ChatCompletion
+}
+
+func (h *defaultCompletionHandler) IsTerminalStopReason(stopReason string) bool {
+	return !slices.Contains([]string{"", "tool_calls"}, stopReason)
 }
 
 func (h *defaultCompletionHandler) ToParam(_ context.Context, _ logging.Logger, message openai.ChatCompletionMessage) openai.ChatCompletionMessageParamUnion {
@@ -296,50 +304,60 @@ func (o *openAIV3Provider) Run(ctx context.Context, logger logging.Logger, cfg c
 			}
 			return response, err
 		}, &result.duration)
+		result.recordToolUsage(executor.GetUsageStats())
 		if err != nil {
 			return result, WrapErrGenerateResponse(err)
+		} else if resp == nil {
+			return result, nil // return current result state
 		}
 
 		recordUsage(&resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, &result.usage)
-		result.recordToolUsage(executor.GetUsageStats())
 
+		if len(resp.Choices) == 0 {
+			return result, ErrNoResponseCandidates
+		}
 		for _, candidate := range resp.Choices {
-			if len(candidate.Message.ToolCalls) == 0 {
-				// No tool calls, this is the final response.
-				content := candidate.Message.Content
+			isTerminal := handler.IsTerminalStopReason(candidate.FinishReason)
 
-				var err error
-				if cfg.DisableStructuredOutput {
-					err = UnmarshalUnstructuredResponse(ctx, logger, []byte(content), &result)
-				} else {
-					if request.ResponseFormat.OfText != nil {
-						content, err = utils.RepairTextJSON(content)
-						if err != nil {
-							return result, NewErrUnmarshalResponse(err, []byte(candidate.Message.Content), []byte(candidate.FinishReason))
-						}
+			if !isTerminal {
+				// Append assistant message for every non-terminal turn.
+				request.Messages = append(request.Messages, handler.ToParam(ctx, logger, candidate.Message))
+
+				logSkippedPreambleText(ctx, logger, candidate.FinishReason, candidate.Message.Content)
+
+				for _, toolCall := range candidate.Message.ToolCalls {
+					data, err := taskFilesToDataMap(ctx, task.Files)
+					if err != nil {
+						return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
 					}
-					err = json.Unmarshal([]byte(content), &result)
+					toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, json.RawMessage(toolCall.Function.Arguments), data)
+					toolContent := string(toolResult)
+					if err != nil {
+						toolContent = formatToolExecutionError(err)
+					}
+					request.Messages = append(request.Messages, openai.ToolMessage(toolContent, toolCall.ID))
 				}
-				if err != nil {
-					return result, NewErrUnmarshalResponse(err, []byte(candidate.Message.Content), []byte(candidate.FinishReason))
+			} else {
+				if candidate.Message.Content != "" {
+					if cfg.DisableStructuredOutput {
+						err = UnmarshalUnstructuredResponse(ctx, logger, []byte(candidate.Message.Content), &result)
+					} else {
+						content := candidate.Message.Content
+						if request.ResponseFormat.OfText != nil {
+							content, err = utils.RepairTextJSON(content)
+							if err != nil {
+								return result, NewErrUnmarshalResponse(err, []byte(candidate.Message.Content), []byte(candidate.FinishReason))
+							}
+						}
+						err = json.Unmarshal([]byte(content), &result)
+					}
+					if err != nil {
+						return result, NewErrUnmarshalResponse(err, []byte(candidate.Message.Content), []byte(candidate.FinishReason))
+					}
+					return result, nil
 				}
-				return result, nil
-			}
 
-			// Append assistant message to conversation history before handling tool calls.
-			request.Messages = append(request.Messages, handler.ToParam(ctx, logger, candidate.Message))
-
-			for _, toolCall := range candidate.Message.ToolCalls {
-				data, err := taskFilesToDataMap(ctx, task.Files)
-				if err != nil {
-					return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
-				}
-				toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, json.RawMessage(toolCall.Function.Arguments), data)
-				toolContent := string(toolResult)
-				if err != nil {
-					toolContent = formatToolExecutionError(err)
-				}
-				request.Messages = append(request.Messages, openai.ToolMessage(toolContent, toolCall.ID))
+				return result, NewErrNoActionableContent([]byte(candidate.FinishReason))
 			}
 		}
 	} // move to the next conversation turn

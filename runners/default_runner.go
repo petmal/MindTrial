@@ -461,12 +461,17 @@ func (r *defaultRunner) Close(ctx context.Context) {
 func populateErrorDetails(errorDetails *ErrorDetails, err error) {
 	var unmarshalErr *providers.ErrUnmarshalResponse
 	var apiErr *providers.ErrAPIResponse
+	var noActionableContentErr *providers.ErrNoActionableContent
 
 	switch {
 	case errors.As(err, &unmarshalErr):
 		errorDetails.Details = map[string][]string{
 			"Stop Reason":  {string(unmarshalErr.StopReason)},
 			"Raw Response": utils.SplitLines(string(unmarshalErr.RawMessage)),
+		}
+	case errors.As(err, &noActionableContentErr):
+		errorDetails.Details = map[string][]string{
+			"Stop Reason": {string(noActionableContentErr.StopReason)},
 		}
 	case errors.As(err, &apiErr) && apiErr.Body != nil:
 		errorDetails.Details = map[string][]string{

@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
+	"strings"
 
 	anthropic "github.com/anthropics/anthropic-sdk-go"
 	anthropicoption "github.com/anthropics/anthropic-sdk-go/option"
@@ -173,6 +174,7 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 		}
 
 		recordUsage(&resp.Usage.InputTokens, &resp.Usage.OutputTokens, &result.usage)
+		isTerminal := o.isTerminalStopReason(resp.StopReason)
 
 		// Append assistant message to conversation history before processing content blocks.
 		request.Messages = append(request.Messages, resp.ToParam())
@@ -181,56 +183,74 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 		// are gathered and sent together in a single user message to maintain valid
 		// conversation structure (assistant message followed by user message with tool results).
 		var toolResults []anthropic.ContentBlockParamUnion
+		var terminalTextBuilder strings.Builder
 
 		for _, block := range resp.Content {
-			switch block := block.AsAny().(type) { //nolint:gocritic
+			switch block := block.AsAny().(type) {
 			case anthropic.TextBlock:
-				// When the text block is empty and the model hit the token budget,
-				// fall through to the default "no actionable content" error so the
-				// caller gets a descriptive message instead of a raw unmarshal error.
-				if block.Text == "" && resp.StopReason == anthropic.StopReasonMaxTokens {
-					continue
-				}
-				if cfg.DisableStructuredOutput {
-					err = UnmarshalUnstructuredResponse(ctx, logger, []byte(block.Text), &result)
+				if isTerminal {
+					terminalTextBuilder.WriteString(block.Text)
 				} else {
-					// In structured output mode, the text block contains the JSON response
-					// produced by output_config.format constrained decoding.
-					err = json.Unmarshal([]byte(block.Text), &result)
+					// For non-terminal turns, text blocks are preambles before additional
+					// assistant output/tool requests in subsequent turns.
+					logSkippedPreambleText(ctx, logger, string(resp.StopReason), block.Text)
 				}
-				if err != nil {
-					return result, NewErrUnmarshalResponse(err, []byte(block.Text), []byte(resp.StopReason))
-				}
-				return result, nil
 
 			case anthropic.ToolUseBlock:
-				data, err := taskFilesToDataMap(ctx, task.Files)
-				if err != nil {
-					return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
+				if !isTerminal {
+					data, err := taskFilesToDataMap(ctx, task.Files)
+					if err != nil {
+						return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
+					}
+					toolResult, err := executor.ExecuteTool(ctx, logger, block.Name, json.RawMessage(block.Input), data)
+					isError := err != nil
+					content := string(toolResult)
+					if isError {
+						content = formatToolExecutionError(err)
+					}
+					toolResults = append(toolResults, anthropic.NewToolResultBlock(block.ID, content, isError))
 				}
-				toolResult, err := executor.ExecuteTool(ctx, logger, block.Name, json.RawMessage(block.Input), data)
-				isError := err != nil
-				content := string(toolResult)
-				if isError {
-					content = formatToolExecutionError(err)
-				}
-				toolResults = append(toolResults, anthropic.NewToolResultBlock(block.ID, content, isError))
+
+			default:
+				logger.Message(ctx, logging.LevelTrace, "unhandled content block type: %T", block)
 			}
+		}
+
+		if isTerminal {
+			if textContent := terminalTextBuilder.String(); textContent != "" {
+				if cfg.DisableStructuredOutput {
+					err = UnmarshalUnstructuredResponse(ctx, logger, []byte(textContent), &result)
+				} else {
+					// In structured output mode, text blocks contain the JSON response
+					// produced by output_config.format constrained decoding.
+					err = json.Unmarshal([]byte(textContent), &result)
+				}
+				if err != nil {
+					return result, NewErrUnmarshalResponse(err, []byte(textContent), []byte(resp.StopReason))
+				}
+				return result, nil
+			}
+
+			// No actionable content was found: no parseable text block and no tool calls.
+			// Return an error only when the model has clearly terminated. Otherwise,
+			// continue the conversation loop and ask for forgiveness.
+			return result, NewErrNoActionableContent([]byte(resp.StopReason))
 		}
 
 		// If tool results were collected, send them in a single user message.
 		if len(toolResults) > 0 {
 			request.Messages = append(request.Messages, anthropic.NewUserMessage(toolResults...))
-			continue
 		}
-
-		// No actionable content was found: no parseable text block and no tool calls.
-		// This can occur when the model exhausts its token budget on thinking without
-		// producing a text response.
-		return result, fmt.Errorf("%w: model response contained no actionable content (stop_reason: %s)",
-			ErrGenerateResponse, resp.StopReason,
-		)
 	} // move to the next conversation turn
+}
+
+func (o *Anthropic) isTerminalStopReason(stopReason anthropic.StopReason) bool {
+	var undefined anthropic.StopReason
+	return !slices.Contains([]anthropic.StopReason{
+		undefined,
+		anthropic.StopReasonToolUse,
+		anthropic.StopReasonPauseTurn,
+	}, stopReason)
 }
 
 // handleRequest dispatches the request to the appropriate handler based on streaming mode.

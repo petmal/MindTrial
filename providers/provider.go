@@ -37,6 +37,8 @@ var (
 	ErrMalformedSchema = errors.New("malformed schema")
 	// ErrGenerateResponse is returned when response generation fails.
 	ErrGenerateResponse = errors.New("failed to generate response")
+	// ErrNoResponseCandidates is returned when the model response contains no candidates.
+	ErrNoResponseCandidates = fmt.Errorf("%w: model response contained no response candidates", ErrGenerateResponse)
 	// ErrCreatePromptRequest is returned when request generation fails.
 	ErrCreatePromptRequest = errors.New("failed to create prompt request")
 	// ErrFeatureNotSupported is returned when a requested feature is not supported by the provider.
@@ -138,6 +140,34 @@ func WrapErrRetryable(err error) error {
 // WrapErrGenerateResponse wraps an error as a generate response error, preserving the original error chain.
 func WrapErrGenerateResponse(err error) error {
 	return fmt.Errorf("%w: %w", ErrGenerateResponse, err)
+}
+
+// ErrNoActionableContent is returned when the model response is terminal but contains
+// neither actionable tool calls nor parseable text.
+type ErrNoActionableContent struct {
+	// StopReason contains the provider-specific terminal reason (finish_reason/stop_reason/etc.).
+	StopReason []byte
+}
+
+func (e *ErrNoActionableContent) Error() string {
+	return fmt.Sprintf("%s: model response contained no actionable content", ErrGenerateResponse)
+}
+
+func (e *ErrNoActionableContent) Unwrap() error {
+	return ErrGenerateResponse
+}
+
+// NewErrNoActionableContent creates a standardized generation error when the model
+// provided neither actionable tool calls nor parseable text at a terminal stop reason.
+func NewErrNoActionableContent(stopReason []byte) error {
+	return &ErrNoActionableContent{StopReason: stopReason}
+}
+
+func logSkippedPreambleText(ctx context.Context, logger logging.Logger, reasonValue string, preambleText string) {
+	if preambleText != "" {
+		logger.Message(ctx, logging.LevelDebug, "ignoring assistant preamble text (stop reason: %s, length: %d)", reasonValue, len(preambleText))
+		logger.Message(ctx, logging.LevelTrace, "skipped preamble text content: %s", preambleText)
+	}
 }
 
 // ResultJSONSchema generates a JSON schema for the Result type with the given response format
@@ -284,8 +314,13 @@ type Answer struct {
 }
 
 // UnmarshalJSON implements json.Unmarshaler for Answer.
-// It supports unmarshaling from either a string (for plain text answers)
-// or a structured object with a "content" field (for structured answers).
+// It supports unmarshaling from:
+//   - a string (for plain text answers)
+//   - a JSON primitive (number, boolean) stored directly as the answer content
+//   - a structured object with a "content" field (for structured answers)
+//
+// JSON objects must conform to the Answer schema (i.e., contain a "content" field).
+// Arrays and objects without a "content" field are rejected.
 func (a *Answer) UnmarshalJSON(data []byte) error {
 	// Handle null case.
 	if string(data) == "null" {
@@ -300,12 +335,35 @@ func (a *Answer) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
+	// Try to unmarshal as a JSON number, preserving the distinction between
+	// integers and floats so that task validation can match the expected type.
+	var num json.Number
+	if err := json.Unmarshal(data, &num); err == nil {
+		if i, err := num.Int64(); err == nil {
+			a.Content = i
+			return nil
+		}
+		if f, err := num.Float64(); err == nil {
+			a.Content = f
+			return nil
+		}
+	}
+
+	// Try to unmarshal as a boolean.
+	var b bool
+	if err := json.Unmarshal(data, &b); err == nil {
+		a.Content = b
+		return nil
+	}
+
 	// Try to unmarshal as structured object with "content" field.
 	// Define an alias to the Answer structure to avoid recursive unmarshaling.
 	type answerAlias Answer
 	aliasValue := answerAlias{}
 
 	// Create a decoder that disallows unknown fields to ensure strict schema compliance.
+	// JSON objects must conform to the Answer schema; objects without a "content" field
+	// or arrays are rejected.
 	decoder := json.NewDecoder(strings.NewReader(string(data)))
 	decoder.DisallowUnknownFields()
 

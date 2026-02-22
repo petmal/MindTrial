@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 
 	deepseek "github.com/cohesion-org/deepseek-go"
 	"github.com/petmal/mindtrial/config"
@@ -170,39 +171,52 @@ func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 		}
 
 		recordUsage(&resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, &result.usage)
+		if len(resp.Choices) == 0 {
+			return result, ErrNoResponseCandidates
+		}
 		for _, candidate := range resp.Choices {
-			if len(candidate.Message.ToolCalls) == 0 {
-				// No tool calls, this is the final response.
-				var err error
-				if cfg.DisableStructuredOutput {
-					err = UnmarshalUnstructuredResponse(ctx, logger, []byte(candidate.Message.Content), &result)
-				} else {
-					err = deepseek.NewJSONExtractor(nil).ExtractJSON(resp, &result)
-				}
-				if err != nil {
-					return result, NewErrUnmarshalResponse(err, []byte(candidate.Message.Content), []byte(candidate.FinishReason))
-				}
-				return result, nil
-			}
+			isTerminal := o.isTerminalStopReason(candidate.FinishReason)
 
-			// Append assistant message to conversation history before handling tool calls.
-			o.addAssistantMessageToRequest(request, candidate.Message)
+			if !isTerminal {
+				// Append assistant message for every non-terminal turn.
+				o.addAssistantMessageToRequest(request, candidate.Message)
 
-			// Handle tool calls.
-			for _, toolCall := range candidate.Message.ToolCalls {
-				data, err := taskFilesToDataMap(ctx, task.Files)
-				if err != nil {
-					return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
+				logSkippedPreambleText(ctx, logger, candidate.FinishReason, candidate.Message.Content)
+
+				// Handle tool calls.
+				for _, toolCall := range candidate.Message.ToolCalls {
+					data, err := taskFilesToDataMap(ctx, task.Files)
+					if err != nil {
+						return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
+					}
+					toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, json.RawMessage(toolCall.Function.Arguments), data)
+					content := string(toolResult)
+					if err != nil {
+						content = formatToolExecutionError(err)
+					}
+					o.addToolMessageToRequest(request, toolCall.ID, content)
 				}
-				toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, json.RawMessage(toolCall.Function.Arguments), data)
-				content := string(toolResult)
-				if err != nil {
-					content = formatToolExecutionError(err)
+			} else {
+				if candidate.Message.Content != "" {
+					if cfg.DisableStructuredOutput {
+						err = UnmarshalUnstructuredResponse(ctx, logger, []byte(candidate.Message.Content), &result)
+					} else {
+						err = deepseek.NewJSONExtractor(nil).ExtractJSON(resp, &result)
+					}
+					if err != nil {
+						return result, NewErrUnmarshalResponse(err, []byte(candidate.Message.Content), []byte(candidate.FinishReason))
+					}
+					return result, nil
 				}
-				o.addToolMessageToRequest(request, toolCall.ID, content)
+
+				return result, NewErrNoActionableContent([]byte(candidate.FinishReason))
 			}
 		}
 	} // move to the next conversation turn
+}
+
+func (o *Deepseek) isTerminalStopReason(stopReason string) bool {
+	return !slices.Contains([]string{"", "tool_calls"}, stopReason)
 }
 
 func (o *Deepseek) isFileUploadSupported() bool {

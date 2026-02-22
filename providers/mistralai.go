@@ -161,55 +161,90 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 		if resp.Usage != nil {
 			recordUsage(&resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, &result.usage)
 		}
+		if len(resp.Choices) == 0 {
+			return result, ErrNoResponseCandidates
+		}
 		for _, candidate := range resp.Choices {
-			if len(candidate.Message.ToolCalls) == 0 {
-				// No tool calls, this is the final response.
-				if message, ok := candidate.Message.GetContentOk(); ok {
-					if message != nil && message.String != nil {
-						content := *message.String
+			isTerminal := o.isTerminalStopReason(candidate.FinishReason)
 
-						var err error
-						if cfg.DisableStructuredOutput {
-							err = UnmarshalUnstructuredResponse(ctx, logger, []byte(content), &result)
-						} else {
-							err = json.Unmarshal([]byte(content), &result)
-						}
-						if err != nil {
-							return result, NewErrUnmarshalResponse(err, []byte(content), []byte(candidate.FinishReason))
-						}
-						return result, nil
+			if !isTerminal {
+				// Append assistant message for every non-terminal turn.
+				request.Messages = append(request.Messages, mistralai.AssistantMessageAsChatCompletionRequestMessagesInner(&candidate.Message))
+
+				for _, textContent := range o.getMessageTextChunks(candidate.Message) {
+					logSkippedPreambleText(ctx, logger, candidate.FinishReason, textContent)
+				}
+
+				// Handle tool calls.
+				for _, toolCall := range candidate.Message.ToolCalls {
+					args, err := marshalToolArguments(toolCall.Function.Arguments)
+					if err != nil {
+						return result, fmt.Errorf("%w: failed to extract tool arguments: %v", ErrToolUse, err)
 					}
+					data, err := taskFilesToDataMap(ctx, task.Files)
+					if err != nil {
+						return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
+					}
+					toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, args, data)
+					content := string(toolResult)
+					if err != nil {
+						content = formatToolExecutionError(err)
+					}
+					content3 := mistralai.Content3{
+						String: &content,
+					}
+					nullableContent := mistralai.NewNullableContent3(&content3)
+					toolMessage := mistralai.NewToolMessage(*nullableContent)
+					toolMessage.ToolCallId.Set(toolCall.Id)
+					request.Messages = append(request.Messages, mistralai.ToolMessageAsChatCompletionRequestMessagesInner(toolMessage))
 				}
-			}
+			} else {
+				if textContent, ok := o.getMessageText(candidate.Message); ok {
+					if cfg.DisableStructuredOutput {
+						err = UnmarshalUnstructuredResponse(ctx, logger, []byte(textContent), &result)
+					} else {
+						err = json.Unmarshal([]byte(textContent), &result)
+					}
+					if err != nil {
+						return result, NewErrUnmarshalResponse(err, []byte(textContent), []byte(candidate.FinishReason))
+					}
+					return result, nil
+				}
 
-			// Append assistant message to conversation history before handling tool calls.
-			request.Messages = append(request.Messages, mistralai.AssistantMessageAsChatCompletionRequestMessagesInner(&candidate.Message))
-
-			// Handle tool calls.
-			for _, toolCall := range candidate.Message.ToolCalls {
-				args, err := marshalToolArguments(toolCall.Function.Arguments)
-				if err != nil {
-					return result, fmt.Errorf("%w: failed to extract tool arguments: %v", ErrToolUse, err)
-				}
-				data, err := taskFilesToDataMap(ctx, task.Files)
-				if err != nil {
-					return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
-				}
-				toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, args, data)
-				content := string(toolResult)
-				if err != nil {
-					content = formatToolExecutionError(err)
-				}
-				content3 := mistralai.Content3{
-					String: &content,
-				}
-				nullableContent := mistralai.NewNullableContent3(&content3)
-				toolMessage := mistralai.NewToolMessage(*nullableContent)
-				toolMessage.ToolCallId.Set(toolCall.Id)
-				request.Messages = append(request.Messages, mistralai.ToolMessageAsChatCompletionRequestMessagesInner(toolMessage))
+				return result, NewErrNoActionableContent([]byte(candidate.FinishReason))
 			}
 		}
 	} // move to the next conversation turn
+}
+
+func (o *MistralAI) isTerminalStopReason(stopReason string) bool {
+	return !slices.Contains([]string{"", "tool_calls"}, stopReason)
+}
+
+func (o *MistralAI) getMessageText(message mistralai.AssistantMessage) (text string, ok bool) {
+	text = strings.Join(o.getMessageTextChunks(message), "")
+	ok = text != ""
+	return
+}
+
+func (o *MistralAI) getMessageTextChunks(message mistralai.AssistantMessage) (textChunks []string) {
+	if content, hasContent := message.GetContentOk(); hasContent && content != nil {
+		if content.String != nil {
+			textChunks = []string{*content.String}
+			return
+		}
+
+		if content.ArrayOfContentChunk != nil {
+			textChunks = make([]string, 0, len(*content.ArrayOfContentChunk))
+			for _, chunk := range *content.ArrayOfContentChunk {
+				if chunk.TextChunk != nil {
+					textChunks = append(textChunks, chunk.TextChunk.Text)
+				}
+			}
+		}
+	}
+
+	return
 }
 
 func (o *MistralAI) isFileUploadSupported(model string) bool {
