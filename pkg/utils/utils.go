@@ -73,7 +73,7 @@ func RepairTextJSON(content string) (string, error) {
 	if json.Valid([]byte(content)) {
 		return content, nil
 	}
-	repaired, err := jsonrepair.JSONRepair(JSONFromMarkdown(content))
+	repaired, err := jsonrepair.Repair(JSONFromMarkdown(content))
 	if err != nil {
 		return content, fmt.Errorf("%w: %v", ErrCouldNotRepairJSON, err)
 	}

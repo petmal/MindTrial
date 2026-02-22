@@ -144,6 +144,18 @@ config:
           model-parameters:
             thinking-level: "high"
             media-resolution: "high"
+        - name: "Gemini 3.1 Pro (high thinking)"
+          model: "gemini-3.1-pro-preview"
+          max-requests-per-minute: 3
+          model-parameters:
+            thinking-level: "high"
+            media-resolution: "high"
+        - name: "Gemini 3.1 Pro Custom Tools (high thinking)"
+          model: "gemini-3.1-pro-preview-customtools"
+          max-requests-per-minute: 3
+          model-parameters:
+            thinking-level: "high"
+            media-resolution: "high"
     - name: anthropic
       client-config:
         api-key: ""

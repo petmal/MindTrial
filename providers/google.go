@@ -102,8 +102,12 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 			if modelParams.ThinkingLevel != nil {
 				var thinkingLevel genai.ThinkingLevel
 				switch *modelParams.ThinkingLevel {
+				case "minimal":
+					thinkingLevel = genai.ThinkingLevelMinimal
 				case "low":
 					thinkingLevel = genai.ThinkingLevelLow
+				case "medium":
+					thinkingLevel = genai.ThinkingLevelMedium
 				case "high":
 					thinkingLevel = genai.ThinkingLevelHigh
 				default:
