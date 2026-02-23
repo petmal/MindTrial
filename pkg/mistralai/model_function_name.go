@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,8 +21,7 @@ var _ MappedNullable = &FunctionName{}
 
 // FunctionName this restriction of `Function` is used to select a specific function to call
 type FunctionName struct {
-	Name                 string `json:"name"`
-	AdditionalProperties map[string]interface{}
+	Name string `json:"name"`
 }
 
 type _FunctionName FunctionName
@@ -79,11 +79,6 @@ func (o FunctionName) MarshalJSON() ([]byte, error) {
 func (o FunctionName) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["name"] = o.Name
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -111,20 +106,15 @@ func (o *FunctionName) UnmarshalJSON(data []byte) (err error) {
 
 	varFunctionName := _FunctionName{}
 
-	err = json.Unmarshal(data, &varFunctionName)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varFunctionName)
 
 	if err != nil {
 		return err
 	}
 
 	*o = FunctionName(varFunctionName)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "name")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

@@ -17,14 +17,11 @@ import (
 // checks if the Prediction type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &Prediction{}
 
-// Prediction struct for Prediction
+// Prediction Enable users to specify an expected completion, optimizing response times by leveraging known or predictable content.
 type Prediction struct {
-	Type                 *string `json:"type,omitempty"`
-	Content              *string `json:"content,omitempty"`
-	AdditionalProperties map[string]interface{}
+	Type    *string `json:"type,omitempty"`
+	Content *string `json:"content,omitempty"`
 }
-
-type _Prediction Prediction
 
 // NewPrediction instantiates a new Prediction object
 // This constructor will assign default values to properties that have it defined,
@@ -131,34 +128,7 @@ func (o Prediction) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Content) {
 		toSerialize["content"] = o.Content
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
-}
-
-func (o *Prediction) UnmarshalJSON(data []byte) (err error) {
-	varPrediction := _Prediction{}
-
-	err = json.Unmarshal(data, &varPrediction)
-
-	if err != nil {
-		return err
-	}
-
-	*o = Prediction(varPrediction)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "type")
-		delete(additionalProperties, "content")
-		o.AdditionalProperties = additionalProperties
-	}
-
-	return err
 }
 
 type NullablePrediction struct {

@@ -20,13 +20,13 @@ type BatchJobStatus string
 
 // List of BatchJobStatus
 const (
-	QUEUED                 BatchJobStatus = "QUEUED"
-	RUNNING                BatchJobStatus = "RUNNING"
-	SUCCESS                BatchJobStatus = "SUCCESS"
-	FAILED                 BatchJobStatus = "FAILED"
-	TIMEOUT_EXCEEDED       BatchJobStatus = "TIMEOUT_EXCEEDED"
-	CANCELLATION_REQUESTED BatchJobStatus = "CANCELLATION_REQUESTED"
-	CANCELLED              BatchJobStatus = "CANCELLED"
+	BATCHJOBSTATUS_QUEUED                 BatchJobStatus = "QUEUED"
+	BATCHJOBSTATUS_RUNNING                BatchJobStatus = "RUNNING"
+	BATCHJOBSTATUS_SUCCESS                BatchJobStatus = "SUCCESS"
+	BATCHJOBSTATUS_FAILED                 BatchJobStatus = "FAILED"
+	BATCHJOBSTATUS_TIMEOUT_EXCEEDED       BatchJobStatus = "TIMEOUT_EXCEEDED"
+	BATCHJOBSTATUS_CANCELLATION_REQUESTED BatchJobStatus = "CANCELLATION_REQUESTED"
+	BATCHJOBSTATUS_CANCELLED              BatchJobStatus = "CANCELLED"
 )
 
 // All allowed values of BatchJobStatus enum

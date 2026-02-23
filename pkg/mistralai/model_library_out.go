@@ -25,18 +25,18 @@ type LibraryOut struct {
 	Name                          string         `json:"name"`
 	CreatedAt                     time.Time      `json:"created_at"`
 	UpdatedAt                     time.Time      `json:"updated_at"`
-	OwnerId                       string         `json:"owner_id"`
+	OwnerId                       NullableString `json:"owner_id"`
 	OwnerType                     string         `json:"owner_type"`
 	TotalSize                     int32          `json:"total_size"`
 	NbDocuments                   int32          `json:"nb_documents"`
 	ChunkSize                     NullableInt32  `json:"chunk_size"`
 	Emoji                         NullableString `json:"emoji,omitempty"`
 	Description                   NullableString `json:"description,omitempty"`
-	GeneratedName                 NullableString `json:"generated_name,omitempty"`
 	GeneratedDescription          NullableString `json:"generated_description,omitempty"`
 	ExplicitUserMembersCount      NullableInt32  `json:"explicit_user_members_count,omitempty"`
 	ExplicitWorkspaceMembersCount NullableInt32  `json:"explicit_workspace_members_count,omitempty"`
 	OrgSharingRole                NullableString `json:"org_sharing_role,omitempty"`
+	GeneratedName                 NullableString `json:"generated_name,omitempty"`
 	AdditionalProperties          map[string]interface{}
 }
 
@@ -46,7 +46,7 @@ type _LibraryOut LibraryOut
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewLibraryOut(id string, name string, createdAt time.Time, updatedAt time.Time, ownerId string, ownerType string, totalSize int32, nbDocuments int32, chunkSize NullableInt32) *LibraryOut {
+func NewLibraryOut(id string, name string, createdAt time.Time, updatedAt time.Time, ownerId NullableString, ownerType string, totalSize int32, nbDocuments int32, chunkSize NullableInt32) *LibraryOut {
 	this := LibraryOut{}
 	this.Id = id
 	this.Name = name
@@ -165,27 +165,29 @@ func (o *LibraryOut) SetUpdatedAt(v time.Time) {
 }
 
 // GetOwnerId returns the OwnerId field value
+// If the value is explicit nil, the zero value for string will be returned
 func (o *LibraryOut) GetOwnerId() string {
-	if o == nil {
+	if o == nil || o.OwnerId.Get() == nil {
 		var ret string
 		return ret
 	}
 
-	return o.OwnerId
+	return *o.OwnerId.Get()
 }
 
 // GetOwnerIdOk returns a tuple with the OwnerId field value
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *LibraryOut) GetOwnerIdOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.OwnerId, true
+	return o.OwnerId.Get(), o.OwnerId.IsSet()
 }
 
 // SetOwnerId sets field value
 func (o *LibraryOut) SetOwnerId(v string) {
-	o.OwnerId = v
+	o.OwnerId.Set(&v)
 }
 
 // GetOwnerType returns the OwnerType field value
@@ -372,49 +374,6 @@ func (o *LibraryOut) UnsetDescription() {
 	o.Description.Unset()
 }
 
-// GetGeneratedName returns the GeneratedName field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *LibraryOut) GetGeneratedName() string {
-	if o == nil || IsNil(o.GeneratedName.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.GeneratedName.Get()
-}
-
-// GetGeneratedNameOk returns a tuple with the GeneratedName field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *LibraryOut) GetGeneratedNameOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.GeneratedName.Get(), o.GeneratedName.IsSet()
-}
-
-// HasGeneratedName returns a boolean if a field has been set.
-func (o *LibraryOut) HasGeneratedName() bool {
-	if o != nil && o.GeneratedName.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetGeneratedName gets a reference to the given NullableString and assigns it to the GeneratedName field.
-func (o *LibraryOut) SetGeneratedName(v string) {
-	o.GeneratedName.Set(&v)
-}
-
-// SetGeneratedNameNil sets the value for GeneratedName to be an explicit nil
-func (o *LibraryOut) SetGeneratedNameNil() {
-	o.GeneratedName.Set(nil)
-}
-
-// UnsetGeneratedName ensures that no value is present for GeneratedName, not even an explicit nil
-func (o *LibraryOut) UnsetGeneratedName() {
-	o.GeneratedName.Unset()
-}
-
 // GetGeneratedDescription returns the GeneratedDescription field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *LibraryOut) GetGeneratedDescription() string {
 	if o == nil || IsNil(o.GeneratedDescription.Get()) {
@@ -587,6 +546,49 @@ func (o *LibraryOut) UnsetOrgSharingRole() {
 	o.OrgSharingRole.Unset()
 }
 
+// GetGeneratedName returns the GeneratedName field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *LibraryOut) GetGeneratedName() string {
+	if o == nil || IsNil(o.GeneratedName.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.GeneratedName.Get()
+}
+
+// GetGeneratedNameOk returns a tuple with the GeneratedName field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *LibraryOut) GetGeneratedNameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.GeneratedName.Get(), o.GeneratedName.IsSet()
+}
+
+// HasGeneratedName returns a boolean if a field has been set.
+func (o *LibraryOut) HasGeneratedName() bool {
+	if o != nil && o.GeneratedName.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetGeneratedName gets a reference to the given NullableString and assigns it to the GeneratedName field.
+func (o *LibraryOut) SetGeneratedName(v string) {
+	o.GeneratedName.Set(&v)
+}
+
+// SetGeneratedNameNil sets the value for GeneratedName to be an explicit nil
+func (o *LibraryOut) SetGeneratedNameNil() {
+	o.GeneratedName.Set(nil)
+}
+
+// UnsetGeneratedName ensures that no value is present for GeneratedName, not even an explicit nil
+func (o *LibraryOut) UnsetGeneratedName() {
+	o.GeneratedName.Unset()
+}
+
 func (o LibraryOut) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -601,7 +603,7 @@ func (o LibraryOut) ToMap() (map[string]interface{}, error) {
 	toSerialize["name"] = o.Name
 	toSerialize["created_at"] = o.CreatedAt
 	toSerialize["updated_at"] = o.UpdatedAt
-	toSerialize["owner_id"] = o.OwnerId
+	toSerialize["owner_id"] = o.OwnerId.Get()
 	toSerialize["owner_type"] = o.OwnerType
 	toSerialize["total_size"] = o.TotalSize
 	toSerialize["nb_documents"] = o.NbDocuments
@@ -611,9 +613,6 @@ func (o LibraryOut) ToMap() (map[string]interface{}, error) {
 	}
 	if o.Description.IsSet() {
 		toSerialize["description"] = o.Description.Get()
-	}
-	if o.GeneratedName.IsSet() {
-		toSerialize["generated_name"] = o.GeneratedName.Get()
 	}
 	if o.GeneratedDescription.IsSet() {
 		toSerialize["generated_description"] = o.GeneratedDescription.Get()
@@ -626,6 +625,9 @@ func (o LibraryOut) ToMap() (map[string]interface{}, error) {
 	}
 	if o.OrgSharingRole.IsSet() {
 		toSerialize["org_sharing_role"] = o.OrgSharingRole.Get()
+	}
+	if o.GeneratedName.IsSet() {
+		toSerialize["generated_name"] = o.GeneratedName.Get()
 	}
 
 	for key, value := range o.AdditionalProperties {
@@ -689,11 +691,11 @@ func (o *LibraryOut) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "chunk_size")
 		delete(additionalProperties, "emoji")
 		delete(additionalProperties, "description")
-		delete(additionalProperties, "generated_name")
 		delete(additionalProperties, "generated_description")
 		delete(additionalProperties, "explicit_user_members_count")
 		delete(additionalProperties, "explicit_workspace_members_count")
 		delete(additionalProperties, "org_sharing_role")
+		delete(additionalProperties, "generated_name")
 		o.AdditionalProperties = additionalProperties
 	}
 

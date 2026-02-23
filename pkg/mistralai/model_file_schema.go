@@ -30,11 +30,13 @@ type FileSchema struct {
 	CreatedAt int32 `json:"created_at"`
 	// The name of the uploaded file.
 	Filename string `json:"filename"`
-	// The intended purpose of the uploaded file. Only accepts fine-tuning (`fine-tune`) for now.
-	Purpose              FilePurpose   `json:"purpose"`
-	SampleType           SampleType    `json:"sample_type"`
-	NumLines             NullableInt32 `json:"num_lines,omitempty"`
-	Source               Source        `json:"source"`
+	// The intended purpose of the uploaded file, currently supports fine-tuning (`fine-tune`), OCR (`ocr`), Audio/Transcription (`audio`) and batch inference (`batch`).
+	Purpose              FilePurpose    `json:"purpose"`
+	SampleType           SampleType     `json:"sample_type"`
+	NumLines             NullableInt32  `json:"num_lines,omitempty"`
+	Mimetype             NullableString `json:"mimetype,omitempty"`
+	Source               Source         `json:"source"`
+	Signature            NullableString `json:"signature,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -276,6 +278,49 @@ func (o *FileSchema) UnsetNumLines() {
 	o.NumLines.Unset()
 }
 
+// GetMimetype returns the Mimetype field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *FileSchema) GetMimetype() string {
+	if o == nil || IsNil(o.Mimetype.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Mimetype.Get()
+}
+
+// GetMimetypeOk returns a tuple with the Mimetype field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *FileSchema) GetMimetypeOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Mimetype.Get(), o.Mimetype.IsSet()
+}
+
+// HasMimetype returns a boolean if a field has been set.
+func (o *FileSchema) HasMimetype() bool {
+	if o != nil && o.Mimetype.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetMimetype gets a reference to the given NullableString and assigns it to the Mimetype field.
+func (o *FileSchema) SetMimetype(v string) {
+	o.Mimetype.Set(&v)
+}
+
+// SetMimetypeNil sets the value for Mimetype to be an explicit nil
+func (o *FileSchema) SetMimetypeNil() {
+	o.Mimetype.Set(nil)
+}
+
+// UnsetMimetype ensures that no value is present for Mimetype, not even an explicit nil
+func (o *FileSchema) UnsetMimetype() {
+	o.Mimetype.Unset()
+}
+
 // GetSource returns the Source field value
 func (o *FileSchema) GetSource() Source {
 	if o == nil {
@@ -300,6 +345,49 @@ func (o *FileSchema) SetSource(v Source) {
 	o.Source = v
 }
 
+// GetSignature returns the Signature field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *FileSchema) GetSignature() string {
+	if o == nil || IsNil(o.Signature.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Signature.Get()
+}
+
+// GetSignatureOk returns a tuple with the Signature field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *FileSchema) GetSignatureOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Signature.Get(), o.Signature.IsSet()
+}
+
+// HasSignature returns a boolean if a field has been set.
+func (o *FileSchema) HasSignature() bool {
+	if o != nil && o.Signature.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetSignature gets a reference to the given NullableString and assigns it to the Signature field.
+func (o *FileSchema) SetSignature(v string) {
+	o.Signature.Set(&v)
+}
+
+// SetSignatureNil sets the value for Signature to be an explicit nil
+func (o *FileSchema) SetSignatureNil() {
+	o.Signature.Set(nil)
+}
+
+// UnsetSignature ensures that no value is present for Signature, not even an explicit nil
+func (o *FileSchema) UnsetSignature() {
+	o.Signature.Unset()
+}
+
 func (o FileSchema) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -320,7 +408,13 @@ func (o FileSchema) ToMap() (map[string]interface{}, error) {
 	if o.NumLines.IsSet() {
 		toSerialize["num_lines"] = o.NumLines.Get()
 	}
+	if o.Mimetype.IsSet() {
+		toSerialize["mimetype"] = o.Mimetype.Get()
+	}
 	toSerialize["source"] = o.Source
+	if o.Signature.IsSet() {
+		toSerialize["signature"] = o.Signature.Get()
+	}
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -379,7 +473,9 @@ func (o *FileSchema) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "purpose")
 		delete(additionalProperties, "sample_type")
 		delete(additionalProperties, "num_lines")
+		delete(additionalProperties, "mimetype")
 		delete(additionalProperties, "source")
+		delete(additionalProperties, "signature")
 		o.AdditionalProperties = additionalProperties
 	}
 

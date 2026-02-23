@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -21,16 +22,15 @@ var _ MappedNullable = &MessageOutputEvent{}
 
 // MessageOutputEvent struct for MessageOutputEvent
 type MessageOutputEvent struct {
-	Type                 *string        `json:"type,omitempty"`
-	CreatedAt            *time.Time     `json:"created_at,omitempty"`
-	OutputIndex          *int32         `json:"output_index,omitempty"`
-	Id                   string         `json:"id"`
-	ContentIndex         *int32         `json:"content_index,omitempty"`
-	Model                NullableString `json:"model,omitempty"`
-	AgentId              NullableString `json:"agent_id,omitempty"`
-	Role                 *string        `json:"role,omitempty"`
-	Content              Content2       `json:"content"`
-	AdditionalProperties map[string]interface{}
+	Type         *string        `json:"type,omitempty"`
+	CreatedAt    *time.Time     `json:"created_at,omitempty"`
+	OutputIndex  *int32         `json:"output_index,omitempty"`
+	Id           string         `json:"id"`
+	ContentIndex *int32         `json:"content_index,omitempty"`
+	Model        NullableString `json:"model,omitempty"`
+	AgentId      NullableString `json:"agent_id,omitempty"`
+	Role         *string        `json:"role,omitempty"`
+	Content      Content2       `json:"content"`
 }
 
 type _MessageOutputEvent MessageOutputEvent
@@ -397,11 +397,6 @@ func (o MessageOutputEvent) ToMap() (map[string]interface{}, error) {
 		toSerialize["role"] = o.Role
 	}
 	toSerialize["content"] = o.Content
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -430,28 +425,15 @@ func (o *MessageOutputEvent) UnmarshalJSON(data []byte) (err error) {
 
 	varMessageOutputEvent := _MessageOutputEvent{}
 
-	err = json.Unmarshal(data, &varMessageOutputEvent)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varMessageOutputEvent)
 
 	if err != nil {
 		return err
 	}
 
 	*o = MessageOutputEvent(varMessageOutputEvent)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "type")
-		delete(additionalProperties, "created_at")
-		delete(additionalProperties, "output_index")
-		delete(additionalProperties, "id")
-		delete(additionalProperties, "content_index")
-		delete(additionalProperties, "model")
-		delete(additionalProperties, "agent_id")
-		delete(additionalProperties, "role")
-		delete(additionalProperties, "content")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

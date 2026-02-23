@@ -52,6 +52,20 @@ type BetaConversationsAPI interface {
 	AgentsApiV1ConversationsAppendStreamExecute(r ApiAgentsApiV1ConversationsAppendStreamRequest) (*ConversationEvents, *http.Response, error)
 
 	/*
+		AgentsApiV1ConversationsDelete Delete a conversation.
+
+		Delete a conversation given a conversation_id.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param conversationId ID of the conversation from which we are fetching metadata.
+		@return ApiAgentsApiV1ConversationsDeleteRequest
+	*/
+	AgentsApiV1ConversationsDelete(ctx context.Context, conversationId string) ApiAgentsApiV1ConversationsDeleteRequest
+
+	// AgentsApiV1ConversationsDeleteExecute executes the request
+	AgentsApiV1ConversationsDeleteExecute(r ApiAgentsApiV1ConversationsDeleteRequest) (*http.Response, error)
+
+	/*
 		AgentsApiV1ConversationsGet Retrieve a conversation information.
 
 		Given a conversation_id retrieve a conversation entity with its attributes.
@@ -92,8 +106,8 @@ type BetaConversationsAPI interface {
 	AgentsApiV1ConversationsList(ctx context.Context) ApiAgentsApiV1ConversationsListRequest
 
 	// AgentsApiV1ConversationsListExecute executes the request
-	//  @return []AgentsApiV1ConversationsList200ResponseInner
-	AgentsApiV1ConversationsListExecute(r ApiAgentsApiV1ConversationsListRequest) ([]AgentsApiV1ConversationsList200ResponseInner, *http.Response, error)
+	//  @return []ResponseV1ConversationsListInner
+	AgentsApiV1ConversationsListExecute(r ApiAgentsApiV1ConversationsListRequest) ([]ResponseV1ConversationsListInner, *http.Response, error)
 
 	/*
 		AgentsApiV1ConversationsMessages Retrieve all messages in a conversation.
@@ -422,6 +436,108 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsAppendStreamExecut
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
+type ApiAgentsApiV1ConversationsDeleteRequest struct {
+	ctx            context.Context
+	ApiService     BetaConversationsAPI
+	conversationId string
+}
+
+func (r ApiAgentsApiV1ConversationsDeleteRequest) Execute() (*http.Response, error) {
+	return r.ApiService.AgentsApiV1ConversationsDeleteExecute(r)
+}
+
+/*
+AgentsApiV1ConversationsDelete Delete a conversation.
+
+Delete a conversation given a conversation_id.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param conversationId ID of the conversation from which we are fetching metadata.
+	@return ApiAgentsApiV1ConversationsDeleteRequest
+*/
+func (a *BetaConversationsAPIService) AgentsApiV1ConversationsDelete(ctx context.Context, conversationId string) ApiAgentsApiV1ConversationsDeleteRequest {
+	return ApiAgentsApiV1ConversationsDeleteRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		conversationId: conversationId,
+	}
+}
+
+// Execute executes the request
+func (a *BetaConversationsAPIService) AgentsApiV1ConversationsDeleteExecute(r ApiAgentsApiV1ConversationsDeleteRequest) (*http.Response, error) {
+	var (
+		localVarHTTPMethod = http.MethodDelete
+		localVarPostBody   interface{}
+		formFiles          []formFile
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaConversationsAPIService.AgentsApiV1ConversationsDelete")
+	if err != nil {
+		return nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/conversations/{conversation_id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"conversation_id"+"}", url.PathEscape(parameterValueToString(r.conversationId, "conversationId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 422 {
+			var v HTTPValidationError
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarHTTPResponse, newErr
+	}
+
+	return localVarHTTPResponse, nil
+}
+
 type ApiAgentsApiV1ConversationsGetRequest struct {
 	ctx            context.Context
 	ApiService     BetaConversationsAPI
@@ -655,6 +771,7 @@ type ApiAgentsApiV1ConversationsListRequest struct {
 	ApiService BetaConversationsAPI
 	page       *int32
 	pageSize   *int32
+	metadata   *AnyOfmapnull
 }
 
 func (r ApiAgentsApiV1ConversationsListRequest) Page(page int32) ApiAgentsApiV1ConversationsListRequest {
@@ -667,7 +784,12 @@ func (r ApiAgentsApiV1ConversationsListRequest) PageSize(pageSize int32) ApiAgen
 	return r
 }
 
-func (r ApiAgentsApiV1ConversationsListRequest) Execute() ([]AgentsApiV1ConversationsList200ResponseInner, *http.Response, error) {
+func (r ApiAgentsApiV1ConversationsListRequest) Metadata(metadata AnyOfmapnull) ApiAgentsApiV1ConversationsListRequest {
+	r.metadata = &metadata
+	return r
+}
+
+func (r ApiAgentsApiV1ConversationsListRequest) Execute() ([]ResponseV1ConversationsListInner, *http.Response, error) {
 	return r.ApiService.AgentsApiV1ConversationsListExecute(r)
 }
 
@@ -688,13 +810,13 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsList(ctx context.C
 
 // Execute executes the request
 //
-//	@return []AgentsApiV1ConversationsList200ResponseInner
-func (a *BetaConversationsAPIService) AgentsApiV1ConversationsListExecute(r ApiAgentsApiV1ConversationsListRequest) ([]AgentsApiV1ConversationsList200ResponseInner, *http.Response, error) {
+//	@return []ResponseV1ConversationsListInner
+func (a *BetaConversationsAPIService) AgentsApiV1ConversationsListExecute(r ApiAgentsApiV1ConversationsListRequest) ([]ResponseV1ConversationsListInner, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
 		formFiles           []formFile
-		localVarReturnValue []AgentsApiV1ConversationsList200ResponseInner
+		localVarReturnValue []ResponseV1ConversationsListInner
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaConversationsAPIService.AgentsApiV1ConversationsList")
@@ -712,13 +834,18 @@ func (a *BetaConversationsAPIService) AgentsApiV1ConversationsListExecute(r ApiA
 		parameterAddToHeaderOrQuery(localVarQueryParams, "page", r.page, "form", "")
 	} else {
 		var defaultValue int32 = 0
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page", defaultValue, "form", "")
 		r.page = &defaultValue
 	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "page_size", r.pageSize, "form", "")
 	} else {
 		var defaultValue int32 = 100
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page_size", defaultValue, "form", "")
 		r.pageSize = &defaultValue
+	}
+	if r.metadata != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "metadata", r.metadata, "", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}

@@ -16,6 +16,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strings"
 )
 
@@ -36,9 +37,36 @@ type BetaAgentsAPI interface {
 	AgentsApiV1AgentsCreateExecute(r ApiAgentsApiV1AgentsCreateRequest) (*Agent, *http.Response, error)
 
 	/*
+		AgentsApiV1AgentsCreateOrUpdateAlias Create or update an agent version alias.
+
+		Create a new alias or update an existing alias to point to a specific version. Aliases are unique per agent and can be reassigned to different versions.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param agentId
+		@return ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest
+	*/
+	AgentsApiV1AgentsCreateOrUpdateAlias(ctx context.Context, agentId string) ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest
+
+	// AgentsApiV1AgentsCreateOrUpdateAliasExecute executes the request
+	//  @return AgentAliasResponse
+	AgentsApiV1AgentsCreateOrUpdateAliasExecute(r ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest) (*AgentAliasResponse, *http.Response, error)
+
+	/*
+		AgentsApiV1AgentsDelete Delete an agent entity.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param agentId
+		@return ApiAgentsApiV1AgentsDeleteRequest
+	*/
+	AgentsApiV1AgentsDelete(ctx context.Context, agentId string) ApiAgentsApiV1AgentsDeleteRequest
+
+	// AgentsApiV1AgentsDeleteExecute executes the request
+	AgentsApiV1AgentsDeleteExecute(r ApiAgentsApiV1AgentsDeleteRequest) (*http.Response, error)
+
+	/*
 		AgentsApiV1AgentsGet Retrieve an agent entity.
 
-		Given an agent retrieve an agent entity with its attributes.
+		Given an agent, retrieve an agent entity with its attributes. The agent_version parameter can be an integer version number or a string alias.
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 		@param agentId
@@ -49,6 +77,22 @@ type BetaAgentsAPI interface {
 	// AgentsApiV1AgentsGetExecute executes the request
 	//  @return Agent
 	AgentsApiV1AgentsGetExecute(r ApiAgentsApiV1AgentsGetRequest) (*Agent, *http.Response, error)
+
+	/*
+		AgentsApiV1AgentsGetVersion Retrieve a specific version of an agent.
+
+		Get a specific agent version by version number.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param agentId
+		@param version
+		@return ApiAgentsApiV1AgentsGetVersionRequest
+	*/
+	AgentsApiV1AgentsGetVersion(ctx context.Context, agentId string, version string) ApiAgentsApiV1AgentsGetVersionRequest
+
+	// AgentsApiV1AgentsGetVersionExecute executes the request
+	//  @return Agent
+	AgentsApiV1AgentsGetVersionExecute(r ApiAgentsApiV1AgentsGetVersionRequest) (*Agent, *http.Response, error)
 
 	/*
 		AgentsApiV1AgentsList List agent entities.
@@ -63,6 +107,36 @@ type BetaAgentsAPI interface {
 	// AgentsApiV1AgentsListExecute executes the request
 	//  @return []Agent
 	AgentsApiV1AgentsListExecute(r ApiAgentsApiV1AgentsListRequest) ([]Agent, *http.Response, error)
+
+	/*
+		AgentsApiV1AgentsListVersionAliases List all aliases for an agent.
+
+		Retrieve all version aliases for a specific agent.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param agentId
+		@return ApiAgentsApiV1AgentsListVersionAliasesRequest
+	*/
+	AgentsApiV1AgentsListVersionAliases(ctx context.Context, agentId string) ApiAgentsApiV1AgentsListVersionAliasesRequest
+
+	// AgentsApiV1AgentsListVersionAliasesExecute executes the request
+	//  @return []AgentAliasResponse
+	AgentsApiV1AgentsListVersionAliasesExecute(r ApiAgentsApiV1AgentsListVersionAliasesRequest) ([]AgentAliasResponse, *http.Response, error)
+
+	/*
+		AgentsApiV1AgentsListVersions List all versions of an agent.
+
+		Retrieve all versions for a specific agent with full agent context. Supports pagination.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param agentId
+		@return ApiAgentsApiV1AgentsListVersionsRequest
+	*/
+	AgentsApiV1AgentsListVersions(ctx context.Context, agentId string) ApiAgentsApiV1AgentsListVersionsRequest
+
+	// AgentsApiV1AgentsListVersionsExecute executes the request
+	//  @return []Agent
+	AgentsApiV1AgentsListVersionsExecute(r ApiAgentsApiV1AgentsListVersionsRequest) ([]Agent, *http.Response, error)
 
 	/*
 		AgentsApiV1AgentsUpdate Update an agent entity.
@@ -219,10 +293,256 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsCreateExecute(r ApiAgentsApiV1Ag
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type ApiAgentsApiV1AgentsGetRequest struct {
+type ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest struct {
 	ctx        context.Context
 	ApiService BetaAgentsAPI
 	agentId    string
+	alias      *string
+	version    *int32
+}
+
+func (r ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest) Alias(alias string) ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest {
+	r.alias = &alias
+	return r
+}
+
+func (r ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest) Version(version int32) ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest {
+	r.version = &version
+	return r
+}
+
+func (r ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest) Execute() (*AgentAliasResponse, *http.Response, error) {
+	return r.ApiService.AgentsApiV1AgentsCreateOrUpdateAliasExecute(r)
+}
+
+/*
+AgentsApiV1AgentsCreateOrUpdateAlias Create or update an agent version alias.
+
+Create a new alias or update an existing alias to point to a specific version. Aliases are unique per agent and can be reassigned to different versions.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param agentId
+	@return ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest
+*/
+func (a *BetaAgentsAPIService) AgentsApiV1AgentsCreateOrUpdateAlias(ctx context.Context, agentId string) ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest {
+	return ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest{
+		ApiService: a,
+		ctx:        ctx,
+		agentId:    agentId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return AgentAliasResponse
+func (a *BetaAgentsAPIService) AgentsApiV1AgentsCreateOrUpdateAliasExecute(r ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest) (*AgentAliasResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodPut
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *AgentAliasResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaAgentsAPIService.AgentsApiV1AgentsCreateOrUpdateAlias")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/agents/{agent_id}/aliases"
+	localVarPath = strings.Replace(localVarPath, "{"+"agent_id"+"}", url.PathEscape(parameterValueToString(r.agentId, "agentId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.alias == nil {
+		return localVarReturnValue, nil, reportError("alias is required and must be specified")
+	}
+	if strlen(*r.alias) < 1 {
+		return localVarReturnValue, nil, reportError("alias must have at least 1 elements")
+	}
+	if strlen(*r.alias) > 64 {
+		return localVarReturnValue, nil, reportError("alias must have less than 64 elements")
+	}
+	if r.version == nil {
+		return localVarReturnValue, nil, reportError("version is required and must be specified")
+	}
+
+	parameterAddToHeaderOrQuery(localVarQueryParams, "alias", r.alias, "form", "")
+	parameterAddToHeaderOrQuery(localVarQueryParams, "version", r.version, "form", "")
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 422 {
+			var v HTTPValidationError
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiAgentsApiV1AgentsDeleteRequest struct {
+	ctx        context.Context
+	ApiService BetaAgentsAPI
+	agentId    string
+}
+
+func (r ApiAgentsApiV1AgentsDeleteRequest) Execute() (*http.Response, error) {
+	return r.ApiService.AgentsApiV1AgentsDeleteExecute(r)
+}
+
+/*
+AgentsApiV1AgentsDelete Delete an agent entity.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param agentId
+	@return ApiAgentsApiV1AgentsDeleteRequest
+*/
+func (a *BetaAgentsAPIService) AgentsApiV1AgentsDelete(ctx context.Context, agentId string) ApiAgentsApiV1AgentsDeleteRequest {
+	return ApiAgentsApiV1AgentsDeleteRequest{
+		ApiService: a,
+		ctx:        ctx,
+		agentId:    agentId,
+	}
+}
+
+// Execute executes the request
+func (a *BetaAgentsAPIService) AgentsApiV1AgentsDeleteExecute(r ApiAgentsApiV1AgentsDeleteRequest) (*http.Response, error) {
+	var (
+		localVarHTTPMethod = http.MethodDelete
+		localVarPostBody   interface{}
+		formFiles          []formFile
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaAgentsAPIService.AgentsApiV1AgentsDelete")
+	if err != nil {
+		return nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/agents/{agent_id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"agent_id"+"}", url.PathEscape(parameterValueToString(r.agentId, "agentId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 422 {
+			var v HTTPValidationError
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarHTTPResponse, newErr
+	}
+
+	return localVarHTTPResponse, nil
+}
+
+type ApiAgentsApiV1AgentsGetRequest struct {
+	ctx          context.Context
+	ApiService   BetaAgentsAPI
+	agentId      string
+	agentVersion *AgentVersion
+}
+
+func (r ApiAgentsApiV1AgentsGetRequest) AgentVersion(agentVersion AgentVersion) ApiAgentsApiV1AgentsGetRequest {
+	r.agentVersion = &agentVersion
+	return r
 }
 
 func (r ApiAgentsApiV1AgentsGetRequest) Execute() (*Agent, *http.Response, error) {
@@ -232,7 +552,7 @@ func (r ApiAgentsApiV1AgentsGetRequest) Execute() (*Agent, *http.Response, error
 /*
 AgentsApiV1AgentsGet Retrieve an agent entity.
 
-Given an agent retrieve an agent entity with its attributes.
+Given an agent, retrieve an agent entity with its attributes. The agent_version parameter can be an integer version number or a string alias.
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@param agentId
@@ -264,6 +584,127 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsGetExecute(r ApiAgentsApiV1Agent
 
 	localVarPath := localBasePath + "/v1/agents/{agent_id}"
 	localVarPath = strings.Replace(localVarPath, "{"+"agent_id"+"}", url.PathEscape(parameterValueToString(r.agentId, "agentId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.agentVersion != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "agent_version", r.agentVersion, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 422 {
+			var v HTTPValidationError
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiAgentsApiV1AgentsGetVersionRequest struct {
+	ctx        context.Context
+	ApiService BetaAgentsAPI
+	agentId    string
+	version    string
+}
+
+func (r ApiAgentsApiV1AgentsGetVersionRequest) Execute() (*Agent, *http.Response, error) {
+	return r.ApiService.AgentsApiV1AgentsGetVersionExecute(r)
+}
+
+/*
+AgentsApiV1AgentsGetVersion Retrieve a specific version of an agent.
+
+Get a specific agent version by version number.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param agentId
+	@param version
+	@return ApiAgentsApiV1AgentsGetVersionRequest
+*/
+func (a *BetaAgentsAPIService) AgentsApiV1AgentsGetVersion(ctx context.Context, agentId string, version string) ApiAgentsApiV1AgentsGetVersionRequest {
+	return ApiAgentsApiV1AgentsGetVersionRequest{
+		ApiService: a,
+		ctx:        ctx,
+		agentId:    agentId,
+		version:    version,
+	}
+}
+
+// Execute executes the request
+//
+//	@return Agent
+func (a *BetaAgentsAPIService) AgentsApiV1AgentsGetVersionExecute(r ApiAgentsApiV1AgentsGetVersionRequest) (*Agent, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *Agent
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaAgentsAPIService.AgentsApiV1AgentsGetVersion")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/agents/{agent_id}/versions/{version}"
+	localVarPath = strings.Replace(localVarPath, "{"+"agent_id"+"}", url.PathEscape(parameterValueToString(r.agentId, "agentId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"version"+"}", url.PathEscape(parameterValueToString(r.version, "version")), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -334,19 +775,51 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsGetExecute(r ApiAgentsApiV1Agent
 }
 
 type ApiAgentsApiV1AgentsListRequest struct {
-	ctx        context.Context
-	ApiService BetaAgentsAPI
-	page       *int32
-	pageSize   *int32
+	ctx            context.Context
+	ApiService     BetaAgentsAPI
+	page           *int32
+	pageSize       *int32
+	deploymentChat *bool
+	sources        *[]RequestSource
+	name           *string
+	id             *string
+	metadata       *AnyOfmapnull
 }
 
+// Page number (0-indexed)
 func (r ApiAgentsApiV1AgentsListRequest) Page(page int32) ApiAgentsApiV1AgentsListRequest {
 	r.page = &page
 	return r
 }
 
+// Number of agents per page
 func (r ApiAgentsApiV1AgentsListRequest) PageSize(pageSize int32) ApiAgentsApiV1AgentsListRequest {
 	r.pageSize = &pageSize
+	return r
+}
+
+func (r ApiAgentsApiV1AgentsListRequest) DeploymentChat(deploymentChat bool) ApiAgentsApiV1AgentsListRequest {
+	r.deploymentChat = &deploymentChat
+	return r
+}
+
+func (r ApiAgentsApiV1AgentsListRequest) Sources(sources []RequestSource) ApiAgentsApiV1AgentsListRequest {
+	r.sources = &sources
+	return r
+}
+
+func (r ApiAgentsApiV1AgentsListRequest) Name(name string) ApiAgentsApiV1AgentsListRequest {
+	r.name = &name
+	return r
+}
+
+func (r ApiAgentsApiV1AgentsListRequest) Id(id string) ApiAgentsApiV1AgentsListRequest {
+	r.id = &id
+	return r
+}
+
+func (r ApiAgentsApiV1AgentsListRequest) Metadata(metadata AnyOfmapnull) ApiAgentsApiV1AgentsListRequest {
+	r.metadata = &metadata
 	return r
 }
 
@@ -395,12 +868,293 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsListExecute(r ApiAgentsApiV1Agen
 		parameterAddToHeaderOrQuery(localVarQueryParams, "page", r.page, "form", "")
 	} else {
 		var defaultValue int32 = 0
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page", defaultValue, "form", "")
 		r.page = &defaultValue
 	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "page_size", r.pageSize, "form", "")
 	} else {
 		var defaultValue int32 = 20
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page_size", defaultValue, "form", "")
+		r.pageSize = &defaultValue
+	}
+	if r.deploymentChat != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "deployment_chat", r.deploymentChat, "form", "")
+	}
+	if r.sources != nil {
+		t := *r.sources
+		if reflect.TypeOf(t).Kind() == reflect.Slice {
+			s := reflect.ValueOf(t)
+			for i := 0; i < s.Len(); i++ {
+				parameterAddToHeaderOrQuery(localVarQueryParams, "sources", s.Index(i).Interface(), "form", "multi")
+			}
+		} else {
+			parameterAddToHeaderOrQuery(localVarQueryParams, "sources", t, "form", "multi")
+		}
+	}
+	if r.name != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
+	}
+	if r.id != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "id", r.id, "form", "")
+	}
+	if r.metadata != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "metadata", r.metadata, "", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 422 {
+			var v HTTPValidationError
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiAgentsApiV1AgentsListVersionAliasesRequest struct {
+	ctx        context.Context
+	ApiService BetaAgentsAPI
+	agentId    string
+}
+
+func (r ApiAgentsApiV1AgentsListVersionAliasesRequest) Execute() ([]AgentAliasResponse, *http.Response, error) {
+	return r.ApiService.AgentsApiV1AgentsListVersionAliasesExecute(r)
+}
+
+/*
+AgentsApiV1AgentsListVersionAliases List all aliases for an agent.
+
+Retrieve all version aliases for a specific agent.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param agentId
+	@return ApiAgentsApiV1AgentsListVersionAliasesRequest
+*/
+func (a *BetaAgentsAPIService) AgentsApiV1AgentsListVersionAliases(ctx context.Context, agentId string) ApiAgentsApiV1AgentsListVersionAliasesRequest {
+	return ApiAgentsApiV1AgentsListVersionAliasesRequest{
+		ApiService: a,
+		ctx:        ctx,
+		agentId:    agentId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return []AgentAliasResponse
+func (a *BetaAgentsAPIService) AgentsApiV1AgentsListVersionAliasesExecute(r ApiAgentsApiV1AgentsListVersionAliasesRequest) ([]AgentAliasResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue []AgentAliasResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaAgentsAPIService.AgentsApiV1AgentsListVersionAliases")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/agents/{agent_id}/aliases"
+	localVarPath = strings.Replace(localVarPath, "{"+"agent_id"+"}", url.PathEscape(parameterValueToString(r.agentId, "agentId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 422 {
+			var v HTTPValidationError
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiAgentsApiV1AgentsListVersionsRequest struct {
+	ctx        context.Context
+	ApiService BetaAgentsAPI
+	agentId    string
+	page       *int32
+	pageSize   *int32
+}
+
+// Page number (0-indexed)
+func (r ApiAgentsApiV1AgentsListVersionsRequest) Page(page int32) ApiAgentsApiV1AgentsListVersionsRequest {
+	r.page = &page
+	return r
+}
+
+// Number of versions per page
+func (r ApiAgentsApiV1AgentsListVersionsRequest) PageSize(pageSize int32) ApiAgentsApiV1AgentsListVersionsRequest {
+	r.pageSize = &pageSize
+	return r
+}
+
+func (r ApiAgentsApiV1AgentsListVersionsRequest) Execute() ([]Agent, *http.Response, error) {
+	return r.ApiService.AgentsApiV1AgentsListVersionsExecute(r)
+}
+
+/*
+AgentsApiV1AgentsListVersions List all versions of an agent.
+
+Retrieve all versions for a specific agent with full agent context. Supports pagination.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param agentId
+	@return ApiAgentsApiV1AgentsListVersionsRequest
+*/
+func (a *BetaAgentsAPIService) AgentsApiV1AgentsListVersions(ctx context.Context, agentId string) ApiAgentsApiV1AgentsListVersionsRequest {
+	return ApiAgentsApiV1AgentsListVersionsRequest{
+		ApiService: a,
+		ctx:        ctx,
+		agentId:    agentId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return []Agent
+func (a *BetaAgentsAPIService) AgentsApiV1AgentsListVersionsExecute(r ApiAgentsApiV1AgentsListVersionsRequest) ([]Agent, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue []Agent
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaAgentsAPIService.AgentsApiV1AgentsListVersions")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/agents/{agent_id}/versions"
+	localVarPath = strings.Replace(localVarPath, "{"+"agent_id"+"}", url.PathEscape(parameterValueToString(r.agentId, "agentId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.page != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page", r.page, "form", "")
+	} else {
+		var defaultValue int32 = 0
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page", defaultValue, "form", "")
+		r.page = &defaultValue
+	}
+	if r.pageSize != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page_size", r.pageSize, "form", "")
+	} else {
+		var defaultValue int32 = 20
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page_size", defaultValue, "form", "")
 		r.pageSize = &defaultValue
 	}
 	// to determine the Content-Type header

@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -23,17 +24,18 @@ var _ MappedNullable = &ModelConversation{}
 type ModelConversation struct {
 	Instructions NullableString `json:"instructions,omitempty"`
 	// List of tools which are available to the model during the conversation.
-	Tools []AgentToolsInner `json:"tools,omitempty"`
+	Tools []ToolsInner `json:"tools,omitempty"`
 	// Completion arguments that will be used to generate assistant responses. Can be overridden at each message request.
-	CompletionArgs       *CompletionArgs `json:"completion_args,omitempty"`
-	Name                 NullableString  `json:"name,omitempty"`
-	Description          NullableString  `json:"description,omitempty"`
-	Object               *string         `json:"object,omitempty"`
-	Id                   string          `json:"id"`
-	CreatedAt            time.Time       `json:"created_at"`
-	UpdatedAt            time.Time       `json:"updated_at"`
-	Model                string          `json:"model"`
-	AdditionalProperties map[string]interface{}
+	CompletionArgs *CompletionArgs `json:"completion_args,omitempty"`
+	Name           NullableString  `json:"name,omitempty"`
+	Description    NullableString  `json:"description,omitempty"`
+	// Custom type for metadata with embedded validation.
+	Metadata  map[string]interface{} `json:"metadata,omitempty"`
+	Object    *string                `json:"object,omitempty"`
+	Id        string                 `json:"id"`
+	CreatedAt time.Time              `json:"created_at"`
+	UpdatedAt time.Time              `json:"updated_at"`
+	Model     string                 `json:"model"`
 }
 
 type _ModelConversation ModelConversation
@@ -107,9 +109,9 @@ func (o *ModelConversation) UnsetInstructions() {
 }
 
 // GetTools returns the Tools field value if set, zero value otherwise.
-func (o *ModelConversation) GetTools() []AgentToolsInner {
+func (o *ModelConversation) GetTools() []ToolsInner {
 	if o == nil || IsNil(o.Tools) {
-		var ret []AgentToolsInner
+		var ret []ToolsInner
 		return ret
 	}
 	return o.Tools
@@ -117,7 +119,7 @@ func (o *ModelConversation) GetTools() []AgentToolsInner {
 
 // GetToolsOk returns a tuple with the Tools field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ModelConversation) GetToolsOk() ([]AgentToolsInner, bool) {
+func (o *ModelConversation) GetToolsOk() ([]ToolsInner, bool) {
 	if o == nil || IsNil(o.Tools) {
 		return nil, false
 	}
@@ -133,8 +135,8 @@ func (o *ModelConversation) HasTools() bool {
 	return false
 }
 
-// SetTools gets a reference to the given []AgentToolsInner and assigns it to the Tools field.
-func (o *ModelConversation) SetTools(v []AgentToolsInner) {
+// SetTools gets a reference to the given []ToolsInner and assigns it to the Tools field.
+func (o *ModelConversation) SetTools(v []ToolsInner) {
 	o.Tools = v
 }
 
@@ -254,6 +256,39 @@ func (o *ModelConversation) SetDescriptionNil() {
 // UnsetDescription ensures that no value is present for Description, not even an explicit nil
 func (o *ModelConversation) UnsetDescription() {
 	o.Description.Unset()
+}
+
+// GetMetadata returns the Metadata field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ModelConversation) GetMetadata() map[string]interface{} {
+	if o == nil {
+		var ret map[string]interface{}
+		return ret
+	}
+	return o.Metadata
+}
+
+// GetMetadataOk returns a tuple with the Metadata field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ModelConversation) GetMetadataOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Metadata) {
+		return map[string]interface{}{}, false
+	}
+	return o.Metadata, true
+}
+
+// HasMetadata returns a boolean if a field has been set.
+func (o *ModelConversation) HasMetadata() bool {
+	if o != nil && !IsNil(o.Metadata) {
+		return true
+	}
+
+	return false
+}
+
+// SetMetadata gets a reference to the given map[string]interface{} and assigns it to the Metadata field.
+func (o *ModelConversation) SetMetadata(v map[string]interface{}) {
+	o.Metadata = v
 }
 
 // GetObject returns the Object field value if set, zero value otherwise.
@@ -409,6 +444,9 @@ func (o ModelConversation) ToMap() (map[string]interface{}, error) {
 	if o.Description.IsSet() {
 		toSerialize["description"] = o.Description.Get()
 	}
+	if o.Metadata != nil {
+		toSerialize["metadata"] = o.Metadata
+	}
 	if !IsNil(o.Object) {
 		toSerialize["object"] = o.Object
 	}
@@ -416,11 +454,6 @@ func (o ModelConversation) ToMap() (map[string]interface{}, error) {
 	toSerialize["created_at"] = o.CreatedAt
 	toSerialize["updated_at"] = o.UpdatedAt
 	toSerialize["model"] = o.Model
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -451,29 +484,15 @@ func (o *ModelConversation) UnmarshalJSON(data []byte) (err error) {
 
 	varModelConversation := _ModelConversation{}
 
-	err = json.Unmarshal(data, &varModelConversation)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varModelConversation)
 
 	if err != nil {
 		return err
 	}
 
 	*o = ModelConversation(varModelConversation)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "instructions")
-		delete(additionalProperties, "tools")
-		delete(additionalProperties, "completion_args")
-		delete(additionalProperties, "name")
-		delete(additionalProperties, "description")
-		delete(additionalProperties, "object")
-		delete(additionalProperties, "id")
-		delete(additionalProperties, "created_at")
-		delete(additionalProperties, "updated_at")
-		delete(additionalProperties, "model")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

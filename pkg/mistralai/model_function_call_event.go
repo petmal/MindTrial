@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -21,14 +22,13 @@ var _ MappedNullable = &FunctionCallEvent{}
 
 // FunctionCallEvent struct for FunctionCallEvent
 type FunctionCallEvent struct {
-	Type                 *string    `json:"type,omitempty"`
-	CreatedAt            *time.Time `json:"created_at,omitempty"`
-	OutputIndex          *int32     `json:"output_index,omitempty"`
-	Id                   string     `json:"id"`
-	Name                 string     `json:"name"`
-	ToolCallId           string     `json:"tool_call_id"`
-	Arguments            string     `json:"arguments"`
-	AdditionalProperties map[string]interface{}
+	Type        *string    `json:"type,omitempty"`
+	CreatedAt   *time.Time `json:"created_at,omitempty"`
+	OutputIndex *int32     `json:"output_index,omitempty"`
+	Id          string     `json:"id"`
+	Name        string     `json:"name"`
+	ToolCallId  string     `json:"tool_call_id"`
+	Arguments   string     `json:"arguments"`
 }
 
 type _FunctionCallEvent FunctionCallEvent
@@ -277,11 +277,6 @@ func (o FunctionCallEvent) ToMap() (map[string]interface{}, error) {
 	toSerialize["name"] = o.Name
 	toSerialize["tool_call_id"] = o.ToolCallId
 	toSerialize["arguments"] = o.Arguments
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -312,26 +307,15 @@ func (o *FunctionCallEvent) UnmarshalJSON(data []byte) (err error) {
 
 	varFunctionCallEvent := _FunctionCallEvent{}
 
-	err = json.Unmarshal(data, &varFunctionCallEvent)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varFunctionCallEvent)
 
 	if err != nil {
 		return err
 	}
 
 	*o = FunctionCallEvent(varFunctionCallEvent)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "type")
-		delete(additionalProperties, "created_at")
-		delete(additionalProperties, "output_index")
-		delete(additionalProperties, "id")
-		delete(additionalProperties, "name")
-		delete(additionalProperties, "tool_call_id")
-		delete(additionalProperties, "arguments")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

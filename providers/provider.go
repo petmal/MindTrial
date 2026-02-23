@@ -98,6 +98,18 @@ func (e *ErrUnmarshalResponse) Unwrap() error {
 	return e.Cause
 }
 
+// LogFields implements the logging.StructuredError interface.
+func (e *ErrUnmarshalResponse) LogFields() map[string]any {
+	fields := make(map[string]any)
+	if len(e.RawMessage) > 0 {
+		fields["raw_message"] = string(e.RawMessage)
+	}
+	if len(e.StopReason) > 0 {
+		fields["stop_reason"] = string(e.StopReason)
+	}
+	return fields
+}
+
 // NewErrUnmarshalResponse creates a new ErrUnmarshalResponse instance.
 func NewErrUnmarshalResponse(cause error, rawMessage []byte, stopReason []byte) *ErrUnmarshalResponse {
 	return &ErrUnmarshalResponse{
@@ -125,6 +137,15 @@ func (e *ErrAPIResponse) Unwrap() error {
 		return nil
 	}
 	return e.Cause
+}
+
+// LogFields implements the logging.StructuredError interface.
+func (e *ErrAPIResponse) LogFields() map[string]any {
+	fields := make(map[string]any)
+	if len(e.Body) > 0 {
+		fields["response_body"] = string(e.Body)
+	}
+	return fields
 }
 
 // NewErrAPIResponse creates a new ErrAPIResponse instance.
@@ -155,6 +176,15 @@ func (e *ErrNoActionableContent) Error() string {
 
 func (e *ErrNoActionableContent) Unwrap() error {
 	return ErrGenerateResponse
+}
+
+// LogFields implements the logging.StructuredError interface.
+func (e *ErrNoActionableContent) LogFields() map[string]any {
+	fields := make(map[string]any)
+	if len(e.StopReason) > 0 {
+		fields["stop_reason"] = string(e.StopReason)
+	}
+	return fields
 }
 
 // NewErrNoActionableContent creates a standardized generation error when the model

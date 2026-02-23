@@ -34,7 +34,7 @@ type _TrainingFile TrainingFile
 func NewTrainingFile(fileId string) *TrainingFile {
 	this := TrainingFile{}
 	this.FileId = fileId
-	var weight float32 = 1
+	var weight float32 = 1.0
 	this.Weight = &weight
 	return &this
 }
@@ -44,7 +44,7 @@ func NewTrainingFile(fileId string) *TrainingFile {
 // but it doesn't guarantee that properties required by API are set
 func NewTrainingFileWithDefaults() *TrainingFile {
 	this := TrainingFile{}
-	var weight float32 = 1
+	var weight float32 = 1.0
 	this.Weight = &weight
 	return &this
 }

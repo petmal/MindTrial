@@ -19,11 +19,8 @@ var _ MappedNullable = &ImageGenerationTool{}
 
 // ImageGenerationTool struct for ImageGenerationTool
 type ImageGenerationTool struct {
-	Type                 *string `json:"type,omitempty"`
-	AdditionalProperties map[string]interface{}
+	Type *string `json:"type,omitempty"`
 }
-
-type _ImageGenerationTool ImageGenerationTool
 
 // NewImageGenerationTool instantiates a new ImageGenerationTool object
 // This constructor will assign default values to properties that have it defined,
@@ -91,33 +88,7 @@ func (o ImageGenerationTool) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
-}
-
-func (o *ImageGenerationTool) UnmarshalJSON(data []byte) (err error) {
-	varImageGenerationTool := _ImageGenerationTool{}
-
-	err = json.Unmarshal(data, &varImageGenerationTool)
-
-	if err != nil {
-		return err
-	}
-
-	*o = ImageGenerationTool(varImageGenerationTool)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "type")
-		o.AdditionalProperties = additionalProperties
-	}
-
-	return err
 }
 
 type NullableImageGenerationTool struct {

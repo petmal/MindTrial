@@ -16,44 +16,44 @@ import (
 	"gopkg.in/validator.v2"
 )
 
-// ChatCompletionRequestMessagesInner - struct for ChatCompletionRequestMessagesInner
-type ChatCompletionRequestMessagesInner struct {
+// MessagesInner - struct for MessagesInner
+type MessagesInner struct {
 	AssistantMessage *AssistantMessage
 	SystemMessage    *SystemMessage
 	ToolMessage      *ToolMessage
 	UserMessage      *UserMessage
 }
 
-// AssistantMessageAsChatCompletionRequestMessagesInner is a convenience function that returns AssistantMessage wrapped in ChatCompletionRequestMessagesInner
-func AssistantMessageAsChatCompletionRequestMessagesInner(v *AssistantMessage) ChatCompletionRequestMessagesInner {
-	return ChatCompletionRequestMessagesInner{
+// AssistantMessageAsMessagesInner is a convenience function that returns AssistantMessage wrapped in MessagesInner
+func AssistantMessageAsMessagesInner(v *AssistantMessage) MessagesInner {
+	return MessagesInner{
 		AssistantMessage: v,
 	}
 }
 
-// SystemMessageAsChatCompletionRequestMessagesInner is a convenience function that returns SystemMessage wrapped in ChatCompletionRequestMessagesInner
-func SystemMessageAsChatCompletionRequestMessagesInner(v *SystemMessage) ChatCompletionRequestMessagesInner {
-	return ChatCompletionRequestMessagesInner{
+// SystemMessageAsMessagesInner is a convenience function that returns SystemMessage wrapped in MessagesInner
+func SystemMessageAsMessagesInner(v *SystemMessage) MessagesInner {
+	return MessagesInner{
 		SystemMessage: v,
 	}
 }
 
-// ToolMessageAsChatCompletionRequestMessagesInner is a convenience function that returns ToolMessage wrapped in ChatCompletionRequestMessagesInner
-func ToolMessageAsChatCompletionRequestMessagesInner(v *ToolMessage) ChatCompletionRequestMessagesInner {
-	return ChatCompletionRequestMessagesInner{
+// ToolMessageAsMessagesInner is a convenience function that returns ToolMessage wrapped in MessagesInner
+func ToolMessageAsMessagesInner(v *ToolMessage) MessagesInner {
+	return MessagesInner{
 		ToolMessage: v,
 	}
 }
 
-// UserMessageAsChatCompletionRequestMessagesInner is a convenience function that returns UserMessage wrapped in ChatCompletionRequestMessagesInner
-func UserMessageAsChatCompletionRequestMessagesInner(v *UserMessage) ChatCompletionRequestMessagesInner {
-	return ChatCompletionRequestMessagesInner{
+// UserMessageAsMessagesInner is a convenience function that returns UserMessage wrapped in MessagesInner
+func UserMessageAsMessagesInner(v *UserMessage) MessagesInner {
+	return MessagesInner{
 		UserMessage: v,
 	}
 }
 
 // Unmarshal JSON data into one of the pointers in the struct
-func (dst *ChatCompletionRequestMessagesInner) UnmarshalJSON(data []byte) error {
+func (dst *MessagesInner) UnmarshalJSON(data []byte) error {
 	var err error
 	match := 0
 	// try to unmarshal data into AssistantMessage
@@ -131,16 +131,16 @@ func (dst *ChatCompletionRequestMessagesInner) UnmarshalJSON(data []byte) error 
 		dst.ToolMessage = nil
 		dst.UserMessage = nil
 
-		return fmt.Errorf("data matches more than one schema in oneOf(ChatCompletionRequestMessagesInner)")
+		return fmt.Errorf("data matches more than one schema in oneOf(MessagesInner)")
 	} else if match == 1 {
 		return nil // exactly one match
 	} else { // no match
-		return fmt.Errorf("data failed to match schemas in oneOf(ChatCompletionRequestMessagesInner)")
+		return fmt.Errorf("data failed to match schemas in oneOf(MessagesInner)")
 	}
 }
 
 // Marshal data from the first non-nil pointers in the struct to JSON
-func (src ChatCompletionRequestMessagesInner) MarshalJSON() ([]byte, error) {
+func (src MessagesInner) MarshalJSON() ([]byte, error) {
 	if src.AssistantMessage != nil {
 		return json.Marshal(&src.AssistantMessage)
 	}
@@ -161,7 +161,7 @@ func (src ChatCompletionRequestMessagesInner) MarshalJSON() ([]byte, error) {
 }
 
 // Get the actual instance
-func (obj *ChatCompletionRequestMessagesInner) GetActualInstance() interface{} {
+func (obj *MessagesInner) GetActualInstance() interface{} {
 	if obj == nil {
 		return nil
 	}
@@ -186,7 +186,7 @@ func (obj *ChatCompletionRequestMessagesInner) GetActualInstance() interface{} {
 }
 
 // Get the actual instance value
-func (obj ChatCompletionRequestMessagesInner) GetActualInstanceValue() interface{} {
+func (obj MessagesInner) GetActualInstanceValue() interface{} {
 	if obj.AssistantMessage != nil {
 		return *obj.AssistantMessage
 	}
@@ -207,38 +207,38 @@ func (obj ChatCompletionRequestMessagesInner) GetActualInstanceValue() interface
 	return nil
 }
 
-type NullableChatCompletionRequestMessagesInner struct {
-	value *ChatCompletionRequestMessagesInner
+type NullableMessagesInner struct {
+	value *MessagesInner
 	isSet bool
 }
 
-func (v NullableChatCompletionRequestMessagesInner) Get() *ChatCompletionRequestMessagesInner {
+func (v NullableMessagesInner) Get() *MessagesInner {
 	return v.value
 }
 
-func (v *NullableChatCompletionRequestMessagesInner) Set(val *ChatCompletionRequestMessagesInner) {
+func (v *NullableMessagesInner) Set(val *MessagesInner) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableChatCompletionRequestMessagesInner) IsSet() bool {
+func (v NullableMessagesInner) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableChatCompletionRequestMessagesInner) Unset() {
+func (v *NullableMessagesInner) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableChatCompletionRequestMessagesInner(val *ChatCompletionRequestMessagesInner) *NullableChatCompletionRequestMessagesInner {
-	return &NullableChatCompletionRequestMessagesInner{value: val, isSet: true}
+func NewNullableMessagesInner(val *MessagesInner) *NullableMessagesInner {
+	return &NullableMessagesInner{value: val, isSet: true}
 }
 
-func (v NullableChatCompletionRequestMessagesInner) MarshalJSON() ([]byte, error) {
+func (v NullableMessagesInner) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableChatCompletionRequestMessagesInner) UnmarshalJSON(src []byte) error {
+func (v *NullableMessagesInner) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

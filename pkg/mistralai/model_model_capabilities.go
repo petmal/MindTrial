@@ -20,11 +20,15 @@ var _ MappedNullable = &ModelCapabilities{}
 // ModelCapabilities struct for ModelCapabilities
 type ModelCapabilities struct {
 	CompletionChat       *bool `json:"completion_chat,omitempty"`
-	CompletionFim        *bool `json:"completion_fim,omitempty"`
 	FunctionCalling      *bool `json:"function_calling,omitempty"`
+	CompletionFim        *bool `json:"completion_fim,omitempty"`
 	FineTuning           *bool `json:"fine_tuning,omitempty"`
 	Vision               *bool `json:"vision,omitempty"`
+	Ocr                  *bool `json:"ocr,omitempty"`
 	Classification       *bool `json:"classification,omitempty"`
+	Moderation           *bool `json:"moderation,omitempty"`
+	Audio                *bool `json:"audio,omitempty"`
+	AudioTranscription   *bool `json:"audio_transcription,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -36,18 +40,26 @@ type _ModelCapabilities ModelCapabilities
 // will change when the set of required properties is changed
 func NewModelCapabilities() *ModelCapabilities {
 	this := ModelCapabilities{}
-	var completionChat bool = true
+	var completionChat bool = false
 	this.CompletionChat = &completionChat
+	var functionCalling bool = false
+	this.FunctionCalling = &functionCalling
 	var completionFim bool = false
 	this.CompletionFim = &completionFim
-	var functionCalling bool = true
-	this.FunctionCalling = &functionCalling
 	var fineTuning bool = false
 	this.FineTuning = &fineTuning
 	var vision bool = false
 	this.Vision = &vision
+	var ocr bool = false
+	this.Ocr = &ocr
 	var classification bool = false
 	this.Classification = &classification
+	var moderation bool = false
+	this.Moderation = &moderation
+	var audio bool = false
+	this.Audio = &audio
+	var audioTranscription bool = false
+	this.AudioTranscription = &audioTranscription
 	return &this
 }
 
@@ -56,18 +68,26 @@ func NewModelCapabilities() *ModelCapabilities {
 // but it doesn't guarantee that properties required by API are set
 func NewModelCapabilitiesWithDefaults() *ModelCapabilities {
 	this := ModelCapabilities{}
-	var completionChat bool = true
+	var completionChat bool = false
 	this.CompletionChat = &completionChat
+	var functionCalling bool = false
+	this.FunctionCalling = &functionCalling
 	var completionFim bool = false
 	this.CompletionFim = &completionFim
-	var functionCalling bool = true
-	this.FunctionCalling = &functionCalling
 	var fineTuning bool = false
 	this.FineTuning = &fineTuning
 	var vision bool = false
 	this.Vision = &vision
+	var ocr bool = false
+	this.Ocr = &ocr
 	var classification bool = false
 	this.Classification = &classification
+	var moderation bool = false
+	this.Moderation = &moderation
+	var audio bool = false
+	this.Audio = &audio
+	var audioTranscription bool = false
+	this.AudioTranscription = &audioTranscription
 	return &this
 }
 
@@ -103,38 +123,6 @@ func (o *ModelCapabilities) SetCompletionChat(v bool) {
 	o.CompletionChat = &v
 }
 
-// GetCompletionFim returns the CompletionFim field value if set, zero value otherwise.
-func (o *ModelCapabilities) GetCompletionFim() bool {
-	if o == nil || IsNil(o.CompletionFim) {
-		var ret bool
-		return ret
-	}
-	return *o.CompletionFim
-}
-
-// GetCompletionFimOk returns a tuple with the CompletionFim field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ModelCapabilities) GetCompletionFimOk() (*bool, bool) {
-	if o == nil || IsNil(o.CompletionFim) {
-		return nil, false
-	}
-	return o.CompletionFim, true
-}
-
-// HasCompletionFim returns a boolean if a field has been set.
-func (o *ModelCapabilities) HasCompletionFim() bool {
-	if o != nil && !IsNil(o.CompletionFim) {
-		return true
-	}
-
-	return false
-}
-
-// SetCompletionFim gets a reference to the given bool and assigns it to the CompletionFim field.
-func (o *ModelCapabilities) SetCompletionFim(v bool) {
-	o.CompletionFim = &v
-}
-
 // GetFunctionCalling returns the FunctionCalling field value if set, zero value otherwise.
 func (o *ModelCapabilities) GetFunctionCalling() bool {
 	if o == nil || IsNil(o.FunctionCalling) {
@@ -165,6 +153,38 @@ func (o *ModelCapabilities) HasFunctionCalling() bool {
 // SetFunctionCalling gets a reference to the given bool and assigns it to the FunctionCalling field.
 func (o *ModelCapabilities) SetFunctionCalling(v bool) {
 	o.FunctionCalling = &v
+}
+
+// GetCompletionFim returns the CompletionFim field value if set, zero value otherwise.
+func (o *ModelCapabilities) GetCompletionFim() bool {
+	if o == nil || IsNil(o.CompletionFim) {
+		var ret bool
+		return ret
+	}
+	return *o.CompletionFim
+}
+
+// GetCompletionFimOk returns a tuple with the CompletionFim field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelCapabilities) GetCompletionFimOk() (*bool, bool) {
+	if o == nil || IsNil(o.CompletionFim) {
+		return nil, false
+	}
+	return o.CompletionFim, true
+}
+
+// HasCompletionFim returns a boolean if a field has been set.
+func (o *ModelCapabilities) HasCompletionFim() bool {
+	if o != nil && !IsNil(o.CompletionFim) {
+		return true
+	}
+
+	return false
+}
+
+// SetCompletionFim gets a reference to the given bool and assigns it to the CompletionFim field.
+func (o *ModelCapabilities) SetCompletionFim(v bool) {
+	o.CompletionFim = &v
 }
 
 // GetFineTuning returns the FineTuning field value if set, zero value otherwise.
@@ -231,6 +251,38 @@ func (o *ModelCapabilities) SetVision(v bool) {
 	o.Vision = &v
 }
 
+// GetOcr returns the Ocr field value if set, zero value otherwise.
+func (o *ModelCapabilities) GetOcr() bool {
+	if o == nil || IsNil(o.Ocr) {
+		var ret bool
+		return ret
+	}
+	return *o.Ocr
+}
+
+// GetOcrOk returns a tuple with the Ocr field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelCapabilities) GetOcrOk() (*bool, bool) {
+	if o == nil || IsNil(o.Ocr) {
+		return nil, false
+	}
+	return o.Ocr, true
+}
+
+// HasOcr returns a boolean if a field has been set.
+func (o *ModelCapabilities) HasOcr() bool {
+	if o != nil && !IsNil(o.Ocr) {
+		return true
+	}
+
+	return false
+}
+
+// SetOcr gets a reference to the given bool and assigns it to the Ocr field.
+func (o *ModelCapabilities) SetOcr(v bool) {
+	o.Ocr = &v
+}
+
 // GetClassification returns the Classification field value if set, zero value otherwise.
 func (o *ModelCapabilities) GetClassification() bool {
 	if o == nil || IsNil(o.Classification) {
@@ -263,6 +315,102 @@ func (o *ModelCapabilities) SetClassification(v bool) {
 	o.Classification = &v
 }
 
+// GetModeration returns the Moderation field value if set, zero value otherwise.
+func (o *ModelCapabilities) GetModeration() bool {
+	if o == nil || IsNil(o.Moderation) {
+		var ret bool
+		return ret
+	}
+	return *o.Moderation
+}
+
+// GetModerationOk returns a tuple with the Moderation field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelCapabilities) GetModerationOk() (*bool, bool) {
+	if o == nil || IsNil(o.Moderation) {
+		return nil, false
+	}
+	return o.Moderation, true
+}
+
+// HasModeration returns a boolean if a field has been set.
+func (o *ModelCapabilities) HasModeration() bool {
+	if o != nil && !IsNil(o.Moderation) {
+		return true
+	}
+
+	return false
+}
+
+// SetModeration gets a reference to the given bool and assigns it to the Moderation field.
+func (o *ModelCapabilities) SetModeration(v bool) {
+	o.Moderation = &v
+}
+
+// GetAudio returns the Audio field value if set, zero value otherwise.
+func (o *ModelCapabilities) GetAudio() bool {
+	if o == nil || IsNil(o.Audio) {
+		var ret bool
+		return ret
+	}
+	return *o.Audio
+}
+
+// GetAudioOk returns a tuple with the Audio field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelCapabilities) GetAudioOk() (*bool, bool) {
+	if o == nil || IsNil(o.Audio) {
+		return nil, false
+	}
+	return o.Audio, true
+}
+
+// HasAudio returns a boolean if a field has been set.
+func (o *ModelCapabilities) HasAudio() bool {
+	if o != nil && !IsNil(o.Audio) {
+		return true
+	}
+
+	return false
+}
+
+// SetAudio gets a reference to the given bool and assigns it to the Audio field.
+func (o *ModelCapabilities) SetAudio(v bool) {
+	o.Audio = &v
+}
+
+// GetAudioTranscription returns the AudioTranscription field value if set, zero value otherwise.
+func (o *ModelCapabilities) GetAudioTranscription() bool {
+	if o == nil || IsNil(o.AudioTranscription) {
+		var ret bool
+		return ret
+	}
+	return *o.AudioTranscription
+}
+
+// GetAudioTranscriptionOk returns a tuple with the AudioTranscription field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelCapabilities) GetAudioTranscriptionOk() (*bool, bool) {
+	if o == nil || IsNil(o.AudioTranscription) {
+		return nil, false
+	}
+	return o.AudioTranscription, true
+}
+
+// HasAudioTranscription returns a boolean if a field has been set.
+func (o *ModelCapabilities) HasAudioTranscription() bool {
+	if o != nil && !IsNil(o.AudioTranscription) {
+		return true
+	}
+
+	return false
+}
+
+// SetAudioTranscription gets a reference to the given bool and assigns it to the AudioTranscription field.
+func (o *ModelCapabilities) SetAudioTranscription(v bool) {
+	o.AudioTranscription = &v
+}
+
 func (o ModelCapabilities) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -276,11 +424,11 @@ func (o ModelCapabilities) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.CompletionChat) {
 		toSerialize["completion_chat"] = o.CompletionChat
 	}
-	if !IsNil(o.CompletionFim) {
-		toSerialize["completion_fim"] = o.CompletionFim
-	}
 	if !IsNil(o.FunctionCalling) {
 		toSerialize["function_calling"] = o.FunctionCalling
+	}
+	if !IsNil(o.CompletionFim) {
+		toSerialize["completion_fim"] = o.CompletionFim
 	}
 	if !IsNil(o.FineTuning) {
 		toSerialize["fine_tuning"] = o.FineTuning
@@ -288,8 +436,20 @@ func (o ModelCapabilities) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Vision) {
 		toSerialize["vision"] = o.Vision
 	}
+	if !IsNil(o.Ocr) {
+		toSerialize["ocr"] = o.Ocr
+	}
 	if !IsNil(o.Classification) {
 		toSerialize["classification"] = o.Classification
+	}
+	if !IsNil(o.Moderation) {
+		toSerialize["moderation"] = o.Moderation
+	}
+	if !IsNil(o.Audio) {
+		toSerialize["audio"] = o.Audio
+	}
+	if !IsNil(o.AudioTranscription) {
+		toSerialize["audio_transcription"] = o.AudioTranscription
 	}
 
 	for key, value := range o.AdditionalProperties {
@@ -314,11 +474,15 @@ func (o *ModelCapabilities) UnmarshalJSON(data []byte) (err error) {
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
 		delete(additionalProperties, "completion_chat")
-		delete(additionalProperties, "completion_fim")
 		delete(additionalProperties, "function_calling")
+		delete(additionalProperties, "completion_fim")
 		delete(additionalProperties, "fine_tuning")
 		delete(additionalProperties, "vision")
+		delete(additionalProperties, "ocr")
 		delete(additionalProperties, "classification")
+		delete(additionalProperties, "moderation")
+		delete(additionalProperties, "audio")
+		delete(additionalProperties, "audio_transcription")
 		o.AdditionalProperties = additionalProperties
 	}
 

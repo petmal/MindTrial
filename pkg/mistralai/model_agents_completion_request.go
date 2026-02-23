@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -22,17 +23,18 @@ var _ MappedNullable = &AgentsCompletionRequest{}
 type AgentsCompletionRequest struct {
 	MaxTokens NullableInt32 `json:"max_tokens,omitempty"`
 	// Whether to stream back partial progress. If set, tokens will be sent as data-only server-side events as they become available, with the stream terminated by a data: [DONE] message. Otherwise, the server will hold the request open until the timeout or until completion, with the response containing the full result as JSON.
-	Stream     *bool         `json:"stream,omitempty"`
-	Stop       *Stop         `json:"stop,omitempty"`
-	RandomSeed NullableInt32 `json:"random_seed,omitempty"`
+	Stream     *bool                  `json:"stream,omitempty"`
+	Stop       *Stop                  `json:"stop,omitempty"`
+	RandomSeed NullableInt32          `json:"random_seed,omitempty"`
+	Metadata   map[string]interface{} `json:"metadata,omitempty"`
 	// The prompt(s) to generate completions for, encoded as a list of dict with role and content.
-	Messages       []ChatCompletionRequestMessagesInner `json:"messages"`
-	ResponseFormat *ResponseFormat                      `json:"response_format,omitempty"`
-	Tools          []Tool                               `json:"tools,omitempty"`
-	ToolChoice     *ToolChoiceEnum                      `json:"tool_choice,omitempty"`
-	// presence_penalty determines how much the model penalizes the repetition of words or phrases. A higher presence penalty encourages the model to use a wider variety of words and phrases, making the output more diverse and creative.
+	Messages       []MessagesInner `json:"messages"`
+	ResponseFormat *ResponseFormat `json:"response_format,omitempty"`
+	Tools          []Tool          `json:"tools,omitempty"`
+	ToolChoice     *ToolChoiceEnum `json:"tool_choice,omitempty"`
+	// The `presence_penalty` determines how much the model penalizes the repetition of words or phrases. A higher presence penalty encourages the model to use a wider variety of words and phrases, making the output more diverse and creative.
 	PresencePenalty *float32 `json:"presence_penalty,omitempty"`
-	// frequency_penalty penalizes the repetition of words based on their frequency in the generated text. A higher frequency penalty discourages the model from repeating words that have already appeared frequently in the output, promoting diversity and reducing repetition.
+	// The `frequency_penalty` penalizes the repetition of words based on their frequency in the generated text. A higher frequency penalty discourages the model from repeating words that have already appeared frequently in the output, promoting diversity and reducing repetition.
 	FrequencyPenalty *float32      `json:"frequency_penalty,omitempty"`
 	N                NullableInt32 `json:"n,omitempty"`
 	// Enable users to specify expected results, optimizing response times by leveraging known or predictable content. This approach is especially effective for updating text documents or code files with minimal changes, reducing latency while maintaining high-quality results.
@@ -40,8 +42,7 @@ type AgentsCompletionRequest struct {
 	ParallelToolCalls *bool                     `json:"parallel_tool_calls,omitempty"`
 	PromptMode        NullableMistralPromptMode `json:"prompt_mode,omitempty"`
 	// The ID of the agent to use for this completion.
-	AgentId              string `json:"agent_id"`
-	AdditionalProperties map[string]interface{}
+	AgentId string `json:"agent_id"`
 }
 
 type _AgentsCompletionRequest AgentsCompletionRequest
@@ -50,17 +51,19 @@ type _AgentsCompletionRequest AgentsCompletionRequest
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewAgentsCompletionRequest(messages []ChatCompletionRequestMessagesInner, agentId string) *AgentsCompletionRequest {
+func NewAgentsCompletionRequest(messages []MessagesInner, agentId string) *AgentsCompletionRequest {
 	this := AgentsCompletionRequest{}
 	var stream bool = false
 	this.Stream = &stream
 	this.Messages = messages
-	var toolChoice ToolChoiceEnum = auto
+	toolChoice := ToolChoiceEnum("auto")
 	this.ToolChoice = &toolChoice
-	var presencePenalty float32 = 0
+	var presencePenalty float32 = 0.0
 	this.PresencePenalty = &presencePenalty
-	var frequencyPenalty float32 = 0
+	var frequencyPenalty float32 = 0.0
 	this.FrequencyPenalty = &frequencyPenalty
+	prediction := Prediction{}
+	this.Prediction = &prediction
 	var parallelToolCalls bool = true
 	this.ParallelToolCalls = &parallelToolCalls
 	this.AgentId = agentId
@@ -74,12 +77,14 @@ func NewAgentsCompletionRequestWithDefaults() *AgentsCompletionRequest {
 	this := AgentsCompletionRequest{}
 	var stream bool = false
 	this.Stream = &stream
-	var toolChoice ToolChoiceEnum = auto
+	toolChoice := ToolChoiceEnum("auto")
 	this.ToolChoice = &toolChoice
-	var presencePenalty float32 = 0
+	var presencePenalty float32 = 0.0
 	this.PresencePenalty = &presencePenalty
-	var frequencyPenalty float32 = 0
+	var frequencyPenalty float32 = 0.0
 	this.FrequencyPenalty = &frequencyPenalty
+	prediction := Prediction{}
+	this.Prediction = &prediction
 	var parallelToolCalls bool = true
 	this.ParallelToolCalls = &parallelToolCalls
 	return &this
@@ -235,10 +240,43 @@ func (o *AgentsCompletionRequest) UnsetRandomSeed() {
 	o.RandomSeed.Unset()
 }
 
-// GetMessages returns the Messages field value
-func (o *AgentsCompletionRequest) GetMessages() []ChatCompletionRequestMessagesInner {
+// GetMetadata returns the Metadata field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *AgentsCompletionRequest) GetMetadata() map[string]interface{} {
 	if o == nil {
-		var ret []ChatCompletionRequestMessagesInner
+		var ret map[string]interface{}
+		return ret
+	}
+	return o.Metadata
+}
+
+// GetMetadataOk returns a tuple with the Metadata field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *AgentsCompletionRequest) GetMetadataOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Metadata) {
+		return map[string]interface{}{}, false
+	}
+	return o.Metadata, true
+}
+
+// HasMetadata returns a boolean if a field has been set.
+func (o *AgentsCompletionRequest) HasMetadata() bool {
+	if o != nil && !IsNil(o.Metadata) {
+		return true
+	}
+
+	return false
+}
+
+// SetMetadata gets a reference to the given map[string]interface{} and assigns it to the Metadata field.
+func (o *AgentsCompletionRequest) SetMetadata(v map[string]interface{}) {
+	o.Metadata = v
+}
+
+// GetMessages returns the Messages field value
+func (o *AgentsCompletionRequest) GetMessages() []MessagesInner {
+	if o == nil {
+		var ret []MessagesInner
 		return ret
 	}
 
@@ -247,7 +285,7 @@ func (o *AgentsCompletionRequest) GetMessages() []ChatCompletionRequestMessagesI
 
 // GetMessagesOk returns a tuple with the Messages field value
 // and a boolean to check if the value has been set.
-func (o *AgentsCompletionRequest) GetMessagesOk() ([]ChatCompletionRequestMessagesInner, bool) {
+func (o *AgentsCompletionRequest) GetMessagesOk() ([]MessagesInner, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -255,7 +293,7 @@ func (o *AgentsCompletionRequest) GetMessagesOk() ([]ChatCompletionRequestMessag
 }
 
 // SetMessages sets field value
-func (o *AgentsCompletionRequest) SetMessages(v []ChatCompletionRequestMessagesInner) {
+func (o *AgentsCompletionRequest) SetMessages(v []MessagesInner) {
 	o.Messages = v
 }
 
@@ -616,6 +654,9 @@ func (o AgentsCompletionRequest) ToMap() (map[string]interface{}, error) {
 	if o.RandomSeed.IsSet() {
 		toSerialize["random_seed"] = o.RandomSeed.Get()
 	}
+	if o.Metadata != nil {
+		toSerialize["metadata"] = o.Metadata
+	}
 	toSerialize["messages"] = o.Messages
 	if !IsNil(o.ResponseFormat) {
 		toSerialize["response_format"] = o.ResponseFormat
@@ -645,11 +686,6 @@ func (o AgentsCompletionRequest) ToMap() (map[string]interface{}, error) {
 		toSerialize["prompt_mode"] = o.PromptMode.Get()
 	}
 	toSerialize["agent_id"] = o.AgentId
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -678,34 +714,15 @@ func (o *AgentsCompletionRequest) UnmarshalJSON(data []byte) (err error) {
 
 	varAgentsCompletionRequest := _AgentsCompletionRequest{}
 
-	err = json.Unmarshal(data, &varAgentsCompletionRequest)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varAgentsCompletionRequest)
 
 	if err != nil {
 		return err
 	}
 
 	*o = AgentsCompletionRequest(varAgentsCompletionRequest)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "max_tokens")
-		delete(additionalProperties, "stream")
-		delete(additionalProperties, "stop")
-		delete(additionalProperties, "random_seed")
-		delete(additionalProperties, "messages")
-		delete(additionalProperties, "response_format")
-		delete(additionalProperties, "tools")
-		delete(additionalProperties, "tool_choice")
-		delete(additionalProperties, "presence_penalty")
-		delete(additionalProperties, "frequency_penalty")
-		delete(additionalProperties, "n")
-		delete(additionalProperties, "prediction")
-		delete(additionalProperties, "parallel_tool_calls")
-		delete(additionalProperties, "prompt_mode")
-		delete(additionalProperties, "agent_id")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

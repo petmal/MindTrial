@@ -17,37 +17,37 @@ import (
 
 // Input Chat to classify
 type Input struct {
-	ArrayOfChatCompletionRequestMessagesInner        *[]ChatCompletionRequestMessagesInner
-	ArrayOfArrayOfChatCompletionRequestMessagesInner *[][]ChatCompletionRequestMessagesInner
+	ArrayOfMessagesInner        *[]MessagesInner
+	ArrayOfArrayOfMessagesInner *[][]MessagesInner
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
 func (dst *Input) UnmarshalJSON(data []byte) error {
 	var err error
-	// try to unmarshal JSON data into ArrayOfChatCompletionRequestMessagesInner
-	err = json.Unmarshal(data, &dst.ArrayOfChatCompletionRequestMessagesInner)
+	// try to unmarshal JSON data into ArrayOfMessagesInner
+	err = json.Unmarshal(data, &dst.ArrayOfMessagesInner)
 	if err == nil {
-		jsonArrayOfChatCompletionRequestMessagesInner, _ := json.Marshal(dst.ArrayOfChatCompletionRequestMessagesInner)
-		if string(jsonArrayOfChatCompletionRequestMessagesInner) == "{}" { // empty struct
-			dst.ArrayOfChatCompletionRequestMessagesInner = nil
+		jsonArrayOfMessagesInner, _ := json.Marshal(dst.ArrayOfMessagesInner)
+		if string(jsonArrayOfMessagesInner) == "{}" { // empty struct
+			dst.ArrayOfMessagesInner = nil
 		} else {
-			return nil // data stored in dst.ArrayOfChatCompletionRequestMessagesInner, return on the first match
+			return nil // data stored in dst.ArrayOfMessagesInner, return on the first match
 		}
 	} else {
-		dst.ArrayOfChatCompletionRequestMessagesInner = nil
+		dst.ArrayOfMessagesInner = nil
 	}
 
-	// try to unmarshal JSON data into ArrayOfArrayOfChatCompletionRequestMessagesInner
-	err = json.Unmarshal(data, &dst.ArrayOfArrayOfChatCompletionRequestMessagesInner)
+	// try to unmarshal JSON data into ArrayOfArrayOfMessagesInner
+	err = json.Unmarshal(data, &dst.ArrayOfArrayOfMessagesInner)
 	if err == nil {
-		jsonArrayOfArrayOfChatCompletionRequestMessagesInner, _ := json.Marshal(dst.ArrayOfArrayOfChatCompletionRequestMessagesInner)
-		if string(jsonArrayOfArrayOfChatCompletionRequestMessagesInner) == "{}" { // empty struct
-			dst.ArrayOfArrayOfChatCompletionRequestMessagesInner = nil
+		jsonArrayOfArrayOfMessagesInner, _ := json.Marshal(dst.ArrayOfArrayOfMessagesInner)
+		if string(jsonArrayOfArrayOfMessagesInner) == "{}" { // empty struct
+			dst.ArrayOfArrayOfMessagesInner = nil
 		} else {
-			return nil // data stored in dst.ArrayOfArrayOfChatCompletionRequestMessagesInner, return on the first match
+			return nil // data stored in dst.ArrayOfArrayOfMessagesInner, return on the first match
 		}
 	} else {
-		dst.ArrayOfArrayOfChatCompletionRequestMessagesInner = nil
+		dst.ArrayOfArrayOfMessagesInner = nil
 	}
 
 	return fmt.Errorf("data failed to match schemas in anyOf(Input)")
@@ -55,12 +55,12 @@ func (dst *Input) UnmarshalJSON(data []byte) error {
 
 // Marshal data from the first non-nil pointers in the struct to JSON
 func (src Input) MarshalJSON() ([]byte, error) {
-	if src.ArrayOfChatCompletionRequestMessagesInner != nil {
-		return json.Marshal(&src.ArrayOfChatCompletionRequestMessagesInner)
+	if src.ArrayOfMessagesInner != nil {
+		return json.Marshal(&src.ArrayOfMessagesInner)
 	}
 
-	if src.ArrayOfArrayOfChatCompletionRequestMessagesInner != nil {
-		return json.Marshal(&src.ArrayOfArrayOfChatCompletionRequestMessagesInner)
+	if src.ArrayOfArrayOfMessagesInner != nil {
+		return json.Marshal(&src.ArrayOfArrayOfMessagesInner)
 	}
 
 	return nil, nil // no data in anyOf schemas

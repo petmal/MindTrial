@@ -20,17 +20,21 @@ var _ MappedNullable = &ConversationRequest{}
 
 // ConversationRequest struct for ConversationRequest
 type ConversationRequest struct {
-	Inputs               ConversationInputs `json:"inputs"`
-	Stream               *bool              `json:"stream,omitempty"`
-	Store                *bool              `json:"store,omitempty"`
-	HandoffExecution     *string            `json:"handoff_execution,omitempty"`
-	Instructions         *string            `json:"instructions,omitempty"`
-	Tools                []AgentToolsInner  `json:"tools,omitempty"`
-	CompletionArgs       *CompletionArgs    `json:"completion_args,omitempty"`
-	Name                 *string            `json:"name,omitempty"`
-	Description          *string            `json:"description,omitempty"`
-	AgentId              *string            `json:"agent_id,omitempty"`
-	Model                *string            `json:"model,omitempty"`
+	Inputs           ConversationInputs `json:"inputs"`
+	Stream           *bool              `json:"stream,omitempty"`
+	Store            *bool              `json:"store,omitempty"`
+	HandoffExecution *string            `json:"handoff_execution,omitempty"`
+	Instructions     *string            `json:"instructions,omitempty"`
+	// List of tools which are available to the model during the conversation.
+	Tools          []ToolsInner    `json:"tools,omitempty"`
+	CompletionArgs *CompletionArgs `json:"completion_args,omitempty"`
+	Name           *string         `json:"name,omitempty"`
+	Description    *string         `json:"description,omitempty"`
+	// Custom type for metadata with embedded validation.
+	Metadata             map[string]interface{} `json:"metadata,omitempty"`
+	AgentId              *string                `json:"agent_id,omitempty"`
+	AgentVersion         NullableAgentVersion1  `json:"agent_version,omitempty"`
+	Model                *string                `json:"model,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -211,9 +215,9 @@ func (o *ConversationRequest) SetInstructions(v string) {
 }
 
 // GetTools returns the Tools field value if set, zero value otherwise.
-func (o *ConversationRequest) GetTools() []AgentToolsInner {
+func (o *ConversationRequest) GetTools() []ToolsInner {
 	if o == nil || IsNil(o.Tools) {
-		var ret []AgentToolsInner
+		var ret []ToolsInner
 		return ret
 	}
 	return o.Tools
@@ -221,7 +225,7 @@ func (o *ConversationRequest) GetTools() []AgentToolsInner {
 
 // GetToolsOk returns a tuple with the Tools field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ConversationRequest) GetToolsOk() ([]AgentToolsInner, bool) {
+func (o *ConversationRequest) GetToolsOk() ([]ToolsInner, bool) {
 	if o == nil || IsNil(o.Tools) {
 		return nil, false
 	}
@@ -237,8 +241,8 @@ func (o *ConversationRequest) HasTools() bool {
 	return false
 }
 
-// SetTools gets a reference to the given []AgentToolsInner and assigns it to the Tools field.
-func (o *ConversationRequest) SetTools(v []AgentToolsInner) {
+// SetTools gets a reference to the given []ToolsInner and assigns it to the Tools field.
+func (o *ConversationRequest) SetTools(v []ToolsInner) {
 	o.Tools = v
 }
 
@@ -338,6 +342,38 @@ func (o *ConversationRequest) SetDescription(v string) {
 	o.Description = &v
 }
 
+// GetMetadata returns the Metadata field value if set, zero value otherwise.
+func (o *ConversationRequest) GetMetadata() map[string]interface{} {
+	if o == nil || IsNil(o.Metadata) {
+		var ret map[string]interface{}
+		return ret
+	}
+	return o.Metadata
+}
+
+// GetMetadataOk returns a tuple with the Metadata field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationRequest) GetMetadataOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Metadata) {
+		return map[string]interface{}{}, false
+	}
+	return o.Metadata, true
+}
+
+// HasMetadata returns a boolean if a field has been set.
+func (o *ConversationRequest) HasMetadata() bool {
+	if o != nil && !IsNil(o.Metadata) {
+		return true
+	}
+
+	return false
+}
+
+// SetMetadata gets a reference to the given map[string]interface{} and assigns it to the Metadata field.
+func (o *ConversationRequest) SetMetadata(v map[string]interface{}) {
+	o.Metadata = v
+}
+
 // GetAgentId returns the AgentId field value if set, zero value otherwise.
 func (o *ConversationRequest) GetAgentId() string {
 	if o == nil || IsNil(o.AgentId) {
@@ -368,6 +404,49 @@ func (o *ConversationRequest) HasAgentId() bool {
 // SetAgentId gets a reference to the given string and assigns it to the AgentId field.
 func (o *ConversationRequest) SetAgentId(v string) {
 	o.AgentId = &v
+}
+
+// GetAgentVersion returns the AgentVersion field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ConversationRequest) GetAgentVersion() AgentVersion1 {
+	if o == nil || IsNil(o.AgentVersion.Get()) {
+		var ret AgentVersion1
+		return ret
+	}
+	return *o.AgentVersion.Get()
+}
+
+// GetAgentVersionOk returns a tuple with the AgentVersion field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ConversationRequest) GetAgentVersionOk() (*AgentVersion1, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.AgentVersion.Get(), o.AgentVersion.IsSet()
+}
+
+// HasAgentVersion returns a boolean if a field has been set.
+func (o *ConversationRequest) HasAgentVersion() bool {
+	if o != nil && o.AgentVersion.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetAgentVersion gets a reference to the given NullableAgentVersion1 and assigns it to the AgentVersion field.
+func (o *ConversationRequest) SetAgentVersion(v AgentVersion1) {
+	o.AgentVersion.Set(&v)
+}
+
+// SetAgentVersionNil sets the value for AgentVersion to be an explicit nil
+func (o *ConversationRequest) SetAgentVersionNil() {
+	o.AgentVersion.Set(nil)
+}
+
+// UnsetAgentVersion ensures that no value is present for AgentVersion, not even an explicit nil
+func (o *ConversationRequest) UnsetAgentVersion() {
+	o.AgentVersion.Unset()
 }
 
 // GetModel returns the Model field value if set, zero value otherwise.
@@ -437,8 +516,14 @@ func (o ConversationRequest) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Description) {
 		toSerialize["description"] = o.Description
 	}
+	if !IsNil(o.Metadata) {
+		toSerialize["metadata"] = o.Metadata
+	}
 	if !IsNil(o.AgentId) {
 		toSerialize["agent_id"] = o.AgentId
+	}
+	if o.AgentVersion.IsSet() {
+		toSerialize["agent_version"] = o.AgentVersion.Get()
 	}
 	if !IsNil(o.Model) {
 		toSerialize["model"] = o.Model
@@ -495,7 +580,9 @@ func (o *ConversationRequest) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "completion_args")
 		delete(additionalProperties, "name")
 		delete(additionalProperties, "description")
+		delete(additionalProperties, "metadata")
 		delete(additionalProperties, "agent_id")
+		delete(additionalProperties, "agent_version")
 		delete(additionalProperties, "model")
 		o.AdditionalProperties = additionalProperties
 	}

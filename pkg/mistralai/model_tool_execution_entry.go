@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -21,15 +22,14 @@ var _ MappedNullable = &ToolExecutionEntry{}
 
 // ToolExecutionEntry struct for ToolExecutionEntry
 type ToolExecutionEntry struct {
-	Object               *string                `json:"object,omitempty"`
-	Type                 *string                `json:"type,omitempty"`
-	CreatedAt            *time.Time             `json:"created_at,omitempty"`
-	CompletedAt          NullableTime           `json:"completed_at,omitempty"`
-	Id                   *string                `json:"id,omitempty"`
-	Name                 BuiltInConnectors      `json:"name"`
-	Arguments            string                 `json:"arguments"`
-	Info                 map[string]interface{} `json:"info,omitempty"`
-	AdditionalProperties map[string]interface{}
+	Object      *string                `json:"object,omitempty"`
+	Type        *string                `json:"type,omitempty"`
+	CreatedAt   *time.Time             `json:"created_at,omitempty"`
+	CompletedAt NullableTime           `json:"completed_at,omitempty"`
+	Id          *string                `json:"id,omitempty"`
+	Name        Name                   `json:"name"`
+	Arguments   string                 `json:"arguments"`
+	Info        map[string]interface{} `json:"info,omitempty"`
 }
 
 type _ToolExecutionEntry ToolExecutionEntry
@@ -38,7 +38,7 @@ type _ToolExecutionEntry ToolExecutionEntry
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewToolExecutionEntry(name BuiltInConnectors, arguments string) *ToolExecutionEntry {
+func NewToolExecutionEntry(name Name, arguments string) *ToolExecutionEntry {
 	this := ToolExecutionEntry{}
 	var object string = "entry"
 	this.Object = &object
@@ -233,9 +233,9 @@ func (o *ToolExecutionEntry) SetId(v string) {
 }
 
 // GetName returns the Name field value
-func (o *ToolExecutionEntry) GetName() BuiltInConnectors {
+func (o *ToolExecutionEntry) GetName() Name {
 	if o == nil {
-		var ret BuiltInConnectors
+		var ret Name
 		return ret
 	}
 
@@ -244,7 +244,7 @@ func (o *ToolExecutionEntry) GetName() BuiltInConnectors {
 
 // GetNameOk returns a tuple with the Name field value
 // and a boolean to check if the value has been set.
-func (o *ToolExecutionEntry) GetNameOk() (*BuiltInConnectors, bool) {
+func (o *ToolExecutionEntry) GetNameOk() (*Name, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -252,7 +252,7 @@ func (o *ToolExecutionEntry) GetNameOk() (*BuiltInConnectors, bool) {
 }
 
 // SetName sets field value
-func (o *ToolExecutionEntry) SetName(v BuiltInConnectors) {
+func (o *ToolExecutionEntry) SetName(v Name) {
 	o.Name = v
 }
 
@@ -342,11 +342,6 @@ func (o ToolExecutionEntry) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Info) {
 		toSerialize["info"] = o.Info
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -375,27 +370,15 @@ func (o *ToolExecutionEntry) UnmarshalJSON(data []byte) (err error) {
 
 	varToolExecutionEntry := _ToolExecutionEntry{}
 
-	err = json.Unmarshal(data, &varToolExecutionEntry)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varToolExecutionEntry)
 
 	if err != nil {
 		return err
 	}
 
 	*o = ToolExecutionEntry(varToolExecutionEntry)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "object")
-		delete(additionalProperties, "type")
-		delete(additionalProperties, "created_at")
-		delete(additionalProperties, "completed_at")
-		delete(additionalProperties, "id")
-		delete(additionalProperties, "name")
-		delete(additionalProperties, "arguments")
-		delete(additionalProperties, "info")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

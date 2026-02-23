@@ -15,15 +15,20 @@ import (
 	"fmt"
 )
 
-// ValidationErrorLocInner struct for ValidationErrorLocInner
-type ValidationErrorLocInner struct {
+// AgentVersion1 struct for AgentVersion1
+type AgentVersion1 struct {
 	Int32  *int32
 	String *string
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
-func (dst *ValidationErrorLocInner) UnmarshalJSON(data []byte) error {
+func (dst *AgentVersion1) UnmarshalJSON(data []byte) error {
 	var err error
+	// this object is nullable so check if the payload is null or empty string
+	if string(data) == "" || string(data) == "{}" {
+		return nil
+	}
+
 	// try to unmarshal JSON data into Int32
 	err = json.Unmarshal(data, &dst.Int32)
 	if err == nil {
@@ -50,11 +55,11 @@ func (dst *ValidationErrorLocInner) UnmarshalJSON(data []byte) error {
 		dst.String = nil
 	}
 
-	return fmt.Errorf("data failed to match schemas in anyOf(ValidationErrorLocInner)")
+	return fmt.Errorf("data failed to match schemas in anyOf(AgentVersion1)")
 }
 
 // Marshal data from the first non-nil pointers in the struct to JSON
-func (src ValidationErrorLocInner) MarshalJSON() ([]byte, error) {
+func (src AgentVersion1) MarshalJSON() ([]byte, error) {
 	if src.Int32 != nil {
 		return json.Marshal(&src.Int32)
 	}
@@ -66,38 +71,38 @@ func (src ValidationErrorLocInner) MarshalJSON() ([]byte, error) {
 	return nil, nil // no data in anyOf schemas
 }
 
-type NullableValidationErrorLocInner struct {
-	value *ValidationErrorLocInner
+type NullableAgentVersion1 struct {
+	value *AgentVersion1
 	isSet bool
 }
 
-func (v NullableValidationErrorLocInner) Get() *ValidationErrorLocInner {
+func (v NullableAgentVersion1) Get() *AgentVersion1 {
 	return v.value
 }
 
-func (v *NullableValidationErrorLocInner) Set(val *ValidationErrorLocInner) {
+func (v *NullableAgentVersion1) Set(val *AgentVersion1) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableValidationErrorLocInner) IsSet() bool {
+func (v NullableAgentVersion1) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableValidationErrorLocInner) Unset() {
+func (v *NullableAgentVersion1) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableValidationErrorLocInner(val *ValidationErrorLocInner) *NullableValidationErrorLocInner {
-	return &NullableValidationErrorLocInner{value: val, isSet: true}
+func NewNullableAgentVersion1(val *AgentVersion1) *NullableAgentVersion1 {
+	return &NullableAgentVersion1{value: val, isSet: true}
 }
 
-func (v NullableValidationErrorLocInner) MarshalJSON() ([]byte, error) {
+func (v NullableAgentVersion1) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableValidationErrorLocInner) UnmarshalJSON(src []byte) error {
+func (v *NullableAgentVersion1) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

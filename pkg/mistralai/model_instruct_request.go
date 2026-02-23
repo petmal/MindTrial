@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,8 +21,7 @@ var _ MappedNullable = &InstructRequest{}
 
 // InstructRequest struct for InstructRequest
 type InstructRequest struct {
-	Messages             []ChatCompletionRequestMessagesInner `json:"messages"`
-	AdditionalProperties map[string]interface{}
+	Messages []MessagesInner `json:"messages"`
 }
 
 type _InstructRequest InstructRequest
@@ -30,7 +30,7 @@ type _InstructRequest InstructRequest
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewInstructRequest(messages []ChatCompletionRequestMessagesInner) *InstructRequest {
+func NewInstructRequest(messages []MessagesInner) *InstructRequest {
 	this := InstructRequest{}
 	this.Messages = messages
 	return &this
@@ -45,9 +45,9 @@ func NewInstructRequestWithDefaults() *InstructRequest {
 }
 
 // GetMessages returns the Messages field value
-func (o *InstructRequest) GetMessages() []ChatCompletionRequestMessagesInner {
+func (o *InstructRequest) GetMessages() []MessagesInner {
 	if o == nil {
-		var ret []ChatCompletionRequestMessagesInner
+		var ret []MessagesInner
 		return ret
 	}
 
@@ -56,7 +56,7 @@ func (o *InstructRequest) GetMessages() []ChatCompletionRequestMessagesInner {
 
 // GetMessagesOk returns a tuple with the Messages field value
 // and a boolean to check if the value has been set.
-func (o *InstructRequest) GetMessagesOk() ([]ChatCompletionRequestMessagesInner, bool) {
+func (o *InstructRequest) GetMessagesOk() ([]MessagesInner, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -64,7 +64,7 @@ func (o *InstructRequest) GetMessagesOk() ([]ChatCompletionRequestMessagesInner,
 }
 
 // SetMessages sets field value
-func (o *InstructRequest) SetMessages(v []ChatCompletionRequestMessagesInner) {
+func (o *InstructRequest) SetMessages(v []MessagesInner) {
 	o.Messages = v
 }
 
@@ -79,11 +79,6 @@ func (o InstructRequest) MarshalJSON() ([]byte, error) {
 func (o InstructRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["messages"] = o.Messages
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -111,20 +106,15 @@ func (o *InstructRequest) UnmarshalJSON(data []byte) (err error) {
 
 	varInstructRequest := _InstructRequest{}
 
-	err = json.Unmarshal(data, &varInstructRequest)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varInstructRequest)
 
 	if err != nil {
 		return err
 	}
 
 	*o = InstructRequest(varInstructRequest)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "messages")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

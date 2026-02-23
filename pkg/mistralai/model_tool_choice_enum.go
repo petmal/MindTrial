@@ -20,10 +20,10 @@ type ToolChoiceEnum string
 
 // List of ToolChoiceEnum
 const (
-	auto     ToolChoiceEnum = "auto"
-	NONE     ToolChoiceEnum = "none"
-	ANY      ToolChoiceEnum = "any"
-	REQUIRED ToolChoiceEnum = "required"
+	TOOLCHOICEENUM_auto     ToolChoiceEnum = "auto"
+	TOOLCHOICEENUM_NONE     ToolChoiceEnum = "none"
+	TOOLCHOICEENUM_ANY      ToolChoiceEnum = "any"
+	TOOLCHOICEENUM_REQUIRED ToolChoiceEnum = "required"
 )
 
 // All allowed values of ToolChoiceEnum enum

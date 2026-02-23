@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,9 +21,8 @@ var _ MappedNullable = &TextChunk{}
 
 // TextChunk struct for TextChunk
 type TextChunk struct {
-	Text                 string  `json:"text"`
-	Type                 *string `json:"type,omitempty"`
-	AdditionalProperties map[string]interface{}
+	Text string  `json:"text"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _TextChunk TextChunk
@@ -119,11 +119,6 @@ func (o TextChunk) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -151,21 +146,15 @@ func (o *TextChunk) UnmarshalJSON(data []byte) (err error) {
 
 	varTextChunk := _TextChunk{}
 
-	err = json.Unmarshal(data, &varTextChunk)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varTextChunk)
 
 	if err != nil {
 		return err
 	}
 
 	*o = TextChunk(varTextChunk)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "text")
-		delete(additionalProperties, "type")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -21,9 +22,8 @@ var _ MappedNullable = &OCRUsageInfo{}
 // OCRUsageInfo struct for OCRUsageInfo
 type OCRUsageInfo struct {
 	// Number of pages processed
-	PagesProcessed       int32         `json:"pages_processed"`
-	DocSizeBytes         NullableInt32 `json:"doc_size_bytes,omitempty"`
-	AdditionalProperties map[string]interface{}
+	PagesProcessed int32         `json:"pages_processed"`
+	DocSizeBytes   NullableInt32 `json:"doc_size_bytes,omitempty"`
 }
 
 type _OCRUsageInfo OCRUsageInfo
@@ -127,11 +127,6 @@ func (o OCRUsageInfo) ToMap() (map[string]interface{}, error) {
 	if o.DocSizeBytes.IsSet() {
 		toSerialize["doc_size_bytes"] = o.DocSizeBytes.Get()
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -159,21 +154,15 @@ func (o *OCRUsageInfo) UnmarshalJSON(data []byte) (err error) {
 
 	varOCRUsageInfo := _OCRUsageInfo{}
 
-	err = json.Unmarshal(data, &varOCRUsageInfo)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varOCRUsageInfo)
 
 	if err != nil {
 		return err
 	}
 
 	*o = OCRUsageInfo(varOCRUsageInfo)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "pages_processed")
-		delete(additionalProperties, "doc_size_bytes")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

@@ -32,3 +32,11 @@ README.md
 .openapi-generator-ignore
 .gitignore
 .travis.yml
+
+# Manually fixed files — do not overwrite with generated code.
+# See tasks.json comments for details on each workaround.
+model_any_of_map_null.go
+model_input_audio.go
+model_agents_completion_request.go
+model_chat_completion_request.go
+model_usage_info.go

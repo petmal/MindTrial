@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -22,8 +23,7 @@ var _ MappedNullable = &DocumentLibraryTool{}
 type DocumentLibraryTool struct {
 	Type *string `json:"type,omitempty"`
 	// Ids of the library in which to search.
-	LibraryIds           []string `json:"library_ids"`
-	AdditionalProperties map[string]interface{}
+	LibraryIds []string `json:"library_ids"`
 }
 
 type _DocumentLibraryTool DocumentLibraryTool
@@ -120,11 +120,6 @@ func (o DocumentLibraryTool) ToMap() (map[string]interface{}, error) {
 		toSerialize["type"] = o.Type
 	}
 	toSerialize["library_ids"] = o.LibraryIds
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -152,21 +147,15 @@ func (o *DocumentLibraryTool) UnmarshalJSON(data []byte) (err error) {
 
 	varDocumentLibraryTool := _DocumentLibraryTool{}
 
-	err = json.Unmarshal(data, &varDocumentLibraryTool)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varDocumentLibraryTool)
 
 	if err != nil {
 		return err
 	}
 
 	*o = DocumentLibraryTool(varDocumentLibraryTool)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "type")
-		delete(additionalProperties, "library_ids")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

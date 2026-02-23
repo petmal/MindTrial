@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,13 +21,15 @@ var _ MappedNullable = &EmbeddingRequest{}
 
 // EmbeddingRequest struct for EmbeddingRequest
 type EmbeddingRequest struct {
-	// ID of the model to use.
-	Model           string        `json:"model"`
-	Input           Input2        `json:"input"`
-	OutputDimension NullableInt32 `json:"output_dimension,omitempty"`
-	// The data type of the output embeddings.
-	OutputDtype          *EmbeddingDtype `json:"output_dtype,omitempty"`
-	AdditionalProperties map[string]interface{}
+	// The ID of the model to be used for embedding.
+	Model           string                 `json:"model"`
+	Metadata        map[string]interface{} `json:"metadata,omitempty"`
+	Input           Input2                 `json:"input"`
+	OutputDimension NullableInt32          `json:"output_dimension,omitempty"`
+	// The data type of the output embeddings when feature available. If not provided, a default output data type will be used.
+	OutputDtype *EmbeddingDtype `json:"output_dtype,omitempty"`
+	// The format of embeddings in the response.
+	EncodingFormat *EncodingFormat `json:"encoding_format,omitempty"`
 }
 
 type _EmbeddingRequest EmbeddingRequest
@@ -39,6 +42,10 @@ func NewEmbeddingRequest(model string, input Input2) *EmbeddingRequest {
 	this := EmbeddingRequest{}
 	this.Model = model
 	this.Input = input
+	var outputDtype EmbeddingDtype = EMBEDDINGDTYPE_FLOAT
+	this.OutputDtype = &outputDtype
+	var encodingFormat EncodingFormat = ENCODINGFORMAT_FLOAT
+	this.EncodingFormat = &encodingFormat
 	return &this
 }
 
@@ -47,6 +54,10 @@ func NewEmbeddingRequest(model string, input Input2) *EmbeddingRequest {
 // but it doesn't guarantee that properties required by API are set
 func NewEmbeddingRequestWithDefaults() *EmbeddingRequest {
 	this := EmbeddingRequest{}
+	var outputDtype EmbeddingDtype = EMBEDDINGDTYPE_FLOAT
+	this.OutputDtype = &outputDtype
+	var encodingFormat EncodingFormat = ENCODINGFORMAT_FLOAT
+	this.EncodingFormat = &encodingFormat
 	return &this
 }
 
@@ -72,6 +83,39 @@ func (o *EmbeddingRequest) GetModelOk() (*string, bool) {
 // SetModel sets field value
 func (o *EmbeddingRequest) SetModel(v string) {
 	o.Model = v
+}
+
+// GetMetadata returns the Metadata field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *EmbeddingRequest) GetMetadata() map[string]interface{} {
+	if o == nil {
+		var ret map[string]interface{}
+		return ret
+	}
+	return o.Metadata
+}
+
+// GetMetadataOk returns a tuple with the Metadata field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *EmbeddingRequest) GetMetadataOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Metadata) {
+		return map[string]interface{}{}, false
+	}
+	return o.Metadata, true
+}
+
+// HasMetadata returns a boolean if a field has been set.
+func (o *EmbeddingRequest) HasMetadata() bool {
+	if o != nil && !IsNil(o.Metadata) {
+		return true
+	}
+
+	return false
+}
+
+// SetMetadata gets a reference to the given map[string]interface{} and assigns it to the Metadata field.
+func (o *EmbeddingRequest) SetMetadata(v map[string]interface{}) {
+	o.Metadata = v
 }
 
 // GetInput returns the Input field value
@@ -173,6 +217,38 @@ func (o *EmbeddingRequest) SetOutputDtype(v EmbeddingDtype) {
 	o.OutputDtype = &v
 }
 
+// GetEncodingFormat returns the EncodingFormat field value if set, zero value otherwise.
+func (o *EmbeddingRequest) GetEncodingFormat() EncodingFormat {
+	if o == nil || IsNil(o.EncodingFormat) {
+		var ret EncodingFormat
+		return ret
+	}
+	return *o.EncodingFormat
+}
+
+// GetEncodingFormatOk returns a tuple with the EncodingFormat field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *EmbeddingRequest) GetEncodingFormatOk() (*EncodingFormat, bool) {
+	if o == nil || IsNil(o.EncodingFormat) {
+		return nil, false
+	}
+	return o.EncodingFormat, true
+}
+
+// HasEncodingFormat returns a boolean if a field has been set.
+func (o *EmbeddingRequest) HasEncodingFormat() bool {
+	if o != nil && !IsNil(o.EncodingFormat) {
+		return true
+	}
+
+	return false
+}
+
+// SetEncodingFormat gets a reference to the given EncodingFormat and assigns it to the EncodingFormat field.
+func (o *EmbeddingRequest) SetEncodingFormat(v EncodingFormat) {
+	o.EncodingFormat = &v
+}
+
 func (o EmbeddingRequest) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -184,6 +260,9 @@ func (o EmbeddingRequest) MarshalJSON() ([]byte, error) {
 func (o EmbeddingRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["model"] = o.Model
+	if o.Metadata != nil {
+		toSerialize["metadata"] = o.Metadata
+	}
 	toSerialize["input"] = o.Input
 	if o.OutputDimension.IsSet() {
 		toSerialize["output_dimension"] = o.OutputDimension.Get()
@@ -191,11 +270,9 @@ func (o EmbeddingRequest) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.OutputDtype) {
 		toSerialize["output_dtype"] = o.OutputDtype
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
+	if !IsNil(o.EncodingFormat) {
+		toSerialize["encoding_format"] = o.EncodingFormat
 	}
-
 	return toSerialize, nil
 }
 
@@ -224,23 +301,15 @@ func (o *EmbeddingRequest) UnmarshalJSON(data []byte) (err error) {
 
 	varEmbeddingRequest := _EmbeddingRequest{}
 
-	err = json.Unmarshal(data, &varEmbeddingRequest)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varEmbeddingRequest)
 
 	if err != nil {
 		return err
 	}
 
 	*o = EmbeddingRequest(varEmbeddingRequest)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "model")
-		delete(additionalProperties, "input")
-		delete(additionalProperties, "output_dimension")
-		delete(additionalProperties, "output_dtype")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

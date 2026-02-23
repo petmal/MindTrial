@@ -7,7 +7,7 @@
       "command": "openapi-generator-cli",
       "args": [
         "generate",
-        "-i", "https://docs.mistral.ai/redocusaurus/plugin-redoc-0.yaml",
+        "-i", "https://docs.mistral.ai/openapi.yaml",
         "-g", "go",
         "-o", ".",
         "--git-host", "github.com",
@@ -20,9 +20,16 @@
         "--additional-properties isGoSubmodule=true",
         "--additional-properties disallowAdditionalPropertiesIfNotPresent=false",
         "--additional-properties generateInterfaces=true",
+        "--additional-properties enumClassPrefix=true", // workaround: enum constant name collision (FLOAT) + invalid Prediction default literal
         "--enum-name-mappings auto=auto", // workaround: lowercase name used at assignment
-        "--type-mappings ToolChoice=ToolChoiceEnum", // workaround: wrong type used at assignment
+        "--type-mappings ToolChoice=ToolChoiceEnum,ToolChoice1=ToolChoiceEnum", // workaround: wrong type at assignment (ToolChoice)
         "--model-name-mappings ImageURL=ImageURLStruct" // workaround: collision between generated file names
+        // post-generation workarounds (protected by .openapi-generator-ignore):
+        // - model_any_of_map_null.go: AnyOfmapnull type generated in API code but never defined
+        // - model_input_audio.go: invalid *OsFile identifier from anyOf with binary format
+        // - model_agents_completion_request.go: invalid Prediction default literal + unquoted ToolChoice enum
+        // - model_chat_completion_request.go: invalid Prediction default literal + unquoted ToolChoice enum
+        // - model_usage_info.go: spec sets additionalProperties:false but API returns undeclared prompt_tokens_details field
       ],
       "group": "build",
       "options": {

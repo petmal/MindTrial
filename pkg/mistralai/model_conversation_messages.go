@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,10 +21,9 @@ var _ MappedNullable = &ConversationMessages{}
 
 // ConversationMessages Similar to the conversation history but only keep the messages
 type ConversationMessages struct {
-	Object               *string               `json:"object,omitempty"`
-	ConversationId       string                `json:"conversation_id"`
-	Messages             []MessageEntriesInner `json:"messages"`
-	AdditionalProperties map[string]interface{}
+	Object         *string               `json:"object,omitempty"`
+	ConversationId string                `json:"conversation_id"`
+	Messages       []MessageEntriesInner `json:"messages"`
 }
 
 type _ConversationMessages ConversationMessages
@@ -146,11 +146,6 @@ func (o ConversationMessages) ToMap() (map[string]interface{}, error) {
 	}
 	toSerialize["conversation_id"] = o.ConversationId
 	toSerialize["messages"] = o.Messages
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -179,22 +174,15 @@ func (o *ConversationMessages) UnmarshalJSON(data []byte) (err error) {
 
 	varConversationMessages := _ConversationMessages{}
 
-	err = json.Unmarshal(data, &varConversationMessages)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varConversationMessages)
 
 	if err != nil {
 		return err
 	}
 
 	*o = ConversationMessages(varConversationMessages)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "object")
-		delete(additionalProperties, "conversation_id")
-		delete(additionalProperties, "messages")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

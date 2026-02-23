@@ -16,8 +16,8 @@ import (
 	"gopkg.in/validator.v2"
 )
 
-// AgentToolsInner - struct for AgentToolsInner
-type AgentToolsInner struct {
+// ToolsInner - struct for ToolsInner
+type ToolsInner struct {
 	CodeInterpreterTool  *CodeInterpreterTool
 	DocumentLibraryTool  *DocumentLibraryTool
 	FunctionTool         *FunctionTool
@@ -26,50 +26,50 @@ type AgentToolsInner struct {
 	WebSearchTool        *WebSearchTool
 }
 
-// CodeInterpreterToolAsAgentToolsInner is a convenience function that returns CodeInterpreterTool wrapped in AgentToolsInner
-func CodeInterpreterToolAsAgentToolsInner(v *CodeInterpreterTool) AgentToolsInner {
-	return AgentToolsInner{
+// CodeInterpreterToolAsToolsInner is a convenience function that returns CodeInterpreterTool wrapped in ToolsInner
+func CodeInterpreterToolAsToolsInner(v *CodeInterpreterTool) ToolsInner {
+	return ToolsInner{
 		CodeInterpreterTool: v,
 	}
 }
 
-// DocumentLibraryToolAsAgentToolsInner is a convenience function that returns DocumentLibraryTool wrapped in AgentToolsInner
-func DocumentLibraryToolAsAgentToolsInner(v *DocumentLibraryTool) AgentToolsInner {
-	return AgentToolsInner{
+// DocumentLibraryToolAsToolsInner is a convenience function that returns DocumentLibraryTool wrapped in ToolsInner
+func DocumentLibraryToolAsToolsInner(v *DocumentLibraryTool) ToolsInner {
+	return ToolsInner{
 		DocumentLibraryTool: v,
 	}
 }
 
-// FunctionToolAsAgentToolsInner is a convenience function that returns FunctionTool wrapped in AgentToolsInner
-func FunctionToolAsAgentToolsInner(v *FunctionTool) AgentToolsInner {
-	return AgentToolsInner{
+// FunctionToolAsToolsInner is a convenience function that returns FunctionTool wrapped in ToolsInner
+func FunctionToolAsToolsInner(v *FunctionTool) ToolsInner {
+	return ToolsInner{
 		FunctionTool: v,
 	}
 }
 
-// ImageGenerationToolAsAgentToolsInner is a convenience function that returns ImageGenerationTool wrapped in AgentToolsInner
-func ImageGenerationToolAsAgentToolsInner(v *ImageGenerationTool) AgentToolsInner {
-	return AgentToolsInner{
+// ImageGenerationToolAsToolsInner is a convenience function that returns ImageGenerationTool wrapped in ToolsInner
+func ImageGenerationToolAsToolsInner(v *ImageGenerationTool) ToolsInner {
+	return ToolsInner{
 		ImageGenerationTool: v,
 	}
 }
 
-// WebSearchPremiumToolAsAgentToolsInner is a convenience function that returns WebSearchPremiumTool wrapped in AgentToolsInner
-func WebSearchPremiumToolAsAgentToolsInner(v *WebSearchPremiumTool) AgentToolsInner {
-	return AgentToolsInner{
+// WebSearchPremiumToolAsToolsInner is a convenience function that returns WebSearchPremiumTool wrapped in ToolsInner
+func WebSearchPremiumToolAsToolsInner(v *WebSearchPremiumTool) ToolsInner {
+	return ToolsInner{
 		WebSearchPremiumTool: v,
 	}
 }
 
-// WebSearchToolAsAgentToolsInner is a convenience function that returns WebSearchTool wrapped in AgentToolsInner
-func WebSearchToolAsAgentToolsInner(v *WebSearchTool) AgentToolsInner {
-	return AgentToolsInner{
+// WebSearchToolAsToolsInner is a convenience function that returns WebSearchTool wrapped in ToolsInner
+func WebSearchToolAsToolsInner(v *WebSearchTool) ToolsInner {
+	return ToolsInner{
 		WebSearchTool: v,
 	}
 }
 
 // Unmarshal JSON data into one of the pointers in the struct
-func (dst *AgentToolsInner) UnmarshalJSON(data []byte) error {
+func (dst *ToolsInner) UnmarshalJSON(data []byte) error {
 	var err error
 	match := 0
 	// try to unmarshal data into CodeInterpreterTool
@@ -183,16 +183,16 @@ func (dst *AgentToolsInner) UnmarshalJSON(data []byte) error {
 		dst.WebSearchPremiumTool = nil
 		dst.WebSearchTool = nil
 
-		return fmt.Errorf("data matches more than one schema in oneOf(AgentToolsInner)")
+		return fmt.Errorf("data matches more than one schema in oneOf(ToolsInner)")
 	} else if match == 1 {
 		return nil // exactly one match
 	} else { // no match
-		return fmt.Errorf("data failed to match schemas in oneOf(AgentToolsInner)")
+		return fmt.Errorf("data failed to match schemas in oneOf(ToolsInner)")
 	}
 }
 
 // Marshal data from the first non-nil pointers in the struct to JSON
-func (src AgentToolsInner) MarshalJSON() ([]byte, error) {
+func (src ToolsInner) MarshalJSON() ([]byte, error) {
 	if src.CodeInterpreterTool != nil {
 		return json.Marshal(&src.CodeInterpreterTool)
 	}
@@ -221,7 +221,7 @@ func (src AgentToolsInner) MarshalJSON() ([]byte, error) {
 }
 
 // Get the actual instance
-func (obj *AgentToolsInner) GetActualInstance() interface{} {
+func (obj *ToolsInner) GetActualInstance() interface{} {
 	if obj == nil {
 		return nil
 	}
@@ -254,7 +254,7 @@ func (obj *AgentToolsInner) GetActualInstance() interface{} {
 }
 
 // Get the actual instance value
-func (obj AgentToolsInner) GetActualInstanceValue() interface{} {
+func (obj ToolsInner) GetActualInstanceValue() interface{} {
 	if obj.CodeInterpreterTool != nil {
 		return *obj.CodeInterpreterTool
 	}
@@ -283,38 +283,38 @@ func (obj AgentToolsInner) GetActualInstanceValue() interface{} {
 	return nil
 }
 
-type NullableAgentToolsInner struct {
-	value *AgentToolsInner
+type NullableToolsInner struct {
+	value *ToolsInner
 	isSet bool
 }
 
-func (v NullableAgentToolsInner) Get() *AgentToolsInner {
+func (v NullableToolsInner) Get() *ToolsInner {
 	return v.value
 }
 
-func (v *NullableAgentToolsInner) Set(val *AgentToolsInner) {
+func (v *NullableToolsInner) Set(val *ToolsInner) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableAgentToolsInner) IsSet() bool {
+func (v NullableToolsInner) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableAgentToolsInner) Unset() {
+func (v *NullableToolsInner) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableAgentToolsInner(val *AgentToolsInner) *NullableAgentToolsInner {
-	return &NullableAgentToolsInner{value: val, isSet: true}
+func NewNullableToolsInner(val *ToolsInner) *NullableToolsInner {
+	return &NullableToolsInner{value: val, isSet: true}
 }
 
-func (v NullableAgentToolsInner) MarshalJSON() ([]byte, error) {
+func (v NullableToolsInner) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableAgentToolsInner) UnmarshalJSON(src []byte) error {
+func (v *NullableToolsInner) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

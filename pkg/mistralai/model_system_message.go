@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,9 +21,8 @@ var _ MappedNullable = &SystemMessage{}
 
 // SystemMessage struct for SystemMessage
 type SystemMessage struct {
-	Content              Content4 `json:"content"`
-	Role                 *string  `json:"role,omitempty"`
-	AdditionalProperties map[string]interface{}
+	Content Content4 `json:"content"`
+	Role    *string  `json:"role,omitempty"`
 }
 
 type _SystemMessage SystemMessage
@@ -119,11 +119,6 @@ func (o SystemMessage) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Role) {
 		toSerialize["role"] = o.Role
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -151,21 +146,15 @@ func (o *SystemMessage) UnmarshalJSON(data []byte) (err error) {
 
 	varSystemMessage := _SystemMessage{}
 
-	err = json.Unmarshal(data, &varSystemMessage)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varSystemMessage)
 
 	if err != nil {
 		return err
 	}
 
 	*o = SystemMessage(varSystemMessage)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "content")
-		delete(additionalProperties, "role")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

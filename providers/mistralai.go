@@ -57,17 +57,15 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 	// Configure response format.
 	responseFormat := mistralai.NewResponseFormatWithDefaults()
 	if cfg.DisableStructuredOutput {
-		responseFormat.SetType(mistralai.TEXT)
+		responseFormat.SetType(mistralai.RESPONSEFORMATS_TEXT)
 	} else {
 		responseSchema, err := ResultJSONSchemaRaw(task.ResponseResultFormat)
 		if err != nil {
 			return result, err
 		}
 		schema := mistralai.NewJsonSchema("response", responseSchema)
-		schema.SetDescription(mistralai.Description{
-			String: mistralai.PtrString("Record the response using well-structured JSON."),
-		})
-		responseFormat.SetType(mistralai.JSON_SCHEMA)
+		schema.SetDescription("Record the response using well-structured JSON.")
+		responseFormat.SetType(mistralai.RESPONSEFORMATS_JSON_SCHEMA)
 		responseFormat.SetJsonSchema(*schema)
 	}
 	request.SetResponseFormat(*responseFormat)
@@ -83,30 +81,26 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 	}
 
 	if cfg.DisableStructuredOutput {
-		request.Messages = append(request.Messages, mistralai.SystemMessageAsChatCompletionRequestMessagesInner(
+		request.Messages = append(request.Messages, mistralai.SystemMessageAsMessagesInner(
 			mistralai.NewSystemMessage(mistralai.Content4{
 				String: mistralai.PtrString(result.recordPrompt(DefaultUnstructuredResponseInstruction())),
 			})))
 	}
 
 	if answerFormatInstruction := DefaultAnswerFormatInstruction(task); answerFormatInstruction != "" {
-		request.Messages = append(request.Messages, mistralai.SystemMessageAsChatCompletionRequestMessagesInner(
+		request.Messages = append(request.Messages, mistralai.SystemMessageAsMessagesInner(
 			mistralai.NewSystemMessage(mistralai.Content4{
 				String: mistralai.PtrString(result.recordPrompt(answerFormatInstruction)),
 			})))
 	}
 
-	contentParts, err := o.createPromptMessageParts(ctx, task.Prompt, task.Files, &result)
+	promptMessage, err := o.createPromptMessage(ctx, task.Prompt, task.Files, &result)
 	if errors.Is(err, ErrFeatureNotSupported) {
 		return result, err
 	} else if err != nil {
 		return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
 	}
-
-	request.Messages = append(request.Messages, mistralai.UserMessageAsChatCompletionRequestMessagesInner(
-		mistralai.NewUserMessage(*mistralai.NewNullableContent3(&mistralai.Content3{
-			ArrayOfContentChunk: &contentParts,
-		}))))
+	request.Messages = append(request.Messages, promptMessage)
 
 	// Setup tools if any.
 	var executor *tools.DockerToolExecutor
@@ -169,7 +163,7 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 
 			if !isTerminal {
 				// Append assistant message for every non-terminal turn.
-				request.Messages = append(request.Messages, mistralai.AssistantMessageAsChatCompletionRequestMessagesInner(&candidate.Message))
+				request.Messages = append(request.Messages, mistralai.AssistantMessageAsMessagesInner(&candidate.Message))
 
 				for _, textContent := range o.getMessageTextChunks(candidate.Message) {
 					logSkippedPreambleText(ctx, logger, candidate.FinishReason, textContent)
@@ -196,7 +190,7 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 					nullableContent := mistralai.NewNullableContent3(&content3)
 					toolMessage := mistralai.NewToolMessage(*nullableContent)
 					toolMessage.ToolCallId.Set(toolCall.Id)
-					request.Messages = append(request.Messages, mistralai.ToolMessageAsChatCompletionRequestMessagesInner(toolMessage))
+					request.Messages = append(request.Messages, mistralai.ToolMessageAsMessagesInner(toolMessage))
 				}
 			} else {
 				if textContent, ok := o.getMessageText(candidate.Message); ok {
@@ -314,35 +308,44 @@ func (o *MistralAI) applyModelParameters(request *mistralai.ChatCompletionReques
 	return nil
 }
 
-func (o *MistralAI) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []mistralai.ContentChunk, err error) {
-	for _, file := range files {
-		if fileType, err := file.TypeValue(ctx); err != nil {
-			return parts, err
-		} else if !isSupportedImageType(fileType) {
-			return parts, fmt.Errorf("%w: %s", ErrFileNotSupported, fileType)
+func (o *MistralAI) createPromptMessage(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (message mistralai.MessagesInner, err error) {
+	var content3 mistralai.Content3
+	if len(files) > 0 {
+		parts := make([]mistralai.ContentChunk, 0, (len(files)*2)+1)
+		for _, file := range files {
+			if fileType, err := file.TypeValue(ctx); err != nil {
+				return message, err
+			} else if !isSupportedImageType(fileType) {
+				return message, fmt.Errorf("%w: %s", ErrFileNotSupported, fileType)
+			}
+
+			dataURL, err := file.GetDataURL(ctx)
+			if err != nil {
+				return message, err
+			}
+
+			// Attach file name as a separate text block before the image.
+			parts = append(parts, mistralai.TextChunkAsContentChunk(
+				mistralai.NewTextChunk(result.recordPrompt(DefaultTaskFileNameInstruction(file)))))
+
+			// Create image URL struct and chunk.
+			imageURLChunk := mistralai.NewImageURLChunk(mistralai.ImageUrl{
+				ImageURLStruct: mistralai.NewImageURLStruct(dataURL),
+			})
+			parts = append(parts, mistralai.ImageURLChunkAsContentChunk(imageURLChunk))
 		}
 
-		dataURL, err := file.GetDataURL(ctx)
-		if err != nil {
-			return parts, err
-		}
-
-		// Attach file name as a separate text block before the image.
+		// Append the prompt text after the file data for improved context integrity.
 		parts = append(parts, mistralai.TextChunkAsContentChunk(
-			mistralai.NewTextChunk(result.recordPrompt(DefaultTaskFileNameInstruction(file)))))
+			mistralai.NewTextChunk(result.recordPrompt(promptText))))
 
-		// Create image URL struct and chunk.
-		imageURLChunk := mistralai.NewImageURLChunk(mistralai.ImageUrl{
-			ImageURLStruct: mistralai.NewImageURLStruct(dataURL),
-		})
-		parts = append(parts, mistralai.ImageURLChunkAsContentChunk(imageURLChunk))
+		content3.ArrayOfContentChunk = &parts
+	} else {
+		content3.String = mistralai.PtrString(result.recordPrompt(promptText))
 	}
 
-	// Append the prompt text after the file data for improved context integrity.
-	parts = append(parts, mistralai.TextChunkAsContentChunk(
-		mistralai.NewTextChunk(result.recordPrompt(promptText))))
-
-	return parts, nil
+	return mistralai.UserMessageAsMessagesInner(
+		mistralai.NewUserMessage(*mistralai.NewNullableContent3(&content3))), nil
 }
 
 func marshalToolArguments(args mistralai.Arguments) (argsData json.RawMessage, err error) {

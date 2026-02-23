@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,9 +21,8 @@ var _ MappedNullable = &FileChunk{}
 
 // FileChunk struct for FileChunk
 type FileChunk struct {
-	Type                 *string `json:"type,omitempty"`
-	FileId               string  `json:"file_id"`
-	AdditionalProperties map[string]interface{}
+	Type   *string `json:"type,omitempty"`
+	FileId string  `json:"file_id"`
 }
 
 type _FileChunk FileChunk
@@ -119,11 +119,6 @@ func (o FileChunk) ToMap() (map[string]interface{}, error) {
 		toSerialize["type"] = o.Type
 	}
 	toSerialize["file_id"] = o.FileId
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -151,21 +146,15 @@ func (o *FileChunk) UnmarshalJSON(data []byte) (err error) {
 
 	varFileChunk := _FileChunk{}
 
-	err = json.Unmarshal(data, &varFileChunk)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varFileChunk)
 
 	if err != nil {
 		return err
 	}
 
 	*o = FileChunk(varFileChunk)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "type")
-		delete(additionalProperties, "file_id")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

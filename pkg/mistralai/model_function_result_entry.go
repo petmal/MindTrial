@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -21,14 +22,13 @@ var _ MappedNullable = &FunctionResultEntry{}
 
 // FunctionResultEntry struct for FunctionResultEntry
 type FunctionResultEntry struct {
-	Object               *string      `json:"object,omitempty"`
-	Type                 *string      `json:"type,omitempty"`
-	CreatedAt            *time.Time   `json:"created_at,omitempty"`
-	CompletedAt          NullableTime `json:"completed_at,omitempty"`
-	Id                   *string      `json:"id,omitempty"`
-	ToolCallId           string       `json:"tool_call_id"`
-	Result               string       `json:"result"`
-	AdditionalProperties map[string]interface{}
+	Object      *string      `json:"object,omitempty"`
+	Type        *string      `json:"type,omitempty"`
+	CreatedAt   *time.Time   `json:"created_at,omitempty"`
+	CompletedAt NullableTime `json:"completed_at,omitempty"`
+	Id          *string      `json:"id,omitempty"`
+	ToolCallId  string       `json:"tool_call_id"`
+	Result      string       `json:"result"`
 }
 
 type _FunctionResultEntry FunctionResultEntry
@@ -306,11 +306,6 @@ func (o FunctionResultEntry) ToMap() (map[string]interface{}, error) {
 	}
 	toSerialize["tool_call_id"] = o.ToolCallId
 	toSerialize["result"] = o.Result
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -339,26 +334,15 @@ func (o *FunctionResultEntry) UnmarshalJSON(data []byte) (err error) {
 
 	varFunctionResultEntry := _FunctionResultEntry{}
 
-	err = json.Unmarshal(data, &varFunctionResultEntry)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varFunctionResultEntry)
 
 	if err != nil {
 		return err
 	}
 
 	*o = FunctionResultEntry(varFunctionResultEntry)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "object")
-		delete(additionalProperties, "type")
-		delete(additionalProperties, "created_at")
-		delete(additionalProperties, "completed_at")
-		delete(additionalProperties, "id")
-		delete(additionalProperties, "tool_call_id")
-		delete(additionalProperties, "result")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

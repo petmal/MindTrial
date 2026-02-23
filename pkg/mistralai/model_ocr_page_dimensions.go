@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -25,8 +26,7 @@ type OCRPageDimensions struct {
 	// Height of the image in pixels
 	Height int32 `json:"height"`
 	// Width of the image in pixels
-	Width                int32 `json:"width"`
-	AdditionalProperties map[string]interface{}
+	Width int32 `json:"width"`
 }
 
 type _OCRPageDimensions OCRPageDimensions
@@ -136,11 +136,6 @@ func (o OCRPageDimensions) ToMap() (map[string]interface{}, error) {
 	toSerialize["dpi"] = o.Dpi
 	toSerialize["height"] = o.Height
 	toSerialize["width"] = o.Width
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -170,22 +165,15 @@ func (o *OCRPageDimensions) UnmarshalJSON(data []byte) (err error) {
 
 	varOCRPageDimensions := _OCRPageDimensions{}
 
-	err = json.Unmarshal(data, &varOCRPageDimensions)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varOCRPageDimensions)
 
 	if err != nil {
 		return err
 	}
 
 	*o = OCRPageDimensions(varOCRPageDimensions)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "dpi")
-		delete(additionalProperties, "height")
-		delete(additionalProperties, "width")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,9 +21,8 @@ var _ MappedNullable = &ChatModerationRequest{}
 
 // ChatModerationRequest struct for ChatModerationRequest
 type ChatModerationRequest struct {
-	Input                Input  `json:"input"`
-	Model                string `json:"model"`
-	AdditionalProperties map[string]interface{}
+	Input Input  `json:"input"`
+	Model string `json:"model"`
 }
 
 type _ChatModerationRequest ChatModerationRequest
@@ -106,11 +106,6 @@ func (o ChatModerationRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["input"] = o.Input
 	toSerialize["model"] = o.Model
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -139,21 +134,15 @@ func (o *ChatModerationRequest) UnmarshalJSON(data []byte) (err error) {
 
 	varChatModerationRequest := _ChatModerationRequest{}
 
-	err = json.Unmarshal(data, &varChatModerationRequest)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varChatModerationRequest)
 
 	if err != nil {
 		return err
 	}
 
 	*o = ChatModerationRequest(varChatModerationRequest)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "input")
-		delete(additionalProperties, "model")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

@@ -19,8 +19,8 @@ var _ MappedNullable = &ModelList{}
 
 // ModelList struct for ModelList
 type ModelList struct {
-	Object               *string              `json:"object,omitempty"`
-	Data                 []ModelListDataInner `json:"data,omitempty"`
+	Object               *string     `json:"object,omitempty"`
+	Data                 []DataInner `json:"data,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -80,9 +80,9 @@ func (o *ModelList) SetObject(v string) {
 }
 
 // GetData returns the Data field value if set, zero value otherwise.
-func (o *ModelList) GetData() []ModelListDataInner {
+func (o *ModelList) GetData() []DataInner {
 	if o == nil || IsNil(o.Data) {
-		var ret []ModelListDataInner
+		var ret []DataInner
 		return ret
 	}
 	return o.Data
@@ -90,7 +90,7 @@ func (o *ModelList) GetData() []ModelListDataInner {
 
 // GetDataOk returns a tuple with the Data field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ModelList) GetDataOk() ([]ModelListDataInner, bool) {
+func (o *ModelList) GetDataOk() ([]DataInner, bool) {
 	if o == nil || IsNil(o.Data) {
 		return nil, false
 	}
@@ -106,8 +106,8 @@ func (o *ModelList) HasData() bool {
 	return false
 }
 
-// SetData gets a reference to the given []ModelListDataInner and assigns it to the Data field.
-func (o *ModelList) SetData(v []ModelListDataInner) {
+// SetData gets a reference to the given []DataInner and assigns it to the Data field.
+func (o *ModelList) SetData(v []DataInner) {
 	o.Data = v
 }
 

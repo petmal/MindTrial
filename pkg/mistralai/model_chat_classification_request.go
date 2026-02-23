@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,9 +21,8 @@ var _ MappedNullable = &ChatClassificationRequest{}
 
 // ChatClassificationRequest struct for ChatClassificationRequest
 type ChatClassificationRequest struct {
-	Model                string                          `json:"model"`
-	Input                ChatClassificationRequestInputs `json:"input"`
-	AdditionalProperties map[string]interface{}
+	Model string                          `json:"model"`
+	Input ChatClassificationRequestInputs `json:"input"`
 }
 
 type _ChatClassificationRequest ChatClassificationRequest
@@ -106,11 +106,6 @@ func (o ChatClassificationRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["model"] = o.Model
 	toSerialize["input"] = o.Input
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -139,21 +134,15 @@ func (o *ChatClassificationRequest) UnmarshalJSON(data []byte) (err error) {
 
 	varChatClassificationRequest := _ChatClassificationRequest{}
 
-	err = json.Unmarshal(data, &varChatClassificationRequest)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varChatClassificationRequest)
 
 	if err != nil {
 		return err
 	}
 
 	*o = ChatClassificationRequest(varChatClassificationRequest)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "model")
-		delete(additionalProperties, "input")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

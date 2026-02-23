@@ -19,15 +19,12 @@ var _ MappedNullable = &ConversationUsageInfo{}
 
 // ConversationUsageInfo struct for ConversationUsageInfo
 type ConversationUsageInfo struct {
-	PromptTokens         *int32           `json:"prompt_tokens,omitempty"`
-	CompletionTokens     *int32           `json:"completion_tokens,omitempty"`
-	TotalTokens          *int32           `json:"total_tokens,omitempty"`
-	ConnectorTokens      *ConnectorTokens `json:"connector_tokens,omitempty"`
-	Connectors           *Connectors      `json:"connectors,omitempty"`
-	AdditionalProperties map[string]interface{}
+	PromptTokens     *int32           `json:"prompt_tokens,omitempty"`
+	CompletionTokens *int32           `json:"completion_tokens,omitempty"`
+	TotalTokens      *int32           `json:"total_tokens,omitempty"`
+	ConnectorTokens  NullableInt32    `json:"connector_tokens,omitempty"`
+	Connectors       map[string]int32 `json:"connectors,omitempty"`
 }
-
-type _ConversationUsageInfo ConversationUsageInfo
 
 // NewConversationUsageInfo instantiates a new ConversationUsageInfo object
 // This constructor will assign default values to properties that have it defined,
@@ -154,52 +151,64 @@ func (o *ConversationUsageInfo) SetTotalTokens(v int32) {
 	o.TotalTokens = &v
 }
 
-// GetConnectorTokens returns the ConnectorTokens field value if set, zero value otherwise.
-func (o *ConversationUsageInfo) GetConnectorTokens() ConnectorTokens {
-	if o == nil || IsNil(o.ConnectorTokens) {
-		var ret ConnectorTokens
+// GetConnectorTokens returns the ConnectorTokens field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ConversationUsageInfo) GetConnectorTokens() int32 {
+	if o == nil || IsNil(o.ConnectorTokens.Get()) {
+		var ret int32
 		return ret
 	}
-	return *o.ConnectorTokens
+	return *o.ConnectorTokens.Get()
 }
 
 // GetConnectorTokensOk returns a tuple with the ConnectorTokens field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ConversationUsageInfo) GetConnectorTokensOk() (*ConnectorTokens, bool) {
-	if o == nil || IsNil(o.ConnectorTokens) {
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ConversationUsageInfo) GetConnectorTokensOk() (*int32, bool) {
+	if o == nil {
 		return nil, false
 	}
-	return o.ConnectorTokens, true
+	return o.ConnectorTokens.Get(), o.ConnectorTokens.IsSet()
 }
 
 // HasConnectorTokens returns a boolean if a field has been set.
 func (o *ConversationUsageInfo) HasConnectorTokens() bool {
-	if o != nil && !IsNil(o.ConnectorTokens) {
+	if o != nil && o.ConnectorTokens.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetConnectorTokens gets a reference to the given ConnectorTokens and assigns it to the ConnectorTokens field.
-func (o *ConversationUsageInfo) SetConnectorTokens(v ConnectorTokens) {
-	o.ConnectorTokens = &v
+// SetConnectorTokens gets a reference to the given NullableInt32 and assigns it to the ConnectorTokens field.
+func (o *ConversationUsageInfo) SetConnectorTokens(v int32) {
+	o.ConnectorTokens.Set(&v)
 }
 
-// GetConnectors returns the Connectors field value if set, zero value otherwise.
-func (o *ConversationUsageInfo) GetConnectors() Connectors {
-	if o == nil || IsNil(o.Connectors) {
-		var ret Connectors
+// SetConnectorTokensNil sets the value for ConnectorTokens to be an explicit nil
+func (o *ConversationUsageInfo) SetConnectorTokensNil() {
+	o.ConnectorTokens.Set(nil)
+}
+
+// UnsetConnectorTokens ensures that no value is present for ConnectorTokens, not even an explicit nil
+func (o *ConversationUsageInfo) UnsetConnectorTokens() {
+	o.ConnectorTokens.Unset()
+}
+
+// GetConnectors returns the Connectors field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ConversationUsageInfo) GetConnectors() map[string]int32 {
+	if o == nil {
+		var ret map[string]int32
 		return ret
 	}
-	return *o.Connectors
+	return o.Connectors
 }
 
 // GetConnectorsOk returns a tuple with the Connectors field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ConversationUsageInfo) GetConnectorsOk() (*Connectors, bool) {
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ConversationUsageInfo) GetConnectorsOk() (map[string]int32, bool) {
 	if o == nil || IsNil(o.Connectors) {
-		return nil, false
+		return map[string]int32{}, false
 	}
 	return o.Connectors, true
 }
@@ -213,9 +222,9 @@ func (o *ConversationUsageInfo) HasConnectors() bool {
 	return false
 }
 
-// SetConnectors gets a reference to the given Connectors and assigns it to the Connectors field.
-func (o *ConversationUsageInfo) SetConnectors(v Connectors) {
-	o.Connectors = &v
+// SetConnectors gets a reference to the given map[string]int32 and assigns it to the Connectors field.
+func (o *ConversationUsageInfo) SetConnectors(v map[string]int32) {
+	o.Connectors = v
 }
 
 func (o ConversationUsageInfo) MarshalJSON() ([]byte, error) {
@@ -237,43 +246,13 @@ func (o ConversationUsageInfo) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.TotalTokens) {
 		toSerialize["total_tokens"] = o.TotalTokens
 	}
-	if !IsNil(o.ConnectorTokens) {
-		toSerialize["connector_tokens"] = o.ConnectorTokens
+	if o.ConnectorTokens.IsSet() {
+		toSerialize["connector_tokens"] = o.ConnectorTokens.Get()
 	}
-	if !IsNil(o.Connectors) {
+	if o.Connectors != nil {
 		toSerialize["connectors"] = o.Connectors
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
-}
-
-func (o *ConversationUsageInfo) UnmarshalJSON(data []byte) (err error) {
-	varConversationUsageInfo := _ConversationUsageInfo{}
-
-	err = json.Unmarshal(data, &varConversationUsageInfo)
-
-	if err != nil {
-		return err
-	}
-
-	*o = ConversationUsageInfo(varConversationUsageInfo)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "prompt_tokens")
-		delete(additionalProperties, "completion_tokens")
-		delete(additionalProperties, "total_tokens")
-		delete(additionalProperties, "connector_tokens")
-		delete(additionalProperties, "connectors")
-		o.AdditionalProperties = additionalProperties
-	}
-
-	return err
 }
 
 type NullableConversationUsageInfo struct {

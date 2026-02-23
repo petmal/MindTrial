@@ -19,11 +19,8 @@ var _ MappedNullable = &WebSearchPremiumTool{}
 
 // WebSearchPremiumTool struct for WebSearchPremiumTool
 type WebSearchPremiumTool struct {
-	Type                 *string `json:"type,omitempty"`
-	AdditionalProperties map[string]interface{}
+	Type *string `json:"type,omitempty"`
 }
-
-type _WebSearchPremiumTool WebSearchPremiumTool
 
 // NewWebSearchPremiumTool instantiates a new WebSearchPremiumTool object
 // This constructor will assign default values to properties that have it defined,
@@ -91,33 +88,7 @@ func (o WebSearchPremiumTool) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
-}
-
-func (o *WebSearchPremiumTool) UnmarshalJSON(data []byte) (err error) {
-	varWebSearchPremiumTool := _WebSearchPremiumTool{}
-
-	err = json.Unmarshal(data, &varWebSearchPremiumTool)
-
-	if err != nil {
-		return err
-	}
-
-	*o = WebSearchPremiumTool(varWebSearchPremiumTool)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "type")
-		o.AdditionalProperties = additionalProperties
-	}
-
-	return err
 }
 
 type NullableWebSearchPremiumTool struct {

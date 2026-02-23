@@ -37,7 +37,7 @@ func NewClassifierTargetIn(name string, labels []string) *ClassifierTargetIn {
 	this := ClassifierTargetIn{}
 	this.Name = name
 	this.Labels = labels
-	var weight float32 = 1
+	var weight float32 = 1.0
 	this.Weight = &weight
 	return &this
 }
@@ -47,7 +47,7 @@ func NewClassifierTargetIn(name string, labels []string) *ClassifierTargetIn {
 // but it doesn't guarantee that properties required by API are set
 func NewClassifierTargetInWithDefaults() *ClassifierTargetIn {
 	this := ClassifierTargetIn{}
-	var weight float32 = 1
+	var weight float32 = 1.0
 	this.Weight = &weight
 	return &this
 }

@@ -15,8 +15,8 @@ import (
 	"fmt"
 )
 
-// ConversationResponseOutputsInner struct for ConversationResponseOutputsInner
-type ConversationResponseOutputsInner struct {
+// OutputsInner struct for OutputsInner
+type OutputsInner struct {
 	AgentHandoffEntry  *AgentHandoffEntry
 	FunctionCallEntry  *FunctionCallEntry
 	MessageOutputEntry *MessageOutputEntry
@@ -24,7 +24,7 @@ type ConversationResponseOutputsInner struct {
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
-func (dst *ConversationResponseOutputsInner) UnmarshalJSON(data []byte) error {
+func (dst *OutputsInner) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into AgentHandoffEntry
 	err = json.Unmarshal(data, &dst.AgentHandoffEntry)
@@ -78,11 +78,11 @@ func (dst *ConversationResponseOutputsInner) UnmarshalJSON(data []byte) error {
 		dst.ToolExecutionEntry = nil
 	}
 
-	return fmt.Errorf("data failed to match schemas in anyOf(ConversationResponseOutputsInner)")
+	return fmt.Errorf("data failed to match schemas in anyOf(OutputsInner)")
 }
 
 // Marshal data from the first non-nil pointers in the struct to JSON
-func (src ConversationResponseOutputsInner) MarshalJSON() ([]byte, error) {
+func (src OutputsInner) MarshalJSON() ([]byte, error) {
 	if src.AgentHandoffEntry != nil {
 		return json.Marshal(&src.AgentHandoffEntry)
 	}
@@ -102,38 +102,38 @@ func (src ConversationResponseOutputsInner) MarshalJSON() ([]byte, error) {
 	return nil, nil // no data in anyOf schemas
 }
 
-type NullableConversationResponseOutputsInner struct {
-	value *ConversationResponseOutputsInner
+type NullableOutputsInner struct {
+	value *OutputsInner
 	isSet bool
 }
 
-func (v NullableConversationResponseOutputsInner) Get() *ConversationResponseOutputsInner {
+func (v NullableOutputsInner) Get() *OutputsInner {
 	return v.value
 }
 
-func (v *NullableConversationResponseOutputsInner) Set(val *ConversationResponseOutputsInner) {
+func (v *NullableOutputsInner) Set(val *OutputsInner) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableConversationResponseOutputsInner) IsSet() bool {
+func (v NullableOutputsInner) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableConversationResponseOutputsInner) Unset() {
+func (v *NullableOutputsInner) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableConversationResponseOutputsInner(val *ConversationResponseOutputsInner) *NullableConversationResponseOutputsInner {
-	return &NullableConversationResponseOutputsInner{value: val, isSet: true}
+func NewNullableOutputsInner(val *OutputsInner) *NullableOutputsInner {
+	return &NullableOutputsInner{value: val, isSet: true}
 }
 
-func (v NullableConversationResponseOutputsInner) MarshalJSON() ([]byte, error) {
+func (v NullableOutputsInner) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableConversationResponseOutputsInner) UnmarshalJSON(src []byte) error {
+func (v *NullableOutputsInner) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

@@ -57,6 +57,9 @@ type BatchAPI interface {
 
 		Get a batch job details by its UUID.
 
+	Args:
+	    inline: If True, return results inline in the response.
+
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 		@param jobId
 		@return ApiJobsApiRoutesBatchGetBatchJobRequest
@@ -304,6 +307,12 @@ type ApiJobsApiRoutesBatchGetBatchJobRequest struct {
 	ctx        context.Context
 	ApiService BatchAPI
 	jobId      string
+	inline     *bool
+}
+
+func (r ApiJobsApiRoutesBatchGetBatchJobRequest) Inline(inline bool) ApiJobsApiRoutesBatchGetBatchJobRequest {
+	r.inline = &inline
+	return r
 }
 
 func (r ApiJobsApiRoutesBatchGetBatchJobRequest) Execute() (*BatchJobOut, *http.Response, error) {
@@ -314,6 +323,10 @@ func (r ApiJobsApiRoutesBatchGetBatchJobRequest) Execute() (*BatchJobOut, *http.
 JobsApiRoutesBatchGetBatchJob Get Batch Job
 
 Get a batch job details by its UUID.
+
+Args:
+
+	   inline: If True, return results inline in the response.
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@param jobId
@@ -350,6 +363,9 @@ func (a *BatchAPIService) JobsApiRoutesBatchGetBatchJobExecute(r ApiJobsApiRoute
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.inline != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "inline", r.inline, "form", "")
+	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
 
@@ -410,6 +426,7 @@ type ApiJobsApiRoutesBatchGetBatchJobsRequest struct {
 	page         *int32
 	pageSize     *int32
 	model        *string
+	agentId      *string
 	metadata     *map[string]interface{}
 	createdAfter *time.Time
 	createdByMe  *bool
@@ -428,6 +445,11 @@ func (r ApiJobsApiRoutesBatchGetBatchJobsRequest) PageSize(pageSize int32) ApiJo
 
 func (r ApiJobsApiRoutesBatchGetBatchJobsRequest) Model(model string) ApiJobsApiRoutesBatchGetBatchJobsRequest {
 	r.model = &model
+	return r
+}
+
+func (r ApiJobsApiRoutesBatchGetBatchJobsRequest) AgentId(agentId string) ApiJobsApiRoutesBatchGetBatchJobsRequest {
+	r.agentId = &agentId
 	return r
 }
 
@@ -496,16 +518,21 @@ func (a *BatchAPIService) JobsApiRoutesBatchGetBatchJobsExecute(r ApiJobsApiRout
 		parameterAddToHeaderOrQuery(localVarQueryParams, "page", r.page, "form", "")
 	} else {
 		var defaultValue int32 = 0
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page", defaultValue, "form", "")
 		r.page = &defaultValue
 	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "page_size", r.pageSize, "form", "")
 	} else {
 		var defaultValue int32 = 100
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page_size", defaultValue, "form", "")
 		r.pageSize = &defaultValue
 	}
 	if r.model != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "model", r.model, "form", "")
+	}
+	if r.agentId != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "agent_id", r.agentId, "form", "")
 	}
 	if r.metadata != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "metadata", r.metadata, "form", "")
@@ -517,6 +544,7 @@ func (a *BatchAPIService) JobsApiRoutesBatchGetBatchJobsExecute(r ApiJobsApiRout
 		parameterAddToHeaderOrQuery(localVarQueryParams, "created_by_me", r.createdByMe, "form", "")
 	} else {
 		var defaultValue bool = false
+		parameterAddToHeaderOrQuery(localVarQueryParams, "created_by_me", defaultValue, "form", "")
 		r.createdByMe = &defaultValue
 	}
 	if r.status != nil {

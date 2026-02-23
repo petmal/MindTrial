@@ -15,14 +15,14 @@ import (
 	"fmt"
 )
 
-// ResponseFormats An object specifying the format that the model must output. Setting to `{ \"type\": \"json_object\" }` enables JSON mode, which guarantees the message the model generates is in JSON. When using JSON mode you MUST also instruct the model to produce JSON yourself with a system or a user message.
+// ResponseFormats the model 'ResponseFormats'
 type ResponseFormats string
 
 // List of ResponseFormats
 const (
-	TEXT        ResponseFormats = "text"
-	JSON_OBJECT ResponseFormats = "json_object"
-	JSON_SCHEMA ResponseFormats = "json_schema"
+	RESPONSEFORMATS_TEXT        ResponseFormats = "text"
+	RESPONSEFORMATS_JSON_OBJECT ResponseFormats = "json_object"
+	RESPONSEFORMATS_JSON_SCHEMA ResponseFormats = "json_schema"
 )
 
 // All allowed values of ResponseFormats enum

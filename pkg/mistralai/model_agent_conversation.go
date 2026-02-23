@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -21,14 +22,16 @@ var _ MappedNullable = &AgentConversation{}
 
 // AgentConversation struct for AgentConversation
 type AgentConversation struct {
-	Name                 NullableString `json:"name,omitempty"`
-	Description          NullableString `json:"description,omitempty"`
-	Object               *string        `json:"object,omitempty"`
-	Id                   string         `json:"id"`
-	CreatedAt            time.Time      `json:"created_at"`
-	UpdatedAt            time.Time      `json:"updated_at"`
-	AgentId              string         `json:"agent_id"`
-	AdditionalProperties map[string]interface{}
+	Name        NullableString `json:"name,omitempty"`
+	Description NullableString `json:"description,omitempty"`
+	// Custom type for metadata with embedded validation.
+	Metadata     map[string]interface{} `json:"metadata,omitempty"`
+	Object       *string                `json:"object,omitempty"`
+	Id           string                 `json:"id"`
+	CreatedAt    time.Time              `json:"created_at"`
+	UpdatedAt    time.Time              `json:"updated_at"`
+	AgentId      string                 `json:"agent_id"`
+	AgentVersion NullableAgentVersion1  `json:"agent_version,omitempty"`
 }
 
 type _AgentConversation AgentConversation
@@ -142,6 +145,39 @@ func (o *AgentConversation) SetDescriptionNil() {
 // UnsetDescription ensures that no value is present for Description, not even an explicit nil
 func (o *AgentConversation) UnsetDescription() {
 	o.Description.Unset()
+}
+
+// GetMetadata returns the Metadata field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *AgentConversation) GetMetadata() map[string]interface{} {
+	if o == nil {
+		var ret map[string]interface{}
+		return ret
+	}
+	return o.Metadata
+}
+
+// GetMetadataOk returns a tuple with the Metadata field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *AgentConversation) GetMetadataOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Metadata) {
+		return map[string]interface{}{}, false
+	}
+	return o.Metadata, true
+}
+
+// HasMetadata returns a boolean if a field has been set.
+func (o *AgentConversation) HasMetadata() bool {
+	if o != nil && !IsNil(o.Metadata) {
+		return true
+	}
+
+	return false
+}
+
+// SetMetadata gets a reference to the given map[string]interface{} and assigns it to the Metadata field.
+func (o *AgentConversation) SetMetadata(v map[string]interface{}) {
+	o.Metadata = v
 }
 
 // GetObject returns the Object field value if set, zero value otherwise.
@@ -272,6 +308,49 @@ func (o *AgentConversation) SetAgentId(v string) {
 	o.AgentId = v
 }
 
+// GetAgentVersion returns the AgentVersion field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *AgentConversation) GetAgentVersion() AgentVersion1 {
+	if o == nil || IsNil(o.AgentVersion.Get()) {
+		var ret AgentVersion1
+		return ret
+	}
+	return *o.AgentVersion.Get()
+}
+
+// GetAgentVersionOk returns a tuple with the AgentVersion field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *AgentConversation) GetAgentVersionOk() (*AgentVersion1, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.AgentVersion.Get(), o.AgentVersion.IsSet()
+}
+
+// HasAgentVersion returns a boolean if a field has been set.
+func (o *AgentConversation) HasAgentVersion() bool {
+	if o != nil && o.AgentVersion.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetAgentVersion gets a reference to the given NullableAgentVersion1 and assigns it to the AgentVersion field.
+func (o *AgentConversation) SetAgentVersion(v AgentVersion1) {
+	o.AgentVersion.Set(&v)
+}
+
+// SetAgentVersionNil sets the value for AgentVersion to be an explicit nil
+func (o *AgentConversation) SetAgentVersionNil() {
+	o.AgentVersion.Set(nil)
+}
+
+// UnsetAgentVersion ensures that no value is present for AgentVersion, not even an explicit nil
+func (o *AgentConversation) UnsetAgentVersion() {
+	o.AgentVersion.Unset()
+}
+
 func (o AgentConversation) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -288,6 +367,9 @@ func (o AgentConversation) ToMap() (map[string]interface{}, error) {
 	if o.Description.IsSet() {
 		toSerialize["description"] = o.Description.Get()
 	}
+	if o.Metadata != nil {
+		toSerialize["metadata"] = o.Metadata
+	}
 	if !IsNil(o.Object) {
 		toSerialize["object"] = o.Object
 	}
@@ -295,11 +377,9 @@ func (o AgentConversation) ToMap() (map[string]interface{}, error) {
 	toSerialize["created_at"] = o.CreatedAt
 	toSerialize["updated_at"] = o.UpdatedAt
 	toSerialize["agent_id"] = o.AgentId
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
+	if o.AgentVersion.IsSet() {
+		toSerialize["agent_version"] = o.AgentVersion.Get()
 	}
-
 	return toSerialize, nil
 }
 
@@ -330,26 +410,15 @@ func (o *AgentConversation) UnmarshalJSON(data []byte) (err error) {
 
 	varAgentConversation := _AgentConversation{}
 
-	err = json.Unmarshal(data, &varAgentConversation)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varAgentConversation)
 
 	if err != nil {
 		return err
 	}
 
 	*o = AgentConversation(varAgentConversation)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "name")
-		delete(additionalProperties, "description")
-		delete(additionalProperties, "object")
-		delete(additionalProperties, "id")
-		delete(additionalProperties, "created_at")
-		delete(additionalProperties, "updated_at")
-		delete(additionalProperties, "agent_id")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

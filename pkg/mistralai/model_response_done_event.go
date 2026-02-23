@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -21,10 +22,9 @@ var _ MappedNullable = &ResponseDoneEvent{}
 
 // ResponseDoneEvent struct for ResponseDoneEvent
 type ResponseDoneEvent struct {
-	Type                 *string               `json:"type,omitempty"`
-	CreatedAt            *time.Time            `json:"created_at,omitempty"`
-	Usage                ConversationUsageInfo `json:"usage"`
-	AdditionalProperties map[string]interface{}
+	Type      *string               `json:"type,omitempty"`
+	CreatedAt *time.Time            `json:"created_at,omitempty"`
+	Usage     ConversationUsageInfo `json:"usage"`
 }
 
 type _ResponseDoneEvent ResponseDoneEvent
@@ -156,11 +156,6 @@ func (o ResponseDoneEvent) ToMap() (map[string]interface{}, error) {
 		toSerialize["created_at"] = o.CreatedAt
 	}
 	toSerialize["usage"] = o.Usage
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -188,22 +183,15 @@ func (o *ResponseDoneEvent) UnmarshalJSON(data []byte) (err error) {
 
 	varResponseDoneEvent := _ResponseDoneEvent{}
 
-	err = json.Unmarshal(data, &varResponseDoneEvent)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varResponseDoneEvent)
 
 	if err != nil {
 		return err
 	}
 
 	*o = ResponseDoneEvent(varResponseDoneEvent)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "type")
-		delete(additionalProperties, "created_at")
-		delete(additionalProperties, "usage")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

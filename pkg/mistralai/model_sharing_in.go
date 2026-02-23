@@ -20,8 +20,8 @@ var _ MappedNullable = &SharingIn{}
 
 // SharingIn struct for SharingIn
 type SharingIn struct {
-	OrgId string    `json:"org_id"`
-	Level ShareEnum `json:"level"`
+	OrgId NullableString `json:"org_id,omitempty"`
+	Level ShareEnum      `json:"level"`
 	// The id of the entity (user, workspace or organization) to share with
 	ShareWithUuid        string     `json:"share_with_uuid"`
 	ShareWithType        EntityType `json:"share_with_type"`
@@ -34,9 +34,8 @@ type _SharingIn SharingIn
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewSharingIn(orgId string, level ShareEnum, shareWithUuid string, shareWithType EntityType) *SharingIn {
+func NewSharingIn(level ShareEnum, shareWithUuid string, shareWithType EntityType) *SharingIn {
 	this := SharingIn{}
-	this.OrgId = orgId
 	this.Level = level
 	this.ShareWithUuid = shareWithUuid
 	this.ShareWithType = shareWithType
@@ -51,28 +50,47 @@ func NewSharingInWithDefaults() *SharingIn {
 	return &this
 }
 
-// GetOrgId returns the OrgId field value
+// GetOrgId returns the OrgId field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *SharingIn) GetOrgId() string {
-	if o == nil {
+	if o == nil || IsNil(o.OrgId.Get()) {
 		var ret string
 		return ret
 	}
-
-	return o.OrgId
+	return *o.OrgId.Get()
 }
 
-// GetOrgIdOk returns a tuple with the OrgId field value
+// GetOrgIdOk returns a tuple with the OrgId field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *SharingIn) GetOrgIdOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.OrgId, true
+	return o.OrgId.Get(), o.OrgId.IsSet()
 }
 
-// SetOrgId sets field value
+// HasOrgId returns a boolean if a field has been set.
+func (o *SharingIn) HasOrgId() bool {
+	if o != nil && o.OrgId.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetOrgId gets a reference to the given NullableString and assigns it to the OrgId field.
 func (o *SharingIn) SetOrgId(v string) {
-	o.OrgId = v
+	o.OrgId.Set(&v)
+}
+
+// SetOrgIdNil sets the value for OrgId to be an explicit nil
+func (o *SharingIn) SetOrgIdNil() {
+	o.OrgId.Set(nil)
+}
+
+// UnsetOrgId ensures that no value is present for OrgId, not even an explicit nil
+func (o *SharingIn) UnsetOrgId() {
+	o.OrgId.Unset()
 }
 
 // GetLevel returns the Level field value
@@ -157,7 +175,9 @@ func (o SharingIn) MarshalJSON() ([]byte, error) {
 
 func (o SharingIn) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["org_id"] = o.OrgId
+	if o.OrgId.IsSet() {
+		toSerialize["org_id"] = o.OrgId.Get()
+	}
 	toSerialize["level"] = o.Level
 	toSerialize["share_with_uuid"] = o.ShareWithUuid
 	toSerialize["share_with_type"] = o.ShareWithType
@@ -174,7 +194,6 @@ func (o *SharingIn) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"org_id",
 		"level",
 		"share_with_uuid",
 		"share_with_type",

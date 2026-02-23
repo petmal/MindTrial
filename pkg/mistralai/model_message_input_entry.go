@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -21,15 +22,14 @@ var _ MappedNullable = &MessageInputEntry{}
 
 // MessageInputEntry Representation of an input message inside the conversation.
 type MessageInputEntry struct {
-	Object               *string      `json:"object,omitempty"`
-	Type                 *string      `json:"type,omitempty"`
-	CreatedAt            *time.Time   `json:"created_at,omitempty"`
-	CompletedAt          NullableTime `json:"completed_at,omitempty"`
-	Id                   *string      `json:"id,omitempty"`
-	Role                 string       `json:"role"`
-	Content              Content      `json:"content"`
-	Prefix               *bool        `json:"prefix,omitempty"`
-	AdditionalProperties map[string]interface{}
+	Object      *string      `json:"object,omitempty"`
+	Type        *string      `json:"type,omitempty"`
+	CreatedAt   *time.Time   `json:"created_at,omitempty"`
+	CompletedAt NullableTime `json:"completed_at,omitempty"`
+	Id          *string      `json:"id,omitempty"`
+	Role        string       `json:"role"`
+	Content     Content      `json:"content"`
+	Prefix      *bool        `json:"prefix,omitempty"`
 }
 
 type _MessageInputEntry MessageInputEntry
@@ -346,11 +346,6 @@ func (o MessageInputEntry) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Prefix) {
 		toSerialize["prefix"] = o.Prefix
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -379,27 +374,15 @@ func (o *MessageInputEntry) UnmarshalJSON(data []byte) (err error) {
 
 	varMessageInputEntry := _MessageInputEntry{}
 
-	err = json.Unmarshal(data, &varMessageInputEntry)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varMessageInputEntry)
 
 	if err != nil {
 		return err
 	}
 
 	*o = MessageInputEntry(varMessageInputEntry)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "object")
-		delete(additionalProperties, "type")
-		delete(additionalProperties, "created_at")
-		delete(additionalProperties, "completed_at")
-		delete(additionalProperties, "id")
-		delete(additionalProperties, "role")
-		delete(additionalProperties, "content")
-		delete(additionalProperties, "prefix")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

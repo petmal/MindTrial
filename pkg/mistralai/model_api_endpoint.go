@@ -20,11 +20,16 @@ type ApiEndpoint string
 
 // List of ApiEndpoint
 const (
-	V1_CHAT_COMPLETIONS ApiEndpoint = "/v1/chat/completions"
-	V1_EMBEDDINGS       ApiEndpoint = "/v1/embeddings"
-	V1_FIM_COMPLETIONS  ApiEndpoint = "/v1/fim/completions"
-	V1_MODERATIONS      ApiEndpoint = "/v1/moderations"
-	V1_CHAT_MODERATIONS ApiEndpoint = "/v1/chat/moderations"
+	APIENDPOINT_V1_CHAT_COMPLETIONS     ApiEndpoint = "/v1/chat/completions"
+	APIENDPOINT_V1_EMBEDDINGS           ApiEndpoint = "/v1/embeddings"
+	APIENDPOINT_V1_FIM_COMPLETIONS      ApiEndpoint = "/v1/fim/completions"
+	APIENDPOINT_V1_MODERATIONS          ApiEndpoint = "/v1/moderations"
+	APIENDPOINT_V1_CHAT_MODERATIONS     ApiEndpoint = "/v1/chat/moderations"
+	APIENDPOINT_V1_OCR                  ApiEndpoint = "/v1/ocr"
+	APIENDPOINT_V1_CLASSIFICATIONS      ApiEndpoint = "/v1/classifications"
+	APIENDPOINT_V1_CHAT_CLASSIFICATIONS ApiEndpoint = "/v1/chat/classifications"
+	APIENDPOINT_V1_CONVERSATIONS        ApiEndpoint = "/v1/conversations"
+	APIENDPOINT_V1_AUDIO_TRANSCRIPTIONS ApiEndpoint = "/v1/audio/transcriptions"
 )
 
 // All allowed values of ApiEndpoint enum
@@ -34,6 +39,11 @@ var AllowedApiEndpointEnumValues = []ApiEndpoint{
 	"/v1/fim/completions",
 	"/v1/moderations",
 	"/v1/chat/moderations",
+	"/v1/ocr",
+	"/v1/classifications",
+	"/v1/chat/classifications",
+	"/v1/conversations",
+	"/v1/audio/transcriptions",
 }
 
 func (v *ApiEndpoint) UnmarshalJSON(src []byte) error {

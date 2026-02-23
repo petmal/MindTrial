@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,12 +21,11 @@ var _ MappedNullable = &ToolFileChunk{}
 
 // ToolFileChunk struct for ToolFileChunk
 type ToolFileChunk struct {
-	Type                 *string           `json:"type,omitempty"`
-	Tool                 BuiltInConnectors `json:"tool"`
-	FileId               string            `json:"file_id"`
-	FileName             NullableString    `json:"file_name,omitempty"`
-	FileType             NullableString    `json:"file_type,omitempty"`
-	AdditionalProperties map[string]interface{}
+	Type     *string        `json:"type,omitempty"`
+	Tool     Tool1          `json:"tool"`
+	FileId   string         `json:"file_id"`
+	FileName NullableString `json:"file_name,omitempty"`
+	FileType NullableString `json:"file_type,omitempty"`
 }
 
 type _ToolFileChunk ToolFileChunk
@@ -34,7 +34,7 @@ type _ToolFileChunk ToolFileChunk
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewToolFileChunk(tool BuiltInConnectors, fileId string) *ToolFileChunk {
+func NewToolFileChunk(tool Tool1, fileId string) *ToolFileChunk {
 	this := ToolFileChunk{}
 	var type_ string = "tool_file"
 	this.Type = &type_
@@ -86,9 +86,9 @@ func (o *ToolFileChunk) SetType(v string) {
 }
 
 // GetTool returns the Tool field value
-func (o *ToolFileChunk) GetTool() BuiltInConnectors {
+func (o *ToolFileChunk) GetTool() Tool1 {
 	if o == nil {
-		var ret BuiltInConnectors
+		var ret Tool1
 		return ret
 	}
 
@@ -97,7 +97,7 @@ func (o *ToolFileChunk) GetTool() BuiltInConnectors {
 
 // GetToolOk returns a tuple with the Tool field value
 // and a boolean to check if the value has been set.
-func (o *ToolFileChunk) GetToolOk() (*BuiltInConnectors, bool) {
+func (o *ToolFileChunk) GetToolOk() (*Tool1, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -105,7 +105,7 @@ func (o *ToolFileChunk) GetToolOk() (*BuiltInConnectors, bool) {
 }
 
 // SetTool sets field value
-func (o *ToolFileChunk) SetTool(v BuiltInConnectors) {
+func (o *ToolFileChunk) SetTool(v Tool1) {
 	o.Tool = v
 }
 
@@ -240,11 +240,6 @@ func (o ToolFileChunk) ToMap() (map[string]interface{}, error) {
 	if o.FileType.IsSet() {
 		toSerialize["file_type"] = o.FileType.Get()
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -273,24 +268,15 @@ func (o *ToolFileChunk) UnmarshalJSON(data []byte) (err error) {
 
 	varToolFileChunk := _ToolFileChunk{}
 
-	err = json.Unmarshal(data, &varToolFileChunk)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varToolFileChunk)
 
 	if err != nil {
 		return err
 	}
 
 	*o = ToolFileChunk(varToolFileChunk)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "type")
-		delete(additionalProperties, "tool")
-		delete(additionalProperties, "file_id")
-		delete(additionalProperties, "file_name")
-		delete(additionalProperties, "file_type")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

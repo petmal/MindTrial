@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,10 +21,9 @@ var _ MappedNullable = &DocumentURLChunk{}
 
 // DocumentURLChunk struct for DocumentURLChunk
 type DocumentURLChunk struct {
-	DocumentUrl          string         `json:"document_url"`
-	DocumentName         NullableString `json:"document_name,omitempty"`
-	Type                 *string        `json:"type,omitempty"`
-	AdditionalProperties map[string]interface{}
+	DocumentUrl  string         `json:"document_url"`
+	DocumentName NullableString `json:"document_name,omitempty"`
+	Type         *string        `json:"type,omitempty"`
 }
 
 type _DocumentURLChunk DocumentURLChunk
@@ -166,11 +166,6 @@ func (o DocumentURLChunk) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -198,22 +193,15 @@ func (o *DocumentURLChunk) UnmarshalJSON(data []byte) (err error) {
 
 	varDocumentURLChunk := _DocumentURLChunk{}
 
-	err = json.Unmarshal(data, &varDocumentURLChunk)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varDocumentURLChunk)
 
 	if err != nil {
 		return err
 	}
 
 	*o = DocumentURLChunk(varDocumentURLChunk)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "document_url")
-		delete(additionalProperties, "document_name")
-		delete(additionalProperties, "type")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

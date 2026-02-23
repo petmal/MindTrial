@@ -15,14 +15,14 @@ import (
 	"fmt"
 )
 
-// ConnectorTokens struct for ConnectorTokens
-type ConnectorTokens struct {
-	Int32 *int32
-	Any   *interface{}
+// LocationInner struct for LocationInner
+type LocationInner struct {
+	Int32  *int32
+	String *string
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
-func (dst *ConnectorTokens) UnmarshalJSON(data []byte) error {
+func (dst *LocationInner) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into Int32
 	err = json.Unmarshal(data, &dst.Int32)
@@ -37,67 +37,67 @@ func (dst *ConnectorTokens) UnmarshalJSON(data []byte) error {
 		dst.Int32 = nil
 	}
 
-	// try to unmarshal JSON data into Any
-	err = json.Unmarshal(data, &dst.Any)
+	// try to unmarshal JSON data into String
+	err = json.Unmarshal(data, &dst.String)
 	if err == nil {
-		jsonAny, _ := json.Marshal(dst.Any)
-		if string(jsonAny) == "{}" { // empty struct
-			dst.Any = nil
+		jsonString, _ := json.Marshal(dst.String)
+		if string(jsonString) == "{}" { // empty struct
+			dst.String = nil
 		} else {
-			return nil // data stored in dst.Any, return on the first match
+			return nil // data stored in dst.String, return on the first match
 		}
 	} else {
-		dst.Any = nil
+		dst.String = nil
 	}
 
-	return fmt.Errorf("data failed to match schemas in anyOf(ConnectorTokens)")
+	return fmt.Errorf("data failed to match schemas in anyOf(LocationInner)")
 }
 
 // Marshal data from the first non-nil pointers in the struct to JSON
-func (src ConnectorTokens) MarshalJSON() ([]byte, error) {
+func (src LocationInner) MarshalJSON() ([]byte, error) {
 	if src.Int32 != nil {
 		return json.Marshal(&src.Int32)
 	}
 
-	if src.Any != nil {
-		return json.Marshal(&src.Any)
+	if src.String != nil {
+		return json.Marshal(&src.String)
 	}
 
 	return nil, nil // no data in anyOf schemas
 }
 
-type NullableConnectorTokens struct {
-	value *ConnectorTokens
+type NullableLocationInner struct {
+	value *LocationInner
 	isSet bool
 }
 
-func (v NullableConnectorTokens) Get() *ConnectorTokens {
+func (v NullableLocationInner) Get() *LocationInner {
 	return v.value
 }
 
-func (v *NullableConnectorTokens) Set(val *ConnectorTokens) {
+func (v *NullableLocationInner) Set(val *LocationInner) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableConnectorTokens) IsSet() bool {
+func (v NullableLocationInner) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableConnectorTokens) Unset() {
+func (v *NullableLocationInner) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableConnectorTokens(val *ConnectorTokens) *NullableConnectorTokens {
-	return &NullableConnectorTokens{value: val, isSet: true}
+func NewNullableLocationInner(val *LocationInner) *NullableLocationInner {
+	return &NullableLocationInner{value: val, isSet: true}
 }
 
-func (v NullableConnectorTokens) MarshalJSON() ([]byte, error) {
+func (v NullableLocationInner) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableConnectorTokens) UnmarshalJSON(src []byte) error {
+func (v *NullableLocationInner) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

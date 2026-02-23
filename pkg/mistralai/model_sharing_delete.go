@@ -20,7 +20,7 @@ var _ MappedNullable = &SharingDelete{}
 
 // SharingDelete struct for SharingDelete
 type SharingDelete struct {
-	OrgId string `json:"org_id"`
+	OrgId NullableString `json:"org_id,omitempty"`
 	// The id of the entity (user, workspace or organization) to share with
 	ShareWithUuid        string     `json:"share_with_uuid"`
 	ShareWithType        EntityType `json:"share_with_type"`
@@ -33,9 +33,8 @@ type _SharingDelete SharingDelete
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewSharingDelete(orgId string, shareWithUuid string, shareWithType EntityType) *SharingDelete {
+func NewSharingDelete(shareWithUuid string, shareWithType EntityType) *SharingDelete {
 	this := SharingDelete{}
-	this.OrgId = orgId
 	this.ShareWithUuid = shareWithUuid
 	this.ShareWithType = shareWithType
 	return &this
@@ -49,28 +48,47 @@ func NewSharingDeleteWithDefaults() *SharingDelete {
 	return &this
 }
 
-// GetOrgId returns the OrgId field value
+// GetOrgId returns the OrgId field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *SharingDelete) GetOrgId() string {
-	if o == nil {
+	if o == nil || IsNil(o.OrgId.Get()) {
 		var ret string
 		return ret
 	}
-
-	return o.OrgId
+	return *o.OrgId.Get()
 }
 
-// GetOrgIdOk returns a tuple with the OrgId field value
+// GetOrgIdOk returns a tuple with the OrgId field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *SharingDelete) GetOrgIdOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.OrgId, true
+	return o.OrgId.Get(), o.OrgId.IsSet()
 }
 
-// SetOrgId sets field value
+// HasOrgId returns a boolean if a field has been set.
+func (o *SharingDelete) HasOrgId() bool {
+	if o != nil && o.OrgId.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetOrgId gets a reference to the given NullableString and assigns it to the OrgId field.
 func (o *SharingDelete) SetOrgId(v string) {
-	o.OrgId = v
+	o.OrgId.Set(&v)
+}
+
+// SetOrgIdNil sets the value for OrgId to be an explicit nil
+func (o *SharingDelete) SetOrgIdNil() {
+	o.OrgId.Set(nil)
+}
+
+// UnsetOrgId ensures that no value is present for OrgId, not even an explicit nil
+func (o *SharingDelete) UnsetOrgId() {
+	o.OrgId.Unset()
 }
 
 // GetShareWithUuid returns the ShareWithUuid field value
@@ -131,7 +149,9 @@ func (o SharingDelete) MarshalJSON() ([]byte, error) {
 
 func (o SharingDelete) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["org_id"] = o.OrgId
+	if o.OrgId.IsSet() {
+		toSerialize["org_id"] = o.OrgId.Get()
+	}
 	toSerialize["share_with_uuid"] = o.ShareWithUuid
 	toSerialize["share_with_type"] = o.ShareWithType
 
@@ -147,7 +167,6 @@ func (o *SharingDelete) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"org_id",
 		"share_with_uuid",
 		"share_with_type",
 	}

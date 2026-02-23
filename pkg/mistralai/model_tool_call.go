@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,11 +21,10 @@ var _ MappedNullable = &ToolCall{}
 
 // ToolCall struct for ToolCall
 type ToolCall struct {
-	Id                   *string      `json:"id,omitempty"`
-	Type                 *ToolTypes   `json:"type,omitempty"`
-	Function             FunctionCall `json:"function"`
-	Index                *int32       `json:"index,omitempty"`
-	AdditionalProperties map[string]interface{}
+	Id       *string      `json:"id,omitempty"`
+	Type     *ToolTypes   `json:"type,omitempty"`
+	Function FunctionCall `json:"function"`
+	Index    *int32       `json:"index,omitempty"`
 }
 
 type _ToolCall ToolCall
@@ -37,6 +37,8 @@ func NewToolCall(function FunctionCall) *ToolCall {
 	this := ToolCall{}
 	var id string = "null"
 	this.Id = &id
+	var type_ ToolTypes = TOOLTYPES_FUNCTION
+	this.Type = &type_
 	this.Function = function
 	var index int32 = 0
 	this.Index = &index
@@ -50,6 +52,8 @@ func NewToolCallWithDefaults() *ToolCall {
 	this := ToolCall{}
 	var id string = "null"
 	this.Id = &id
+	var type_ ToolTypes = TOOLTYPES_FUNCTION
+	this.Type = &type_
 	var index int32 = 0
 	this.Index = &index
 	return &this
@@ -195,11 +199,6 @@ func (o ToolCall) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Index) {
 		toSerialize["index"] = o.Index
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -227,23 +226,15 @@ func (o *ToolCall) UnmarshalJSON(data []byte) (err error) {
 
 	varToolCall := _ToolCall{}
 
-	err = json.Unmarshal(data, &varToolCall)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varToolCall)
 
 	if err != nil {
 		return err
 	}
 
 	*o = ToolCall(varToolCall)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "id")
-		delete(additionalProperties, "type")
-		delete(additionalProperties, "function")
-		delete(additionalProperties, "index")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

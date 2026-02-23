@@ -19,20 +19,17 @@ var _ MappedNullable = &CompletionArgs{}
 
 // CompletionArgs White-listed arguments from the completion API
 type CompletionArgs struct {
-	Stop                 NullableCompletionArgsStop `json:"stop,omitempty"`
-	PresencePenalty      NullableFloat32            `json:"presence_penalty,omitempty"`
-	FrequencyPenalty     NullableFloat32            `json:"frequency_penalty,omitempty"`
-	Temperature          *float32                   `json:"temperature,omitempty"`
-	TopP                 NullableFloat32            `json:"top_p,omitempty"`
-	MaxTokens            NullableInt32              `json:"max_tokens,omitempty"`
-	RandomSeed           NullableInt32              `json:"random_seed,omitempty"`
-	Prediction           NullablePrediction         `json:"prediction,omitempty"`
-	ResponseFormat       NullableResponseFormat     `json:"response_format,omitempty"`
-	ToolChoice           *ToolChoiceEnum            `json:"tool_choice,omitempty"`
-	AdditionalProperties map[string]interface{}
+	Stop             NullableCompletionArgsStop `json:"stop,omitempty"`
+	PresencePenalty  NullableFloat32            `json:"presence_penalty,omitempty"`
+	FrequencyPenalty NullableFloat32            `json:"frequency_penalty,omitempty"`
+	Temperature      NullableFloat32            `json:"temperature,omitempty"`
+	TopP             NullableFloat32            `json:"top_p,omitempty"`
+	MaxTokens        NullableInt32              `json:"max_tokens,omitempty"`
+	RandomSeed       NullableInt32              `json:"random_seed,omitempty"`
+	Prediction       NullablePrediction         `json:"prediction,omitempty"`
+	ResponseFormat   NullableResponseFormat     `json:"response_format,omitempty"`
+	ToolChoice       *ToolChoiceEnum            `json:"tool_choice,omitempty"`
 }
-
-type _CompletionArgs CompletionArgs
 
 // NewCompletionArgs instantiates a new CompletionArgs object
 // This constructor will assign default values to properties that have it defined,
@@ -40,8 +37,8 @@ type _CompletionArgs CompletionArgs
 // will change when the set of required properties is changed
 func NewCompletionArgs() *CompletionArgs {
 	this := CompletionArgs{}
-	var temperature float32 = 0.3
-	this.Temperature = &temperature
+	var toolChoice ToolChoiceEnum = TOOLCHOICEENUM_auto
+	this.ToolChoice = &toolChoice
 	return &this
 }
 
@@ -50,8 +47,8 @@ func NewCompletionArgs() *CompletionArgs {
 // but it doesn't guarantee that properties required by API are set
 func NewCompletionArgsWithDefaults() *CompletionArgs {
 	this := CompletionArgs{}
-	var temperature float32 = 0.3
-	this.Temperature = &temperature
+	var toolChoice ToolChoiceEnum = TOOLCHOICEENUM_auto
+	this.ToolChoice = &toolChoice
 	return &this
 }
 
@@ -184,36 +181,47 @@ func (o *CompletionArgs) UnsetFrequencyPenalty() {
 	o.FrequencyPenalty.Unset()
 }
 
-// GetTemperature returns the Temperature field value if set, zero value otherwise.
+// GetTemperature returns the Temperature field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *CompletionArgs) GetTemperature() float32 {
-	if o == nil || IsNil(o.Temperature) {
+	if o == nil || IsNil(o.Temperature.Get()) {
 		var ret float32
 		return ret
 	}
-	return *o.Temperature
+	return *o.Temperature.Get()
 }
 
 // GetTemperatureOk returns a tuple with the Temperature field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *CompletionArgs) GetTemperatureOk() (*float32, bool) {
-	if o == nil || IsNil(o.Temperature) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Temperature, true
+	return o.Temperature.Get(), o.Temperature.IsSet()
 }
 
 // HasTemperature returns a boolean if a field has been set.
 func (o *CompletionArgs) HasTemperature() bool {
-	if o != nil && !IsNil(o.Temperature) {
+	if o != nil && o.Temperature.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetTemperature gets a reference to the given float32 and assigns it to the Temperature field.
+// SetTemperature gets a reference to the given NullableFloat32 and assigns it to the Temperature field.
 func (o *CompletionArgs) SetTemperature(v float32) {
-	o.Temperature = &v
+	o.Temperature.Set(&v)
+}
+
+// SetTemperatureNil sets the value for Temperature to be an explicit nil
+func (o *CompletionArgs) SetTemperatureNil() {
+	o.Temperature.Set(nil)
+}
+
+// UnsetTemperature ensures that no value is present for Temperature, not even an explicit nil
+func (o *CompletionArgs) UnsetTemperature() {
+	o.Temperature.Unset()
 }
 
 // GetTopP returns the TopP field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -482,8 +490,8 @@ func (o CompletionArgs) ToMap() (map[string]interface{}, error) {
 	if o.FrequencyPenalty.IsSet() {
 		toSerialize["frequency_penalty"] = o.FrequencyPenalty.Get()
 	}
-	if !IsNil(o.Temperature) {
-		toSerialize["temperature"] = o.Temperature
+	if o.Temperature.IsSet() {
+		toSerialize["temperature"] = o.Temperature.Get()
 	}
 	if o.TopP.IsSet() {
 		toSerialize["top_p"] = o.TopP.Get()
@@ -503,42 +511,7 @@ func (o CompletionArgs) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.ToolChoice) {
 		toSerialize["tool_choice"] = o.ToolChoice
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
-}
-
-func (o *CompletionArgs) UnmarshalJSON(data []byte) (err error) {
-	varCompletionArgs := _CompletionArgs{}
-
-	err = json.Unmarshal(data, &varCompletionArgs)
-
-	if err != nil {
-		return err
-	}
-
-	*o = CompletionArgs(varCompletionArgs)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "stop")
-		delete(additionalProperties, "presence_penalty")
-		delete(additionalProperties, "frequency_penalty")
-		delete(additionalProperties, "temperature")
-		delete(additionalProperties, "top_p")
-		delete(additionalProperties, "max_tokens")
-		delete(additionalProperties, "random_seed")
-		delete(additionalProperties, "prediction")
-		delete(additionalProperties, "response_format")
-		delete(additionalProperties, "tool_choice")
-		o.AdditionalProperties = additionalProperties
-	}
-
-	return err
 }
 
 type NullableCompletionArgs struct {

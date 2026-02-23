@@ -8,6 +8,7 @@ package testutils
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"testing"
@@ -56,10 +57,19 @@ func (tl *TestLogger) Message(ctx context.Context, level slog.Level, msg string,
 }
 
 // Error logs an error message at the specified level with optional formatting arguments.
+// If the error implements logging.StructuredError, its fields are appended to the log event.
 func (tl *TestLogger) Error(ctx context.Context, level slog.Level, err error, msg string, args ...any) {
 	formattedMsg := fmt.Sprintf(msg, args...)
 	formattedMsg = tl.prefix + formattedMsg
-	tl.getEvent(level).Err(err).Msg(formattedMsg)
+
+	event := tl.getEvent(level).Err(err)
+
+	var structuredErr logging.StructuredError
+	if errors.As(err, &structuredErr) {
+		event = event.Fields(structuredErr.LogFields())
+	}
+
+	event.Msg(formattedMsg)
 }
 
 // WithContext returns a new logger with additional context.

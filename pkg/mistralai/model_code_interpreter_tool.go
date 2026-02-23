@@ -19,11 +19,8 @@ var _ MappedNullable = &CodeInterpreterTool{}
 
 // CodeInterpreterTool struct for CodeInterpreterTool
 type CodeInterpreterTool struct {
-	Type                 *string `json:"type,omitempty"`
-	AdditionalProperties map[string]interface{}
+	Type *string `json:"type,omitempty"`
 }
-
-type _CodeInterpreterTool CodeInterpreterTool
 
 // NewCodeInterpreterTool instantiates a new CodeInterpreterTool object
 // This constructor will assign default values to properties that have it defined,
@@ -91,33 +88,7 @@ func (o CodeInterpreterTool) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
-}
-
-func (o *CodeInterpreterTool) UnmarshalJSON(data []byte) (err error) {
-	varCodeInterpreterTool := _CodeInterpreterTool{}
-
-	err = json.Unmarshal(data, &varCodeInterpreterTool)
-
-	if err != nil {
-		return err
-	}
-
-	*o = CodeInterpreterTool(varCodeInterpreterTool)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "type")
-		o.AdditionalProperties = additionalProperties
-	}
-
-	return err
 }
 
 type NullableCodeInterpreterTool struct {

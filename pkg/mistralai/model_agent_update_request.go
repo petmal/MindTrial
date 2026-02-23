@@ -21,17 +21,17 @@ var _ MappedNullable = &AgentUpdateRequest{}
 type AgentUpdateRequest struct {
 	Instructions NullableString `json:"instructions,omitempty"`
 	// List of tools which are available to the model during the conversation.
-	Tools []AgentToolsInner `json:"tools,omitempty"`
+	Tools []ToolsInner `json:"tools,omitempty"`
 	// Completion arguments that will be used to generate assistant responses. Can be overridden at each message request.
-	CompletionArgs       *CompletionArgs `json:"completion_args,omitempty"`
-	Model                NullableString  `json:"model,omitempty"`
-	Name                 NullableString  `json:"name,omitempty"`
-	Description          NullableString  `json:"description,omitempty"`
-	Handoffs             []string        `json:"handoffs,omitempty"`
-	AdditionalProperties map[string]interface{}
+	CompletionArgs *CompletionArgs `json:"completion_args,omitempty"`
+	Model          NullableString  `json:"model,omitempty"`
+	Name           NullableString  `json:"name,omitempty"`
+	Description    NullableString  `json:"description,omitempty"`
+	Handoffs       []string        `json:"handoffs,omitempty"`
+	DeploymentChat NullableBool    `json:"deployment_chat,omitempty"`
+	// Custom type for metadata with embedded validation.
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
 }
-
-type _AgentUpdateRequest AgentUpdateRequest
 
 // NewAgentUpdateRequest instantiates a new AgentUpdateRequest object
 // This constructor will assign default values to properties that have it defined,
@@ -94,9 +94,9 @@ func (o *AgentUpdateRequest) UnsetInstructions() {
 }
 
 // GetTools returns the Tools field value if set, zero value otherwise.
-func (o *AgentUpdateRequest) GetTools() []AgentToolsInner {
+func (o *AgentUpdateRequest) GetTools() []ToolsInner {
 	if o == nil || IsNil(o.Tools) {
-		var ret []AgentToolsInner
+		var ret []ToolsInner
 		return ret
 	}
 	return o.Tools
@@ -104,7 +104,7 @@ func (o *AgentUpdateRequest) GetTools() []AgentToolsInner {
 
 // GetToolsOk returns a tuple with the Tools field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *AgentUpdateRequest) GetToolsOk() ([]AgentToolsInner, bool) {
+func (o *AgentUpdateRequest) GetToolsOk() ([]ToolsInner, bool) {
 	if o == nil || IsNil(o.Tools) {
 		return nil, false
 	}
@@ -120,8 +120,8 @@ func (o *AgentUpdateRequest) HasTools() bool {
 	return false
 }
 
-// SetTools gets a reference to the given []AgentToolsInner and assigns it to the Tools field.
-func (o *AgentUpdateRequest) SetTools(v []AgentToolsInner) {
+// SetTools gets a reference to the given []ToolsInner and assigns it to the Tools field.
+func (o *AgentUpdateRequest) SetTools(v []ToolsInner) {
 	o.Tools = v
 }
 
@@ -319,6 +319,82 @@ func (o *AgentUpdateRequest) SetHandoffs(v []string) {
 	o.Handoffs = v
 }
 
+// GetDeploymentChat returns the DeploymentChat field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *AgentUpdateRequest) GetDeploymentChat() bool {
+	if o == nil || IsNil(o.DeploymentChat.Get()) {
+		var ret bool
+		return ret
+	}
+	return *o.DeploymentChat.Get()
+}
+
+// GetDeploymentChatOk returns a tuple with the DeploymentChat field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *AgentUpdateRequest) GetDeploymentChatOk() (*bool, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.DeploymentChat.Get(), o.DeploymentChat.IsSet()
+}
+
+// HasDeploymentChat returns a boolean if a field has been set.
+func (o *AgentUpdateRequest) HasDeploymentChat() bool {
+	if o != nil && o.DeploymentChat.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetDeploymentChat gets a reference to the given NullableBool and assigns it to the DeploymentChat field.
+func (o *AgentUpdateRequest) SetDeploymentChat(v bool) {
+	o.DeploymentChat.Set(&v)
+}
+
+// SetDeploymentChatNil sets the value for DeploymentChat to be an explicit nil
+func (o *AgentUpdateRequest) SetDeploymentChatNil() {
+	o.DeploymentChat.Set(nil)
+}
+
+// UnsetDeploymentChat ensures that no value is present for DeploymentChat, not even an explicit nil
+func (o *AgentUpdateRequest) UnsetDeploymentChat() {
+	o.DeploymentChat.Unset()
+}
+
+// GetMetadata returns the Metadata field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *AgentUpdateRequest) GetMetadata() map[string]interface{} {
+	if o == nil {
+		var ret map[string]interface{}
+		return ret
+	}
+	return o.Metadata
+}
+
+// GetMetadataOk returns a tuple with the Metadata field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *AgentUpdateRequest) GetMetadataOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Metadata) {
+		return map[string]interface{}{}, false
+	}
+	return o.Metadata, true
+}
+
+// HasMetadata returns a boolean if a field has been set.
+func (o *AgentUpdateRequest) HasMetadata() bool {
+	if o != nil && !IsNil(o.Metadata) {
+		return true
+	}
+
+	return false
+}
+
+// SetMetadata gets a reference to the given map[string]interface{} and assigns it to the Metadata field.
+func (o *AgentUpdateRequest) SetMetadata(v map[string]interface{}) {
+	o.Metadata = v
+}
+
 func (o AgentUpdateRequest) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -350,39 +426,13 @@ func (o AgentUpdateRequest) ToMap() (map[string]interface{}, error) {
 	if o.Handoffs != nil {
 		toSerialize["handoffs"] = o.Handoffs
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
+	if o.DeploymentChat.IsSet() {
+		toSerialize["deployment_chat"] = o.DeploymentChat.Get()
 	}
-
+	if o.Metadata != nil {
+		toSerialize["metadata"] = o.Metadata
+	}
 	return toSerialize, nil
-}
-
-func (o *AgentUpdateRequest) UnmarshalJSON(data []byte) (err error) {
-	varAgentUpdateRequest := _AgentUpdateRequest{}
-
-	err = json.Unmarshal(data, &varAgentUpdateRequest)
-
-	if err != nil {
-		return err
-	}
-
-	*o = AgentUpdateRequest(varAgentUpdateRequest)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "instructions")
-		delete(additionalProperties, "tools")
-		delete(additionalProperties, "completion_args")
-		delete(additionalProperties, "model")
-		delete(additionalProperties, "name")
-		delete(additionalProperties, "description")
-		delete(additionalProperties, "handoffs")
-		o.AdditionalProperties = additionalProperties
-	}
-
-	return err
 }
 
 type NullableAgentUpdateRequest struct {

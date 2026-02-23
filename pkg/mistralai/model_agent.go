@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -23,19 +24,23 @@ var _ MappedNullable = &Agent{}
 type Agent struct {
 	Instructions NullableString `json:"instructions,omitempty"`
 	// List of tools which are available to the model during the conversation.
-	Tools []AgentToolsInner `json:"tools,omitempty"`
+	Tools []ToolsInner `json:"tools,omitempty"`
 	// Completion arguments that will be used to generate assistant responses. Can be overridden at each message request.
-	CompletionArgs       *CompletionArgs `json:"completion_args,omitempty"`
-	Model                string          `json:"model"`
-	Name                 string          `json:"name"`
-	Description          NullableString  `json:"description,omitempty"`
-	Handoffs             []string        `json:"handoffs,omitempty"`
-	Object               *string         `json:"object,omitempty"`
-	Id                   string          `json:"id"`
-	Version              int32           `json:"version"`
-	CreatedAt            time.Time       `json:"created_at"`
-	UpdatedAt            time.Time       `json:"updated_at"`
-	AdditionalProperties map[string]interface{}
+	CompletionArgs *CompletionArgs `json:"completion_args,omitempty"`
+	Model          string          `json:"model"`
+	Name           string          `json:"name"`
+	Description    NullableString  `json:"description,omitempty"`
+	Handoffs       []string        `json:"handoffs,omitempty"`
+	// Custom type for metadata with embedded validation.
+	Metadata       map[string]interface{} `json:"metadata,omitempty"`
+	Object         *string                `json:"object,omitempty"`
+	Id             string                 `json:"id"`
+	Version        int32                  `json:"version"`
+	Versions       []int32                `json:"versions"`
+	CreatedAt      time.Time              `json:"created_at"`
+	UpdatedAt      time.Time              `json:"updated_at"`
+	DeploymentChat bool                   `json:"deployment_chat"`
+	Source         string                 `json:"source"`
 }
 
 type _Agent Agent
@@ -44,7 +49,7 @@ type _Agent Agent
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewAgent(model string, name string, id string, version int32, createdAt time.Time, updatedAt time.Time) *Agent {
+func NewAgent(model string, name string, id string, version int32, versions []int32, createdAt time.Time, updatedAt time.Time, deploymentChat bool, source string) *Agent {
 	this := Agent{}
 	this.Model = model
 	this.Name = name
@@ -52,8 +57,11 @@ func NewAgent(model string, name string, id string, version int32, createdAt tim
 	this.Object = &object
 	this.Id = id
 	this.Version = version
+	this.Versions = versions
 	this.CreatedAt = createdAt
 	this.UpdatedAt = updatedAt
+	this.DeploymentChat = deploymentChat
+	this.Source = source
 	return &this
 }
 
@@ -111,9 +119,9 @@ func (o *Agent) UnsetInstructions() {
 }
 
 // GetTools returns the Tools field value if set, zero value otherwise.
-func (o *Agent) GetTools() []AgentToolsInner {
+func (o *Agent) GetTools() []ToolsInner {
 	if o == nil || IsNil(o.Tools) {
-		var ret []AgentToolsInner
+		var ret []ToolsInner
 		return ret
 	}
 	return o.Tools
@@ -121,7 +129,7 @@ func (o *Agent) GetTools() []AgentToolsInner {
 
 // GetToolsOk returns a tuple with the Tools field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *Agent) GetToolsOk() ([]AgentToolsInner, bool) {
+func (o *Agent) GetToolsOk() ([]ToolsInner, bool) {
 	if o == nil || IsNil(o.Tools) {
 		return nil, false
 	}
@@ -137,8 +145,8 @@ func (o *Agent) HasTools() bool {
 	return false
 }
 
-// SetTools gets a reference to the given []AgentToolsInner and assigns it to the Tools field.
-func (o *Agent) SetTools(v []AgentToolsInner) {
+// SetTools gets a reference to the given []ToolsInner and assigns it to the Tools field.
+func (o *Agent) SetTools(v []ToolsInner) {
 	o.Tools = v
 }
 
@@ -298,6 +306,39 @@ func (o *Agent) SetHandoffs(v []string) {
 	o.Handoffs = v
 }
 
+// GetMetadata returns the Metadata field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Agent) GetMetadata() map[string]interface{} {
+	if o == nil {
+		var ret map[string]interface{}
+		return ret
+	}
+	return o.Metadata
+}
+
+// GetMetadataOk returns a tuple with the Metadata field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Agent) GetMetadataOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Metadata) {
+		return map[string]interface{}{}, false
+	}
+	return o.Metadata, true
+}
+
+// HasMetadata returns a boolean if a field has been set.
+func (o *Agent) HasMetadata() bool {
+	if o != nil && !IsNil(o.Metadata) {
+		return true
+	}
+
+	return false
+}
+
+// SetMetadata gets a reference to the given map[string]interface{} and assigns it to the Metadata field.
+func (o *Agent) SetMetadata(v map[string]interface{}) {
+	o.Metadata = v
+}
+
 // GetObject returns the Object field value if set, zero value otherwise.
 func (o *Agent) GetObject() string {
 	if o == nil || IsNil(o.Object) {
@@ -378,6 +419,30 @@ func (o *Agent) SetVersion(v int32) {
 	o.Version = v
 }
 
+// GetVersions returns the Versions field value
+func (o *Agent) GetVersions() []int32 {
+	if o == nil {
+		var ret []int32
+		return ret
+	}
+
+	return o.Versions
+}
+
+// GetVersionsOk returns a tuple with the Versions field value
+// and a boolean to check if the value has been set.
+func (o *Agent) GetVersionsOk() ([]int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Versions, true
+}
+
+// SetVersions sets field value
+func (o *Agent) SetVersions(v []int32) {
+	o.Versions = v
+}
+
 // GetCreatedAt returns the CreatedAt field value
 func (o *Agent) GetCreatedAt() time.Time {
 	if o == nil {
@@ -426,6 +491,54 @@ func (o *Agent) SetUpdatedAt(v time.Time) {
 	o.UpdatedAt = v
 }
 
+// GetDeploymentChat returns the DeploymentChat field value
+func (o *Agent) GetDeploymentChat() bool {
+	if o == nil {
+		var ret bool
+		return ret
+	}
+
+	return o.DeploymentChat
+}
+
+// GetDeploymentChatOk returns a tuple with the DeploymentChat field value
+// and a boolean to check if the value has been set.
+func (o *Agent) GetDeploymentChatOk() (*bool, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.DeploymentChat, true
+}
+
+// SetDeploymentChat sets field value
+func (o *Agent) SetDeploymentChat(v bool) {
+	o.DeploymentChat = v
+}
+
+// GetSource returns the Source field value
+func (o *Agent) GetSource() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Source
+}
+
+// GetSourceOk returns a tuple with the Source field value
+// and a boolean to check if the value has been set.
+func (o *Agent) GetSourceOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Source, true
+}
+
+// SetSource sets field value
+func (o *Agent) SetSource(v string) {
+	o.Source = v
+}
+
 func (o Agent) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -453,18 +566,19 @@ func (o Agent) ToMap() (map[string]interface{}, error) {
 	if o.Handoffs != nil {
 		toSerialize["handoffs"] = o.Handoffs
 	}
+	if o.Metadata != nil {
+		toSerialize["metadata"] = o.Metadata
+	}
 	if !IsNil(o.Object) {
 		toSerialize["object"] = o.Object
 	}
 	toSerialize["id"] = o.Id
 	toSerialize["version"] = o.Version
+	toSerialize["versions"] = o.Versions
 	toSerialize["created_at"] = o.CreatedAt
 	toSerialize["updated_at"] = o.UpdatedAt
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
+	toSerialize["deployment_chat"] = o.DeploymentChat
+	toSerialize["source"] = o.Source
 	return toSerialize, nil
 }
 
@@ -477,8 +591,11 @@ func (o *Agent) UnmarshalJSON(data []byte) (err error) {
 		"name",
 		"id",
 		"version",
+		"versions",
 		"created_at",
 		"updated_at",
+		"deployment_chat",
+		"source",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -497,31 +614,15 @@ func (o *Agent) UnmarshalJSON(data []byte) (err error) {
 
 	varAgent := _Agent{}
 
-	err = json.Unmarshal(data, &varAgent)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varAgent)
 
 	if err != nil {
 		return err
 	}
 
 	*o = Agent(varAgent)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "instructions")
-		delete(additionalProperties, "tools")
-		delete(additionalProperties, "completion_args")
-		delete(additionalProperties, "model")
-		delete(additionalProperties, "name")
-		delete(additionalProperties, "description")
-		delete(additionalProperties, "handoffs")
-		delete(additionalProperties, "object")
-		delete(additionalProperties, "id")
-		delete(additionalProperties, "version")
-		delete(additionalProperties, "created_at")
-		delete(additionalProperties, "updated_at")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

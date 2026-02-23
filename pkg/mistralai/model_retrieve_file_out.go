@@ -30,12 +30,14 @@ type RetrieveFileOut struct {
 	CreatedAt int32 `json:"created_at"`
 	// The name of the uploaded file.
 	Filename string `json:"filename"`
-	// The intended purpose of the uploaded file. Only accepts fine-tuning (`fine-tune`) for now.
-	Purpose              FilePurpose   `json:"purpose"`
-	SampleType           SampleType    `json:"sample_type"`
-	NumLines             NullableInt32 `json:"num_lines,omitempty"`
-	Source               Source        `json:"source"`
-	Deleted              bool          `json:"deleted"`
+	// The intended purpose of the uploaded file, currently supports fine-tuning (`fine-tune`), OCR (`ocr`), Audio/Transcription (`audio`) and batch inference (`batch`).
+	Purpose              FilePurpose    `json:"purpose"`
+	SampleType           SampleType     `json:"sample_type"`
+	NumLines             NullableInt32  `json:"num_lines,omitempty"`
+	Mimetype             NullableString `json:"mimetype,omitempty"`
+	Source               Source         `json:"source"`
+	Signature            NullableString `json:"signature,omitempty"`
+	Deleted              bool           `json:"deleted"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -278,6 +280,49 @@ func (o *RetrieveFileOut) UnsetNumLines() {
 	o.NumLines.Unset()
 }
 
+// GetMimetype returns the Mimetype field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *RetrieveFileOut) GetMimetype() string {
+	if o == nil || IsNil(o.Mimetype.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Mimetype.Get()
+}
+
+// GetMimetypeOk returns a tuple with the Mimetype field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *RetrieveFileOut) GetMimetypeOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Mimetype.Get(), o.Mimetype.IsSet()
+}
+
+// HasMimetype returns a boolean if a field has been set.
+func (o *RetrieveFileOut) HasMimetype() bool {
+	if o != nil && o.Mimetype.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetMimetype gets a reference to the given NullableString and assigns it to the Mimetype field.
+func (o *RetrieveFileOut) SetMimetype(v string) {
+	o.Mimetype.Set(&v)
+}
+
+// SetMimetypeNil sets the value for Mimetype to be an explicit nil
+func (o *RetrieveFileOut) SetMimetypeNil() {
+	o.Mimetype.Set(nil)
+}
+
+// UnsetMimetype ensures that no value is present for Mimetype, not even an explicit nil
+func (o *RetrieveFileOut) UnsetMimetype() {
+	o.Mimetype.Unset()
+}
+
 // GetSource returns the Source field value
 func (o *RetrieveFileOut) GetSource() Source {
 	if o == nil {
@@ -300,6 +345,49 @@ func (o *RetrieveFileOut) GetSourceOk() (*Source, bool) {
 // SetSource sets field value
 func (o *RetrieveFileOut) SetSource(v Source) {
 	o.Source = v
+}
+
+// GetSignature returns the Signature field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *RetrieveFileOut) GetSignature() string {
+	if o == nil || IsNil(o.Signature.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Signature.Get()
+}
+
+// GetSignatureOk returns a tuple with the Signature field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *RetrieveFileOut) GetSignatureOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Signature.Get(), o.Signature.IsSet()
+}
+
+// HasSignature returns a boolean if a field has been set.
+func (o *RetrieveFileOut) HasSignature() bool {
+	if o != nil && o.Signature.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetSignature gets a reference to the given NullableString and assigns it to the Signature field.
+func (o *RetrieveFileOut) SetSignature(v string) {
+	o.Signature.Set(&v)
+}
+
+// SetSignatureNil sets the value for Signature to be an explicit nil
+func (o *RetrieveFileOut) SetSignatureNil() {
+	o.Signature.Set(nil)
+}
+
+// UnsetSignature ensures that no value is present for Signature, not even an explicit nil
+func (o *RetrieveFileOut) UnsetSignature() {
+	o.Signature.Unset()
 }
 
 // GetDeleted returns the Deleted field value
@@ -346,7 +434,13 @@ func (o RetrieveFileOut) ToMap() (map[string]interface{}, error) {
 	if o.NumLines.IsSet() {
 		toSerialize["num_lines"] = o.NumLines.Get()
 	}
+	if o.Mimetype.IsSet() {
+		toSerialize["mimetype"] = o.Mimetype.Get()
+	}
 	toSerialize["source"] = o.Source
+	if o.Signature.IsSet() {
+		toSerialize["signature"] = o.Signature.Get()
+	}
 	toSerialize["deleted"] = o.Deleted
 
 	for key, value := range o.AdditionalProperties {
@@ -407,7 +501,9 @@ func (o *RetrieveFileOut) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "purpose")
 		delete(additionalProperties, "sample_type")
 		delete(additionalProperties, "num_lines")
+		delete(additionalProperties, "mimetype")
 		delete(additionalProperties, "source")
+		delete(additionalProperties, "signature")
 		delete(additionalProperties, "deleted")
 		o.AdditionalProperties = additionalProperties
 	}

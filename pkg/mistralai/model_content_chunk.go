@@ -18,11 +18,20 @@ import (
 
 // ContentChunk - struct for ContentChunk
 type ContentChunk struct {
+	AudioChunk       *AudioChunk
 	DocumentURLChunk *DocumentURLChunk
 	FileChunk        *FileChunk
 	ImageURLChunk    *ImageURLChunk
 	ReferenceChunk   *ReferenceChunk
 	TextChunk        *TextChunk
+	ThinkChunk       *ThinkChunk
+}
+
+// AudioChunkAsContentChunk is a convenience function that returns AudioChunk wrapped in ContentChunk
+func AudioChunkAsContentChunk(v *AudioChunk) ContentChunk {
+	return ContentChunk{
+		AudioChunk: v,
+	}
 }
 
 // DocumentURLChunkAsContentChunk is a convenience function that returns DocumentURLChunk wrapped in ContentChunk
@@ -60,10 +69,34 @@ func TextChunkAsContentChunk(v *TextChunk) ContentChunk {
 	}
 }
 
+// ThinkChunkAsContentChunk is a convenience function that returns ThinkChunk wrapped in ContentChunk
+func ThinkChunkAsContentChunk(v *ThinkChunk) ContentChunk {
+	return ContentChunk{
+		ThinkChunk: v,
+	}
+}
+
 // Unmarshal JSON data into one of the pointers in the struct
 func (dst *ContentChunk) UnmarshalJSON(data []byte) error {
 	var err error
 	match := 0
+	// try to unmarshal data into AudioChunk
+	err = newStrictDecoder(data).Decode(&dst.AudioChunk)
+	if err == nil {
+		jsonAudioChunk, _ := json.Marshal(dst.AudioChunk)
+		if string(jsonAudioChunk) == "{}" { // empty struct
+			dst.AudioChunk = nil
+		} else {
+			if err = validator.Validate(dst.AudioChunk); err != nil {
+				dst.AudioChunk = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.AudioChunk = nil
+	}
+
 	// try to unmarshal data into DocumentURLChunk
 	err = newStrictDecoder(data).Decode(&dst.DocumentURLChunk)
 	if err == nil {
@@ -149,13 +182,32 @@ func (dst *ContentChunk) UnmarshalJSON(data []byte) error {
 		dst.TextChunk = nil
 	}
 
+	// try to unmarshal data into ThinkChunk
+	err = newStrictDecoder(data).Decode(&dst.ThinkChunk)
+	if err == nil {
+		jsonThinkChunk, _ := json.Marshal(dst.ThinkChunk)
+		if string(jsonThinkChunk) == "{}" { // empty struct
+			dst.ThinkChunk = nil
+		} else {
+			if err = validator.Validate(dst.ThinkChunk); err != nil {
+				dst.ThinkChunk = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.ThinkChunk = nil
+	}
+
 	if match > 1 { // more than 1 match
 		// reset to nil
+		dst.AudioChunk = nil
 		dst.DocumentURLChunk = nil
 		dst.FileChunk = nil
 		dst.ImageURLChunk = nil
 		dst.ReferenceChunk = nil
 		dst.TextChunk = nil
+		dst.ThinkChunk = nil
 
 		return fmt.Errorf("data matches more than one schema in oneOf(ContentChunk)")
 	} else if match == 1 {
@@ -167,6 +219,10 @@ func (dst *ContentChunk) UnmarshalJSON(data []byte) error {
 
 // Marshal data from the first non-nil pointers in the struct to JSON
 func (src ContentChunk) MarshalJSON() ([]byte, error) {
+	if src.AudioChunk != nil {
+		return json.Marshal(&src.AudioChunk)
+	}
+
 	if src.DocumentURLChunk != nil {
 		return json.Marshal(&src.DocumentURLChunk)
 	}
@@ -187,6 +243,10 @@ func (src ContentChunk) MarshalJSON() ([]byte, error) {
 		return json.Marshal(&src.TextChunk)
 	}
 
+	if src.ThinkChunk != nil {
+		return json.Marshal(&src.ThinkChunk)
+	}
+
 	return nil, nil // no data in oneOf schemas
 }
 
@@ -195,6 +255,10 @@ func (obj *ContentChunk) GetActualInstance() interface{} {
 	if obj == nil {
 		return nil
 	}
+	if obj.AudioChunk != nil {
+		return obj.AudioChunk
+	}
+
 	if obj.DocumentURLChunk != nil {
 		return obj.DocumentURLChunk
 	}
@@ -215,12 +279,20 @@ func (obj *ContentChunk) GetActualInstance() interface{} {
 		return obj.TextChunk
 	}
 
+	if obj.ThinkChunk != nil {
+		return obj.ThinkChunk
+	}
+
 	// all schemas are nil
 	return nil
 }
 
 // Get the actual instance value
 func (obj ContentChunk) GetActualInstanceValue() interface{} {
+	if obj.AudioChunk != nil {
+		return *obj.AudioChunk
+	}
+
 	if obj.DocumentURLChunk != nil {
 		return *obj.DocumentURLChunk
 	}
@@ -239,6 +311,10 @@ func (obj ContentChunk) GetActualInstanceValue() interface{} {
 
 	if obj.TextChunk != nil {
 		return *obj.TextChunk
+	}
+
+	if obj.ThinkChunk != nil {
+		return *obj.ThinkChunk
 	}
 
 	// all schemas are nil

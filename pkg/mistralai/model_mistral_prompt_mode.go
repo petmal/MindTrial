@@ -15,12 +15,12 @@ import (
 	"fmt"
 )
 
-// MistralPromptMode the model 'MistralPromptMode'
+// MistralPromptMode Available options to the prompt_mode argument on the chat completion endpoint. Values represent high-level intent. Assignment to actual SPs is handled internally. System prompt may include knowledge cutoff date, model capabilities, tone to use, safety guidelines, etc.
 type MistralPromptMode string
 
 // List of MistralPromptMode
 const (
-	REASONING MistralPromptMode = "reasoning"
+	MISTRALPROMPTMODE_REASONING MistralPromptMode = "reasoning"
 )
 
 // All allowed values of MistralPromptMode enum

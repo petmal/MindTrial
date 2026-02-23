@@ -20,9 +20,9 @@ var _ MappedNullable = &ListFilesOut{}
 
 // ListFilesOut struct for ListFilesOut
 type ListFilesOut struct {
-	Data                 []FileSchema `json:"data"`
-	Object               string       `json:"object"`
-	Total                int32        `json:"total"`
+	Data                 []FileSchema  `json:"data"`
+	Object               string        `json:"object"`
+	Total                NullableInt32 `json:"total,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -32,11 +32,10 @@ type _ListFilesOut ListFilesOut
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewListFilesOut(data []FileSchema, object string, total int32) *ListFilesOut {
+func NewListFilesOut(data []FileSchema, object string) *ListFilesOut {
 	this := ListFilesOut{}
 	this.Data = data
 	this.Object = object
-	this.Total = total
 	return &this
 }
 
@@ -96,28 +95,47 @@ func (o *ListFilesOut) SetObject(v string) {
 	o.Object = v
 }
 
-// GetTotal returns the Total field value
+// GetTotal returns the Total field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *ListFilesOut) GetTotal() int32 {
-	if o == nil {
+	if o == nil || IsNil(o.Total.Get()) {
 		var ret int32
 		return ret
 	}
-
-	return o.Total
+	return *o.Total.Get()
 }
 
-// GetTotalOk returns a tuple with the Total field value
+// GetTotalOk returns a tuple with the Total field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *ListFilesOut) GetTotalOk() (*int32, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Total, true
+	return o.Total.Get(), o.Total.IsSet()
 }
 
-// SetTotal sets field value
+// HasTotal returns a boolean if a field has been set.
+func (o *ListFilesOut) HasTotal() bool {
+	if o != nil && o.Total.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetTotal gets a reference to the given NullableInt32 and assigns it to the Total field.
 func (o *ListFilesOut) SetTotal(v int32) {
-	o.Total = v
+	o.Total.Set(&v)
+}
+
+// SetTotalNil sets the value for Total to be an explicit nil
+func (o *ListFilesOut) SetTotalNil() {
+	o.Total.Set(nil)
+}
+
+// UnsetTotal ensures that no value is present for Total, not even an explicit nil
+func (o *ListFilesOut) UnsetTotal() {
+	o.Total.Unset()
 }
 
 func (o ListFilesOut) MarshalJSON() ([]byte, error) {
@@ -132,7 +150,9 @@ func (o ListFilesOut) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["data"] = o.Data
 	toSerialize["object"] = o.Object
-	toSerialize["total"] = o.Total
+	if o.Total.IsSet() {
+		toSerialize["total"] = o.Total.Get()
+	}
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -148,7 +168,6 @@ func (o *ListFilesOut) UnmarshalJSON(data []byte) (err error) {
 	requiredProperties := []string{
 		"data",
 		"object",
-		"total",
 	}
 
 	allProperties := make(map[string]interface{})

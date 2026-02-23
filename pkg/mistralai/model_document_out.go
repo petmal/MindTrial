@@ -21,23 +21,25 @@ var _ MappedNullable = &DocumentOut{}
 
 // DocumentOut struct for DocumentOut
 type DocumentOut struct {
-	Id                          string         `json:"id"`
-	LibraryId                   string         `json:"library_id"`
-	Hash                        string         `json:"hash"`
-	MimeType                    string         `json:"mime_type"`
-	Extension                   string         `json:"extension"`
-	Size                        int32          `json:"size"`
-	Name                        string         `json:"name"`
-	Summary                     NullableString `json:"summary,omitempty"`
-	CreatedAt                   time.Time      `json:"created_at"`
-	LastProcessedAt             NullableTime   `json:"last_processed_at,omitempty"`
-	NumberOfPages               NullableInt32  `json:"number_of_pages,omitempty"`
-	ProcessingStatus            string         `json:"processing_status"`
-	UploadedById                string         `json:"uploaded_by_id"`
-	UploadedByType              string         `json:"uploaded_by_type"`
-	TokensProcessingMainContent NullableInt32  `json:"tokens_processing_main_content,omitempty"`
-	TokensProcessingSummary     NullableInt32  `json:"tokens_processing_summary,omitempty"`
-	TokensProcessingTotal       int32          `json:"tokens_processing_total"`
+	Id                          string                 `json:"id"`
+	LibraryId                   string                 `json:"library_id"`
+	Hash                        NullableString         `json:"hash"`
+	MimeType                    NullableString         `json:"mime_type"`
+	Extension                   NullableString         `json:"extension"`
+	Size                        NullableInt32          `json:"size"`
+	Name                        string                 `json:"name"`
+	Summary                     NullableString         `json:"summary,omitempty"`
+	CreatedAt                   time.Time              `json:"created_at"`
+	LastProcessedAt             NullableTime           `json:"last_processed_at,omitempty"`
+	NumberOfPages               NullableInt32          `json:"number_of_pages,omitempty"`
+	ProcessingStatus            string                 `json:"processing_status"`
+	UploadedById                NullableString         `json:"uploaded_by_id"`
+	UploadedByType              string                 `json:"uploaded_by_type"`
+	TokensProcessingMainContent NullableInt32          `json:"tokens_processing_main_content,omitempty"`
+	TokensProcessingSummary     NullableInt32          `json:"tokens_processing_summary,omitempty"`
+	Url                         NullableString         `json:"url,omitempty"`
+	Attributes                  map[string]interface{} `json:"attributes,omitempty"`
+	TokensProcessingTotal       int32                  `json:"tokens_processing_total"`
 	AdditionalProperties        map[string]interface{}
 }
 
@@ -47,7 +49,7 @@ type _DocumentOut DocumentOut
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewDocumentOut(id string, libraryId string, hash string, mimeType string, extension string, size int32, name string, createdAt time.Time, processingStatus string, uploadedById string, uploadedByType string, tokensProcessingTotal int32) *DocumentOut {
+func NewDocumentOut(id string, libraryId string, hash NullableString, mimeType NullableString, extension NullableString, size NullableInt32, name string, createdAt time.Time, processingStatus string, uploadedById NullableString, uploadedByType string, tokensProcessingTotal int32) *DocumentOut {
 	this := DocumentOut{}
 	this.Id = id
 	this.LibraryId = libraryId
@@ -121,99 +123,107 @@ func (o *DocumentOut) SetLibraryId(v string) {
 }
 
 // GetHash returns the Hash field value
+// If the value is explicit nil, the zero value for string will be returned
 func (o *DocumentOut) GetHash() string {
-	if o == nil {
+	if o == nil || o.Hash.Get() == nil {
 		var ret string
 		return ret
 	}
 
-	return o.Hash
+	return *o.Hash.Get()
 }
 
 // GetHashOk returns a tuple with the Hash field value
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *DocumentOut) GetHashOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Hash, true
+	return o.Hash.Get(), o.Hash.IsSet()
 }
 
 // SetHash sets field value
 func (o *DocumentOut) SetHash(v string) {
-	o.Hash = v
+	o.Hash.Set(&v)
 }
 
 // GetMimeType returns the MimeType field value
+// If the value is explicit nil, the zero value for string will be returned
 func (o *DocumentOut) GetMimeType() string {
-	if o == nil {
+	if o == nil || o.MimeType.Get() == nil {
 		var ret string
 		return ret
 	}
 
-	return o.MimeType
+	return *o.MimeType.Get()
 }
 
 // GetMimeTypeOk returns a tuple with the MimeType field value
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *DocumentOut) GetMimeTypeOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.MimeType, true
+	return o.MimeType.Get(), o.MimeType.IsSet()
 }
 
 // SetMimeType sets field value
 func (o *DocumentOut) SetMimeType(v string) {
-	o.MimeType = v
+	o.MimeType.Set(&v)
 }
 
 // GetExtension returns the Extension field value
+// If the value is explicit nil, the zero value for string will be returned
 func (o *DocumentOut) GetExtension() string {
-	if o == nil {
+	if o == nil || o.Extension.Get() == nil {
 		var ret string
 		return ret
 	}
 
-	return o.Extension
+	return *o.Extension.Get()
 }
 
 // GetExtensionOk returns a tuple with the Extension field value
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *DocumentOut) GetExtensionOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Extension, true
+	return o.Extension.Get(), o.Extension.IsSet()
 }
 
 // SetExtension sets field value
 func (o *DocumentOut) SetExtension(v string) {
-	o.Extension = v
+	o.Extension.Set(&v)
 }
 
 // GetSize returns the Size field value
+// If the value is explicit nil, the zero value for int32 will be returned
 func (o *DocumentOut) GetSize() int32 {
-	if o == nil {
+	if o == nil || o.Size.Get() == nil {
 		var ret int32
 		return ret
 	}
 
-	return o.Size
+	return *o.Size.Get()
 }
 
 // GetSizeOk returns a tuple with the Size field value
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *DocumentOut) GetSizeOk() (*int32, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Size, true
+	return o.Size.Get(), o.Size.IsSet()
 }
 
 // SetSize sets field value
 func (o *DocumentOut) SetSize(v int32) {
-	o.Size = v
+	o.Size.Set(&v)
 }
 
 // GetName returns the Name field value
@@ -418,27 +428,29 @@ func (o *DocumentOut) SetProcessingStatus(v string) {
 }
 
 // GetUploadedById returns the UploadedById field value
+// If the value is explicit nil, the zero value for string will be returned
 func (o *DocumentOut) GetUploadedById() string {
-	if o == nil {
+	if o == nil || o.UploadedById.Get() == nil {
 		var ret string
 		return ret
 	}
 
-	return o.UploadedById
+	return *o.UploadedById.Get()
 }
 
 // GetUploadedByIdOk returns a tuple with the UploadedById field value
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *DocumentOut) GetUploadedByIdOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.UploadedById, true
+	return o.UploadedById.Get(), o.UploadedById.IsSet()
 }
 
 // SetUploadedById sets field value
 func (o *DocumentOut) SetUploadedById(v string) {
-	o.UploadedById = v
+	o.UploadedById.Set(&v)
 }
 
 // GetUploadedByType returns the UploadedByType field value
@@ -551,6 +563,82 @@ func (o *DocumentOut) UnsetTokensProcessingSummary() {
 	o.TokensProcessingSummary.Unset()
 }
 
+// GetUrl returns the Url field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *DocumentOut) GetUrl() string {
+	if o == nil || IsNil(o.Url.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Url.Get()
+}
+
+// GetUrlOk returns a tuple with the Url field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *DocumentOut) GetUrlOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Url.Get(), o.Url.IsSet()
+}
+
+// HasUrl returns a boolean if a field has been set.
+func (o *DocumentOut) HasUrl() bool {
+	if o != nil && o.Url.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetUrl gets a reference to the given NullableString and assigns it to the Url field.
+func (o *DocumentOut) SetUrl(v string) {
+	o.Url.Set(&v)
+}
+
+// SetUrlNil sets the value for Url to be an explicit nil
+func (o *DocumentOut) SetUrlNil() {
+	o.Url.Set(nil)
+}
+
+// UnsetUrl ensures that no value is present for Url, not even an explicit nil
+func (o *DocumentOut) UnsetUrl() {
+	o.Url.Unset()
+}
+
+// GetAttributes returns the Attributes field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *DocumentOut) GetAttributes() map[string]interface{} {
+	if o == nil {
+		var ret map[string]interface{}
+		return ret
+	}
+	return o.Attributes
+}
+
+// GetAttributesOk returns a tuple with the Attributes field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *DocumentOut) GetAttributesOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Attributes) {
+		return map[string]interface{}{}, false
+	}
+	return o.Attributes, true
+}
+
+// HasAttributes returns a boolean if a field has been set.
+func (o *DocumentOut) HasAttributes() bool {
+	if o != nil && !IsNil(o.Attributes) {
+		return true
+	}
+
+	return false
+}
+
+// SetAttributes gets a reference to the given map[string]interface{} and assigns it to the Attributes field.
+func (o *DocumentOut) SetAttributes(v map[string]interface{}) {
+	o.Attributes = v
+}
+
 // GetTokensProcessingTotal returns the TokensProcessingTotal field value
 func (o *DocumentOut) GetTokensProcessingTotal() int32 {
 	if o == nil {
@@ -587,10 +675,10 @@ func (o DocumentOut) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["id"] = o.Id
 	toSerialize["library_id"] = o.LibraryId
-	toSerialize["hash"] = o.Hash
-	toSerialize["mime_type"] = o.MimeType
-	toSerialize["extension"] = o.Extension
-	toSerialize["size"] = o.Size
+	toSerialize["hash"] = o.Hash.Get()
+	toSerialize["mime_type"] = o.MimeType.Get()
+	toSerialize["extension"] = o.Extension.Get()
+	toSerialize["size"] = o.Size.Get()
 	toSerialize["name"] = o.Name
 	if o.Summary.IsSet() {
 		toSerialize["summary"] = o.Summary.Get()
@@ -603,13 +691,19 @@ func (o DocumentOut) ToMap() (map[string]interface{}, error) {
 		toSerialize["number_of_pages"] = o.NumberOfPages.Get()
 	}
 	toSerialize["processing_status"] = o.ProcessingStatus
-	toSerialize["uploaded_by_id"] = o.UploadedById
+	toSerialize["uploaded_by_id"] = o.UploadedById.Get()
 	toSerialize["uploaded_by_type"] = o.UploadedByType
 	if o.TokensProcessingMainContent.IsSet() {
 		toSerialize["tokens_processing_main_content"] = o.TokensProcessingMainContent.Get()
 	}
 	if o.TokensProcessingSummary.IsSet() {
 		toSerialize["tokens_processing_summary"] = o.TokensProcessingSummary.Get()
+	}
+	if o.Url.IsSet() {
+		toSerialize["url"] = o.Url.Get()
+	}
+	if o.Attributes != nil {
+		toSerialize["attributes"] = o.Attributes
 	}
 	toSerialize["tokens_processing_total"] = o.TokensProcessingTotal
 
@@ -682,6 +776,8 @@ func (o *DocumentOut) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "uploaded_by_type")
 		delete(additionalProperties, "tokens_processing_main_content")
 		delete(additionalProperties, "tokens_processing_summary")
+		delete(additionalProperties, "url")
+		delete(additionalProperties, "attributes")
 		delete(additionalProperties, "tokens_processing_total")
 		o.AdditionalProperties = additionalProperties
 	}

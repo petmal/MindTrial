@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -21,14 +22,13 @@ var _ MappedNullable = &OCRImageObject{}
 // OCRImageObject struct for OCRImageObject
 type OCRImageObject struct {
 	// Image ID for extracted image in a page
-	Id                   string         `json:"id"`
-	TopLeftX             NullableInt32  `json:"top_left_x"`
-	TopLeftY             NullableInt32  `json:"top_left_y"`
-	BottomRightX         NullableInt32  `json:"bottom_right_x"`
-	BottomRightY         NullableInt32  `json:"bottom_right_y"`
-	ImageBase64          NullableString `json:"image_base64,omitempty"`
-	ImageAnnotation      NullableString `json:"image_annotation,omitempty"`
-	AdditionalProperties map[string]interface{}
+	Id              string         `json:"id"`
+	TopLeftX        NullableInt32  `json:"top_left_x"`
+	TopLeftY        NullableInt32  `json:"top_left_y"`
+	BottomRightX    NullableInt32  `json:"bottom_right_x"`
+	BottomRightY    NullableInt32  `json:"bottom_right_y"`
+	ImageBase64     NullableString `json:"image_base64,omitempty"`
+	ImageAnnotation NullableString `json:"image_annotation,omitempty"`
 }
 
 type _OCRImageObject OCRImageObject
@@ -290,11 +290,6 @@ func (o OCRImageObject) ToMap() (map[string]interface{}, error) {
 	if o.ImageAnnotation.IsSet() {
 		toSerialize["image_annotation"] = o.ImageAnnotation.Get()
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -326,26 +321,15 @@ func (o *OCRImageObject) UnmarshalJSON(data []byte) (err error) {
 
 	varOCRImageObject := _OCRImageObject{}
 
-	err = json.Unmarshal(data, &varOCRImageObject)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varOCRImageObject)
 
 	if err != nil {
 		return err
 	}
 
 	*o = OCRImageObject(varOCRImageObject)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "id")
-		delete(additionalProperties, "top_left_x")
-		delete(additionalProperties, "top_left_y")
-		delete(additionalProperties, "bottom_right_x")
-		delete(additionalProperties, "bottom_right_y")
-		delete(additionalProperties, "image_base64")
-		delete(additionalProperties, "image_annotation")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

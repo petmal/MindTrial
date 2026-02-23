@@ -16,28 +16,28 @@ import (
 	"gopkg.in/validator.v2"
 )
 
-// ModelListDataInner - struct for ModelListDataInner
-type ModelListDataInner struct {
+// DataInner - struct for DataInner
+type DataInner struct {
 	BaseModelCard *BaseModelCard
 	FTModelCard   *FTModelCard
 }
 
-// BaseModelCardAsModelListDataInner is a convenience function that returns BaseModelCard wrapped in ModelListDataInner
-func BaseModelCardAsModelListDataInner(v *BaseModelCard) ModelListDataInner {
-	return ModelListDataInner{
+// BaseModelCardAsDataInner is a convenience function that returns BaseModelCard wrapped in DataInner
+func BaseModelCardAsDataInner(v *BaseModelCard) DataInner {
+	return DataInner{
 		BaseModelCard: v,
 	}
 }
 
-// FTModelCardAsModelListDataInner is a convenience function that returns FTModelCard wrapped in ModelListDataInner
-func FTModelCardAsModelListDataInner(v *FTModelCard) ModelListDataInner {
-	return ModelListDataInner{
+// FTModelCardAsDataInner is a convenience function that returns FTModelCard wrapped in DataInner
+func FTModelCardAsDataInner(v *FTModelCard) DataInner {
+	return DataInner{
 		FTModelCard: v,
 	}
 }
 
 // Unmarshal JSON data into one of the pointers in the struct
-func (dst *ModelListDataInner) UnmarshalJSON(data []byte) error {
+func (dst *DataInner) UnmarshalJSON(data []byte) error {
 	var err error
 	match := 0
 	// try to unmarshal data into BaseModelCard
@@ -79,16 +79,16 @@ func (dst *ModelListDataInner) UnmarshalJSON(data []byte) error {
 		dst.BaseModelCard = nil
 		dst.FTModelCard = nil
 
-		return fmt.Errorf("data matches more than one schema in oneOf(ModelListDataInner)")
+		return fmt.Errorf("data matches more than one schema in oneOf(DataInner)")
 	} else if match == 1 {
 		return nil // exactly one match
 	} else { // no match
-		return fmt.Errorf("data failed to match schemas in oneOf(ModelListDataInner)")
+		return fmt.Errorf("data failed to match schemas in oneOf(DataInner)")
 	}
 }
 
 // Marshal data from the first non-nil pointers in the struct to JSON
-func (src ModelListDataInner) MarshalJSON() ([]byte, error) {
+func (src DataInner) MarshalJSON() ([]byte, error) {
 	if src.BaseModelCard != nil {
 		return json.Marshal(&src.BaseModelCard)
 	}
@@ -101,7 +101,7 @@ func (src ModelListDataInner) MarshalJSON() ([]byte, error) {
 }
 
 // Get the actual instance
-func (obj *ModelListDataInner) GetActualInstance() interface{} {
+func (obj *DataInner) GetActualInstance() interface{} {
 	if obj == nil {
 		return nil
 	}
@@ -118,7 +118,7 @@ func (obj *ModelListDataInner) GetActualInstance() interface{} {
 }
 
 // Get the actual instance value
-func (obj ModelListDataInner) GetActualInstanceValue() interface{} {
+func (obj DataInner) GetActualInstanceValue() interface{} {
 	if obj.BaseModelCard != nil {
 		return *obj.BaseModelCard
 	}
@@ -131,38 +131,38 @@ func (obj ModelListDataInner) GetActualInstanceValue() interface{} {
 	return nil
 }
 
-type NullableModelListDataInner struct {
-	value *ModelListDataInner
+type NullableDataInner struct {
+	value *DataInner
 	isSet bool
 }
 
-func (v NullableModelListDataInner) Get() *ModelListDataInner {
+func (v NullableDataInner) Get() *DataInner {
 	return v.value
 }
 
-func (v *NullableModelListDataInner) Set(val *ModelListDataInner) {
+func (v *NullableDataInner) Set(val *DataInner) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableModelListDataInner) IsSet() bool {
+func (v NullableDataInner) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableModelListDataInner) Unset() {
+func (v *NullableDataInner) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableModelListDataInner(val *ModelListDataInner) *NullableModelListDataInner {
-	return &NullableModelListDataInner{value: val, isSet: true}
+func NewNullableDataInner(val *DataInner) *NullableDataInner {
+	return &NullableDataInner{value: val, isSet: true}
 }
 
-func (v NullableModelListDataInner) MarshalJSON() ([]byte, error) {
+func (v NullableDataInner) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableModelListDataInner) UnmarshalJSON(src []byte) error {
+func (v *NullableDataInner) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

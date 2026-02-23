@@ -20,9 +20,9 @@ var _ MappedNullable = &ValidationError{}
 
 // ValidationError struct for ValidationError
 type ValidationError struct {
-	Loc                  []ValidationErrorLocInner `json:"loc"`
-	Msg                  string                    `json:"msg"`
-	Type                 string                    `json:"type"`
+	Loc                  []LocationInner `json:"loc"`
+	Msg                  string          `json:"msg"`
+	Type                 string          `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -32,7 +32,7 @@ type _ValidationError ValidationError
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewValidationError(loc []ValidationErrorLocInner, msg string, type_ string) *ValidationError {
+func NewValidationError(loc []LocationInner, msg string, type_ string) *ValidationError {
 	this := ValidationError{}
 	this.Loc = loc
 	this.Msg = msg
@@ -49,9 +49,9 @@ func NewValidationErrorWithDefaults() *ValidationError {
 }
 
 // GetLoc returns the Loc field value
-func (o *ValidationError) GetLoc() []ValidationErrorLocInner {
+func (o *ValidationError) GetLoc() []LocationInner {
 	if o == nil {
-		var ret []ValidationErrorLocInner
+		var ret []LocationInner
 		return ret
 	}
 
@@ -60,7 +60,7 @@ func (o *ValidationError) GetLoc() []ValidationErrorLocInner {
 
 // GetLocOk returns a tuple with the Loc field value
 // and a boolean to check if the value has been set.
-func (o *ValidationError) GetLocOk() ([]ValidationErrorLocInner, bool) {
+func (o *ValidationError) GetLocOk() ([]LocationInner, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -68,7 +68,7 @@ func (o *ValidationError) GetLocOk() ([]ValidationErrorLocInner, bool) {
 }
 
 // SetLoc sets field value
-func (o *ValidationError) SetLoc(v []ValidationErrorLocInner) {
+func (o *ValidationError) SetLoc(v []LocationInner) {
 	o.Loc = v
 }
 

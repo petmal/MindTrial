@@ -41,7 +41,7 @@ func NewGithubRepositoryOut(name string, owner string, commitId string) *GithubR
 	this.Type = &type_
 	this.Name = name
 	this.Owner = owner
-	var weight float32 = 1
+	var weight float32 = 1.0
 	this.Weight = &weight
 	this.CommitId = commitId
 	return &this
@@ -54,7 +54,7 @@ func NewGithubRepositoryOutWithDefaults() *GithubRepositoryOut {
 	this := GithubRepositoryOut{}
 	var type_ string = "github"
 	this.Type = &type_
-	var weight float32 = 1
+	var weight float32 = 1.0
 	this.Weight = &weight
 	return &this
 }

@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -21,16 +22,15 @@ var _ MappedNullable = &AgentHandoffEntry{}
 
 // AgentHandoffEntry struct for AgentHandoffEntry
 type AgentHandoffEntry struct {
-	Object               *string      `json:"object,omitempty"`
-	Type                 *string      `json:"type,omitempty"`
-	CreatedAt            *time.Time   `json:"created_at,omitempty"`
-	CompletedAt          NullableTime `json:"completed_at,omitempty"`
-	Id                   *string      `json:"id,omitempty"`
-	PreviousAgentId      string       `json:"previous_agent_id"`
-	PreviousAgentName    string       `json:"previous_agent_name"`
-	NextAgentId          string       `json:"next_agent_id"`
-	NextAgentName        string       `json:"next_agent_name"`
-	AdditionalProperties map[string]interface{}
+	Object            *string      `json:"object,omitempty"`
+	Type              *string      `json:"type,omitempty"`
+	CreatedAt         *time.Time   `json:"created_at,omitempty"`
+	CompletedAt       NullableTime `json:"completed_at,omitempty"`
+	Id                *string      `json:"id,omitempty"`
+	PreviousAgentId   string       `json:"previous_agent_id"`
+	PreviousAgentName string       `json:"previous_agent_name"`
+	NextAgentId       string       `json:"next_agent_id"`
+	NextAgentName     string       `json:"next_agent_name"`
 }
 
 type _AgentHandoffEntry AgentHandoffEntry
@@ -360,11 +360,6 @@ func (o AgentHandoffEntry) ToMap() (map[string]interface{}, error) {
 	toSerialize["previous_agent_name"] = o.PreviousAgentName
 	toSerialize["next_agent_id"] = o.NextAgentId
 	toSerialize["next_agent_name"] = o.NextAgentName
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -395,28 +390,15 @@ func (o *AgentHandoffEntry) UnmarshalJSON(data []byte) (err error) {
 
 	varAgentHandoffEntry := _AgentHandoffEntry{}
 
-	err = json.Unmarshal(data, &varAgentHandoffEntry)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varAgentHandoffEntry)
 
 	if err != nil {
 		return err
 	}
 
 	*o = AgentHandoffEntry(varAgentHandoffEntry)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "object")
-		delete(additionalProperties, "type")
-		delete(additionalProperties, "created_at")
-		delete(additionalProperties, "completed_at")
-		delete(additionalProperties, "id")
-		delete(additionalProperties, "previous_agent_id")
-		delete(additionalProperties, "previous_agent_name")
-		delete(additionalProperties, "next_agent_id")
-		delete(additionalProperties, "next_agent_name")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

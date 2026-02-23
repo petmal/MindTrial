@@ -26,8 +26,11 @@ type ConversationRestartRequest struct {
 	Store            *bool   `json:"store,omitempty"`
 	HandoffExecution *string `json:"handoff_execution,omitempty"`
 	// Completion arguments that will be used to generate assistant responses. Can be overridden at each message request.
-	CompletionArgs       *CompletionArgs `json:"completion_args,omitempty"`
-	FromEntryId          string          `json:"from_entry_id"`
+	CompletionArgs *CompletionArgs `json:"completion_args,omitempty"`
+	// Custom type for metadata with embedded validation.
+	Metadata             map[string]interface{} `json:"metadata,omitempty"`
+	FromEntryId          string                 `json:"from_entry_id"`
+	AgentVersion         NullableAgentVersion2  `json:"agent_version,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -216,6 +219,38 @@ func (o *ConversationRestartRequest) SetCompletionArgs(v CompletionArgs) {
 	o.CompletionArgs = &v
 }
 
+// GetMetadata returns the Metadata field value if set, zero value otherwise.
+func (o *ConversationRestartRequest) GetMetadata() map[string]interface{} {
+	if o == nil || IsNil(o.Metadata) {
+		var ret map[string]interface{}
+		return ret
+	}
+	return o.Metadata
+}
+
+// GetMetadataOk returns a tuple with the Metadata field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationRestartRequest) GetMetadataOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Metadata) {
+		return map[string]interface{}{}, false
+	}
+	return o.Metadata, true
+}
+
+// HasMetadata returns a boolean if a field has been set.
+func (o *ConversationRestartRequest) HasMetadata() bool {
+	if o != nil && !IsNil(o.Metadata) {
+		return true
+	}
+
+	return false
+}
+
+// SetMetadata gets a reference to the given map[string]interface{} and assigns it to the Metadata field.
+func (o *ConversationRestartRequest) SetMetadata(v map[string]interface{}) {
+	o.Metadata = v
+}
+
 // GetFromEntryId returns the FromEntryId field value
 func (o *ConversationRestartRequest) GetFromEntryId() string {
 	if o == nil {
@@ -238,6 +273,49 @@ func (o *ConversationRestartRequest) GetFromEntryIdOk() (*string, bool) {
 // SetFromEntryId sets field value
 func (o *ConversationRestartRequest) SetFromEntryId(v string) {
 	o.FromEntryId = v
+}
+
+// GetAgentVersion returns the AgentVersion field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ConversationRestartRequest) GetAgentVersion() AgentVersion2 {
+	if o == nil || IsNil(o.AgentVersion.Get()) {
+		var ret AgentVersion2
+		return ret
+	}
+	return *o.AgentVersion.Get()
+}
+
+// GetAgentVersionOk returns a tuple with the AgentVersion field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ConversationRestartRequest) GetAgentVersionOk() (*AgentVersion2, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.AgentVersion.Get(), o.AgentVersion.IsSet()
+}
+
+// HasAgentVersion returns a boolean if a field has been set.
+func (o *ConversationRestartRequest) HasAgentVersion() bool {
+	if o != nil && o.AgentVersion.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetAgentVersion gets a reference to the given NullableAgentVersion2 and assigns it to the AgentVersion field.
+func (o *ConversationRestartRequest) SetAgentVersion(v AgentVersion2) {
+	o.AgentVersion.Set(&v)
+}
+
+// SetAgentVersionNil sets the value for AgentVersion to be an explicit nil
+func (o *ConversationRestartRequest) SetAgentVersionNil() {
+	o.AgentVersion.Set(nil)
+}
+
+// UnsetAgentVersion ensures that no value is present for AgentVersion, not even an explicit nil
+func (o *ConversationRestartRequest) UnsetAgentVersion() {
+	o.AgentVersion.Unset()
 }
 
 func (o ConversationRestartRequest) MarshalJSON() ([]byte, error) {
@@ -263,7 +341,13 @@ func (o ConversationRestartRequest) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.CompletionArgs) {
 		toSerialize["completion_args"] = o.CompletionArgs
 	}
+	if !IsNil(o.Metadata) {
+		toSerialize["metadata"] = o.Metadata
+	}
 	toSerialize["from_entry_id"] = o.FromEntryId
+	if o.AgentVersion.IsSet() {
+		toSerialize["agent_version"] = o.AgentVersion.Get()
+	}
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -313,7 +397,9 @@ func (o *ConversationRestartRequest) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "store")
 		delete(additionalProperties, "handoff_execution")
 		delete(additionalProperties, "completion_args")
+		delete(additionalProperties, "metadata")
 		delete(additionalProperties, "from_entry_id")
+		delete(additionalProperties, "agent_version")
 		o.AdditionalProperties = additionalProperties
 	}
 

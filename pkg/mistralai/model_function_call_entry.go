@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -21,15 +22,14 @@ var _ MappedNullable = &FunctionCallEntry{}
 
 // FunctionCallEntry struct for FunctionCallEntry
 type FunctionCallEntry struct {
-	Object               *string                    `json:"object,omitempty"`
-	Type                 *string                    `json:"type,omitempty"`
-	CreatedAt            *time.Time                 `json:"created_at,omitempty"`
-	CompletedAt          NullableTime               `json:"completed_at,omitempty"`
-	Id                   *string                    `json:"id,omitempty"`
-	ToolCallId           string                     `json:"tool_call_id"`
-	Name                 string                     `json:"name"`
-	Arguments            FunctionCallEntryArguments `json:"arguments"`
-	AdditionalProperties map[string]interface{}
+	Object      *string                    `json:"object,omitempty"`
+	Type        *string                    `json:"type,omitempty"`
+	CreatedAt   *time.Time                 `json:"created_at,omitempty"`
+	CompletedAt NullableTime               `json:"completed_at,omitempty"`
+	Id          *string                    `json:"id,omitempty"`
+	ToolCallId  string                     `json:"tool_call_id"`
+	Name        string                     `json:"name"`
+	Arguments   FunctionCallEntryArguments `json:"arguments"`
 }
 
 type _FunctionCallEntry FunctionCallEntry
@@ -333,11 +333,6 @@ func (o FunctionCallEntry) ToMap() (map[string]interface{}, error) {
 	toSerialize["tool_call_id"] = o.ToolCallId
 	toSerialize["name"] = o.Name
 	toSerialize["arguments"] = o.Arguments
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -367,27 +362,15 @@ func (o *FunctionCallEntry) UnmarshalJSON(data []byte) (err error) {
 
 	varFunctionCallEntry := _FunctionCallEntry{}
 
-	err = json.Unmarshal(data, &varFunctionCallEntry)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varFunctionCallEntry)
 
 	if err != nil {
 		return err
 	}
 
 	*o = FunctionCallEntry(varFunctionCallEntry)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "object")
-		delete(additionalProperties, "type")
-		delete(additionalProperties, "created_at")
-		delete(additionalProperties, "completed_at")
-		delete(additionalProperties, "id")
-		delete(additionalProperties, "tool_call_id")
-		delete(additionalProperties, "name")
-		delete(additionalProperties, "arguments")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

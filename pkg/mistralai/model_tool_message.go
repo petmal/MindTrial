@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,11 +21,10 @@ var _ MappedNullable = &ToolMessage{}
 
 // ToolMessage struct for ToolMessage
 type ToolMessage struct {
-	Content              NullableContent3 `json:"content"`
-	ToolCallId           NullableString   `json:"tool_call_id,omitempty"`
-	Name                 NullableString   `json:"name,omitempty"`
-	Role                 *string          `json:"role,omitempty"`
-	AdditionalProperties map[string]interface{}
+	Content    NullableContent3 `json:"content"`
+	ToolCallId NullableString   `json:"tool_call_id,omitempty"`
+	Name       NullableString   `json:"name,omitempty"`
+	Role       *string          `json:"role,omitempty"`
 }
 
 type _ToolMessage ToolMessage
@@ -215,11 +215,6 @@ func (o ToolMessage) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Role) {
 		toSerialize["role"] = o.Role
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -247,23 +242,15 @@ func (o *ToolMessage) UnmarshalJSON(data []byte) (err error) {
 
 	varToolMessage := _ToolMessage{}
 
-	err = json.Unmarshal(data, &varToolMessage)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varToolMessage)
 
 	if err != nil {
 		return err
 	}
 
 	*o = ToolMessage(varToolMessage)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "content")
-		delete(additionalProperties, "tool_call_id")
-		delete(additionalProperties, "name")
-		delete(additionalProperties, "role")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

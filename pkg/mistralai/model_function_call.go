@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,9 +21,8 @@ var _ MappedNullable = &FunctionCall{}
 
 // FunctionCall struct for FunctionCall
 type FunctionCall struct {
-	Name                 string    `json:"name"`
-	Arguments            Arguments `json:"arguments"`
-	AdditionalProperties map[string]interface{}
+	Name      string    `json:"name"`
+	Arguments Arguments `json:"arguments"`
 }
 
 type _FunctionCall FunctionCall
@@ -106,11 +106,6 @@ func (o FunctionCall) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["name"] = o.Name
 	toSerialize["arguments"] = o.Arguments
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -139,21 +134,15 @@ func (o *FunctionCall) UnmarshalJSON(data []byte) (err error) {
 
 	varFunctionCall := _FunctionCall{}
 
-	err = json.Unmarshal(data, &varFunctionCall)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varFunctionCall)
 
 	if err != nil {
 		return err
 	}
 
 	*o = FunctionCall(varFunctionCall)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "name")
-		delete(additionalProperties, "arguments")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

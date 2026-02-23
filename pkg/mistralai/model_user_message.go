@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,9 +21,8 @@ var _ MappedNullable = &UserMessage{}
 
 // UserMessage struct for UserMessage
 type UserMessage struct {
-	Content              NullableContent3 `json:"content"`
-	Role                 *string          `json:"role,omitempty"`
-	AdditionalProperties map[string]interface{}
+	Content NullableContent3 `json:"content"`
+	Role    *string          `json:"role,omitempty"`
 }
 
 type _UserMessage UserMessage
@@ -121,11 +121,6 @@ func (o UserMessage) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Role) {
 		toSerialize["role"] = o.Role
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -153,21 +148,15 @@ func (o *UserMessage) UnmarshalJSON(data []byte) (err error) {
 
 	varUserMessage := _UserMessage{}
 
-	err = json.Unmarshal(data, &varUserMessage)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varUserMessage)
 
 	if err != nil {
 		return err
 	}
 
 	*o = UserMessage(varUserMessage)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "content")
-		delete(additionalProperties, "role")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

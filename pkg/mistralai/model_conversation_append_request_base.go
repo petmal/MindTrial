@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -27,8 +28,7 @@ type ConversationAppendRequestBase struct {
 	Store            *bool   `json:"store,omitempty"`
 	HandoffExecution *string `json:"handoff_execution,omitempty"`
 	// Completion arguments that will be used to generate assistant responses. Can be overridden at each message request.
-	CompletionArgs       *CompletionArgs `json:"completion_args,omitempty"`
-	AdditionalProperties map[string]interface{}
+	CompletionArgs *CompletionArgs `json:"completion_args,omitempty"`
 }
 
 type _ConversationAppendRequestBase ConversationAppendRequestBase
@@ -238,11 +238,6 @@ func (o ConversationAppendRequestBase) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.CompletionArgs) {
 		toSerialize["completion_args"] = o.CompletionArgs
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -270,24 +265,15 @@ func (o *ConversationAppendRequestBase) UnmarshalJSON(data []byte) (err error) {
 
 	varConversationAppendRequestBase := _ConversationAppendRequestBase{}
 
-	err = json.Unmarshal(data, &varConversationAppendRequestBase)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varConversationAppendRequestBase)
 
 	if err != nil {
 		return err
 	}
 
 	*o = ConversationAppendRequestBase(varConversationAppendRequestBase)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "inputs")
-		delete(additionalProperties, "stream")
-		delete(additionalProperties, "store")
-		delete(additionalProperties, "handoff_execution")
-		delete(additionalProperties, "completion_args")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

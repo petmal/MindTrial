@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -22,14 +23,15 @@ var _ MappedNullable = &AgentCreationRequest{}
 type AgentCreationRequest struct {
 	Instructions NullableString `json:"instructions,omitempty"`
 	// List of tools which are available to the model during the conversation.
-	Tools []AgentToolsInner `json:"tools,omitempty"`
+	Tools []ToolsInner `json:"tools,omitempty"`
 	// Completion arguments that will be used to generate assistant responses. Can be overridden at each message request.
-	CompletionArgs       *CompletionArgs `json:"completion_args,omitempty"`
-	Model                string          `json:"model"`
-	Name                 string          `json:"name"`
-	Description          NullableString  `json:"description,omitempty"`
-	Handoffs             []string        `json:"handoffs,omitempty"`
-	AdditionalProperties map[string]interface{}
+	CompletionArgs *CompletionArgs `json:"completion_args,omitempty"`
+	Model          string          `json:"model"`
+	Name           string          `json:"name"`
+	Description    NullableString  `json:"description,omitempty"`
+	Handoffs       []string        `json:"handoffs,omitempty"`
+	// Custom type for metadata with embedded validation.
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
 }
 
 type _AgentCreationRequest AgentCreationRequest
@@ -97,9 +99,9 @@ func (o *AgentCreationRequest) UnsetInstructions() {
 }
 
 // GetTools returns the Tools field value if set, zero value otherwise.
-func (o *AgentCreationRequest) GetTools() []AgentToolsInner {
+func (o *AgentCreationRequest) GetTools() []ToolsInner {
 	if o == nil || IsNil(o.Tools) {
-		var ret []AgentToolsInner
+		var ret []ToolsInner
 		return ret
 	}
 	return o.Tools
@@ -107,7 +109,7 @@ func (o *AgentCreationRequest) GetTools() []AgentToolsInner {
 
 // GetToolsOk returns a tuple with the Tools field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *AgentCreationRequest) GetToolsOk() ([]AgentToolsInner, bool) {
+func (o *AgentCreationRequest) GetToolsOk() ([]ToolsInner, bool) {
 	if o == nil || IsNil(o.Tools) {
 		return nil, false
 	}
@@ -123,8 +125,8 @@ func (o *AgentCreationRequest) HasTools() bool {
 	return false
 }
 
-// SetTools gets a reference to the given []AgentToolsInner and assigns it to the Tools field.
-func (o *AgentCreationRequest) SetTools(v []AgentToolsInner) {
+// SetTools gets a reference to the given []ToolsInner and assigns it to the Tools field.
+func (o *AgentCreationRequest) SetTools(v []ToolsInner) {
 	o.Tools = v
 }
 
@@ -284,6 +286,39 @@ func (o *AgentCreationRequest) SetHandoffs(v []string) {
 	o.Handoffs = v
 }
 
+// GetMetadata returns the Metadata field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *AgentCreationRequest) GetMetadata() map[string]interface{} {
+	if o == nil {
+		var ret map[string]interface{}
+		return ret
+	}
+	return o.Metadata
+}
+
+// GetMetadataOk returns a tuple with the Metadata field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *AgentCreationRequest) GetMetadataOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Metadata) {
+		return map[string]interface{}{}, false
+	}
+	return o.Metadata, true
+}
+
+// HasMetadata returns a boolean if a field has been set.
+func (o *AgentCreationRequest) HasMetadata() bool {
+	if o != nil && !IsNil(o.Metadata) {
+		return true
+	}
+
+	return false
+}
+
+// SetMetadata gets a reference to the given map[string]interface{} and assigns it to the Metadata field.
+func (o *AgentCreationRequest) SetMetadata(v map[string]interface{}) {
+	o.Metadata = v
+}
+
 func (o AgentCreationRequest) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -311,11 +346,9 @@ func (o AgentCreationRequest) ToMap() (map[string]interface{}, error) {
 	if o.Handoffs != nil {
 		toSerialize["handoffs"] = o.Handoffs
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
+	if o.Metadata != nil {
+		toSerialize["metadata"] = o.Metadata
 	}
-
 	return toSerialize, nil
 }
 
@@ -344,26 +377,15 @@ func (o *AgentCreationRequest) UnmarshalJSON(data []byte) (err error) {
 
 	varAgentCreationRequest := _AgentCreationRequest{}
 
-	err = json.Unmarshal(data, &varAgentCreationRequest)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varAgentCreationRequest)
 
 	if err != nil {
 		return err
 	}
 
 	*o = AgentCreationRequest(varAgentCreationRequest)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "instructions")
-		delete(additionalProperties, "tools")
-		delete(additionalProperties, "completion_args")
-		delete(additionalProperties, "model")
-		delete(additionalProperties, "name")
-		delete(additionalProperties, "description")
-		delete(additionalProperties, "handoffs")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

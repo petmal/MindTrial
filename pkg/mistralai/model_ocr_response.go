@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -26,8 +27,7 @@ type OCRResponse struct {
 	Model              string         `json:"model"`
 	DocumentAnnotation NullableString `json:"document_annotation,omitempty"`
 	// Usage info for the OCR request.
-	UsageInfo            OCRUsageInfo `json:"usage_info"`
-	AdditionalProperties map[string]interface{}
+	UsageInfo OCRUsageInfo `json:"usage_info"`
 }
 
 type _OCRResponse OCRResponse
@@ -183,11 +183,6 @@ func (o OCRResponse) ToMap() (map[string]interface{}, error) {
 		toSerialize["document_annotation"] = o.DocumentAnnotation.Get()
 	}
 	toSerialize["usage_info"] = o.UsageInfo
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -217,23 +212,15 @@ func (o *OCRResponse) UnmarshalJSON(data []byte) (err error) {
 
 	varOCRResponse := _OCRResponse{}
 
-	err = json.Unmarshal(data, &varOCRResponse)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varOCRResponse)
 
 	if err != nil {
 		return err
 	}
 
 	*o = OCRResponse(varOCRResponse)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "pages")
-		delete(additionalProperties, "model")
-		delete(additionalProperties, "document_annotation")
-		delete(additionalProperties, "usage_info")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

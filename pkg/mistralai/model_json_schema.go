@@ -21,7 +21,7 @@ var _ MappedNullable = &JsonSchema{}
 // JsonSchema struct for JsonSchema
 type JsonSchema struct {
 	Name                 string                 `json:"name"`
-	Description          NullableDescription    `json:"description,omitempty"`
+	Description          NullableString         `json:"description,omitempty"`
 	Schema               map[string]interface{} `json:"schema"`
 	Strict               *bool                  `json:"strict,omitempty"`
 	AdditionalProperties map[string]interface{}
@@ -77,9 +77,9 @@ func (o *JsonSchema) SetName(v string) {
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *JsonSchema) GetDescription() Description {
+func (o *JsonSchema) GetDescription() string {
 	if o == nil || IsNil(o.Description.Get()) {
-		var ret Description
+		var ret string
 		return ret
 	}
 	return *o.Description.Get()
@@ -88,7 +88,7 @@ func (o *JsonSchema) GetDescription() Description {
 // GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 // NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *JsonSchema) GetDescriptionOk() (*Description, bool) {
+func (o *JsonSchema) GetDescriptionOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -104,8 +104,8 @@ func (o *JsonSchema) HasDescription() bool {
 	return false
 }
 
-// SetDescription gets a reference to the given NullableDescription and assigns it to the Description field.
-func (o *JsonSchema) SetDescription(v Description) {
+// SetDescription gets a reference to the given NullableString and assigns it to the Description field.
+func (o *JsonSchema) SetDescription(v string) {
 	o.Description.Set(&v)
 }
 

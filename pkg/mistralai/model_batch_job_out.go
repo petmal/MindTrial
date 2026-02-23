@@ -20,23 +20,25 @@ var _ MappedNullable = &BatchJobOut{}
 
 // BatchJobOut struct for BatchJobOut
 type BatchJobOut struct {
-	Id                   string                 `json:"id"`
-	Object               *string                `json:"object,omitempty"`
-	InputFiles           []string               `json:"input_files"`
-	Metadata             map[string]interface{} `json:"metadata,omitempty"`
-	Endpoint             string                 `json:"endpoint"`
-	Model                string                 `json:"model"`
-	OutputFile           NullableString         `json:"output_file,omitempty"`
-	ErrorFile            NullableString         `json:"error_file,omitempty"`
-	Errors               []BatchError           `json:"errors"`
-	Status               BatchJobStatus         `json:"status"`
-	CreatedAt            int32                  `json:"created_at"`
-	TotalRequests        int32                  `json:"total_requests"`
-	CompletedRequests    int32                  `json:"completed_requests"`
-	SucceededRequests    int32                  `json:"succeeded_requests"`
-	FailedRequests       int32                  `json:"failed_requests"`
-	StartedAt            NullableInt32          `json:"started_at,omitempty"`
-	CompletedAt          NullableInt32          `json:"completed_at,omitempty"`
+	Id                   string                   `json:"id"`
+	Object               *string                  `json:"object,omitempty"`
+	InputFiles           []string                 `json:"input_files"`
+	Metadata             map[string]interface{}   `json:"metadata,omitempty"`
+	Endpoint             string                   `json:"endpoint"`
+	Model                NullableString           `json:"model,omitempty"`
+	AgentId              NullableString           `json:"agent_id,omitempty"`
+	OutputFile           NullableString           `json:"output_file,omitempty"`
+	ErrorFile            NullableString           `json:"error_file,omitempty"`
+	Errors               []BatchError             `json:"errors"`
+	Outputs              []map[string]interface{} `json:"outputs,omitempty"`
+	Status               BatchJobStatus           `json:"status"`
+	CreatedAt            int32                    `json:"created_at"`
+	TotalRequests        int32                    `json:"total_requests"`
+	CompletedRequests    int32                    `json:"completed_requests"`
+	SucceededRequests    int32                    `json:"succeeded_requests"`
+	FailedRequests       int32                    `json:"failed_requests"`
+	StartedAt            NullableInt32            `json:"started_at,omitempty"`
+	CompletedAt          NullableInt32            `json:"completed_at,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -46,14 +48,13 @@ type _BatchJobOut BatchJobOut
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewBatchJobOut(id string, inputFiles []string, endpoint string, model string, errors []BatchError, status BatchJobStatus, createdAt int32, totalRequests int32, completedRequests int32, succeededRequests int32, failedRequests int32) *BatchJobOut {
+func NewBatchJobOut(id string, inputFiles []string, endpoint string, errors []BatchError, status BatchJobStatus, createdAt int32, totalRequests int32, completedRequests int32, succeededRequests int32, failedRequests int32) *BatchJobOut {
 	this := BatchJobOut{}
 	this.Id = id
 	var object string = "batch"
 	this.Object = &object
 	this.InputFiles = inputFiles
 	this.Endpoint = endpoint
-	this.Model = model
 	this.Errors = errors
 	this.Status = status
 	this.CreatedAt = createdAt
@@ -211,28 +212,90 @@ func (o *BatchJobOut) SetEndpoint(v string) {
 	o.Endpoint = v
 }
 
-// GetModel returns the Model field value
+// GetModel returns the Model field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *BatchJobOut) GetModel() string {
-	if o == nil {
+	if o == nil || IsNil(o.Model.Get()) {
 		var ret string
 		return ret
 	}
-
-	return o.Model
+	return *o.Model.Get()
 }
 
-// GetModelOk returns a tuple with the Model field value
+// GetModelOk returns a tuple with the Model field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *BatchJobOut) GetModelOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Model, true
+	return o.Model.Get(), o.Model.IsSet()
 }
 
-// SetModel sets field value
+// HasModel returns a boolean if a field has been set.
+func (o *BatchJobOut) HasModel() bool {
+	if o != nil && o.Model.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetModel gets a reference to the given NullableString and assigns it to the Model field.
 func (o *BatchJobOut) SetModel(v string) {
-	o.Model = v
+	o.Model.Set(&v)
+}
+
+// SetModelNil sets the value for Model to be an explicit nil
+func (o *BatchJobOut) SetModelNil() {
+	o.Model.Set(nil)
+}
+
+// UnsetModel ensures that no value is present for Model, not even an explicit nil
+func (o *BatchJobOut) UnsetModel() {
+	o.Model.Unset()
+}
+
+// GetAgentId returns the AgentId field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BatchJobOut) GetAgentId() string {
+	if o == nil || IsNil(o.AgentId.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.AgentId.Get()
+}
+
+// GetAgentIdOk returns a tuple with the AgentId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BatchJobOut) GetAgentIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.AgentId.Get(), o.AgentId.IsSet()
+}
+
+// HasAgentId returns a boolean if a field has been set.
+func (o *BatchJobOut) HasAgentId() bool {
+	if o != nil && o.AgentId.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetAgentId gets a reference to the given NullableString and assigns it to the AgentId field.
+func (o *BatchJobOut) SetAgentId(v string) {
+	o.AgentId.Set(&v)
+}
+
+// SetAgentIdNil sets the value for AgentId to be an explicit nil
+func (o *BatchJobOut) SetAgentIdNil() {
+	o.AgentId.Set(nil)
+}
+
+// UnsetAgentId ensures that no value is present for AgentId, not even an explicit nil
+func (o *BatchJobOut) UnsetAgentId() {
+	o.AgentId.Unset()
 }
 
 // GetOutputFile returns the OutputFile field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -343,6 +406,39 @@ func (o *BatchJobOut) GetErrorsOk() ([]BatchError, bool) {
 // SetErrors sets field value
 func (o *BatchJobOut) SetErrors(v []BatchError) {
 	o.Errors = v
+}
+
+// GetOutputs returns the Outputs field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BatchJobOut) GetOutputs() []map[string]interface{} {
+	if o == nil {
+		var ret []map[string]interface{}
+		return ret
+	}
+	return o.Outputs
+}
+
+// GetOutputsOk returns a tuple with the Outputs field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BatchJobOut) GetOutputsOk() ([]map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Outputs) {
+		return nil, false
+	}
+	return o.Outputs, true
+}
+
+// HasOutputs returns a boolean if a field has been set.
+func (o *BatchJobOut) HasOutputs() bool {
+	if o != nil && !IsNil(o.Outputs) {
+		return true
+	}
+
+	return false
+}
+
+// SetOutputs gets a reference to the given []map[string]interface{} and assigns it to the Outputs field.
+func (o *BatchJobOut) SetOutputs(v []map[string]interface{}) {
+	o.Outputs = v
 }
 
 // GetStatus returns the Status field value
@@ -594,7 +690,12 @@ func (o BatchJobOut) ToMap() (map[string]interface{}, error) {
 		toSerialize["metadata"] = o.Metadata
 	}
 	toSerialize["endpoint"] = o.Endpoint
-	toSerialize["model"] = o.Model
+	if o.Model.IsSet() {
+		toSerialize["model"] = o.Model.Get()
+	}
+	if o.AgentId.IsSet() {
+		toSerialize["agent_id"] = o.AgentId.Get()
+	}
 	if o.OutputFile.IsSet() {
 		toSerialize["output_file"] = o.OutputFile.Get()
 	}
@@ -602,6 +703,9 @@ func (o BatchJobOut) ToMap() (map[string]interface{}, error) {
 		toSerialize["error_file"] = o.ErrorFile.Get()
 	}
 	toSerialize["errors"] = o.Errors
+	if o.Outputs != nil {
+		toSerialize["outputs"] = o.Outputs
+	}
 	toSerialize["status"] = o.Status
 	toSerialize["created_at"] = o.CreatedAt
 	toSerialize["total_requests"] = o.TotalRequests
@@ -630,7 +734,6 @@ func (o *BatchJobOut) UnmarshalJSON(data []byte) (err error) {
 		"id",
 		"input_files",
 		"endpoint",
-		"model",
 		"errors",
 		"status",
 		"created_at",
@@ -673,9 +776,11 @@ func (o *BatchJobOut) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "metadata")
 		delete(additionalProperties, "endpoint")
 		delete(additionalProperties, "model")
+		delete(additionalProperties, "agent_id")
 		delete(additionalProperties, "output_file")
 		delete(additionalProperties, "error_file")
 		delete(additionalProperties, "errors")
+		delete(additionalProperties, "outputs")
 		delete(additionalProperties, "status")
 		delete(additionalProperties, "created_at")
 		delete(additionalProperties, "total_requests")

@@ -24,7 +24,9 @@ type CompletionFTModelOut struct {
 	Object               *string                `json:"object,omitempty"`
 	Created              int32                  `json:"created"`
 	OwnedBy              string                 `json:"owned_by"`
+	WorkspaceId          string                 `json:"workspace_id"`
 	Root                 string                 `json:"root"`
+	RootVersion          string                 `json:"root_version"`
 	Archived             bool                   `json:"archived"`
 	Name                 NullableString         `json:"name,omitempty"`
 	Description          NullableString         `json:"description,omitempty"`
@@ -42,14 +44,16 @@ type _CompletionFTModelOut CompletionFTModelOut
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCompletionFTModelOut(id string, created int32, ownedBy string, root string, archived bool, capabilities FTModelCapabilitiesOut, job string) *CompletionFTModelOut {
+func NewCompletionFTModelOut(id string, created int32, ownedBy string, workspaceId string, root string, rootVersion string, archived bool, capabilities FTModelCapabilitiesOut, job string) *CompletionFTModelOut {
 	this := CompletionFTModelOut{}
 	this.Id = id
 	var object string = "model"
 	this.Object = &object
 	this.Created = created
 	this.OwnedBy = ownedBy
+	this.WorkspaceId = workspaceId
 	this.Root = root
+	this.RootVersion = rootVersion
 	this.Archived = archived
 	this.Capabilities = capabilities
 	var maxContextLength int32 = 32768
@@ -178,6 +182,30 @@ func (o *CompletionFTModelOut) SetOwnedBy(v string) {
 	o.OwnedBy = v
 }
 
+// GetWorkspaceId returns the WorkspaceId field value
+func (o *CompletionFTModelOut) GetWorkspaceId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.WorkspaceId
+}
+
+// GetWorkspaceIdOk returns a tuple with the WorkspaceId field value
+// and a boolean to check if the value has been set.
+func (o *CompletionFTModelOut) GetWorkspaceIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.WorkspaceId, true
+}
+
+// SetWorkspaceId sets field value
+func (o *CompletionFTModelOut) SetWorkspaceId(v string) {
+	o.WorkspaceId = v
+}
+
 // GetRoot returns the Root field value
 func (o *CompletionFTModelOut) GetRoot() string {
 	if o == nil {
@@ -200,6 +228,30 @@ func (o *CompletionFTModelOut) GetRootOk() (*string, bool) {
 // SetRoot sets field value
 func (o *CompletionFTModelOut) SetRoot(v string) {
 	o.Root = v
+}
+
+// GetRootVersion returns the RootVersion field value
+func (o *CompletionFTModelOut) GetRootVersion() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.RootVersion
+}
+
+// GetRootVersionOk returns a tuple with the RootVersion field value
+// and a boolean to check if the value has been set.
+func (o *CompletionFTModelOut) GetRootVersionOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.RootVersion, true
+}
+
+// SetRootVersion sets field value
+func (o *CompletionFTModelOut) SetRootVersion(v string) {
+	o.RootVersion = v
 }
 
 // GetArchived returns the Archived field value
@@ -472,7 +524,9 @@ func (o CompletionFTModelOut) ToMap() (map[string]interface{}, error) {
 	}
 	toSerialize["created"] = o.Created
 	toSerialize["owned_by"] = o.OwnedBy
+	toSerialize["workspace_id"] = o.WorkspaceId
 	toSerialize["root"] = o.Root
+	toSerialize["root_version"] = o.RootVersion
 	toSerialize["archived"] = o.Archived
 	if o.Name.IsSet() {
 		toSerialize["name"] = o.Name.Get()
@@ -507,7 +561,9 @@ func (o *CompletionFTModelOut) UnmarshalJSON(data []byte) (err error) {
 		"id",
 		"created",
 		"owned_by",
+		"workspace_id",
 		"root",
+		"root_version",
 		"archived",
 		"capabilities",
 		"job",
@@ -544,7 +600,9 @@ func (o *CompletionFTModelOut) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "object")
 		delete(additionalProperties, "created")
 		delete(additionalProperties, "owned_by")
+		delete(additionalProperties, "workspace_id")
 		delete(additionalProperties, "root")
+		delete(additionalProperties, "root_version")
 		delete(additionalProperties, "archived")
 		delete(additionalProperties, "name")
 		delete(additionalProperties, "description")

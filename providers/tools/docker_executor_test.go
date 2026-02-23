@@ -136,7 +136,7 @@ func (m *dockerAPIMock) host() string {
 }
 
 func encodeDockerFrames(frames ...dockerLogFrame) []byte {
-	var out []byte
+	var out []byte //nolint:prealloc
 	for _, frame := range frames {
 		payload := []byte(frame.Data)
 		payloadLen := len(payload)

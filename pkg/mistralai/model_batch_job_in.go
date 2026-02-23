@@ -20,11 +20,15 @@ var _ MappedNullable = &BatchJobIn{}
 
 // BatchJobIn struct for BatchJobIn
 type BatchJobIn struct {
-	InputFiles           []string          `json:"input_files"`
-	Endpoint             ApiEndpoint       `json:"endpoint"`
-	Model                string            `json:"model"`
-	Metadata             map[string]string `json:"metadata,omitempty"`
-	TimeoutHours         *int32            `json:"timeout_hours,omitempty"`
+	InputFiles []string       `json:"input_files,omitempty"`
+	Requests   []BatchRequest `json:"requests,omitempty"`
+	// The endpoint to be used for batch inference.
+	Endpoint ApiEndpoint       `json:"endpoint"`
+	Model    NullableString    `json:"model,omitempty"`
+	AgentId  NullableString    `json:"agent_id,omitempty"`
+	Metadata map[string]string `json:"metadata,omitempty"`
+	// The timeout in hours for the batch inference job.
+	TimeoutHours         *int32 `json:"timeout_hours,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -34,11 +38,9 @@ type _BatchJobIn BatchJobIn
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewBatchJobIn(inputFiles []string, endpoint ApiEndpoint, model string) *BatchJobIn {
+func NewBatchJobIn(endpoint ApiEndpoint) *BatchJobIn {
 	this := BatchJobIn{}
-	this.InputFiles = inputFiles
 	this.Endpoint = endpoint
-	this.Model = model
 	var timeoutHours int32 = 24
 	this.TimeoutHours = &timeoutHours
 	return &this
@@ -54,28 +56,70 @@ func NewBatchJobInWithDefaults() *BatchJobIn {
 	return &this
 }
 
-// GetInputFiles returns the InputFiles field value
+// GetInputFiles returns the InputFiles field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *BatchJobIn) GetInputFiles() []string {
 	if o == nil {
 		var ret []string
 		return ret
 	}
-
 	return o.InputFiles
 }
 
-// GetInputFilesOk returns a tuple with the InputFiles field value
+// GetInputFilesOk returns a tuple with the InputFiles field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *BatchJobIn) GetInputFilesOk() ([]string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.InputFiles) {
 		return nil, false
 	}
 	return o.InputFiles, true
 }
 
-// SetInputFiles sets field value
+// HasInputFiles returns a boolean if a field has been set.
+func (o *BatchJobIn) HasInputFiles() bool {
+	if o != nil && !IsNil(o.InputFiles) {
+		return true
+	}
+
+	return false
+}
+
+// SetInputFiles gets a reference to the given []string and assigns it to the InputFiles field.
 func (o *BatchJobIn) SetInputFiles(v []string) {
 	o.InputFiles = v
+}
+
+// GetRequests returns the Requests field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BatchJobIn) GetRequests() []BatchRequest {
+	if o == nil {
+		var ret []BatchRequest
+		return ret
+	}
+	return o.Requests
+}
+
+// GetRequestsOk returns a tuple with the Requests field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BatchJobIn) GetRequestsOk() ([]BatchRequest, bool) {
+	if o == nil || IsNil(o.Requests) {
+		return nil, false
+	}
+	return o.Requests, true
+}
+
+// HasRequests returns a boolean if a field has been set.
+func (o *BatchJobIn) HasRequests() bool {
+	if o != nil && !IsNil(o.Requests) {
+		return true
+	}
+
+	return false
+}
+
+// SetRequests gets a reference to the given []BatchRequest and assigns it to the Requests field.
+func (o *BatchJobIn) SetRequests(v []BatchRequest) {
+	o.Requests = v
 }
 
 // GetEndpoint returns the Endpoint field value
@@ -102,28 +146,90 @@ func (o *BatchJobIn) SetEndpoint(v ApiEndpoint) {
 	o.Endpoint = v
 }
 
-// GetModel returns the Model field value
+// GetModel returns the Model field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *BatchJobIn) GetModel() string {
-	if o == nil {
+	if o == nil || IsNil(o.Model.Get()) {
 		var ret string
 		return ret
 	}
-
-	return o.Model
+	return *o.Model.Get()
 }
 
-// GetModelOk returns a tuple with the Model field value
+// GetModelOk returns a tuple with the Model field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *BatchJobIn) GetModelOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Model, true
+	return o.Model.Get(), o.Model.IsSet()
 }
 
-// SetModel sets field value
+// HasModel returns a boolean if a field has been set.
+func (o *BatchJobIn) HasModel() bool {
+	if o != nil && o.Model.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetModel gets a reference to the given NullableString and assigns it to the Model field.
 func (o *BatchJobIn) SetModel(v string) {
-	o.Model = v
+	o.Model.Set(&v)
+}
+
+// SetModelNil sets the value for Model to be an explicit nil
+func (o *BatchJobIn) SetModelNil() {
+	o.Model.Set(nil)
+}
+
+// UnsetModel ensures that no value is present for Model, not even an explicit nil
+func (o *BatchJobIn) UnsetModel() {
+	o.Model.Unset()
+}
+
+// GetAgentId returns the AgentId field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BatchJobIn) GetAgentId() string {
+	if o == nil || IsNil(o.AgentId.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.AgentId.Get()
+}
+
+// GetAgentIdOk returns a tuple with the AgentId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BatchJobIn) GetAgentIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.AgentId.Get(), o.AgentId.IsSet()
+}
+
+// HasAgentId returns a boolean if a field has been set.
+func (o *BatchJobIn) HasAgentId() bool {
+	if o != nil && o.AgentId.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetAgentId gets a reference to the given NullableString and assigns it to the AgentId field.
+func (o *BatchJobIn) SetAgentId(v string) {
+	o.AgentId.Set(&v)
+}
+
+// SetAgentIdNil sets the value for AgentId to be an explicit nil
+func (o *BatchJobIn) SetAgentIdNil() {
+	o.AgentId.Set(nil)
+}
+
+// UnsetAgentId ensures that no value is present for AgentId, not even an explicit nil
+func (o *BatchJobIn) UnsetAgentId() {
+	o.AgentId.Unset()
 }
 
 // GetMetadata returns the Metadata field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -201,9 +307,19 @@ func (o BatchJobIn) MarshalJSON() ([]byte, error) {
 
 func (o BatchJobIn) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["input_files"] = o.InputFiles
+	if o.InputFiles != nil {
+		toSerialize["input_files"] = o.InputFiles
+	}
+	if o.Requests != nil {
+		toSerialize["requests"] = o.Requests
+	}
 	toSerialize["endpoint"] = o.Endpoint
-	toSerialize["model"] = o.Model
+	if o.Model.IsSet() {
+		toSerialize["model"] = o.Model.Get()
+	}
+	if o.AgentId.IsSet() {
+		toSerialize["agent_id"] = o.AgentId.Get()
+	}
 	if o.Metadata != nil {
 		toSerialize["metadata"] = o.Metadata
 	}
@@ -223,9 +339,7 @@ func (o *BatchJobIn) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"input_files",
 		"endpoint",
-		"model",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -256,8 +370,10 @@ func (o *BatchJobIn) UnmarshalJSON(data []byte) (err error) {
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
 		delete(additionalProperties, "input_files")
+		delete(additionalProperties, "requests")
 		delete(additionalProperties, "endpoint")
 		delete(additionalProperties, "model")
+		delete(additionalProperties, "agent_id")
 		delete(additionalProperties, "metadata")
 		delete(additionalProperties, "timeout_hours")
 		o.AdditionalProperties = additionalProperties

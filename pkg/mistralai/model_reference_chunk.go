@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,9 +21,8 @@ var _ MappedNullable = &ReferenceChunk{}
 
 // ReferenceChunk struct for ReferenceChunk
 type ReferenceChunk struct {
-	ReferenceIds         []int32 `json:"reference_ids"`
-	Type                 *string `json:"type,omitempty"`
-	AdditionalProperties map[string]interface{}
+	ReferenceIds []int32 `json:"reference_ids"`
+	Type         *string `json:"type,omitempty"`
 }
 
 type _ReferenceChunk ReferenceChunk
@@ -119,11 +119,6 @@ func (o ReferenceChunk) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -151,21 +146,15 @@ func (o *ReferenceChunk) UnmarshalJSON(data []byte) (err error) {
 
 	varReferenceChunk := _ReferenceChunk{}
 
-	err = json.Unmarshal(data, &varReferenceChunk)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varReferenceChunk)
 
 	if err != nil {
 		return err
 	}
 
 	*o = ReferenceChunk(varReferenceChunk)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "reference_ids")
-		delete(additionalProperties, "type")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

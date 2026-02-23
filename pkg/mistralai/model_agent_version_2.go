@@ -15,17 +15,31 @@ import (
 	"fmt"
 )
 
-// Description struct for Description
-type Description struct {
+// AgentVersion2 Specific version of the agent to use when restarting. If not provided, uses the current version.
+type AgentVersion2 struct {
+	Int32  *int32
 	String *string
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
-func (dst *Description) UnmarshalJSON(data []byte) error {
+func (dst *AgentVersion2) UnmarshalJSON(data []byte) error {
 	var err error
 	// this object is nullable so check if the payload is null or empty string
 	if string(data) == "" || string(data) == "{}" {
 		return nil
+	}
+
+	// try to unmarshal JSON data into Int32
+	err = json.Unmarshal(data, &dst.Int32)
+	if err == nil {
+		jsonInt32, _ := json.Marshal(dst.Int32)
+		if string(jsonInt32) == "{}" { // empty struct
+			dst.Int32 = nil
+		} else {
+			return nil // data stored in dst.Int32, return on the first match
+		}
+	} else {
+		dst.Int32 = nil
 	}
 
 	// try to unmarshal JSON data into String
@@ -41,11 +55,15 @@ func (dst *Description) UnmarshalJSON(data []byte) error {
 		dst.String = nil
 	}
 
-	return fmt.Errorf("data failed to match schemas in anyOf(Description)")
+	return fmt.Errorf("data failed to match schemas in anyOf(AgentVersion2)")
 }
 
 // Marshal data from the first non-nil pointers in the struct to JSON
-func (src Description) MarshalJSON() ([]byte, error) {
+func (src AgentVersion2) MarshalJSON() ([]byte, error) {
+	if src.Int32 != nil {
+		return json.Marshal(&src.Int32)
+	}
+
 	if src.String != nil {
 		return json.Marshal(&src.String)
 	}
@@ -53,38 +71,38 @@ func (src Description) MarshalJSON() ([]byte, error) {
 	return nil, nil // no data in anyOf schemas
 }
 
-type NullableDescription struct {
-	value *Description
+type NullableAgentVersion2 struct {
+	value *AgentVersion2
 	isSet bool
 }
 
-func (v NullableDescription) Get() *Description {
+func (v NullableAgentVersion2) Get() *AgentVersion2 {
 	return v.value
 }
 
-func (v *NullableDescription) Set(val *Description) {
+func (v *NullableAgentVersion2) Set(val *AgentVersion2) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableDescription) IsSet() bool {
+func (v NullableAgentVersion2) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableDescription) Unset() {
+func (v *NullableAgentVersion2) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableDescription(val *Description) *NullableDescription {
-	return &NullableDescription{value: val, isSet: true}
+func NewNullableAgentVersion2(val *AgentVersion2) *NullableAgentVersion2 {
+	return &NullableAgentVersion2{value: val, isSet: true}
 }
 
-func (v NullableDescription) MarshalJSON() ([]byte, error) {
+func (v NullableAgentVersion2) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableDescription) UnmarshalJSON(src []byte) error {
+func (v *NullableAgentVersion2) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

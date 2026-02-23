@@ -20,7 +20,7 @@ type ToolTypes string
 
 // List of ToolTypes
 const (
-	FUNCTION ToolTypes = "function"
+	TOOLTYPES_FUNCTION ToolTypes = "function"
 )
 
 // All allowed values of ToolTypes enum

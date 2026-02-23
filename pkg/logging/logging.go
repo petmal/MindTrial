@@ -42,6 +42,13 @@ type Logger interface {
 	WithContext(context string) Logger
 }
 
+// StructuredError is an interface that can be implemented by error types
+// to provide custom fields for structured logging.
+type StructuredError interface {
+	error
+	LogFields() map[string]any
+}
+
 // FormatLogInt64 formats an int64 pointer value for logging.
 // If the pointer is nil, it returns a placeholder value.
 func FormatLogInt64(value *int64) string {

@@ -237,8 +237,6 @@ config:
         - name: "Pixtral Large - latest (vision)"
           model: "pixtral-large-latest"
           max-requests-per-minute: 5
-          model-parameters:
-            prompt-mode: "reasoning"
     - name: xai
       retry-policy:
         max-retry-attempts: 5

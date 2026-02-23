@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,9 +21,8 @@ var _ MappedNullable = &ImageURLStruct{}
 
 // ImageURLStruct struct for ImageURLStruct
 type ImageURLStruct struct {
-	Url                  string         `json:"url"`
-	Detail               NullableString `json:"detail,omitempty"`
-	AdditionalProperties map[string]interface{}
+	Url    string         `json:"url"`
+	Detail NullableString `json:"detail,omitempty"`
 }
 
 type _ImageURLStruct ImageURLStruct
@@ -126,11 +126,6 @@ func (o ImageURLStruct) ToMap() (map[string]interface{}, error) {
 	if o.Detail.IsSet() {
 		toSerialize["detail"] = o.Detail.Get()
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -158,21 +153,15 @@ func (o *ImageURLStruct) UnmarshalJSON(data []byte) (err error) {
 
 	varImageURLStruct := _ImageURLStruct{}
 
-	err = json.Unmarshal(data, &varImageURLStruct)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varImageURLStruct)
 
 	if err != nil {
 		return err
 	}
 
 	*o = ImageURLStruct(varImageURLStruct)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "url")
-		delete(additionalProperties, "detail")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

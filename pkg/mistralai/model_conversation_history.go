@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,10 +21,9 @@ var _ MappedNullable = &ConversationHistory{}
 
 // ConversationHistory Retrieve all entries in a conversation.
 type ConversationHistory struct {
-	Object               *string                           `json:"object,omitempty"`
-	ConversationId       string                            `json:"conversation_id"`
-	Entries              []ConversationHistoryEntriesInner `json:"entries"`
-	AdditionalProperties map[string]interface{}
+	Object         *string        `json:"object,omitempty"`
+	ConversationId string         `json:"conversation_id"`
+	Entries        []EntriesInner `json:"entries"`
 }
 
 type _ConversationHistory ConversationHistory
@@ -32,7 +32,7 @@ type _ConversationHistory ConversationHistory
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewConversationHistory(conversationId string, entries []ConversationHistoryEntriesInner) *ConversationHistory {
+func NewConversationHistory(conversationId string, entries []EntriesInner) *ConversationHistory {
 	this := ConversationHistory{}
 	var object string = "conversation.history"
 	this.Object = &object
@@ -108,9 +108,9 @@ func (o *ConversationHistory) SetConversationId(v string) {
 }
 
 // GetEntries returns the Entries field value
-func (o *ConversationHistory) GetEntries() []ConversationHistoryEntriesInner {
+func (o *ConversationHistory) GetEntries() []EntriesInner {
 	if o == nil {
-		var ret []ConversationHistoryEntriesInner
+		var ret []EntriesInner
 		return ret
 	}
 
@@ -119,7 +119,7 @@ func (o *ConversationHistory) GetEntries() []ConversationHistoryEntriesInner {
 
 // GetEntriesOk returns a tuple with the Entries field value
 // and a boolean to check if the value has been set.
-func (o *ConversationHistory) GetEntriesOk() ([]ConversationHistoryEntriesInner, bool) {
+func (o *ConversationHistory) GetEntriesOk() ([]EntriesInner, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -127,7 +127,7 @@ func (o *ConversationHistory) GetEntriesOk() ([]ConversationHistoryEntriesInner,
 }
 
 // SetEntries sets field value
-func (o *ConversationHistory) SetEntries(v []ConversationHistoryEntriesInner) {
+func (o *ConversationHistory) SetEntries(v []EntriesInner) {
 	o.Entries = v
 }
 
@@ -146,11 +146,6 @@ func (o ConversationHistory) ToMap() (map[string]interface{}, error) {
 	}
 	toSerialize["conversation_id"] = o.ConversationId
 	toSerialize["entries"] = o.Entries
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -179,22 +174,15 @@ func (o *ConversationHistory) UnmarshalJSON(data []byte) (err error) {
 
 	varConversationHistory := _ConversationHistory{}
 
-	err = json.Unmarshal(data, &varConversationHistory)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varConversationHistory)
 
 	if err != nil {
 		return err
 	}
 
 	*o = ConversationHistory(varConversationHistory)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "object")
-		delete(additionalProperties, "conversation_id")
-		delete(additionalProperties, "entries")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

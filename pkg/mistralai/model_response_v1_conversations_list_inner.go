@@ -15,14 +15,14 @@ import (
 	"fmt"
 )
 
-// AgentsApiV1ConversationsList200ResponseInner struct for AgentsApiV1ConversationsList200ResponseInner
-type AgentsApiV1ConversationsList200ResponseInner struct {
+// ResponseV1ConversationsListInner struct for ResponseV1ConversationsListInner
+type ResponseV1ConversationsListInner struct {
 	AgentConversation *AgentConversation
 	ModelConversation *ModelConversation
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
-func (dst *AgentsApiV1ConversationsList200ResponseInner) UnmarshalJSON(data []byte) error {
+func (dst *ResponseV1ConversationsListInner) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into AgentConversation
 	err = json.Unmarshal(data, &dst.AgentConversation)
@@ -50,11 +50,11 @@ func (dst *AgentsApiV1ConversationsList200ResponseInner) UnmarshalJSON(data []by
 		dst.ModelConversation = nil
 	}
 
-	return fmt.Errorf("data failed to match schemas in anyOf(AgentsApiV1ConversationsList200ResponseInner)")
+	return fmt.Errorf("data failed to match schemas in anyOf(ResponseV1ConversationsListInner)")
 }
 
 // Marshal data from the first non-nil pointers in the struct to JSON
-func (src AgentsApiV1ConversationsList200ResponseInner) MarshalJSON() ([]byte, error) {
+func (src ResponseV1ConversationsListInner) MarshalJSON() ([]byte, error) {
 	if src.AgentConversation != nil {
 		return json.Marshal(&src.AgentConversation)
 	}
@@ -66,38 +66,38 @@ func (src AgentsApiV1ConversationsList200ResponseInner) MarshalJSON() ([]byte, e
 	return nil, nil // no data in anyOf schemas
 }
 
-type NullableAgentsApiV1ConversationsList200ResponseInner struct {
-	value *AgentsApiV1ConversationsList200ResponseInner
+type NullableResponseV1ConversationsListInner struct {
+	value *ResponseV1ConversationsListInner
 	isSet bool
 }
 
-func (v NullableAgentsApiV1ConversationsList200ResponseInner) Get() *AgentsApiV1ConversationsList200ResponseInner {
+func (v NullableResponseV1ConversationsListInner) Get() *ResponseV1ConversationsListInner {
 	return v.value
 }
 
-func (v *NullableAgentsApiV1ConversationsList200ResponseInner) Set(val *AgentsApiV1ConversationsList200ResponseInner) {
+func (v *NullableResponseV1ConversationsListInner) Set(val *ResponseV1ConversationsListInner) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableAgentsApiV1ConversationsList200ResponseInner) IsSet() bool {
+func (v NullableResponseV1ConversationsListInner) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableAgentsApiV1ConversationsList200ResponseInner) Unset() {
+func (v *NullableResponseV1ConversationsListInner) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableAgentsApiV1ConversationsList200ResponseInner(val *AgentsApiV1ConversationsList200ResponseInner) *NullableAgentsApiV1ConversationsList200ResponseInner {
-	return &NullableAgentsApiV1ConversationsList200ResponseInner{value: val, isSet: true}
+func NewNullableResponseV1ConversationsListInner(val *ResponseV1ConversationsListInner) *NullableResponseV1ConversationsListInner {
+	return &NullableResponseV1ConversationsListInner{value: val, isSet: true}
 }
 
-func (v NullableAgentsApiV1ConversationsList200ResponseInner) MarshalJSON() ([]byte, error) {
+func (v NullableResponseV1ConversationsListInner) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableAgentsApiV1ConversationsList200ResponseInner) UnmarshalJSON(src []byte) error {
+func (v *NullableResponseV1ConversationsListInner) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

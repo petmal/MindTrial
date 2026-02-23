@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,11 +21,10 @@ var _ MappedNullable = &ConversationResponse{}
 
 // ConversationResponse The response after appending new entries to the conversation.
 type ConversationResponse struct {
-	Object               *string                            `json:"object,omitempty"`
-	ConversationId       string                             `json:"conversation_id"`
-	Outputs              []ConversationResponseOutputsInner `json:"outputs"`
-	Usage                ConversationUsageInfo              `json:"usage"`
-	AdditionalProperties map[string]interface{}
+	Object         *string               `json:"object,omitempty"`
+	ConversationId string                `json:"conversation_id"`
+	Outputs        []OutputsInner        `json:"outputs"`
+	Usage          ConversationUsageInfo `json:"usage"`
 }
 
 type _ConversationResponse ConversationResponse
@@ -33,7 +33,7 @@ type _ConversationResponse ConversationResponse
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewConversationResponse(conversationId string, outputs []ConversationResponseOutputsInner, usage ConversationUsageInfo) *ConversationResponse {
+func NewConversationResponse(conversationId string, outputs []OutputsInner, usage ConversationUsageInfo) *ConversationResponse {
 	this := ConversationResponse{}
 	var object string = "conversation.response"
 	this.Object = &object
@@ -110,9 +110,9 @@ func (o *ConversationResponse) SetConversationId(v string) {
 }
 
 // GetOutputs returns the Outputs field value
-func (o *ConversationResponse) GetOutputs() []ConversationResponseOutputsInner {
+func (o *ConversationResponse) GetOutputs() []OutputsInner {
 	if o == nil {
-		var ret []ConversationResponseOutputsInner
+		var ret []OutputsInner
 		return ret
 	}
 
@@ -121,7 +121,7 @@ func (o *ConversationResponse) GetOutputs() []ConversationResponseOutputsInner {
 
 // GetOutputsOk returns a tuple with the Outputs field value
 // and a boolean to check if the value has been set.
-func (o *ConversationResponse) GetOutputsOk() ([]ConversationResponseOutputsInner, bool) {
+func (o *ConversationResponse) GetOutputsOk() ([]OutputsInner, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -129,7 +129,7 @@ func (o *ConversationResponse) GetOutputsOk() ([]ConversationResponseOutputsInne
 }
 
 // SetOutputs sets field value
-func (o *ConversationResponse) SetOutputs(v []ConversationResponseOutputsInner) {
+func (o *ConversationResponse) SetOutputs(v []OutputsInner) {
 	o.Outputs = v
 }
 
@@ -173,11 +173,6 @@ func (o ConversationResponse) ToMap() (map[string]interface{}, error) {
 	toSerialize["conversation_id"] = o.ConversationId
 	toSerialize["outputs"] = o.Outputs
 	toSerialize["usage"] = o.Usage
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -207,23 +202,15 @@ func (o *ConversationResponse) UnmarshalJSON(data []byte) (err error) {
 
 	varConversationResponse := _ConversationResponse{}
 
-	err = json.Unmarshal(data, &varConversationResponse)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varConversationResponse)
 
 	if err != nil {
 		return err
 	}
 
 	*o = ConversationResponse(varConversationResponse)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "object")
-		delete(additionalProperties, "conversation_id")
-		delete(additionalProperties, "outputs")
-		delete(additionalProperties, "usage")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

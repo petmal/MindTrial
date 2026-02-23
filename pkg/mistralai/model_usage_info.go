@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,10 +21,10 @@ var _ MappedNullable = &UsageInfo{}
 
 // UsageInfo struct for UsageInfo
 type UsageInfo struct {
-	PromptTokens         int32 `json:"prompt_tokens"`
-	CompletionTokens     int32 `json:"completion_tokens"`
-	TotalTokens          int32 `json:"total_tokens"`
-	AdditionalProperties map[string]interface{}
+	PromptTokens       int32         `json:"prompt_tokens"`
+	CompletionTokens   int32         `json:"completion_tokens"`
+	TotalTokens        int32         `json:"total_tokens"`
+	PromptAudioSeconds NullableInt32 `json:"prompt_audio_seconds,omitempty"`
 }
 
 type _UsageInfo UsageInfo
@@ -45,6 +46,12 @@ func NewUsageInfo(promptTokens int32, completionTokens int32, totalTokens int32)
 // but it doesn't guarantee that properties required by API are set
 func NewUsageInfoWithDefaults() *UsageInfo {
 	this := UsageInfo{}
+	var promptTokens int32 = 0
+	this.PromptTokens = promptTokens
+	var completionTokens int32 = 0
+	this.CompletionTokens = completionTokens
+	var totalTokens int32 = 0
+	this.TotalTokens = totalTokens
 	return &this
 }
 
@@ -120,6 +127,49 @@ func (o *UsageInfo) SetTotalTokens(v int32) {
 	o.TotalTokens = v
 }
 
+// GetPromptAudioSeconds returns the PromptAudioSeconds field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *UsageInfo) GetPromptAudioSeconds() int32 {
+	if o == nil || IsNil(o.PromptAudioSeconds.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.PromptAudioSeconds.Get()
+}
+
+// GetPromptAudioSecondsOk returns a tuple with the PromptAudioSeconds field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *UsageInfo) GetPromptAudioSecondsOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.PromptAudioSeconds.Get(), o.PromptAudioSeconds.IsSet()
+}
+
+// HasPromptAudioSeconds returns a boolean if a field has been set.
+func (o *UsageInfo) HasPromptAudioSeconds() bool {
+	if o != nil && o.PromptAudioSeconds.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetPromptAudioSeconds gets a reference to the given NullableInt32 and assigns it to the PromptAudioSeconds field.
+func (o *UsageInfo) SetPromptAudioSeconds(v int32) {
+	o.PromptAudioSeconds.Set(&v)
+}
+
+// SetPromptAudioSecondsNil sets the value for PromptAudioSeconds to be an explicit nil
+func (o *UsageInfo) SetPromptAudioSecondsNil() {
+	o.PromptAudioSeconds.Set(nil)
+}
+
+// UnsetPromptAudioSeconds ensures that no value is present for PromptAudioSeconds, not even an explicit nil
+func (o *UsageInfo) UnsetPromptAudioSeconds() {
+	o.PromptAudioSeconds.Unset()
+}
+
 func (o UsageInfo) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -133,11 +183,9 @@ func (o UsageInfo) ToMap() (map[string]interface{}, error) {
 	toSerialize["prompt_tokens"] = o.PromptTokens
 	toSerialize["completion_tokens"] = o.CompletionTokens
 	toSerialize["total_tokens"] = o.TotalTokens
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
+	if o.PromptAudioSeconds.IsSet() {
+		toSerialize["prompt_audio_seconds"] = o.PromptAudioSeconds.Get()
 	}
-
 	return toSerialize, nil
 }
 
@@ -167,22 +215,14 @@ func (o *UsageInfo) UnmarshalJSON(data []byte) (err error) {
 
 	varUsageInfo := _UsageInfo{}
 
-	err = json.Unmarshal(data, &varUsageInfo)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	err = decoder.Decode(&varUsageInfo)
 
 	if err != nil {
 		return err
 	}
 
 	*o = UsageInfo(varUsageInfo)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "prompt_tokens")
-		delete(additionalProperties, "completion_tokens")
-		delete(additionalProperties, "total_tokens")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

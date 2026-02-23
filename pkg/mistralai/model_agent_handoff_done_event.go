@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -21,13 +22,12 @@ var _ MappedNullable = &AgentHandoffDoneEvent{}
 
 // AgentHandoffDoneEvent struct for AgentHandoffDoneEvent
 type AgentHandoffDoneEvent struct {
-	Type                 *string    `json:"type,omitempty"`
-	CreatedAt            *time.Time `json:"created_at,omitempty"`
-	OutputIndex          *int32     `json:"output_index,omitempty"`
-	Id                   string     `json:"id"`
-	NextAgentId          string     `json:"next_agent_id"`
-	NextAgentName        string     `json:"next_agent_name"`
-	AdditionalProperties map[string]interface{}
+	Type          *string    `json:"type,omitempty"`
+	CreatedAt     *time.Time `json:"created_at,omitempty"`
+	OutputIndex   *int32     `json:"output_index,omitempty"`
+	Id            string     `json:"id"`
+	NextAgentId   string     `json:"next_agent_id"`
+	NextAgentName string     `json:"next_agent_name"`
 }
 
 type _AgentHandoffDoneEvent AgentHandoffDoneEvent
@@ -250,11 +250,6 @@ func (o AgentHandoffDoneEvent) ToMap() (map[string]interface{}, error) {
 	toSerialize["id"] = o.Id
 	toSerialize["next_agent_id"] = o.NextAgentId
 	toSerialize["next_agent_name"] = o.NextAgentName
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -284,25 +279,15 @@ func (o *AgentHandoffDoneEvent) UnmarshalJSON(data []byte) (err error) {
 
 	varAgentHandoffDoneEvent := _AgentHandoffDoneEvent{}
 
-	err = json.Unmarshal(data, &varAgentHandoffDoneEvent)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varAgentHandoffDoneEvent)
 
 	if err != nil {
 		return err
 	}
 
 	*o = AgentHandoffDoneEvent(varAgentHandoffDoneEvent)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "type")
-		delete(additionalProperties, "created_at")
-		delete(additionalProperties, "output_index")
-		delete(additionalProperties, "id")
-		delete(additionalProperties, "next_agent_id")
-		delete(additionalProperties, "next_agent_name")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

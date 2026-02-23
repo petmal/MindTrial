@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -21,13 +22,12 @@ var _ MappedNullable = &AgentHandoffStartedEvent{}
 
 // AgentHandoffStartedEvent struct for AgentHandoffStartedEvent
 type AgentHandoffStartedEvent struct {
-	Type                 *string    `json:"type,omitempty"`
-	CreatedAt            *time.Time `json:"created_at,omitempty"`
-	OutputIndex          *int32     `json:"output_index,omitempty"`
-	Id                   string     `json:"id"`
-	PreviousAgentId      string     `json:"previous_agent_id"`
-	PreviousAgentName    string     `json:"previous_agent_name"`
-	AdditionalProperties map[string]interface{}
+	Type              *string    `json:"type,omitempty"`
+	CreatedAt         *time.Time `json:"created_at,omitempty"`
+	OutputIndex       *int32     `json:"output_index,omitempty"`
+	Id                string     `json:"id"`
+	PreviousAgentId   string     `json:"previous_agent_id"`
+	PreviousAgentName string     `json:"previous_agent_name"`
 }
 
 type _AgentHandoffStartedEvent AgentHandoffStartedEvent
@@ -250,11 +250,6 @@ func (o AgentHandoffStartedEvent) ToMap() (map[string]interface{}, error) {
 	toSerialize["id"] = o.Id
 	toSerialize["previous_agent_id"] = o.PreviousAgentId
 	toSerialize["previous_agent_name"] = o.PreviousAgentName
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -284,25 +279,15 @@ func (o *AgentHandoffStartedEvent) UnmarshalJSON(data []byte) (err error) {
 
 	varAgentHandoffStartedEvent := _AgentHandoffStartedEvent{}
 
-	err = json.Unmarshal(data, &varAgentHandoffStartedEvent)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varAgentHandoffStartedEvent)
 
 	if err != nil {
 		return err
 	}
 
 	*o = AgentHandoffStartedEvent(varAgentHandoffStartedEvent)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "type")
-		delete(additionalProperties, "created_at")
-		delete(additionalProperties, "output_index")
-		delete(additionalProperties, "id")
-		delete(additionalProperties, "previous_agent_id")
-		delete(additionalProperties, "previous_agent_name")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

@@ -20,8 +20,8 @@ type ShareEnum string
 
 // List of ShareEnum
 const (
-	VIEWER ShareEnum = "Viewer"
-	EDITOR ShareEnum = "Editor"
+	SHAREENUM_VIEWER ShareEnum = "Viewer"
+	SHAREENUM_EDITOR ShareEnum = "Editor"
 )
 
 // All allowed values of ShareEnum enum

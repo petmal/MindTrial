@@ -20,24 +20,28 @@ type FineTuneableModel string
 
 // List of FineTuneableModel
 const (
-	OPEN_MISTRAL_7B      FineTuneableModel = "open-mistral-7b"
-	MISTRAL_SMALL_LATEST FineTuneableModel = "mistral-small-latest"
-	CODESTRAL_LATEST     FineTuneableModel = "codestral-latest"
-	MISTRAL_LARGE_LATEST FineTuneableModel = "mistral-large-latest"
-	OPEN_MISTRAL_NEMO    FineTuneableModel = "open-mistral-nemo"
-	MINISTRAL_3B_LATEST  FineTuneableModel = "ministral-3b-latest"
-	MINISTRAL_8B_LATEST  FineTuneableModel = "ministral-8b-latest"
+	FINETUNEABLEMODEL_MINISTRAL_3B_LATEST   FineTuneableModel = "ministral-3b-latest"
+	FINETUNEABLEMODEL_MINISTRAL_8B_LATEST   FineTuneableModel = "ministral-8b-latest"
+	FINETUNEABLEMODEL_OPEN_MISTRAL_7B       FineTuneableModel = "open-mistral-7b"
+	FINETUNEABLEMODEL_OPEN_MISTRAL_NEMO     FineTuneableModel = "open-mistral-nemo"
+	FINETUNEABLEMODEL_MISTRAL_SMALL_LATEST  FineTuneableModel = "mistral-small-latest"
+	FINETUNEABLEMODEL_MISTRAL_MEDIUM_LATEST FineTuneableModel = "mistral-medium-latest"
+	FINETUNEABLEMODEL_MISTRAL_LARGE_LATEST  FineTuneableModel = "mistral-large-latest"
+	FINETUNEABLEMODEL_PIXTRAL_12B_LATEST    FineTuneableModel = "pixtral-12b-latest"
+	FINETUNEABLEMODEL_CODESTRAL_LATEST      FineTuneableModel = "codestral-latest"
 )
 
 // All allowed values of FineTuneableModel enum
 var AllowedFineTuneableModelEnumValues = []FineTuneableModel{
-	"open-mistral-7b",
-	"mistral-small-latest",
-	"codestral-latest",
-	"mistral-large-latest",
-	"open-mistral-nemo",
 	"ministral-3b-latest",
 	"ministral-8b-latest",
+	"open-mistral-7b",
+	"open-mistral-nemo",
+	"mistral-small-latest",
+	"mistral-medium-latest",
+	"mistral-large-latest",
+	"pixtral-12b-latest",
+	"codestral-latest",
 }
 
 func (v *FineTuneableModel) UnmarshalJSON(src []byte) error {

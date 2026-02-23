@@ -19,7 +19,8 @@ var _ MappedNullable = &DocumentUpdateIn{}
 
 // DocumentUpdateIn struct for DocumentUpdateIn
 type DocumentUpdateIn struct {
-	Name                 NullableString `json:"name,omitempty"`
+	Name                 NullableString                             `json:"name,omitempty"`
+	Attributes           map[string]DocumentUpdateInAttributesValue `json:"attributes,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -85,6 +86,39 @@ func (o *DocumentUpdateIn) UnsetName() {
 	o.Name.Unset()
 }
 
+// GetAttributes returns the Attributes field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *DocumentUpdateIn) GetAttributes() map[string]DocumentUpdateInAttributesValue {
+	if o == nil {
+		var ret map[string]DocumentUpdateInAttributesValue
+		return ret
+	}
+	return o.Attributes
+}
+
+// GetAttributesOk returns a tuple with the Attributes field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *DocumentUpdateIn) GetAttributesOk() (map[string]DocumentUpdateInAttributesValue, bool) {
+	if o == nil || IsNil(o.Attributes) {
+		return map[string]DocumentUpdateInAttributesValue{}, false
+	}
+	return o.Attributes, true
+}
+
+// HasAttributes returns a boolean if a field has been set.
+func (o *DocumentUpdateIn) HasAttributes() bool {
+	if o != nil && !IsNil(o.Attributes) {
+		return true
+	}
+
+	return false
+}
+
+// SetAttributes gets a reference to the given map[string]DocumentUpdateInAttributesValue and assigns it to the Attributes field.
+func (o *DocumentUpdateIn) SetAttributes(v map[string]DocumentUpdateInAttributesValue) {
+	o.Attributes = v
+}
+
 func (o DocumentUpdateIn) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -97,6 +131,9 @@ func (o DocumentUpdateIn) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if o.Name.IsSet() {
 		toSerialize["name"] = o.Name.Get()
+	}
+	if o.Attributes != nil {
+		toSerialize["attributes"] = o.Attributes
 	}
 
 	for key, value := range o.AdditionalProperties {
@@ -121,6 +158,7 @@ func (o *DocumentUpdateIn) UnmarshalJSON(data []byte) (err error) {
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
 		delete(additionalProperties, "name")
+		delete(additionalProperties, "attributes")
 		o.AdditionalProperties = additionalProperties
 	}
 

@@ -20,6 +20,7 @@ type MessageInputContentChunksInner struct {
 	DocumentURLChunk *DocumentURLChunk
 	ImageURLChunk    *ImageURLChunk
 	TextChunk        *TextChunk
+	ThinkChunk       *ThinkChunk
 	ToolFileChunk    *ToolFileChunk
 }
 
@@ -65,6 +66,19 @@ func (dst *MessageInputContentChunksInner) UnmarshalJSON(data []byte) error {
 		dst.TextChunk = nil
 	}
 
+	// try to unmarshal JSON data into ThinkChunk
+	err = json.Unmarshal(data, &dst.ThinkChunk)
+	if err == nil {
+		jsonThinkChunk, _ := json.Marshal(dst.ThinkChunk)
+		if string(jsonThinkChunk) == "{}" { // empty struct
+			dst.ThinkChunk = nil
+		} else {
+			return nil // data stored in dst.ThinkChunk, return on the first match
+		}
+	} else {
+		dst.ThinkChunk = nil
+	}
+
 	// try to unmarshal JSON data into ToolFileChunk
 	err = json.Unmarshal(data, &dst.ToolFileChunk)
 	if err == nil {
@@ -93,6 +107,10 @@ func (src MessageInputContentChunksInner) MarshalJSON() ([]byte, error) {
 
 	if src.TextChunk != nil {
 		return json.Marshal(&src.TextChunk)
+	}
+
+	if src.ThinkChunk != nil {
+		return json.Marshal(&src.ThinkChunk)
 	}
 
 	if src.ToolFileChunk != nil {

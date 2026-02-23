@@ -41,7 +41,7 @@ func NewGithubRepositoryIn(name string, owner string, token string) *GithubRepos
 	this.Type = &type_
 	this.Name = name
 	this.Owner = owner
-	var weight float32 = 1
+	var weight float32 = 1.0
 	this.Weight = &weight
 	this.Token = token
 	return &this
@@ -54,7 +54,7 @@ func NewGithubRepositoryInWithDefaults() *GithubRepositoryIn {
 	this := GithubRepositoryIn{}
 	var type_ string = "github"
 	this.Type = &type_
-	var weight float32 = 1
+	var weight float32 = 1.0
 	this.Weight = &weight
 	return &this
 }

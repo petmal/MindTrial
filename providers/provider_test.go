@@ -16,6 +16,7 @@ import (
 
 	"github.com/invopop/jsonschema"
 	"github.com/petmal/mindtrial/config"
+	"github.com/petmal/mindtrial/pkg/logging"
 	"github.com/petmal/mindtrial/pkg/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -1039,4 +1040,95 @@ func mockTaskFile(t *testing.T, name string, uri string, mimeType string) config
 	var file config.TaskFile
 	require.NoError(t, yaml.Unmarshal([]byte(yamlStr), &file))
 	return file
+}
+
+func TestErrUnmarshalResponse_LogFields(t *testing.T) {
+	tests := []struct {
+		name     string
+		err      *ErrUnmarshalResponse
+		expected map[string]any
+	}{
+		{
+			name:     "all fields populated",
+			err:      NewErrUnmarshalResponse(errors.ErrUnsupported, []byte(`{"partial":true}`), []byte("end_turn")),
+			expected: map[string]any{"raw_message": `{"partial":true}`, "stop_reason": "end_turn"},
+		},
+		{
+			name:     "only raw message",
+			err:      NewErrUnmarshalResponse(errors.ErrUnsupported, []byte("some raw data"), nil),
+			expected: map[string]any{"raw_message": "some raw data"},
+		},
+		{
+			name:     "only stop reason",
+			err:      NewErrUnmarshalResponse(errors.ErrUnsupported, nil, []byte("stop")),
+			expected: map[string]any{"stop_reason": "stop"},
+		},
+		{
+			name:     "no optional fields",
+			err:      NewErrUnmarshalResponse(errors.ErrUnsupported, nil, nil),
+			expected: map[string]any{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, tt.err.LogFields())
+			require.ErrorIs(t, tt.err, errors.ErrUnsupported)
+			assert.Contains(t, tt.err.Error(), "failed to unmarshal the response")
+		})
+	}
+}
+
+func TestErrAPIResponse_LogFields(t *testing.T) {
+	tests := []struct {
+		name     string
+		err      *ErrAPIResponse
+		expected map[string]any
+	}{
+		{
+			name:     "body populated",
+			err:      NewErrAPIResponse(errors.ErrUnsupported, []byte(`{"error":"invalid key"}`)),
+			expected: map[string]any{"response_body": `{"error":"invalid key"}`},
+		},
+		{
+			name:     "empty body",
+			err:      NewErrAPIResponse(errors.ErrUnsupported, nil),
+			expected: map[string]any{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, tt.err.LogFields())
+			require.ErrorIs(t, tt.err, errors.ErrUnsupported)
+		})
+	}
+}
+
+func TestErrNoActionableContent_LogFields(t *testing.T) {
+	tests := []struct {
+		name     string
+		err      error
+		expected map[string]any
+	}{
+		{
+			name:     "stop reason populated",
+			err:      NewErrNoActionableContent([]byte("end_turn")),
+			expected: map[string]any{"stop_reason": "end_turn"},
+		},
+		{
+			name:     "empty stop reason",
+			err:      NewErrNoActionableContent(nil),
+			expected: map[string]any{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var structuredErr logging.StructuredError
+			require.ErrorAs(t, tt.err, &structuredErr)
+			assert.Equal(t, tt.expected, structuredErr.LogFields())
+			assert.ErrorIs(t, tt.err, ErrGenerateResponse)
+		})
+	}
 }

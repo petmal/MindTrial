@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -25,9 +26,14 @@ type OCRPageObject struct {
 	// The markdown string response of the page
 	Markdown string `json:"markdown"`
 	// List of all extracted images in the page
-	Images               []OCRImageObject          `json:"images"`
-	Dimensions           NullableOCRPageDimensions `json:"dimensions"`
-	AdditionalProperties map[string]interface{}
+	Images []OCRImageObject `json:"images"`
+	// List of all extracted tables in the page
+	Tables []OCRTableObject `json:"tables,omitempty"`
+	// List of all hyperlinks in the page
+	Hyperlinks []string                  `json:"hyperlinks,omitempty"`
+	Header     NullableString            `json:"header,omitempty"`
+	Footer     NullableString            `json:"footer,omitempty"`
+	Dimensions NullableOCRPageDimensions `json:"dimensions"`
 }
 
 type _OCRPageObject OCRPageObject
@@ -125,6 +131,156 @@ func (o *OCRPageObject) SetImages(v []OCRImageObject) {
 	o.Images = v
 }
 
+// GetTables returns the Tables field value if set, zero value otherwise.
+func (o *OCRPageObject) GetTables() []OCRTableObject {
+	if o == nil || IsNil(o.Tables) {
+		var ret []OCRTableObject
+		return ret
+	}
+	return o.Tables
+}
+
+// GetTablesOk returns a tuple with the Tables field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *OCRPageObject) GetTablesOk() ([]OCRTableObject, bool) {
+	if o == nil || IsNil(o.Tables) {
+		return nil, false
+	}
+	return o.Tables, true
+}
+
+// HasTables returns a boolean if a field has been set.
+func (o *OCRPageObject) HasTables() bool {
+	if o != nil && !IsNil(o.Tables) {
+		return true
+	}
+
+	return false
+}
+
+// SetTables gets a reference to the given []OCRTableObject and assigns it to the Tables field.
+func (o *OCRPageObject) SetTables(v []OCRTableObject) {
+	o.Tables = v
+}
+
+// GetHyperlinks returns the Hyperlinks field value if set, zero value otherwise.
+func (o *OCRPageObject) GetHyperlinks() []string {
+	if o == nil || IsNil(o.Hyperlinks) {
+		var ret []string
+		return ret
+	}
+	return o.Hyperlinks
+}
+
+// GetHyperlinksOk returns a tuple with the Hyperlinks field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *OCRPageObject) GetHyperlinksOk() ([]string, bool) {
+	if o == nil || IsNil(o.Hyperlinks) {
+		return nil, false
+	}
+	return o.Hyperlinks, true
+}
+
+// HasHyperlinks returns a boolean if a field has been set.
+func (o *OCRPageObject) HasHyperlinks() bool {
+	if o != nil && !IsNil(o.Hyperlinks) {
+		return true
+	}
+
+	return false
+}
+
+// SetHyperlinks gets a reference to the given []string and assigns it to the Hyperlinks field.
+func (o *OCRPageObject) SetHyperlinks(v []string) {
+	o.Hyperlinks = v
+}
+
+// GetHeader returns the Header field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *OCRPageObject) GetHeader() string {
+	if o == nil || IsNil(o.Header.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Header.Get()
+}
+
+// GetHeaderOk returns a tuple with the Header field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OCRPageObject) GetHeaderOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Header.Get(), o.Header.IsSet()
+}
+
+// HasHeader returns a boolean if a field has been set.
+func (o *OCRPageObject) HasHeader() bool {
+	if o != nil && o.Header.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetHeader gets a reference to the given NullableString and assigns it to the Header field.
+func (o *OCRPageObject) SetHeader(v string) {
+	o.Header.Set(&v)
+}
+
+// SetHeaderNil sets the value for Header to be an explicit nil
+func (o *OCRPageObject) SetHeaderNil() {
+	o.Header.Set(nil)
+}
+
+// UnsetHeader ensures that no value is present for Header, not even an explicit nil
+func (o *OCRPageObject) UnsetHeader() {
+	o.Header.Unset()
+}
+
+// GetFooter returns the Footer field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *OCRPageObject) GetFooter() string {
+	if o == nil || IsNil(o.Footer.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Footer.Get()
+}
+
+// GetFooterOk returns a tuple with the Footer field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OCRPageObject) GetFooterOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Footer.Get(), o.Footer.IsSet()
+}
+
+// HasFooter returns a boolean if a field has been set.
+func (o *OCRPageObject) HasFooter() bool {
+	if o != nil && o.Footer.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetFooter gets a reference to the given NullableString and assigns it to the Footer field.
+func (o *OCRPageObject) SetFooter(v string) {
+	o.Footer.Set(&v)
+}
+
+// SetFooterNil sets the value for Footer to be an explicit nil
+func (o *OCRPageObject) SetFooterNil() {
+	o.Footer.Set(nil)
+}
+
+// UnsetFooter ensures that no value is present for Footer, not even an explicit nil
+func (o *OCRPageObject) UnsetFooter() {
+	o.Footer.Unset()
+}
+
 // GetDimensions returns the Dimensions field value
 // If the value is explicit nil, the zero value for OCRPageDimensions will be returned
 func (o *OCRPageObject) GetDimensions() OCRPageDimensions {
@@ -164,12 +320,19 @@ func (o OCRPageObject) ToMap() (map[string]interface{}, error) {
 	toSerialize["index"] = o.Index
 	toSerialize["markdown"] = o.Markdown
 	toSerialize["images"] = o.Images
-	toSerialize["dimensions"] = o.Dimensions.Get()
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
+	if !IsNil(o.Tables) {
+		toSerialize["tables"] = o.Tables
 	}
-
+	if !IsNil(o.Hyperlinks) {
+		toSerialize["hyperlinks"] = o.Hyperlinks
+	}
+	if o.Header.IsSet() {
+		toSerialize["header"] = o.Header.Get()
+	}
+	if o.Footer.IsSet() {
+		toSerialize["footer"] = o.Footer.Get()
+	}
+	toSerialize["dimensions"] = o.Dimensions.Get()
 	return toSerialize, nil
 }
 
@@ -200,23 +363,15 @@ func (o *OCRPageObject) UnmarshalJSON(data []byte) (err error) {
 
 	varOCRPageObject := _OCRPageObject{}
 
-	err = json.Unmarshal(data, &varOCRPageObject)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varOCRPageObject)
 
 	if err != nil {
 		return err
 	}
 
 	*o = OCRPageObject(varOCRPageObject)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "index")
-		delete(additionalProperties, "markdown")
-		delete(additionalProperties, "images")
-		delete(additionalProperties, "dimensions")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

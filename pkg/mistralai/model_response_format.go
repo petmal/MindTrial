@@ -17,14 +17,11 @@ import (
 // checks if the ResponseFormat type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &ResponseFormat{}
 
-// ResponseFormat struct for ResponseFormat
+// ResponseFormat Specify the format that the model must output. By default it will use `{ \"type\": \"text\" }`. Setting to `{ \"type\": \"json_object\" }` enables JSON mode, which guarantees the message the model generates is in JSON. When using JSON mode you MUST also instruct the model to produce JSON yourself with a system or a user message. Setting to `{ \"type\": \"json_schema\" }` enables JSON schema mode, which guarantees the message the model generates is in JSON and follows the schema you provide.
 type ResponseFormat struct {
-	Type                 *ResponseFormats   `json:"type,omitempty"`
-	JsonSchema           NullableJsonSchema `json:"json_schema,omitempty"`
-	AdditionalProperties map[string]interface{}
+	Type       *ResponseFormats   `json:"type,omitempty"`
+	JsonSchema NullableJsonSchema `json:"json_schema,omitempty"`
 }
-
-type _ResponseFormat ResponseFormat
 
 // NewResponseFormat instantiates a new ResponseFormat object
 // This constructor will assign default values to properties that have it defined,
@@ -32,6 +29,8 @@ type _ResponseFormat ResponseFormat
 // will change when the set of required properties is changed
 func NewResponseFormat() *ResponseFormat {
 	this := ResponseFormat{}
+	var type_ ResponseFormats = RESPONSEFORMATS_TEXT
+	this.Type = &type_
 	return &this
 }
 
@@ -40,6 +39,8 @@ func NewResponseFormat() *ResponseFormat {
 // but it doesn't guarantee that properties required by API are set
 func NewResponseFormatWithDefaults() *ResponseFormat {
 	this := ResponseFormat{}
+	var type_ ResponseFormats = RESPONSEFORMATS_TEXT
+	this.Type = &type_
 	return &this
 }
 
@@ -134,34 +135,7 @@ func (o ResponseFormat) ToMap() (map[string]interface{}, error) {
 	if o.JsonSchema.IsSet() {
 		toSerialize["json_schema"] = o.JsonSchema.Get()
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
-}
-
-func (o *ResponseFormat) UnmarshalJSON(data []byte) (err error) {
-	varResponseFormat := _ResponseFormat{}
-
-	err = json.Unmarshal(data, &varResponseFormat)
-
-	if err != nil {
-		return err
-	}
-
-	*o = ResponseFormat(varResponseFormat)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "type")
-		delete(additionalProperties, "json_schema")
-		o.AdditionalProperties = additionalProperties
-	}
-
-	return err
 }
 
 type NullableResponseFormat struct {

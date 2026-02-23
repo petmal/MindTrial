@@ -20,11 +20,11 @@ type BuiltInConnectors string
 
 // List of BuiltInConnectors
 const (
-	WEB_SEARCH         BuiltInConnectors = "web_search"
-	WEB_SEARCH_PREMIUM BuiltInConnectors = "web_search_premium"
-	CODE_INTERPRETER   BuiltInConnectors = "code_interpreter"
-	IMAGE_GENERATION   BuiltInConnectors = "image_generation"
-	DOCUMENT_LIBRARY   BuiltInConnectors = "document_library"
+	BUILTINCONNECTORS_WEB_SEARCH         BuiltInConnectors = "web_search"
+	BUILTINCONNECTORS_WEB_SEARCH_PREMIUM BuiltInConnectors = "web_search_premium"
+	BUILTINCONNECTORS_CODE_INTERPRETER   BuiltInConnectors = "code_interpreter"
+	BUILTINCONNECTORS_IMAGE_GENERATION   BuiltInConnectors = "image_generation"
+	BUILTINCONNECTORS_DOCUMENT_LIBRARY   BuiltInConnectors = "document_library"
 )
 
 // All allowed values of BuiltInConnectors enum

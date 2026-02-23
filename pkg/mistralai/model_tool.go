@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,9 +21,8 @@ var _ MappedNullable = &Tool{}
 
 // Tool struct for Tool
 type Tool struct {
-	Type                 *ToolTypes `json:"type,omitempty"`
-	Function             Function   `json:"function"`
-	AdditionalProperties map[string]interface{}
+	Type     *ToolTypes `json:"type,omitempty"`
+	Function Function   `json:"function"`
 }
 
 type _Tool Tool
@@ -33,6 +33,8 @@ type _Tool Tool
 // will change when the set of required properties is changed
 func NewTool(function Function) *Tool {
 	this := Tool{}
+	var type_ ToolTypes = TOOLTYPES_FUNCTION
+	this.Type = &type_
 	this.Function = function
 	return &this
 }
@@ -42,6 +44,8 @@ func NewTool(function Function) *Tool {
 // but it doesn't guarantee that properties required by API are set
 func NewToolWithDefaults() *Tool {
 	this := Tool{}
+	var type_ ToolTypes = TOOLTYPES_FUNCTION
+	this.Type = &type_
 	return &this
 }
 
@@ -115,11 +119,6 @@ func (o Tool) ToMap() (map[string]interface{}, error) {
 		toSerialize["type"] = o.Type
 	}
 	toSerialize["function"] = o.Function
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -147,21 +146,15 @@ func (o *Tool) UnmarshalJSON(data []byte) (err error) {
 
 	varTool := _Tool{}
 
-	err = json.Unmarshal(data, &varTool)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varTool)
 
 	if err != nil {
 		return err
 	}
 
 	*o = Tool(varTool)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "type")
-		delete(additionalProperties, "function")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

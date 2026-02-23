@@ -9,6 +9,7 @@ package runners
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/petmal/mindtrial/pkg/logging"
@@ -146,6 +147,54 @@ func TestEmittingLogger_ContextChaining(t *testing.T) {
 	emitter.On("emitMessageEvent", "level1: level2: test message").Once()
 
 	contextLogger2.Message(context.Background(), logging.LevelInfo, "test message")
+
+	emitter.AssertExpectations(t)
+}
+
+// testStructuredError is a test error that implements logging.StructuredError.
+type testStructuredError struct {
+	msg    string
+	fields map[string]any
+}
+
+func (e *testStructuredError) Error() string             { return e.msg }
+func (e *testStructuredError) LogFields() map[string]any { return e.fields }
+
+func TestEmittingLogger_ErrorWithStructuredError(t *testing.T) {
+	logger := zerolog.New(zerolog.NewTestWriter(t))
+	emitter := &mockEmitter{}
+
+	emittingLogger := NewEmittingLogger(logger, emitter)
+
+	structuredErr := &testStructuredError{
+		msg:    "structured failure",
+		fields: map[string]any{"raw_message": "test body", "stop_reason": "end_turn"},
+	}
+
+	// The emitted message should be the same formatted message, unaffected by structured fields.
+	emitter.On("emitMessageEvent", "structured error occurred").Once()
+
+	emittingLogger.Error(context.Background(), logging.LevelError, structuredErr, "structured error occurred")
+
+	emitter.AssertExpectations(t)
+}
+
+func TestEmittingLogger_ErrorWithWrappedStructuredError(t *testing.T) {
+	logger := zerolog.New(zerolog.NewTestWriter(t))
+	emitter := &mockEmitter{}
+
+	emittingLogger := NewEmittingLogger(logger, emitter)
+
+	structuredErr := &testStructuredError{
+		msg:    "inner failure",
+		fields: map[string]any{"response_body": `{"error":"bad request"}`},
+	}
+	wrappedErr := fmt.Errorf("outer: %w", structuredErr)
+
+	// The emitted message should be the same formatted message, unaffected by wrapping or structured fields.
+	emitter.On("emitMessageEvent", "wrapped structured error occurred").Once()
+
+	emittingLogger.Error(context.Background(), logging.LevelError, wrappedErr, "wrapped structured error occurred")
 
 	emitter.AssertExpectations(t)
 }

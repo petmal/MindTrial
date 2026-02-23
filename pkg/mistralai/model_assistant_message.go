@@ -22,12 +22,9 @@ type AssistantMessage struct {
 	Content   NullableContent3 `json:"content,omitempty"`
 	ToolCalls []ToolCall       `json:"tool_calls,omitempty"`
 	// Set this to `true` when adding an assistant message as prefix to condition the model response. The role of the prefix message is to force the model to start its answer by the content of the message.
-	Prefix               *bool   `json:"prefix,omitempty"`
-	Role                 *string `json:"role,omitempty"`
-	AdditionalProperties map[string]interface{}
+	Prefix *bool   `json:"prefix,omitempty"`
+	Role   *string `json:"role,omitempty"`
 }
-
-type _AssistantMessage AssistantMessage
 
 // NewAssistantMessage instantiates a new AssistantMessage object
 // This constructor will assign default values to properties that have it defined,
@@ -216,36 +213,7 @@ func (o AssistantMessage) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Role) {
 		toSerialize["role"] = o.Role
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
-}
-
-func (o *AssistantMessage) UnmarshalJSON(data []byte) (err error) {
-	varAssistantMessage := _AssistantMessage{}
-
-	err = json.Unmarshal(data, &varAssistantMessage)
-
-	if err != nil {
-		return err
-	}
-
-	*o = AssistantMessage(varAssistantMessage)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "content")
-		delete(additionalProperties, "tool_calls")
-		delete(additionalProperties, "prefix")
-		delete(additionalProperties, "role")
-		o.AdditionalProperties = additionalProperties
-	}
-
-	return err
 }
 
 type NullableAssistantMessage struct {

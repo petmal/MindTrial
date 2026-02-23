@@ -118,7 +118,7 @@ type BetaLibrariesDocumentsAPI interface {
 	LibrariesDocumentsGetV1Execute(r ApiLibrariesDocumentsGetV1Request) (*DocumentOut, *http.Response, error)
 
 	/*
-		LibrariesDocumentsListV1 List document in a given library.
+		LibrariesDocumentsListV1 List documents in a given library.
 
 		Given a library, lists the document that have been uploaded to that library.
 
@@ -879,14 +879,15 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetV1Execute(r ApiL
 }
 
 type ApiLibrariesDocumentsListV1Request struct {
-	ctx        context.Context
-	ApiService BetaLibrariesDocumentsAPI
-	libraryId  string
-	search     *string
-	pageSize   *int32
-	page       *int32
-	sortBy     *string
-	sortOrder  *string
+	ctx               context.Context
+	ApiService        BetaLibrariesDocumentsAPI
+	libraryId         string
+	search            *string
+	pageSize          *int32
+	page              *int32
+	filtersAttributes *string
+	sortBy            *string
+	sortOrder         *string
 }
 
 func (r ApiLibrariesDocumentsListV1Request) Search(search string) ApiLibrariesDocumentsListV1Request {
@@ -901,6 +902,11 @@ func (r ApiLibrariesDocumentsListV1Request) PageSize(pageSize int32) ApiLibrarie
 
 func (r ApiLibrariesDocumentsListV1Request) Page(page int32) ApiLibrariesDocumentsListV1Request {
 	r.page = &page
+	return r
+}
+
+func (r ApiLibrariesDocumentsListV1Request) FiltersAttributes(filtersAttributes string) ApiLibrariesDocumentsListV1Request {
+	r.filtersAttributes = &filtersAttributes
 	return r
 }
 
@@ -919,7 +925,7 @@ func (r ApiLibrariesDocumentsListV1Request) Execute() (*ListDocumentOut, *http.R
 }
 
 /*
-LibrariesDocumentsListV1 List document in a given library.
+LibrariesDocumentsListV1 List documents in a given library.
 
 Given a library, lists the document that have been uploaded to that library.
 
@@ -965,24 +971,31 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsListV1Execute(r Api
 		parameterAddToHeaderOrQuery(localVarQueryParams, "page_size", r.pageSize, "form", "")
 	} else {
 		var defaultValue int32 = 100
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page_size", defaultValue, "form", "")
 		r.pageSize = &defaultValue
 	}
 	if r.page != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "page", r.page, "form", "")
 	} else {
 		var defaultValue int32 = 0
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page", defaultValue, "form", "")
 		r.page = &defaultValue
+	}
+	if r.filtersAttributes != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filters_attributes", r.filtersAttributes, "form", "")
 	}
 	if r.sortBy != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "sort_by", r.sortBy, "form", "")
 	} else {
 		var defaultValue string = "created_at"
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sort_by", defaultValue, "form", "")
 		r.sortBy = &defaultValue
 	}
 	if r.sortOrder != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "sort_order", r.sortOrder, "form", "")
 	} else {
 		var defaultValue string = "desc"
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sort_order", defaultValue, "form", "")
 		r.sortOrder = &defaultValue
 	}
 	// to determine the Content-Type header

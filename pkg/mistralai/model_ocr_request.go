@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -29,7 +30,10 @@ type OCRRequest struct {
 	ImageMinSize             NullableInt32          `json:"image_min_size,omitempty"`
 	BboxAnnotationFormat     NullableResponseFormat `json:"bbox_annotation_format,omitempty"`
 	DocumentAnnotationFormat NullableResponseFormat `json:"document_annotation_format,omitempty"`
-	AdditionalProperties     map[string]interface{}
+	DocumentAnnotationPrompt NullableString         `json:"document_annotation_prompt,omitempty"`
+	TableFormat              NullableString         `json:"table_format,omitempty"`
+	ExtractHeader            *bool                  `json:"extract_header,omitempty"`
+	ExtractFooter            *bool                  `json:"extract_footer,omitempty"`
 }
 
 type _OCRRequest OCRRequest
@@ -42,6 +46,10 @@ func NewOCRRequest(model NullableString, document Document) *OCRRequest {
 	this := OCRRequest{}
 	this.Model = model
 	this.Document = document
+	var extractHeader bool = false
+	this.ExtractHeader = &extractHeader
+	var extractFooter bool = false
+	this.ExtractFooter = &extractFooter
 	return &this
 }
 
@@ -50,6 +58,10 @@ func NewOCRRequest(model NullableString, document Document) *OCRRequest {
 // but it doesn't guarantee that properties required by API are set
 func NewOCRRequestWithDefaults() *OCRRequest {
 	this := OCRRequest{}
+	var extractHeader bool = false
+	this.ExtractHeader = &extractHeader
+	var extractFooter bool = false
+	this.ExtractFooter = &extractFooter
 	return &this
 }
 
@@ -383,6 +395,156 @@ func (o *OCRRequest) UnsetDocumentAnnotationFormat() {
 	o.DocumentAnnotationFormat.Unset()
 }
 
+// GetDocumentAnnotationPrompt returns the DocumentAnnotationPrompt field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *OCRRequest) GetDocumentAnnotationPrompt() string {
+	if o == nil || IsNil(o.DocumentAnnotationPrompt.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.DocumentAnnotationPrompt.Get()
+}
+
+// GetDocumentAnnotationPromptOk returns a tuple with the DocumentAnnotationPrompt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OCRRequest) GetDocumentAnnotationPromptOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.DocumentAnnotationPrompt.Get(), o.DocumentAnnotationPrompt.IsSet()
+}
+
+// HasDocumentAnnotationPrompt returns a boolean if a field has been set.
+func (o *OCRRequest) HasDocumentAnnotationPrompt() bool {
+	if o != nil && o.DocumentAnnotationPrompt.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetDocumentAnnotationPrompt gets a reference to the given NullableString and assigns it to the DocumentAnnotationPrompt field.
+func (o *OCRRequest) SetDocumentAnnotationPrompt(v string) {
+	o.DocumentAnnotationPrompt.Set(&v)
+}
+
+// SetDocumentAnnotationPromptNil sets the value for DocumentAnnotationPrompt to be an explicit nil
+func (o *OCRRequest) SetDocumentAnnotationPromptNil() {
+	o.DocumentAnnotationPrompt.Set(nil)
+}
+
+// UnsetDocumentAnnotationPrompt ensures that no value is present for DocumentAnnotationPrompt, not even an explicit nil
+func (o *OCRRequest) UnsetDocumentAnnotationPrompt() {
+	o.DocumentAnnotationPrompt.Unset()
+}
+
+// GetTableFormat returns the TableFormat field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *OCRRequest) GetTableFormat() string {
+	if o == nil || IsNil(o.TableFormat.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.TableFormat.Get()
+}
+
+// GetTableFormatOk returns a tuple with the TableFormat field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OCRRequest) GetTableFormatOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.TableFormat.Get(), o.TableFormat.IsSet()
+}
+
+// HasTableFormat returns a boolean if a field has been set.
+func (o *OCRRequest) HasTableFormat() bool {
+	if o != nil && o.TableFormat.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetTableFormat gets a reference to the given NullableString and assigns it to the TableFormat field.
+func (o *OCRRequest) SetTableFormat(v string) {
+	o.TableFormat.Set(&v)
+}
+
+// SetTableFormatNil sets the value for TableFormat to be an explicit nil
+func (o *OCRRequest) SetTableFormatNil() {
+	o.TableFormat.Set(nil)
+}
+
+// UnsetTableFormat ensures that no value is present for TableFormat, not even an explicit nil
+func (o *OCRRequest) UnsetTableFormat() {
+	o.TableFormat.Unset()
+}
+
+// GetExtractHeader returns the ExtractHeader field value if set, zero value otherwise.
+func (o *OCRRequest) GetExtractHeader() bool {
+	if o == nil || IsNil(o.ExtractHeader) {
+		var ret bool
+		return ret
+	}
+	return *o.ExtractHeader
+}
+
+// GetExtractHeaderOk returns a tuple with the ExtractHeader field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *OCRRequest) GetExtractHeaderOk() (*bool, bool) {
+	if o == nil || IsNil(o.ExtractHeader) {
+		return nil, false
+	}
+	return o.ExtractHeader, true
+}
+
+// HasExtractHeader returns a boolean if a field has been set.
+func (o *OCRRequest) HasExtractHeader() bool {
+	if o != nil && !IsNil(o.ExtractHeader) {
+		return true
+	}
+
+	return false
+}
+
+// SetExtractHeader gets a reference to the given bool and assigns it to the ExtractHeader field.
+func (o *OCRRequest) SetExtractHeader(v bool) {
+	o.ExtractHeader = &v
+}
+
+// GetExtractFooter returns the ExtractFooter field value if set, zero value otherwise.
+func (o *OCRRequest) GetExtractFooter() bool {
+	if o == nil || IsNil(o.ExtractFooter) {
+		var ret bool
+		return ret
+	}
+	return *o.ExtractFooter
+}
+
+// GetExtractFooterOk returns a tuple with the ExtractFooter field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *OCRRequest) GetExtractFooterOk() (*bool, bool) {
+	if o == nil || IsNil(o.ExtractFooter) {
+		return nil, false
+	}
+	return o.ExtractFooter, true
+}
+
+// HasExtractFooter returns a boolean if a field has been set.
+func (o *OCRRequest) HasExtractFooter() bool {
+	if o != nil && !IsNil(o.ExtractFooter) {
+		return true
+	}
+
+	return false
+}
+
+// SetExtractFooter gets a reference to the given bool and assigns it to the ExtractFooter field.
+func (o *OCRRequest) SetExtractFooter(v bool) {
+	o.ExtractFooter = &v
+}
+
 func (o OCRRequest) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -416,11 +578,18 @@ func (o OCRRequest) ToMap() (map[string]interface{}, error) {
 	if o.DocumentAnnotationFormat.IsSet() {
 		toSerialize["document_annotation_format"] = o.DocumentAnnotationFormat.Get()
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
+	if o.DocumentAnnotationPrompt.IsSet() {
+		toSerialize["document_annotation_prompt"] = o.DocumentAnnotationPrompt.Get()
 	}
-
+	if o.TableFormat.IsSet() {
+		toSerialize["table_format"] = o.TableFormat.Get()
+	}
+	if !IsNil(o.ExtractHeader) {
+		toSerialize["extract_header"] = o.ExtractHeader
+	}
+	if !IsNil(o.ExtractFooter) {
+		toSerialize["extract_footer"] = o.ExtractFooter
+	}
 	return toSerialize, nil
 }
 
@@ -449,28 +618,15 @@ func (o *OCRRequest) UnmarshalJSON(data []byte) (err error) {
 
 	varOCRRequest := _OCRRequest{}
 
-	err = json.Unmarshal(data, &varOCRRequest)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varOCRRequest)
 
 	if err != nil {
 		return err
 	}
 
 	*o = OCRRequest(varOCRRequest)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "model")
-		delete(additionalProperties, "id")
-		delete(additionalProperties, "document")
-		delete(additionalProperties, "pages")
-		delete(additionalProperties, "include_image_base64")
-		delete(additionalProperties, "image_limit")
-		delete(additionalProperties, "image_min_size")
-		delete(additionalProperties, "bbox_annotation_format")
-		delete(additionalProperties, "document_annotation_format")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

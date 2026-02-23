@@ -20,11 +20,11 @@ type EmbeddingDtype string
 
 // List of EmbeddingDtype
 const (
-	FLOAT   EmbeddingDtype = "float"
-	INT8    EmbeddingDtype = "int8"
-	UINT8   EmbeddingDtype = "uint8"
-	BINARY  EmbeddingDtype = "binary"
-	UBINARY EmbeddingDtype = "ubinary"
+	EMBEDDINGDTYPE_FLOAT   EmbeddingDtype = "float"
+	EMBEDDINGDTYPE_INT8    EmbeddingDtype = "int8"
+	EMBEDDINGDTYPE_UINT8   EmbeddingDtype = "uint8"
+	EMBEDDINGDTYPE_BINARY  EmbeddingDtype = "binary"
+	EMBEDDINGDTYPE_UBINARY EmbeddingDtype = "ubinary"
 )
 
 // All allowed values of EmbeddingDtype enum

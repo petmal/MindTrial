@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,9 +21,8 @@ var _ MappedNullable = &ImageURLChunk{}
 
 // ImageURLChunk {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,iVBORw0
 type ImageURLChunk struct {
-	ImageUrl             ImageUrl `json:"image_url"`
-	Type                 *string  `json:"type,omitempty"`
-	AdditionalProperties map[string]interface{}
+	ImageUrl ImageUrl `json:"image_url"`
+	Type     *string  `json:"type,omitempty"`
 }
 
 type _ImageURLChunk ImageURLChunk
@@ -119,11 +119,6 @@ func (o ImageURLChunk) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -151,21 +146,15 @@ func (o *ImageURLChunk) UnmarshalJSON(data []byte) (err error) {
 
 	varImageURLChunk := _ImageURLChunk{}
 
-	err = json.Unmarshal(data, &varImageURLChunk)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varImageURLChunk)
 
 	if err != nil {
 		return err
 	}
 
 	*o = ImageURLChunk(varImageURLChunk)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "image_url")
-		delete(additionalProperties, "type")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

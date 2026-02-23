@@ -20,8 +20,8 @@ type FineTuneableModelType string
 
 // List of FineTuneableModelType
 const (
-	COMPLETION FineTuneableModelType = "completion"
-	CLASSIFIER FineTuneableModelType = "classifier"
+	FINETUNEABLEMODELTYPE_COMPLETION FineTuneableModelType = "completion"
+	FINETUNEABLEMODELTYPE_CLASSIFIER FineTuneableModelType = "classifier"
 )
 
 // All allowed values of FineTuneableModelType enum

@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,21 +21,21 @@ var _ MappedNullable = &FIMCompletionRequest{}
 
 // FIMCompletionRequest struct for FIMCompletionRequest
 type FIMCompletionRequest struct {
-	// ID of the model to use. Only compatible for now with:   - `codestral-2405`   - `codestral-latest`
+	// ID of the model with FIM to use.
 	Model       string          `json:"model"`
 	Temperature NullableFloat32 `json:"temperature,omitempty"`
 	// Nucleus sampling, where the model considers the results of the tokens with `top_p` probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. We generally recommend altering this or `temperature` but not both.
 	TopP      *float32      `json:"top_p,omitempty"`
 	MaxTokens NullableInt32 `json:"max_tokens,omitempty"`
 	// Whether to stream back partial progress. If set, tokens will be sent as data-only server-side events as they become available, with the stream terminated by a data: [DONE] message. Otherwise, the server will hold the request open until the timeout or until completion, with the response containing the full result as JSON.
-	Stream     *bool         `json:"stream,omitempty"`
-	Stop       *Stop         `json:"stop,omitempty"`
-	RandomSeed NullableInt32 `json:"random_seed,omitempty"`
+	Stream     *bool                  `json:"stream,omitempty"`
+	Stop       *Stop                  `json:"stop,omitempty"`
+	RandomSeed NullableInt32          `json:"random_seed,omitempty"`
+	Metadata   map[string]interface{} `json:"metadata,omitempty"`
 	// The text/code to complete.
-	Prompt               string         `json:"prompt"`
-	Suffix               NullableString `json:"suffix,omitempty"`
-	MinTokens            NullableInt32  `json:"min_tokens,omitempty"`
-	AdditionalProperties map[string]interface{}
+	Prompt    string         `json:"prompt"`
+	Suffix    NullableString `json:"suffix,omitempty"`
+	MinTokens NullableInt32  `json:"min_tokens,omitempty"`
 }
 
 type _FIMCompletionRequest FIMCompletionRequest
@@ -46,7 +47,7 @@ type _FIMCompletionRequest FIMCompletionRequest
 func NewFIMCompletionRequest(model string, prompt string) *FIMCompletionRequest {
 	this := FIMCompletionRequest{}
 	this.Model = model
-	var topP float32 = 1
+	var topP float32 = 1.0
 	this.TopP = &topP
 	var stream bool = false
 	this.Stream = &stream
@@ -59,9 +60,9 @@ func NewFIMCompletionRequest(model string, prompt string) *FIMCompletionRequest 
 // but it doesn't guarantee that properties required by API are set
 func NewFIMCompletionRequestWithDefaults() *FIMCompletionRequest {
 	this := FIMCompletionRequest{}
-	var model string = "codestral-2405"
+	var model string = "codestral-2404"
 	this.Model = model
-	var topP float32 = 1
+	var topP float32 = 1.0
 	this.TopP = &topP
 	var stream bool = false
 	this.Stream = &stream
@@ -317,6 +318,39 @@ func (o *FIMCompletionRequest) UnsetRandomSeed() {
 	o.RandomSeed.Unset()
 }
 
+// GetMetadata returns the Metadata field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *FIMCompletionRequest) GetMetadata() map[string]interface{} {
+	if o == nil {
+		var ret map[string]interface{}
+		return ret
+	}
+	return o.Metadata
+}
+
+// GetMetadataOk returns a tuple with the Metadata field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *FIMCompletionRequest) GetMetadataOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Metadata) {
+		return map[string]interface{}{}, false
+	}
+	return o.Metadata, true
+}
+
+// HasMetadata returns a boolean if a field has been set.
+func (o *FIMCompletionRequest) HasMetadata() bool {
+	if o != nil && !IsNil(o.Metadata) {
+		return true
+	}
+
+	return false
+}
+
+// SetMetadata gets a reference to the given map[string]interface{} and assigns it to the Metadata field.
+func (o *FIMCompletionRequest) SetMetadata(v map[string]interface{}) {
+	o.Metadata = v
+}
+
 // GetPrompt returns the Prompt field value
 func (o *FIMCompletionRequest) GetPrompt() string {
 	if o == nil {
@@ -456,6 +490,9 @@ func (o FIMCompletionRequest) ToMap() (map[string]interface{}, error) {
 	if o.RandomSeed.IsSet() {
 		toSerialize["random_seed"] = o.RandomSeed.Get()
 	}
+	if o.Metadata != nil {
+		toSerialize["metadata"] = o.Metadata
+	}
 	toSerialize["prompt"] = o.Prompt
 	if o.Suffix.IsSet() {
 		toSerialize["suffix"] = o.Suffix.Get()
@@ -463,11 +500,6 @@ func (o FIMCompletionRequest) ToMap() (map[string]interface{}, error) {
 	if o.MinTokens.IsSet() {
 		toSerialize["min_tokens"] = o.MinTokens.Get()
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -496,29 +528,15 @@ func (o *FIMCompletionRequest) UnmarshalJSON(data []byte) (err error) {
 
 	varFIMCompletionRequest := _FIMCompletionRequest{}
 
-	err = json.Unmarshal(data, &varFIMCompletionRequest)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varFIMCompletionRequest)
 
 	if err != nil {
 		return err
 	}
 
 	*o = FIMCompletionRequest(varFIMCompletionRequest)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "model")
-		delete(additionalProperties, "temperature")
-		delete(additionalProperties, "top_p")
-		delete(additionalProperties, "max_tokens")
-		delete(additionalProperties, "stream")
-		delete(additionalProperties, "stop")
-		delete(additionalProperties, "random_seed")
-		delete(additionalProperties, "prompt")
-		delete(additionalProperties, "suffix")
-		delete(additionalProperties, "min_tokens")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

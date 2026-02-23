@@ -50,6 +50,8 @@ type APIClient struct {
 
 	AgentsAPI AgentsAPI
 
+	AudioTranscriptionsAPI AudioTranscriptionsAPI
+
 	BatchAPI BatchAPI
 
 	BetaAgentsAPI BetaAgentsAPI
@@ -96,6 +98,7 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 
 	// API Services
 	c.AgentsAPI = (*AgentsAPIService)(&c.common)
+	c.AudioTranscriptionsAPI = (*AudioTranscriptionsAPIService)(&c.common)
 	c.BatchAPI = (*BatchAPIService)(&c.common)
 	c.BetaAgentsAPI = (*BetaAgentsAPIService)(&c.common)
 	c.BetaConversationsAPI = (*BetaConversationsAPIService)(&c.common)
@@ -533,10 +536,7 @@ func addFile(w *multipart.Writer, fieldName, path string) error {
 	if err != nil {
 		return err
 	}
-	err = file.Close()
-	if err != nil {
-		return err
-	}
+	defer file.Close()
 
 	part, err := w.CreateFormFile(fieldName, filepath.Base(path))
 	if err != nil {

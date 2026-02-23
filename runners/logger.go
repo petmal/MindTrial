@@ -8,6 +8,7 @@ package runners
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -47,7 +48,15 @@ func (l *EmittingLogger) Message(ctx context.Context, level slog.Level, msg stri
 func (l *EmittingLogger) Error(ctx context.Context, level slog.Level, err error, msg string, args ...any) {
 	formattedMsg := fmt.Sprintf(msg, args...)
 	formattedMsg = l.prefix + formattedMsg
-	l.getEvent(level).Err(err).Msg(formattedMsg)
+
+	event := l.getEvent(level).Err(err)
+
+	var structuredErr logging.StructuredError
+	if errors.As(err, &structuredErr) {
+		event = event.Fields(structuredErr.LogFields())
+	}
+
+	event.Msg(formattedMsg)
 	l.emitter.emitMessageEvent(formattedMsg)
 }
 

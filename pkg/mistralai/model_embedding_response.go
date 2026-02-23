@@ -20,11 +20,11 @@ var _ MappedNullable = &EmbeddingResponse{}
 
 // EmbeddingResponse struct for EmbeddingResponse
 type EmbeddingResponse struct {
-	Id                   *string       `json:"id,omitempty"`
-	Object               *string       `json:"object,omitempty"`
-	Model                *string       `json:"model,omitempty"`
-	Usage                *UsageInfo    `json:"usage,omitempty"`
-	Data                 []interface{} `json:"data"`
+	Id                   *string                 `json:"id,omitempty"`
+	Object               *string                 `json:"object,omitempty"`
+	Model                *string                 `json:"model,omitempty"`
+	Usage                *UsageInfo              `json:"usage,omitempty"`
+	Data                 []EmbeddingResponseData `json:"data"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -34,7 +34,7 @@ type _EmbeddingResponse EmbeddingResponse
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewEmbeddingResponse(data []interface{}) *EmbeddingResponse {
+func NewEmbeddingResponse(data []EmbeddingResponseData) *EmbeddingResponse {
 	this := EmbeddingResponse{}
 	this.Data = data
 	return &this
@@ -177,9 +177,9 @@ func (o *EmbeddingResponse) SetUsage(v UsageInfo) {
 }
 
 // GetData returns the Data field value
-func (o *EmbeddingResponse) GetData() []interface{} {
+func (o *EmbeddingResponse) GetData() []EmbeddingResponseData {
 	if o == nil {
-		var ret []interface{}
+		var ret []EmbeddingResponseData
 		return ret
 	}
 
@@ -188,7 +188,7 @@ func (o *EmbeddingResponse) GetData() []interface{} {
 
 // GetDataOk returns a tuple with the Data field value
 // and a boolean to check if the value has been set.
-func (o *EmbeddingResponse) GetDataOk() ([]interface{}, bool) {
+func (o *EmbeddingResponse) GetDataOk() ([]EmbeddingResponseData, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -196,7 +196,7 @@ func (o *EmbeddingResponse) GetDataOk() ([]interface{}, bool) {
 }
 
 // SetData sets field value
-func (o *EmbeddingResponse) SetData(v []interface{}) {
+func (o *EmbeddingResponse) SetData(v []EmbeddingResponseData) {
 	o.Data = v
 }
 

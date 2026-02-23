@@ -20,9 +20,9 @@ type Source string
 
 // List of Source
 const (
-	UPLOAD     Source = "upload"
-	REPOSITORY Source = "repository"
-	MISTRAL    Source = "mistral"
+	SOURCE_UPLOAD     Source = "upload"
+	SOURCE_REPOSITORY Source = "repository"
+	SOURCE_MISTRAL    Source = "mistral"
 )
 
 // All allowed values of Source enum

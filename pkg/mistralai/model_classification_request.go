@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -21,9 +22,9 @@ var _ MappedNullable = &ClassificationRequest{}
 // ClassificationRequest struct for ClassificationRequest
 type ClassificationRequest struct {
 	// ID of the model to use.
-	Model                string `json:"model"`
-	Input                Input1 `json:"input"`
-	AdditionalProperties map[string]interface{}
+	Model    string                 `json:"model"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Input    Input1                 `json:"input"`
 }
 
 type _ClassificationRequest ClassificationRequest
@@ -71,6 +72,39 @@ func (o *ClassificationRequest) SetModel(v string) {
 	o.Model = v
 }
 
+// GetMetadata returns the Metadata field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ClassificationRequest) GetMetadata() map[string]interface{} {
+	if o == nil {
+		var ret map[string]interface{}
+		return ret
+	}
+	return o.Metadata
+}
+
+// GetMetadataOk returns a tuple with the Metadata field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ClassificationRequest) GetMetadataOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Metadata) {
+		return map[string]interface{}{}, false
+	}
+	return o.Metadata, true
+}
+
+// HasMetadata returns a boolean if a field has been set.
+func (o *ClassificationRequest) HasMetadata() bool {
+	if o != nil && !IsNil(o.Metadata) {
+		return true
+	}
+
+	return false
+}
+
+// SetMetadata gets a reference to the given map[string]interface{} and assigns it to the Metadata field.
+func (o *ClassificationRequest) SetMetadata(v map[string]interface{}) {
+	o.Metadata = v
+}
+
 // GetInput returns the Input field value
 func (o *ClassificationRequest) GetInput() Input1 {
 	if o == nil {
@@ -106,12 +140,10 @@ func (o ClassificationRequest) MarshalJSON() ([]byte, error) {
 func (o ClassificationRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["model"] = o.Model
-	toSerialize["input"] = o.Input
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
+	if o.Metadata != nil {
+		toSerialize["metadata"] = o.Metadata
 	}
-
+	toSerialize["input"] = o.Input
 	return toSerialize, nil
 }
 
@@ -140,21 +172,15 @@ func (o *ClassificationRequest) UnmarshalJSON(data []byte) (err error) {
 
 	varClassificationRequest := _ClassificationRequest{}
 
-	err = json.Unmarshal(data, &varClassificationRequest)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varClassificationRequest)
 
 	if err != nil {
 		return err
 	}
 
 	*o = ClassificationRequest(varClassificationRequest)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "model")
-		delete(additionalProperties, "input")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

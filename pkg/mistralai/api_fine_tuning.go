@@ -547,12 +547,14 @@ func (a *FineTuningAPIService) JobsApiRoutesFineTuningGetFineTuningJobsExecute(r
 		parameterAddToHeaderOrQuery(localVarQueryParams, "page", r.page, "form", "")
 	} else {
 		var defaultValue int32 = 0
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page", defaultValue, "form", "")
 		r.page = &defaultValue
 	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "page_size", r.pageSize, "form", "")
 	} else {
 		var defaultValue int32 = 100
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page_size", defaultValue, "form", "")
 		r.pageSize = &defaultValue
 	}
 	if r.model != nil {
@@ -568,6 +570,7 @@ func (a *FineTuningAPIService) JobsApiRoutesFineTuningGetFineTuningJobsExecute(r
 		parameterAddToHeaderOrQuery(localVarQueryParams, "created_by_me", r.createdByMe, "form", "")
 	} else {
 		var defaultValue bool = false
+		parameterAddToHeaderOrQuery(localVarQueryParams, "created_by_me", defaultValue, "form", "")
 		r.createdByMe = &defaultValue
 	}
 	if r.status != nil {

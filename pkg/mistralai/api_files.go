@@ -96,16 +96,16 @@ type FilesAPI interface {
 	FilesApiRoutesRetrieveFileExecute(r ApiFilesApiRoutesRetrieveFileRequest) (*RetrieveFileOut, *http.Response, error)
 
 	/*
-			FilesApiRoutesUploadFile Upload File
+		FilesApiRoutesUploadFile Upload File
 
-			Upload a file that can be used across various endpoints.
+		Upload a file that can be used across various endpoints.
 
-		The size of individual files can be a maximum of 512 MB. The Fine-tuning API only supports .jsonl files.
+	The size of individual files can be a maximum of 512 MB. The Fine-tuning API only supports .jsonl files.
 
-		Please contact us if you need to increase these storage limits.
+	Please contact us if you need to increase these storage limits.
 
-			@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-			@return ApiFilesApiRoutesUploadFileRequest
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiFilesApiRoutesUploadFileRequest
 	*/
 	FilesApiRoutesUploadFile(ctx context.Context) ApiFilesApiRoutesUploadFileRequest
 
@@ -384,6 +384,7 @@ func (a *FilesAPIService) FilesApiRoutesGetSignedUrlExecute(r ApiFilesApiRoutesG
 		parameterAddToHeaderOrQuery(localVarQueryParams, "expiry", r.expiry, "form", "")
 	} else {
 		var defaultValue int32 = 24
+		parameterAddToHeaderOrQuery(localVarQueryParams, "expiry", defaultValue, "form", "")
 		r.expiry = &defaultValue
 	}
 	// to determine the Content-Type header
@@ -441,14 +442,16 @@ func (a *FilesAPIService) FilesApiRoutesGetSignedUrlExecute(r ApiFilesApiRoutesG
 }
 
 type ApiFilesApiRoutesListFilesRequest struct {
-	ctx        context.Context
-	ApiService FilesAPI
-	page       *int32
-	pageSize   *int32
-	sampleType *[]SampleType
-	source     *[]Source
-	search     *string
-	purpose    *FilePurpose
+	ctx          context.Context
+	ApiService   FilesAPI
+	page         *int32
+	pageSize     *int32
+	includeTotal *bool
+	sampleType   *[]SampleType
+	source       *[]Source
+	search       *string
+	purpose      *FilePurpose
+	mimetypes    *[]string
 }
 
 func (r ApiFilesApiRoutesListFilesRequest) Page(page int32) ApiFilesApiRoutesListFilesRequest {
@@ -458,6 +461,11 @@ func (r ApiFilesApiRoutesListFilesRequest) Page(page int32) ApiFilesApiRoutesLis
 
 func (r ApiFilesApiRoutesListFilesRequest) PageSize(pageSize int32) ApiFilesApiRoutesListFilesRequest {
 	r.pageSize = &pageSize
+	return r
+}
+
+func (r ApiFilesApiRoutesListFilesRequest) IncludeTotal(includeTotal bool) ApiFilesApiRoutesListFilesRequest {
+	r.includeTotal = &includeTotal
 	return r
 }
 
@@ -478,6 +486,11 @@ func (r ApiFilesApiRoutesListFilesRequest) Search(search string) ApiFilesApiRout
 
 func (r ApiFilesApiRoutesListFilesRequest) Purpose(purpose FilePurpose) ApiFilesApiRoutesListFilesRequest {
 	r.purpose = &purpose
+	return r
+}
+
+func (r ApiFilesApiRoutesListFilesRequest) Mimetypes(mimetypes []string) ApiFilesApiRoutesListFilesRequest {
+	r.mimetypes = &mimetypes
 	return r
 }
 
@@ -526,13 +539,22 @@ func (a *FilesAPIService) FilesApiRoutesListFilesExecute(r ApiFilesApiRoutesList
 		parameterAddToHeaderOrQuery(localVarQueryParams, "page", r.page, "form", "")
 	} else {
 		var defaultValue int32 = 0
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page", defaultValue, "form", "")
 		r.page = &defaultValue
 	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "page_size", r.pageSize, "form", "")
 	} else {
 		var defaultValue int32 = 100
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page_size", defaultValue, "form", "")
 		r.pageSize = &defaultValue
+	}
+	if r.includeTotal != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "include_total", r.includeTotal, "form", "")
+	} else {
+		var defaultValue bool = true
+		parameterAddToHeaderOrQuery(localVarQueryParams, "include_total", defaultValue, "form", "")
+		r.includeTotal = &defaultValue
 	}
 	if r.sampleType != nil {
 		t := *r.sampleType
@@ -561,6 +583,17 @@ func (a *FilesAPIService) FilesApiRoutesListFilesExecute(r ApiFilesApiRoutesList
 	}
 	if r.purpose != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "purpose", r.purpose, "form", "")
+	}
+	if r.mimetypes != nil {
+		t := *r.mimetypes
+		if reflect.TypeOf(t).Kind() == reflect.Slice {
+			s := reflect.ValueOf(t)
+			for i := 0; i < s.Len(); i++ {
+				parameterAddToHeaderOrQuery(localVarQueryParams, "mimetypes", s.Index(i).Interface(), "form", "multi")
+			}
+		} else {
+			parameterAddToHeaderOrQuery(localVarQueryParams, "mimetypes", t, "form", "multi")
+		}
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}

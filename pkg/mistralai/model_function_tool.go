@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,9 +21,8 @@ var _ MappedNullable = &FunctionTool{}
 
 // FunctionTool struct for FunctionTool
 type FunctionTool struct {
-	Type                 *string  `json:"type,omitempty"`
-	Function             Function `json:"function"`
-	AdditionalProperties map[string]interface{}
+	Type     *string  `json:"type,omitempty"`
+	Function Function `json:"function"`
 }
 
 type _FunctionTool FunctionTool
@@ -119,11 +119,6 @@ func (o FunctionTool) ToMap() (map[string]interface{}, error) {
 		toSerialize["type"] = o.Type
 	}
 	toSerialize["function"] = o.Function
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -151,21 +146,15 @@ func (o *FunctionTool) UnmarshalJSON(data []byte) (err error) {
 
 	varFunctionTool := _FunctionTool{}
 
-	err = json.Unmarshal(data, &varFunctionTool)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varFunctionTool)
 
 	if err != nil {
 		return err
 	}
 
 	*o = FunctionTool(varFunctionTool)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "type")
-		delete(additionalProperties, "function")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

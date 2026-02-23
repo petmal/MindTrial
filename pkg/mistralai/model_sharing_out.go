@@ -25,7 +25,7 @@ type SharingOut struct {
 	OrgId                string         `json:"org_id"`
 	Role                 string         `json:"role"`
 	ShareWithType        string         `json:"share_with_type"`
-	ShareWithUuid        string         `json:"share_with_uuid"`
+	ShareWithUuid        NullableString `json:"share_with_uuid"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -35,7 +35,7 @@ type _SharingOut SharingOut
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewSharingOut(libraryId string, orgId string, role string, shareWithType string, shareWithUuid string) *SharingOut {
+func NewSharingOut(libraryId string, orgId string, role string, shareWithType string, shareWithUuid NullableString) *SharingOut {
 	this := SharingOut{}
 	this.LibraryId = libraryId
 	this.OrgId = orgId
@@ -193,27 +193,29 @@ func (o *SharingOut) SetShareWithType(v string) {
 }
 
 // GetShareWithUuid returns the ShareWithUuid field value
+// If the value is explicit nil, the zero value for string will be returned
 func (o *SharingOut) GetShareWithUuid() string {
-	if o == nil {
+	if o == nil || o.ShareWithUuid.Get() == nil {
 		var ret string
 		return ret
 	}
 
-	return o.ShareWithUuid
+	return *o.ShareWithUuid.Get()
 }
 
 // GetShareWithUuidOk returns a tuple with the ShareWithUuid field value
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *SharingOut) GetShareWithUuidOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.ShareWithUuid, true
+	return o.ShareWithUuid.Get(), o.ShareWithUuid.IsSet()
 }
 
 // SetShareWithUuid sets field value
 func (o *SharingOut) SetShareWithUuid(v string) {
-	o.ShareWithUuid = v
+	o.ShareWithUuid.Set(&v)
 }
 
 func (o SharingOut) MarshalJSON() ([]byte, error) {
@@ -233,7 +235,7 @@ func (o SharingOut) ToMap() (map[string]interface{}, error) {
 	toSerialize["org_id"] = o.OrgId
 	toSerialize["role"] = o.Role
 	toSerialize["share_with_type"] = o.ShareWithType
-	toSerialize["share_with_uuid"] = o.ShareWithUuid
+	toSerialize["share_with_uuid"] = o.ShareWithUuid.Get()
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value

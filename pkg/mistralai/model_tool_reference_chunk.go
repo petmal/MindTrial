@@ -11,6 +11,7 @@ API version: 1.0.0
 package mistralai
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -20,13 +21,12 @@ var _ MappedNullable = &ToolReferenceChunk{}
 
 // ToolReferenceChunk struct for ToolReferenceChunk
 type ToolReferenceChunk struct {
-	Type                 *string           `json:"type,omitempty"`
-	Tool                 BuiltInConnectors `json:"tool"`
-	Title                string            `json:"title"`
-	Url                  NullableString    `json:"url,omitempty"`
-	Favicon              NullableString    `json:"favicon,omitempty"`
-	Description          NullableString    `json:"description,omitempty"`
-	AdditionalProperties map[string]interface{}
+	Type        *string        `json:"type,omitempty"`
+	Tool        Tool1          `json:"tool"`
+	Title       string         `json:"title"`
+	Url         NullableString `json:"url,omitempty"`
+	Favicon     NullableString `json:"favicon,omitempty"`
+	Description NullableString `json:"description,omitempty"`
 }
 
 type _ToolReferenceChunk ToolReferenceChunk
@@ -35,7 +35,7 @@ type _ToolReferenceChunk ToolReferenceChunk
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewToolReferenceChunk(tool BuiltInConnectors, title string) *ToolReferenceChunk {
+func NewToolReferenceChunk(tool Tool1, title string) *ToolReferenceChunk {
 	this := ToolReferenceChunk{}
 	var type_ string = "tool_reference"
 	this.Type = &type_
@@ -87,9 +87,9 @@ func (o *ToolReferenceChunk) SetType(v string) {
 }
 
 // GetTool returns the Tool field value
-func (o *ToolReferenceChunk) GetTool() BuiltInConnectors {
+func (o *ToolReferenceChunk) GetTool() Tool1 {
 	if o == nil {
-		var ret BuiltInConnectors
+		var ret Tool1
 		return ret
 	}
 
@@ -98,7 +98,7 @@ func (o *ToolReferenceChunk) GetTool() BuiltInConnectors {
 
 // GetToolOk returns a tuple with the Tool field value
 // and a boolean to check if the value has been set.
-func (o *ToolReferenceChunk) GetToolOk() (*BuiltInConnectors, bool) {
+func (o *ToolReferenceChunk) GetToolOk() (*Tool1, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -106,7 +106,7 @@ func (o *ToolReferenceChunk) GetToolOk() (*BuiltInConnectors, bool) {
 }
 
 // SetTool sets field value
-func (o *ToolReferenceChunk) SetTool(v BuiltInConnectors) {
+func (o *ToolReferenceChunk) SetTool(v Tool1) {
 	o.Tool = v
 }
 
@@ -287,11 +287,6 @@ func (o ToolReferenceChunk) ToMap() (map[string]interface{}, error) {
 	if o.Description.IsSet() {
 		toSerialize["description"] = o.Description.Get()
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
-	}
-
 	return toSerialize, nil
 }
 
@@ -320,25 +315,15 @@ func (o *ToolReferenceChunk) UnmarshalJSON(data []byte) (err error) {
 
 	varToolReferenceChunk := _ToolReferenceChunk{}
 
-	err = json.Unmarshal(data, &varToolReferenceChunk)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varToolReferenceChunk)
 
 	if err != nil {
 		return err
 	}
 
 	*o = ToolReferenceChunk(varToolReferenceChunk)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "type")
-		delete(additionalProperties, "tool")
-		delete(additionalProperties, "title")
-		delete(additionalProperties, "url")
-		delete(additionalProperties, "favicon")
-		delete(additionalProperties, "description")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }
