@@ -110,6 +110,7 @@ func LoadTasksFromFile(ctx context.Context, path string) (*Tasks, error) {
 			return cfg, fmt.Errorf("invalid validation rules configuration for task '%s': %w", task.Name, err)
 		}
 		cfg.TaskConfig.Tasks[i].ResolveToolSelector(cfg.TaskConfig.ToolSelector)
+		cfg.TaskConfig.Tasks[i].ResolveMaxTurns(cfg.TaskConfig.MaxTurns)
 	}
 
 	// Validate task configuration consistency.

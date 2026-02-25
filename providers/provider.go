@@ -57,6 +57,9 @@ var (
 	ErrRetryable = errors.New("retryable error")
 	// ErrStreamResponse is returned when a streaming response cannot be properly assembled.
 	ErrStreamResponse = errors.New("failed to assemble streaming response")
+	// ErrMaxTurnsExceeded is returned when the conversation loop exceeds the configured
+	// maximum number of turns.
+	ErrMaxTurnsExceeded = fmt.Errorf("%w: maximum conversation turns exceeded", ErrGenerateResponse)
 )
 
 var supportedImageMimeTypes = map[string]bool{
@@ -193,9 +196,24 @@ func NewErrNoActionableContent(stopReason []byte) error {
 	return &ErrNoActionableContent{StopReason: stopReason}
 }
 
-func logSkippedPreambleText(ctx context.Context, logger logging.Logger, reasonValue string, preambleText string) {
+func logFinishReason(ctx context.Context, logger logging.Logger, stopReason string, isTerminal bool) {
+	logger.Message(ctx, logging.LevelDebug, "stop reason: %q (terminal: %t)", stopReason, isTerminal)
+}
+
+// AssertTurnsAvailable logs the current conversation turn and enforces the configured
+// maximum turn limit. Returns nil if no limit is configured or the limit has not been exceeded,
+// or ErrMaxTurnsExceeded if the turn count exceeds the limit.
+func AssertTurnsAvailable(ctx context.Context, logger logging.Logger, task config.Task, currentTurn int) error {
+	logger.Message(ctx, logging.LevelTrace, "conversation turn %d", currentTurn)
+	if maxTurns := task.GetResolvedMaxTurns(); maxTurns > 0 && currentTurn > maxTurns {
+		return fmt.Errorf("%w: exceeded limit of %d", ErrMaxTurnsExceeded, maxTurns)
+	}
+	return nil
+}
+
+func logSkippedPreambleText(ctx context.Context, logger logging.Logger, stopReason string, preambleText string) {
 	if preambleText != "" {
-		logger.Message(ctx, logging.LevelDebug, "ignoring assistant preamble text (stop reason: %s, length: %d)", reasonValue, len(preambleText))
+		logger.Message(ctx, logging.LevelDebug, "ignoring assistant preamble text (stop reason: %s, length: %d)", stopReason, len(preambleText))
 		logger.Message(ctx, logging.LevelTrace, "skipped preamble text content: %s", preambleText)
 	}
 }

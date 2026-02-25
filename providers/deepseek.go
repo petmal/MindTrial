@@ -158,7 +158,13 @@ func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 	}
 
 	// Conversation loop to handle tool calls.
+	var turn int
 	for {
+		turn++
+		if err := AssertTurnsAvailable(ctx, logger, task, turn); err != nil {
+			return result, err
+		}
+
 		resp, err := timed(func() (*deepseek.ChatCompletionResponse, error) {
 			return o.createChatCompletion(ctx, request)
 		}, &result.duration)
@@ -176,6 +182,7 @@ func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 		}
 		for _, candidate := range resp.Choices {
 			isTerminal := o.isTerminalStopReason(candidate.FinishReason)
+			logFinishReason(ctx, logger, candidate.FinishReason, isTerminal)
 
 			if !isTerminal {
 				// Append assistant message for every non-terminal turn.

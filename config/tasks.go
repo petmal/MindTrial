@@ -285,6 +285,11 @@ type TaskConfig struct {
 	// ToolSelector is the default tool selector configuration for all tasks.
 	// Individual tasks can override this configuration.
 	ToolSelector ToolSelector `yaml:"tool-selector" validate:"omitempty"`
+
+	// MaxTurns sets the default maximum number of conversation turns
+	// allowed per task. This acts as a safety net to prevent infinite conversation loops.
+	// Value of 0 means no limit is enforced. Individual tasks can override this setting.
+	MaxTurns int `yaml:"max-turns" validate:"omitempty,min=0"`
 }
 
 // GetEnabledTasks returns a filtered list of tasks that are not disabled.
@@ -632,6 +637,11 @@ type Task struct {
 	// If set, overrides the global TaskConfig.ToolSelector values.
 	ToolSelector *ToolSelector `yaml:"tool-selector" validate:"omitempty"`
 
+	// MaxTurns sets the maximum number of conversation turns allowed
+	// for this specific task. If set, overrides the global TaskConfig.MaxTurns value.
+	// Value of 0 means no limit is enforced.
+	MaxTurns *int `yaml:"max-turns" validate:"omitempty,min=0"`
+
 	// resolvedSystemPrompt is the resolved system prompt template for this task.
 	resolvedSystemPrompt string
 
@@ -640,6 +650,9 @@ type Task struct {
 
 	// resolvedToolSelector is the resolved tool selector for this task.
 	resolvedToolSelector ToolSelector
+
+	// resolvedMaxTurns is the resolved maximum conversation turns for this task.
+	resolvedMaxTurns int
 }
 
 // GetResolvedSystemPrompt returns the resolved system prompt template for this task and true if it is not blank.
@@ -717,6 +730,23 @@ func (t *Task) ResolveValidationRules(defaultConfig ValidationRules) error {
 // The resolved selector can be retrieved using GetResolvedToolSelector().
 func (t *Task) ResolveToolSelector(defaultSelector ToolSelector) {
 	t.resolvedToolSelector = defaultSelector.MergeWith(t.ToolSelector)
+}
+
+// ResolveMaxTurns resolves the maximum conversation turns for this task.
+// If the task has its own value set, it takes precedence over the default.
+// The resolved value can be retrieved using GetResolvedMaxTurns().
+func (t *Task) ResolveMaxTurns(defaultValue int) {
+	if t.MaxTurns != nil {
+		t.resolvedMaxTurns = *t.MaxTurns
+	} else {
+		t.resolvedMaxTurns = defaultValue
+	}
+}
+
+// GetResolvedMaxTurns returns the resolved maximum conversation turns for this task.
+// Value of 0 means no limit is enforced.
+func (t Task) GetResolvedMaxTurns() int {
+	return t.resolvedMaxTurns
 }
 
 // shouldResolveSystemPrompt determines if system prompt should be resolved for this task

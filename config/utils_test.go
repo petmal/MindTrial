@@ -1298,9 +1298,11 @@ func TestLoadTasksFromFile(t *testing.T) {
 					[]byte(
 						`task-config:
     disabled: true
+    max-turns: 50
     tasks:
         - name: "Books neural Automotive"
           disabled: false
+          max-turns: 150
           prompt: |-
               Commodi enim magni.
               Eos modi id omnis exercitationem debitis doloremque.
@@ -1326,6 +1328,7 @@ func TestLoadTasksFromFile(t *testing.T) {
 			want: &Tasks{
 				TaskConfig: TaskConfig{
 					Disabled: true,
+					MaxTurns: 50,
 					Tasks: []Task{
 						{
 							Name:                 "Books neural Automotive",
@@ -1337,7 +1340,9 @@ func TestLoadTasksFromFile(t *testing.T) {
 								mockTaskFile(t, "remote-file", "http://example.com/file.txt", "text"),
 							},
 							Disabled:             testutils.Ptr(false),
+							MaxTurns:             testutils.Ptr(150),
 							resolvedSystemPrompt: "Provide the final answer in exactly this format: Sed unde non.\nVoluptatem quia voluptate id ipsum est rerum quisquam modi pariatur.",
+							resolvedMaxTurns:     150,
 						},
 					},
 				},

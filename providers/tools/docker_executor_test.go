@@ -500,17 +500,68 @@ func TestDockerToolExecutorExecuteTool_MaxCallsExceeded(t *testing.T) {
 
 	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
 	require.NoError(t, err)
+	assert.False(t, executor.IsToolExhausted(tool.name), "tool should not be exhausted after successful call within limit")
 
 	_, err = executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
 	require.Error(t, err)
 	expected := "tool max calls exceeded: tool \"limited-tool\" has exceeded its maximum call limit of 1 for this session. Do not call this tool again during the current conversation"
 	assert.Equal(t, expected, err.Error())
+	assert.True(t, executor.IsToolExhausted(tool.name), "tool should be exhausted after exceeding max calls")
+
+	stats := executor.GetUsageStats()
+	require.Contains(t, stats, tool.name)
+	assert.Equal(t, int32(1), stats[tool.name].Exhausted)
 }
 
 func TestDockerToolExecutorGetUsageStats_NilReceiver(t *testing.T) {
 	var executor *DockerToolExecutor
 	stats := executor.GetUsageStats()
 	require.Nil(t, stats)
+}
+
+func TestDockerToolExecutorIsToolExhausted(t *testing.T) {
+	tests := []struct {
+		name     string
+		setup    func(*DockerToolExecutor)
+		toolName string
+		want     bool
+	}{
+		{
+			name:     "unknown tool returns false",
+			setup:    func(_ *DockerToolExecutor) {},
+			toolName: "nonexistent",
+			want:     false,
+		},
+		{
+			name: "tool with remaining calls returns false",
+			setup: func(e *DockerToolExecutor) {
+				e.usage.Store("limited-tool", &ToolUsage{CallCount: 1})
+			},
+			toolName: "limited-tool",
+			want:     false,
+		},
+		{
+			name: "exhausted tool returns true",
+			setup: func(e *DockerToolExecutor) {
+				e.usage.Store("limited-tool", &ToolUsage{CallCount: 5, Exhausted: 1})
+			},
+			toolName: "limited-tool",
+			want:     true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			executor := &DockerToolExecutor{}
+			tt.setup(executor)
+			assert.Equal(t, tt.want, executor.IsToolExhausted(tt.toolName))
+		})
+	}
+}
+
+func TestDockerToolExecutorIsToolExhausted_NilReceiver(t *testing.T) {
+	var executor *DockerToolExecutor
+	assert.False(t, executor.IsToolExhausted("any-tool"))
 }
 
 func TestDockerToolExecutorExecuteTool_InvalidArguments(t *testing.T) {

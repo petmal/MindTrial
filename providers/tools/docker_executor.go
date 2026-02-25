@@ -45,6 +45,7 @@ type DockerToolExecutor struct {
 type ToolUsage struct {
 	CallCount   int64
 	TotalTimeNs int64
+	Exhausted   int32
 }
 
 // newSharedDirFactory creates a factory function that lazily creates a shared temporary directory.
@@ -115,6 +116,7 @@ func (d *DockerToolExecutor) ExecuteTool(ctx context.Context, logger logging.Log
 		usage := usageValue.(*ToolUsage)
 		callCount := atomic.LoadInt64(&usage.CallCount)
 		if callCount >= int64(*tool.maxCalls) {
+			atomic.StoreInt32(&usage.Exhausted, 1)
 			return nil, fmt.Errorf("%w: tool %q has exceeded its maximum call limit of %d for this session. Do not call this tool again during the current conversation", ErrToolMaxCallsExceeded, toolName, *tool.maxCalls)
 		}
 	}
@@ -441,6 +443,19 @@ func (d *DockerToolExecutor) recordUsage(toolName string, duration time.Duration
 	atomic.AddInt64(&toolUsage.TotalTimeNs, duration.Nanoseconds())
 }
 
+// IsToolExhausted reports whether the named tool has exceeded its maximum call limit.
+// Returns false if the executor is nil or the tool has not been used.
+func (d *DockerToolExecutor) IsToolExhausted(toolName string) bool {
+	if d == nil {
+		return false
+	}
+	usageValue, ok := d.usage.Load(toolName)
+	if !ok {
+		return false
+	}
+	return atomic.LoadInt32(&usageValue.(*ToolUsage).Exhausted) != 0
+}
+
 // GetUsageStats returns usage statistics for all tools.
 func (d *DockerToolExecutor) GetUsageStats() map[string]ToolUsage {
 	if d == nil {
@@ -453,6 +468,7 @@ func (d *DockerToolExecutor) GetUsageStats() map[string]ToolUsage {
 		stats[toolName] = ToolUsage{
 			CallCount:   atomic.LoadInt64(&usage.CallCount),
 			TotalTimeNs: atomic.LoadInt64(&usage.TotalTimeNs),
+			Exhausted:   atomic.LoadInt32(&usage.Exhausted),
 		}
 		return true
 	})

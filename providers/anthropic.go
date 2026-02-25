@@ -158,7 +158,13 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 	}
 
 	// Conversation loop to handle tool calls.
+	var turn int
 	for {
+		turn++
+		if err := AssertTurnsAvailable(ctx, logger, task, turn); err != nil {
+			return result, err
+		}
+
 		resp, err := timed(func() (*anthropic.Message, error) {
 			response, err := o.handleRequest(ctx, request, useStreaming)
 			if err != nil && o.isTransientResponse(err) {
@@ -175,6 +181,7 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 
 		recordUsage(&resp.Usage.InputTokens, &resp.Usage.OutputTokens, &result.usage)
 		isTerminal := o.isTerminalStopReason(resp.StopReason)
+		logFinishReason(ctx, logger, string(resp.StopReason), isTerminal)
 
 		// Append assistant message to conversation history before processing content blocks.
 		request.Messages = append(request.Messages, resp.ToParam())

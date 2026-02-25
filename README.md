@@ -932,6 +932,30 @@ task-config:
             disabled: true  # Selectively disable tool for this simple task.
 ```
 
+##### Conversation Turn Limit
+
+You can set a maximum number of conversation turns per task to act as a safety net against infinite conversation loops (e.g., when a model repeatedly requests exhausted tools). The limit can be configured globally in the `task-config` section, and overridden for individual tasks if needed. A value of `0` means unlimited.
+
+- **max-turns**: Maximum number of conversation turns allowed per task (default: `0`, unlimited).
+
+Example configuration in `tasks.yaml`:
+
+```yaml
+task-config:
+  max-turns: 100  # Default limit for all tasks.
+  tasks:
+    - name: "trivia - geography - Asia"
+      prompt: "What is the capital of Japan?"
+      response-result-format: "city name"
+      expected-result: "Tokyo"
+      max-turns: 200  # Override: allow more turns for this task.
+    - name: "trivia - geography"
+      prompt: "What is the capital of Australia?"
+      response-result-format: "city name"
+      expected-result: "Canberra"
+      # Inherits the global limit of 100 turns.
+```
+
 ## Command Reference
 
 ```bash

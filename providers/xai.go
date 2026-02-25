@@ -157,7 +157,13 @@ func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConf
 	}
 
 	// Conversation loop to handle tool calls.
+	var turn int
 	for {
+		turn++
+		if err := AssertTurnsAvailable(ctx, logger, task, turn); err != nil {
+			return result, err
+		}
+
 		resp, err := timed(func() (*xai.ChatResponse, error) {
 			response, httpResp, err := o.client.V1API.HandleGenericCompletionRequest(ctx).ChatRequest(*req).Execute()
 			if err != nil {
@@ -193,6 +199,7 @@ func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConf
 		for _, candidate := range resp.Choices {
 			finishReason := o.getFinishReason(candidate)
 			isTerminal := o.isTerminalStopReason(finishReason)
+			logFinishReason(ctx, logger, finishReason, isTerminal)
 
 			if !isTerminal {
 				// Append assistant message for every non-terminal turn.

@@ -1132,3 +1132,61 @@ func TestErrNoActionableContent_LogFields(t *testing.T) {
 		})
 	}
 }
+
+func TestAssertTurnsAvailable(t *testing.T) {
+	tests := []struct {
+		name     string
+		maxTurns int
+		turn     int
+		wantErr  bool
+	}{
+		{
+			name:     "zero limit allows any turn",
+			maxTurns: 0,
+			turn:     1000,
+			wantErr:  false,
+		},
+		{
+			name:     "turn within limit",
+			maxTurns: 100,
+			turn:     100,
+			wantErr:  false,
+		},
+		{
+			name:     "first turn with limit",
+			maxTurns: 10,
+			turn:     1,
+			wantErr:  false,
+		},
+		{
+			name:     "turn exceeds limit",
+			maxTurns: 5,
+			turn:     6,
+			wantErr:  true,
+		},
+		{
+			name:     "turn exceeds limit of one",
+			maxTurns: 1,
+			turn:     2,
+			wantErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			logger := testutils.NewTestLogger(t)
+			task := config.Task{}
+			task.ResolveMaxTurns(tt.maxTurns)
+
+			err := AssertTurnsAvailable(ctx, logger, task, tt.turn)
+			if tt.wantErr {
+				require.Error(t, err)
+				require.ErrorIs(t, err, ErrMaxTurnsExceeded)
+				assert.ErrorIs(t, err, ErrGenerateResponse)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}

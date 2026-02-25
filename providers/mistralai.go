@@ -131,7 +131,13 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 	}
 
 	// Conversation loop to handle tool calls.
+	var turn int
 	for {
+		turn++
+		if err := AssertTurnsAvailable(ctx, logger, task, turn); err != nil {
+			return result, err
+		}
+
 		resp, err := timed(func() (*mistralai.ChatCompletionResponse, error) {
 			response, httpResponse, err := o.client.ChatAPI.ChatCompletionV1ChatCompletionsPost(ctx).ChatCompletionRequest(*request).Execute()
 			if err != nil {
@@ -160,6 +166,7 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 		}
 		for _, candidate := range resp.Choices {
 			isTerminal := o.isTerminalStopReason(candidate.FinishReason)
+			logFinishReason(ctx, logger, candidate.FinishReason, isTerminal)
 
 			if !isTerminal {
 				// Append assistant message for every non-terminal turn.

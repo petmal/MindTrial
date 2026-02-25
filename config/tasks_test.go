@@ -1904,6 +1904,49 @@ func TestTask_ResolveSystemPrompt(t *testing.T) {
 	}
 }
 
+func TestTask_ResolveMaxTurns(t *testing.T) {
+	tests := []struct {
+		name         string
+		task         Task
+		defaultValue int
+		want         int
+	}{
+		{
+			name:         "uses default when task override is nil",
+			task:         Task{},
+			defaultValue: 100,
+			want:         100,
+		},
+		{
+			name:         "task override takes precedence",
+			task:         Task{MaxTurns: testutils.Ptr(50)},
+			defaultValue: 100,
+			want:         50,
+		},
+		{
+			name:         "task override with zero disables limit",
+			task:         Task{MaxTurns: testutils.Ptr(0)},
+			defaultValue: 100,
+			want:         0,
+		},
+		{
+			name:         "default zero means unlimited",
+			task:         Task{},
+			defaultValue: 0,
+			want:         0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, 0, tt.task.GetResolvedMaxTurns())
+
+			tt.task.ResolveMaxTurns(tt.defaultValue)
+
+			assert.Equal(t, tt.want, tt.task.GetResolvedMaxTurns())
+		})
+	}
+}
+
 func TestSystemPrompt_GetEnableFor(t *testing.T) {
 	tests := []struct {
 		name         string

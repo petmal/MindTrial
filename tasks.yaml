@@ -5,6 +5,7 @@
 # file, You can obtain one at <https://mozilla.org/MPL/2.0/>.
 
 task-config:
+  max-turns: 100  # Default maximum number of conversation turns allowed per task (0 = unlimited).
   # Global validation rules applied to all tasks by default.
   validation-rules:
     case-sensitive: false

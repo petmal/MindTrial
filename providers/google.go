@@ -206,7 +206,13 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 	contents := []*genai.Content{{Parts: promptParts}}
 
 	// Conversation loop to handle tool calls.
+	var turn int
 	for {
+		turn++
+		if err := AssertTurnsAvailable(ctx, logger, task, turn); err != nil {
+			return result, err
+		}
+
 		// Execute the completion request.
 		resp, err := timed(func() (*genai.GenerateContentResponse, error) {
 			return o.client.Models.GenerateContent(ctx, cfg.Model, contents, generateConfig)
@@ -228,6 +234,7 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 		}
 		for _, candidate := range resp.Candidates {
 			isTerminal := o.hasTerminalStopReason(candidate)
+			logFinishReason(ctx, logger, string(candidate.FinishReason), isTerminal)
 
 			if !isTerminal {
 				if candidate.Content != nil {
@@ -241,15 +248,23 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 							if err != nil {
 								return result, fmt.Errorf("%w: failed to marshal function args: %v", ErrToolUse, err)
 							}
-							response := map[string]interface{}{}
 							data, err := taskFilesToDataMap(ctx, task.Files)
 							if err != nil {
 								return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
 							}
+							response := map[string]interface{}{}
+							// Model should not call tools that already reached max calls limit, but in case it does,
+							// allow one final call of the tool (should short-circuit) and
+							// remove it from the available tools to prevent further errors.
+							wasExhausted := executor.IsToolExhausted(part.FunctionCall.Name)
 							if toolResult, err := executor.ExecuteTool(ctx, logger, part.FunctionCall.Name, json.RawMessage(argsBytes), data); err != nil {
 								response["error"] = formatToolExecutionError(err)
 							} else {
 								response["result"] = string(toolResult)
+							}
+							if wasExhausted {
+								logger.Message(ctx, logging.LevelWarn, "tool %q was called again after max-calls error; removing it from available tools for next turn", part.FunctionCall.Name)
+								removeFunctionCallFromRequestConfig(generateConfig, part.FunctionCall.Name)
 							}
 							functionResponseContent := genai.NewContentFromFunctionResponse(
 								part.FunctionCall.Name,
@@ -286,6 +301,18 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 			}
 		}
 	} // move to the next conversation turn
+}
+
+func removeFunctionCallFromRequestConfig(config *genai.GenerateContentConfig, toolName string) {
+	if config != nil {
+		for _, tool := range config.Tools {
+			if tool != nil {
+				tool.FunctionDeclarations = slices.DeleteFunc(tool.FunctionDeclarations, func(declaration *genai.FunctionDeclaration) bool {
+					return declaration != nil && declaration.Name == toolName
+				})
+			}
+		}
+	}
 }
 
 func (o *GoogleAI) hasTerminalStopReason(candidate *genai.Candidate) bool {

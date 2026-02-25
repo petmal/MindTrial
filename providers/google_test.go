@@ -13,6 +13,7 @@ import (
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/testutils"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/genai"
 )
 
 func TestGoogle_FileTypeNotSupported(t *testing.T) {
@@ -26,4 +27,83 @@ func TestGoogle_FileTypeNotSupported(t *testing.T) {
 	}
 	_, err := p.Run(context.Background(), logger, runCfg, task)
 	require.ErrorIs(t, err, ErrFileNotSupported)
+}
+
+func TestRemoveFunctionCallFromRequestConfig(t *testing.T) {
+	tests := []struct {
+		name string
+		run  func(t *testing.T)
+	}{
+		{
+			name: "removes matching function declaration",
+			run: func(t *testing.T) {
+				config := &genai.GenerateContentConfig{
+					ToolConfig: &genai.ToolConfig{
+						FunctionCallingConfig: &genai.FunctionCallingConfig{Mode: genai.FunctionCallingConfigModeAuto},
+					},
+					Tools: []*genai.Tool{
+						{FunctionDeclarations: []*genai.FunctionDeclaration{{Name: "tool_a"}}},
+						{FunctionDeclarations: []*genai.FunctionDeclaration{{Name: "tool_b"}}},
+					},
+				}
+
+				removeFunctionCallFromRequestConfig(config, "tool_a")
+
+				require.Len(t, config.Tools, 2)
+				require.NotNil(t, config.ToolConfig)
+				require.Empty(t, config.Tools[0].FunctionDeclarations)
+				require.Len(t, config.Tools[1].FunctionDeclarations, 1)
+				require.Equal(t, "tool_b", config.Tools[1].FunctionDeclarations[0].Name)
+			},
+		},
+		{
+			name: "skips nil values and removes only matching names",
+			run: func(t *testing.T) {
+				config := &genai.GenerateContentConfig{
+					ToolConfig: &genai.ToolConfig{
+						FunctionCallingConfig: &genai.FunctionCallingConfig{Mode: genai.FunctionCallingConfigModeAuto},
+					},
+					Tools: []*genai.Tool{
+						nil,
+						{FunctionDeclarations: []*genai.FunctionDeclaration{nil, {Name: "tool_a"}, {Name: "tool_b"}}},
+					},
+				}
+
+				removeFunctionCallFromRequestConfig(config, "tool_a")
+
+				require.Len(t, config.Tools, 2)
+				require.Nil(t, config.Tools[0])
+				require.Len(t, config.Tools[1].FunctionDeclarations, 2)
+				require.Nil(t, config.Tools[1].FunctionDeclarations[0])
+				require.Equal(t, "tool_b", config.Tools[1].FunctionDeclarations[1].Name)
+			},
+		},
+		{
+			name: "unknown function removal is noop",
+			run: func(t *testing.T) {
+				config := &genai.GenerateContentConfig{
+					ToolConfig: &genai.ToolConfig{
+						FunctionCallingConfig: &genai.FunctionCallingConfig{Mode: genai.FunctionCallingConfigModeAuto},
+					},
+					Tools: []*genai.Tool{
+						{FunctionDeclarations: []*genai.FunctionDeclaration{{Name: "tool_a"}}},
+						{FunctionDeclarations: []*genai.FunctionDeclaration{{Name: "tool_b"}}},
+					},
+				}
+
+				removeFunctionCallFromRequestConfig(config, "tool_missing")
+
+				require.Len(t, config.Tools, 2)
+				require.NotNil(t, config.ToolConfig)
+				require.Len(t, config.Tools[0].FunctionDeclarations, 1)
+				require.Equal(t, "tool_a", config.Tools[0].FunctionDeclarations[0].Name)
+				require.Len(t, config.Tools[1].FunctionDeclarations, 1)
+				require.Equal(t, "tool_b", config.Tools[1].FunctionDeclarations[0].Name)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, tt.run)
+	}
 }
