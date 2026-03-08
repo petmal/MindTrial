@@ -53,16 +53,16 @@ type BatchAPI interface {
 	JobsApiRoutesBatchCreateBatchJobExecute(r ApiJobsApiRoutesBatchCreateBatchJobRequest) (*BatchJobOut, *http.Response, error)
 
 	/*
-		JobsApiRoutesBatchGetBatchJob Get Batch Job
+			JobsApiRoutesBatchGetBatchJob Get Batch Job
 
-		Get a batch job details by its UUID.
+			Get a batch job details by its UUID.
 
-	Args:
-	    inline: If True, return results inline in the response.
+		Args:
+		    inline: If True, return results inline in the response.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param jobId
-		@return ApiJobsApiRoutesBatchGetBatchJobRequest
+			@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+			@param jobId
+			@return ApiJobsApiRoutesBatchGetBatchJobRequest
 	*/
 	JobsApiRoutesBatchGetBatchJob(ctx context.Context, jobId string) ApiJobsApiRoutesBatchGetBatchJobRequest
 

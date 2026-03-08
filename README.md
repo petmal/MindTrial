@@ -458,6 +458,8 @@ Optionally, a task can include a list of `files` to be sent along with the promp
   - **name**: A unique name for the file, used for reference within the prompt if needed.
   - **uri**: The path or URI to the file. Local file paths and remote HTTP/HTTPS URLs are supported. The file content will be downloaded and sent with the request.
   - **type**: The MIME type of the file (e.g., `image/png`, `image/jpeg`). If omitted, the tool will attempt to infer the type based on the file extension or content.
+  - **options**: Optional per-file processing options that override the `file-options` defaults from the `task-config` section.
+    - **image-detail**: Controls the fidelity level at which the model processes input images (values: `auto`, `low`, `medium`, `high`, `original`). If the provider does not natively support the requested level, the next higher level or the highest available level is selected. If not set or unknown, the provider uses its own default behavior. Currently only the **OpenAI** provider honors this setting.
 
 > [!NOTE]
 > If a task includes files, it will be skipped for any provider configuration that does not support file uploads or does not support the specific file type.
@@ -693,6 +695,8 @@ A sample task from `tasks.yaml`:
 # tasks.yaml
 task-config:
   disabled: true
+  file-options:
+    image-detail: high
   system-prompt:
     enable-for: "text"
     template: |
@@ -732,6 +736,8 @@ task-config:
         - name: "picture"
           uri: "./taskdata/visual-shapes-v1.png"
           type: "image/png"
+          options:
+            image-detail: original
     - name: "riddle - anagram - v3"
       prompt: |-
         Two words (each individual word is a fruit) have been combined and their letters arranged in alphabetical order forming a single group.

@@ -257,7 +257,7 @@ func (o *openAIV3Provider) Run(ctx context.Context, logger logging.Logger, cfg c
 		request.Messages = append(request.Messages, openai.UserMessage(result.recordPrompt(answerFormatInstruction)))
 	}
 
-	promptMessage, err := o.createPromptMessage(ctx, task.Prompt, task.Files, &result)
+	promptMessage, err := o.createPromptMessage(ctx, logger, task.Prompt, task.Files, &result)
 	if errors.Is(err, ErrFeatureNotSupported) {
 		return result, err
 	} else if err != nil {
@@ -370,7 +370,7 @@ func (o *openAIV3Provider) Run(ctx context.Context, logger logging.Logger, cfg c
 	} // move to the next conversation turn
 }
 
-func (o *openAIV3Provider) createPromptMessage(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (message openai.ChatCompletionMessageParamUnion, err error) {
+func (o *openAIV3Provider) createPromptMessage(ctx context.Context, logger logging.Logger, promptText string, files []config.TaskFile, result *Result) (message openai.ChatCompletionMessageParamUnion, err error) {
 	if len(files) > 0 {
 		parts := make([]openai.ChatCompletionContentPartUnionParam, 0, (len(files)*2)+1)
 		for _, file := range files {
@@ -384,9 +384,10 @@ func (o *openAIV3Provider) createPromptMessage(ctx context.Context, promptText s
 				return message, err
 			}
 			parts = append(parts, openai.TextContentPart(result.recordPrompt(DefaultTaskFileNameInstruction(file))))
+			detail := o.mapImageDetailToOpenAI(ctx, logger, file.GetResolvedFileOptions().ImageDetail)
 			parts = append(parts, openai.ImageContentPart(openai.ChatCompletionContentPartImageImageURLParam{
 				URL:    dataURL,
-				Detail: "auto",
+				Detail: detail,
 			}))
 		}
 		// Append the prompt text after the file data for improved context integrity.
@@ -395,6 +396,29 @@ func (o *openAIV3Provider) createPromptMessage(ctx context.Context, promptText s
 	} else {
 		return openai.UserMessage(result.recordPrompt(promptText)), nil
 	}
+}
+
+// mapImageDetailToOpenAI maps a provider-agnostic ImageDetail value to the OpenAI API detail string.
+// OpenAI supports "auto", "low", "high", and "original". The generic "medium" value is mapped
+// to "high" (nearest higher) to avoid artificially reducing image fidelity during evaluations.
+// A nil or unrecognised value maps to "auto" (OpenAI's default behavior); a warning is logged
+// for unrecognised values so the operator is aware of the fallback.
+func (o *openAIV3Provider) mapImageDetailToOpenAI(ctx context.Context, logger logging.Logger, detail *config.ImageDetail) string {
+	if detail != nil {
+		switch *detail {
+		case config.ImageDetailAuto:
+			return "auto"
+		case config.ImageDetailLow:
+			return "low"
+		case config.ImageDetailMedium, config.ImageDetailHigh:
+			return "high"
+		case config.ImageDetailOriginal:
+			return "original"
+		default:
+			logger.Message(ctx, logging.LevelWarn, "unsupported image detail level %q, reverting to default behavior", *detail)
+		}
+	}
+	return "auto"
 }
 
 func (o *openAIV3Provider) isTransientResponse(err error) bool {

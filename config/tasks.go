@@ -286,6 +286,10 @@ type TaskConfig struct {
 	// Individual tasks can override this configuration.
 	ToolSelector ToolSelector `yaml:"tool-selector" validate:"omitempty"`
 
+	// FileOptions are default file processing options for all task files.
+	// Individual task files can override these settings.
+	FileOptions FileOptions `yaml:"file-options" validate:"omitempty"`
+
 	// MaxTurns sets the default maximum number of conversation turns
 	// allowed per task. This acts as a safety net to prevent infinite conversation loops.
 	// Value of 0 means no limit is enforced. Individual tasks can override this setting.
@@ -404,8 +408,15 @@ type TaskFile struct {
 	// If not provided, it will be inferred from the file extension or content.
 	Type string `yaml:"type" validate:"omitempty"`
 
+	// Options are per-file processing options.
+	// If set, overrides the global TaskConfig.FileOptions values.
+	Options *FileOptions `yaml:"options" validate:"omitempty"`
+
 	// basePath is used to resolve relative local paths.
 	basePath string
+
+	// resolvedFileOptions are the resolved file options for this file.
+	resolvedFileOptions FileOptions
 
 	content   func(context.Context, *TaskFile) ([]byte, error)
 	base64    func(context.Context, *TaskFile) (string, error)
@@ -481,6 +492,17 @@ func (f *TaskFile) UnmarshalYAML(value *yaml.Node) error {
 // SetBasePath sets the base path used to resolve relative local paths.
 func (f *TaskFile) SetBasePath(basePath string) {
 	f.basePath = basePath
+}
+
+// ResolveFileOptions resolves the file options using the provided defaults.
+// The resolved options can be retrieved using GetResolvedFileOptions().
+func (f *TaskFile) ResolveFileOptions(defaultOptions FileOptions) {
+	f.resolvedFileOptions = defaultOptions.MergeWith(f.Options)
+}
+
+// GetResolvedFileOptions returns the resolved file options for this file.
+func (f TaskFile) GetResolvedFileOptions() FileOptions {
+	return f.resolvedFileOptions
 }
 
 // downloadFile downloads a file from a URL and returns its content.
@@ -875,6 +897,43 @@ func setIfNotNil[T any](dst **T, src *T) {
 	if src != nil {
 		*dst = src
 	}
+}
+
+// ImageDetail controls the fidelity level at which the model processes input images.
+// The value is provider-agnostic; each provider maps it to its native equivalent.
+// If the provider does not natively support the requested level, it selects the next
+// higher level, guaranteeing the model receives at least the specified fidelity.
+type ImageDetail string
+
+const (
+	// ImageDetailAuto lets the provider decide the appropriate image detail level.
+	ImageDetailAuto ImageDetail = "auto"
+	// ImageDetailLow uses the lowest fidelity, minimizing token usage.
+	ImageDetailLow ImageDetail = "low"
+	// ImageDetailMedium uses a moderate fidelity level.
+	ImageDetailMedium ImageDetail = "medium"
+	// ImageDetailHigh uses a high fidelity level for fine details.
+	ImageDetailHigh ImageDetail = "high"
+	// ImageDetailOriginal uses the highest available fidelity without any downscaling.
+	ImageDetailOriginal ImageDetail = "original"
+)
+
+// FileOptions contains per-file processing options that can be inherited from task-config defaults.
+type FileOptions struct {
+	// ImageDetail controls the fidelity level for image files.
+	ImageDetail *ImageDetail `yaml:"image-detail" validate:"omitempty,oneof=auto low medium high original"`
+}
+
+// MergeWith merges these file options with other options and returns the result.
+// The provided other values override these values if set.
+func (these FileOptions) MergeWith(other *FileOptions) FileOptions {
+	resolved := these
+
+	if other != nil {
+		setIfNotNil(&resolved.ImageDetail, other.ImageDetail)
+	}
+
+	return resolved
 }
 
 // SetBaseFilePath sets the base path for all local files in the task.

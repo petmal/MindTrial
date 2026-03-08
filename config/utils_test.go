@@ -1299,6 +1299,8 @@ func TestLoadTasksFromFile(t *testing.T) {
 						`task-config:
     disabled: true
     max-turns: 50
+    file-options:
+        image-detail: high
     tasks:
         - name: "Books neural Automotive"
           disabled: false
@@ -1321,6 +1323,8 @@ func TestLoadTasksFromFile(t *testing.T) {
             - name: "local-file"
               uri: "path/to/file.txt"
               type: "text"
+              options:
+                  image-detail: original
             - name: "remote-file"
               uri: "http://example.com/file.txt"
               type: "text"`)),
@@ -1329,6 +1333,9 @@ func TestLoadTasksFromFile(t *testing.T) {
 				TaskConfig: TaskConfig{
 					Disabled: true,
 					MaxTurns: 50,
+					FileOptions: FileOptions{
+						ImageDetail: testutils.Ptr(ImageDetailHigh),
+					},
 					Tasks: []Task{
 						{
 							Name:                 "Books neural Automotive",
@@ -1336,8 +1343,8 @@ func TestLoadTasksFromFile(t *testing.T) {
 							ResponseResultFormat: NewResponseFormat("Sed unde non.\nVoluptatem quia voluptate id ipsum est rerum quisquam modi pariatur."),
 							ExpectedResult:       utils.NewValueSet("Ut quibusdam inventore dolorum velit.\nUllam et dolor laudantium placeat totam dolorem quia.\nEx voluptates et ipsam sunt nulla eos alias sint ad.\n\nDeleniti ducimus natus et omnis expedita."),
 							Files: []TaskFile{
-								mockTaskFile(t, "local-file", "path/to/file.txt", "text"),
-								mockTaskFile(t, "remote-file", "http://example.com/file.txt", "text"),
+								mockTaskFileWithOptions(t, "local-file", "path/to/file.txt", "text", &FileOptions{ImageDetail: testutils.Ptr(ImageDetailOriginal)}, FileOptions{ImageDetail: testutils.Ptr(ImageDetailHigh)}),
+								mockTaskFileWithOptions(t, "remote-file", "http://example.com/file.txt", "text", nil, FileOptions{ImageDetail: testutils.Ptr(ImageDetailHigh)}),
 							},
 							Disabled:             testutils.Ptr(false),
 							MaxTurns:             testutils.Ptr(150),
@@ -1721,6 +1728,13 @@ func mockTaskFile(t *testing.T, name string, uri string, mimeType string) TaskFi
 		Type: mimeType,
 	}
 	require.NoError(t, file.URI.Parse(uri))
+	return file
+}
+
+func mockTaskFileWithOptions(t *testing.T, name string, uri string, mimeType string, options *FileOptions, defaultOptions FileOptions) TaskFile {
+	file := mockTaskFile(t, name, uri, mimeType)
+	file.Options = options
+	file.ResolveFileOptions(defaultOptions)
 	return file
 }
 

@@ -157,3 +157,29 @@ func TestDefaultCompletionHandler_ToParam(t *testing.T) {
 		assert.Empty(t, result.Choices[0].Message.JSON.ExtraFields)
 	})
 }
+
+func TestMapImageDetailToOpenAI(t *testing.T) {
+	provider := &openAIV3Provider{}
+	logger := testutils.NewTestLogger(t)
+
+	tests := []struct {
+		name     string
+		detail   *config.ImageDetail
+		expected string
+	}{
+		{name: "nil defaults to auto", detail: nil, expected: "auto"},
+		{name: "auto", detail: testutils.Ptr(config.ImageDetailAuto), expected: "auto"},
+		{name: "low", detail: testutils.Ptr(config.ImageDetailLow), expected: "low"},
+		{name: "medium maps to high", detail: testutils.Ptr(config.ImageDetailMedium), expected: "high"},
+		{name: "high", detail: testutils.Ptr(config.ImageDetailHigh), expected: "high"},
+		{name: "original", detail: testutils.Ptr(config.ImageDetailOriginal), expected: "original"},
+		{name: "unknown falls back to auto", detail: testutils.Ptr(config.ImageDetail("unknown")), expected: "auto"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := provider.mapImageDetailToOpenAI(context.Background(), logger, tt.detail)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}

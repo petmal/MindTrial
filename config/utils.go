@@ -111,6 +111,9 @@ func LoadTasksFromFile(ctx context.Context, path string) (*Tasks, error) {
 		}
 		cfg.TaskConfig.Tasks[i].ResolveToolSelector(cfg.TaskConfig.ToolSelector)
 		cfg.TaskConfig.Tasks[i].ResolveMaxTurns(cfg.TaskConfig.MaxTurns)
+		for j := range cfg.TaskConfig.Tasks[i].Files {
+			cfg.TaskConfig.Tasks[i].Files[j].ResolveFileOptions(cfg.TaskConfig.FileOptions)
+		}
 	}
 
 	// Validate task configuration consistency.

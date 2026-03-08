@@ -2443,3 +2443,80 @@ func TestJudgePrompt_Getters_DefaultsAndOverrides(t *testing.T) {
 		assert.Equal(t, customVerdicts.Values(), gotPassing.Values())
 	})
 }
+
+func TestFileOptions_MergeWith(t *testing.T) {
+	tests := []struct {
+		name     string
+		base     FileOptions
+		other    *FileOptions
+		expected FileOptions
+	}{
+		{
+			name:     "nil other uses base",
+			base:     FileOptions{ImageDetail: testutils.Ptr(ImageDetailHigh)},
+			other:    nil,
+			expected: FileOptions{ImageDetail: testutils.Ptr(ImageDetailHigh)},
+		},
+		{
+			name:     "empty other uses base",
+			base:     FileOptions{ImageDetail: testutils.Ptr(ImageDetailLow)},
+			other:    &FileOptions{},
+			expected: FileOptions{ImageDetail: testutils.Ptr(ImageDetailLow)},
+		},
+		{
+			name:     "other overrides base",
+			base:     FileOptions{ImageDetail: testutils.Ptr(ImageDetailLow)},
+			other:    &FileOptions{ImageDetail: testutils.Ptr(ImageDetailOriginal)},
+			expected: FileOptions{ImageDetail: testutils.Ptr(ImageDetailOriginal)},
+		},
+		{
+			name:     "other sets when base is empty",
+			base:     FileOptions{},
+			other:    &FileOptions{ImageDetail: testutils.Ptr(ImageDetailMedium)},
+			expected: FileOptions{ImageDetail: testutils.Ptr(ImageDetailMedium)},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.base.MergeWith(tt.other)
+			assert.Equal(t, tt.expected, got)
+		})
+	}
+}
+
+func TestTaskFile_ResolveFileOptions(t *testing.T) {
+	tests := []struct {
+		name           string
+		defaultOptions FileOptions
+		fileOptions    *FileOptions
+		expected       FileOptions
+	}{
+		{
+			name:           "inherits from default",
+			defaultOptions: FileOptions{ImageDetail: testutils.Ptr(ImageDetailHigh)},
+			fileOptions:    nil,
+			expected:       FileOptions{ImageDetail: testutils.Ptr(ImageDetailHigh)},
+		},
+		{
+			name:           "file overrides default",
+			defaultOptions: FileOptions{ImageDetail: testutils.Ptr(ImageDetailLow)},
+			fileOptions:    &FileOptions{ImageDetail: testutils.Ptr(ImageDetailOriginal)},
+			expected:       FileOptions{ImageDetail: testutils.Ptr(ImageDetailOriginal)},
+		},
+		{
+			name:           "empty default and nil file options",
+			defaultOptions: FileOptions{},
+			fileOptions:    nil,
+			expected:       FileOptions{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			file := TaskFile{Options: tt.fileOptions}
+			file.ResolveFileOptions(tt.defaultOptions)
+			assert.Equal(t, tt.expected, file.GetResolvedFileOptions())
+		})
+	}
+}

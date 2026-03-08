@@ -6,6 +6,8 @@
 
 task-config:
   max-turns: 100  # Default maximum number of conversation turns allowed per task (0 = unlimited).
+  file-options:  # Default options for file attachments in tasks.
+    image-detail: auto
   # Global validation rules applied to all tasks by default.
   validation-rules:
     case-sensitive: false

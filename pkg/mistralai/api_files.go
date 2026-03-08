@@ -96,16 +96,16 @@ type FilesAPI interface {
 	FilesApiRoutesRetrieveFileExecute(r ApiFilesApiRoutesRetrieveFileRequest) (*RetrieveFileOut, *http.Response, error)
 
 	/*
-		FilesApiRoutesUploadFile Upload File
+			FilesApiRoutesUploadFile Upload File
 
-		Upload a file that can be used across various endpoints.
+			Upload a file that can be used across various endpoints.
 
-	The size of individual files can be a maximum of 512 MB. The Fine-tuning API only supports .jsonl files.
+		The size of individual files can be a maximum of 512 MB. The Fine-tuning API only supports .jsonl files.
 
-	Please contact us if you need to increase these storage limits.
+		Please contact us if you need to increase these storage limits.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiFilesApiRoutesUploadFileRequest
+			@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+			@return ApiFilesApiRoutesUploadFileRequest
 	*/
 	FilesApiRoutesUploadFile(ctx context.Context) ApiFilesApiRoutesUploadFileRequest
 
