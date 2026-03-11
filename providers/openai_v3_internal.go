@@ -422,6 +422,13 @@ func (o *openAIV3Provider) mapImageDetailToOpenAI(ctx context.Context, logger lo
 }
 
 func (o *openAIV3Provider) isTransientResponse(err error) bool {
+	return isOpenAITransientResponse(err)
+}
+
+// isOpenAITransientResponse checks whether an error from the OpenAI Go SDK
+// represents a transient condition that can be retried. Shared by both the
+// Chat Completions and Responses API providers.
+func isOpenAITransientResponse(err error) bool {
 	var apiErr *openai.Error
 	if errors.As(err, &apiErr) {
 		return slices.Contains([]int{

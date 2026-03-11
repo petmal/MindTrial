@@ -8,7 +8,10 @@ package providers
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/openai/openai-go/v3/option"
 	"github.com/petmal/mindtrial/config"
@@ -18,13 +21,17 @@ import (
 
 // NewOpenAI creates a new OpenAI provider instance with the given configuration.
 func NewOpenAI(cfg config.OpenAIClientConfig, availableTools []config.ToolConfig) *OpenAI {
-	openaiProvider := newOpenAIV3Provider(availableTools, option.WithAPIKey(cfg.APIKey))
-	return &OpenAI{openaiProvider: openaiProvider}
+	opts := []option.RequestOption{option.WithAPIKey(cfg.APIKey)}
+	return &OpenAI{
+		completionProvider: newOpenAIV3Provider(availableTools, opts...),
+		responsesProvider:  newOpenAIResponsesProvider(availableTools, opts...),
+	}
 }
 
 // OpenAI implements the Provider interface for OpenAI generative models.
 type OpenAI struct {
-	openaiProvider *openAIV3Provider
+	completionProvider *openAIV3Provider
+	responsesProvider  *openAIResponsesProvider
 }
 
 func (o OpenAI) Name() string {
@@ -43,11 +50,19 @@ func (o *OpenAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunC
 	}
 
 	cfg.ModelParams = openAIV3Params
-	return o.openaiProvider.Run(ctx, logger, cfg, task)
+	if useChatCompletionsAPI(cfg.Model) {
+		logger.Message(ctx, logging.LevelInfo, "using Chat Completions API")
+		return o.completionProvider.Run(ctx, logger, cfg, task)
+	}
+	logger.Message(ctx, logging.LevelInfo, "using Responses API")
+	return o.responsesProvider.Run(ctx, logger, cfg, task)
 }
 
 func (o *OpenAI) Close(ctx context.Context) error {
-	return o.openaiProvider.Close(ctx)
+	return errors.Join(
+		o.completionProvider.Close(ctx),
+		o.responsesProvider.Close(ctx),
+	)
 }
 
 // copyToOpenAIV3Params copies relevant fields from OpenAIModelParams to openAIV3ModelParams.
@@ -77,4 +92,25 @@ func (o *OpenAI) copyToOpenAIV3Params(openAIModelParams config.OpenAIModelParams
 		openAIV3Params.FrequencyPenalty = utils.Ptr(float64(*openAIModelParams.FrequencyPenalty))
 	}
 	openAIV3Params.Seed = openAIModelParams.Seed
+}
+
+// chatCompletionModelPrefixes lists model name prefixes that should be routed to
+// the legacy Chat Completions API. All other models default to the Responses API.
+var chatCompletionModelPrefixes = []string{
+	"gpt-3", // gpt-3.5-turbo (sunset Sep 2026)
+	"gpt-4", // gpt-4o, gpt-4o-mini, gpt-4.1, gpt-4.1-mini, gpt-4.1-nano
+	"o1",    // o1 reasoning model
+	"o3",    // o3 reasoning model
+	"o4",    // o4-mini reasoning model
+}
+
+// useChatCompletionsAPI reports whether the given model should use the legacy
+// Chat Completions API instead of the Responses API. Known pre-GPT-5 model
+// families are routed to Chat Completions; all other models (including future
+// ones) default to the Responses API.
+func useChatCompletionsAPI(model string) bool {
+	normalizedModel := strings.ToLower(strings.TrimSpace(model))
+	return slices.ContainsFunc(chatCompletionModelPrefixes, func(prefix string) bool {
+		return strings.HasPrefix(normalizedModel, prefix)
+	})
 }

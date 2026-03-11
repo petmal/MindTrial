@@ -125,6 +125,9 @@ This file defines the tool's settings and target model configurations evaluated 
 > [!IMPORTANT]
 > The `disable-structured-output` flag cannot be used in judge configurations, as judges require structured responses for evaluation.
 
+> [!NOTE]
+> The **OpenAI** provider routes GPT-5 and newer model families through the Responses API and currently relies on stored response state (`previous_response_id`) for multi-turn and tool-calling flows. As a result, **OpenAI Zero Data Retention (ZDR) is not currently supported** for those models. Legacy OpenAI models that still use the Chat Completions API are unaffected.
+
 > [!IMPORTANT]
 > All provider names must match exactly:
 >

@@ -146,3 +146,43 @@ func TestOpenAICopyToOpenAIV3Params(t *testing.T) {
 		require.Nil(t, params.Seed)
 	})
 }
+
+func TestUseChatCompletionsAPI(t *testing.T) {
+	tests := []struct {
+		name     string
+		model    string
+		expected bool
+	}{
+		// GPT-3 family
+		{name: "gpt-3.5-turbo", model: "gpt-3.5-turbo", expected: true},
+		// GPT-4 family
+		{name: "gpt-4o", model: "gpt-4o", expected: true},
+		{name: "gpt-4o-mini", model: "gpt-4o-mini", expected: true},
+		{name: "gpt-4.1", model: "gpt-4.1", expected: true},
+		{name: "gpt-4.1-mini", model: "gpt-4.1-mini", expected: true},
+		{name: "gpt-4.1-nano", model: "gpt-4.1-nano", expected: true},
+		// Reasoning models
+		{name: "o1", model: "o1", expected: true},
+		{name: "o1-mini", model: "o1-mini", expected: true},
+		{name: "o3", model: "o3", expected: true},
+		{name: "o3-mini", model: "o3-mini", expected: true},
+		{name: "o4-mini", model: "o4-mini", expected: true},
+		// GPT-5 and future models default to Responses API
+		{name: "gpt-5", model: "gpt-5", expected: false},
+		{name: "gpt-5-mini", model: "gpt-5-mini", expected: false},
+		{name: "gpt-6", model: "gpt-6", expected: false},
+		{name: "future-model", model: "future-model", expected: false},
+		// Case insensitivity and whitespace trimming
+		{name: "uppercase GPT-4o", model: "GPT-4o", expected: true},
+		{name: "mixed case O3-Mini", model: "O3-Mini", expected: true},
+		{name: "whitespace padded", model: "  gpt-4o  ", expected: true},
+		// Edge cases
+		{name: "empty model", model: "", expected: false},
+		{name: "o2 is not a known prefix", model: "o2", expected: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.expected, useChatCompletionsAPI(tt.model))
+		})
+	}
+}
