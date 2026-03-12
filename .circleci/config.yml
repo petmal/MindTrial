@@ -1,0 +1,45 @@
+# CircleCI configuration for MindTrial
+# Replaces GitHub Actions CI with CircleCI.
+
+version: 2.1
+
+executors:
+  go:
+    docker:
+      - image: cimg/go:1.25
+    resource_class: medium
+
+jobs:
+  build:
+    executor: go
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-mod-v1-{{ checksum "go.sum" }}
+      - run:
+          name: Build
+          command: go build -v ./...
+      - save_cache:
+          key: go-mod-v1-{{ checksum "go.sum" }}
+          paths:
+            - /home/circleci/go/pkg/mod
+
+  test:
+    executor: go
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-mod-v1-{{ checksum "go.sum" }}
+      - run:
+          name: Unit Tests
+          command: go test -tags=test -race -v ./...
+
+workflows:
+  build-and-test:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
