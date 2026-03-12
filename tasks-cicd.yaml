@@ -1,0 +1,416 @@
+# CI/CD Domain Tasks for MindTrial
+# These tasks test AI model knowledge of CI/CD, DevOps, and CircleCI-specific concepts.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at <https://mozilla.org/MPL/2.0/>.
+
+task-config:
+  max-turns: 100
+  validation-rules:
+    case-sensitive: false
+    ignore-whitespace: false
+    trim-lines: false
+    judge:
+      prompt:
+        template: |-
+          You are an automatic grader. Decide if the candidate response is semantically equivalent to ANY ONE of the expected answers.
+
+          Definitions
+          - Semantic equivalence: the candidate conveys the same meaning and required facts as an expected answer; wording may differ.
+          - Extra content: ignore unless it contradicts or changes the meaning.
+          - Normalization: apply the flags below BEFORE comparing (case/whitespace).
+
+          Inputs
+          Original task prompt:
+          {{.OriginalTask.Prompt}}
+
+          Original answer format instruction:
+          {{.OriginalTask.ResponseResultFormat}}
+
+          Expected answer(s) (match any one):
+          {{- range .OriginalTask.ExpectedResults}}
+          - {{.}}
+          {{- end}}
+
+          Candidate response:
+          {{.Candidate.Response}}
+
+          Validation flags:
+          - Case sensitive: {{if .Rules.CaseSensitive}}yes{{else}}no{{end}}
+          - Ignore whitespace: {{if .Rules.IgnoreWhitespace}}yes{{else}}no{{end}}
+
+          Procedure
+          1. Normalize candidate and each expected answer per the flags.
+          2. Compare the candidate to each expected answer independently for semantic equivalence.
+          3. Set "correct" to true if ANY match, false otherwise.
+        verdict-format:
+          type: object
+          properties:
+            correct:
+              type: boolean
+              title: "Semantic Equivalence Verdict"
+              description: "True if the candidate response is semantically equivalent to any expected answer, false otherwise. Follow the provided evaluation criteria and normalization rules."
+          required: ["correct"]
+          additionalProperties: false
+        passing-verdicts:
+          correct: true
+  system-prompt:
+    enable-for: "text"
+    template: |-
+      Your final answer must strictly follow the format definition below. Do not add extra words, punctuation, quotes, or whitespace beyond what the format specifies.
+
+      ---
+      FORMAT DEFINITION:
+      {{.ResponseResultFormat}}
+      ---
+
+      RULES:
+      1. The format definition above describes the required structure for the final answer content.
+      2. If it contains placeholders like `<variable>`, substitute them with the correct raw value, removing the `<` and `>` characters.
+      3. Adhere to all described structural rules, such as list numbering, ordering, separators, and newlines.
+      4. If the format provides specific word choices (e.g., "true or false"), your answer must be one of those exact words.
+  tool-selector:
+    disabled: true
+    tools:
+      - name: python-code-executor
+        max-calls: 10
+        timeout: 60s
+        max-memory-mb: 512
+        cpu-percent: 25
+  tasks:
+    - name: "cicd - shell arithmetic - v1"
+      prompt: |-
+        What is the output of the following bash script?
+
+        x=1
+        for i in $(seq 1 5); do
+          x=$((x * 2))
+        done
+        echo $x
+      response-result-format: |-
+        the output number
+      expected-result: |-
+        32
+    - name: "cicd - pipeline stages - v1"
+      prompt: |-
+        A CI/CD pipeline has the following jobs with dependencies:
+
+        - lint: no dependencies
+        - unit_test: no dependencies
+        - build: depends on lint and unit_test
+        - integration_test: depends on build
+        - deploy_staging: depends on build
+        - deploy_production: depends on integration_test and deploy_staging
+
+        If independent jobs run in parallel, what is the minimum number of sequential stages required to complete the entire pipeline?
+      response-result-format: |-
+        <number>
+      expected-result: |-
+        4
+    - name: "cicd - semantic versioning - v1"
+      prompt: |-
+        A library is currently at version 3.2.5. The following changes are made in the next release:
+
+        1. A bug fix for an edge case in the parser
+        2. A new optional parameter added to an existing function (backward-compatible)
+        3. Performance improvement to the core algorithm (no API changes)
+
+        Following Semantic Versioning 2.0.0 rules strictly, what should the next version number be?
+      response-result-format: |-
+        <major>.<minor>.<patch>
+      expected-result: |-
+        3.3.0
+    - name: "cicd - environment variable resolution - v1"
+      prompt: |-
+        Given the following bash environment setup, what is the final value of the DEPLOY_URL variable?
+
+        export ENV="production"
+        export REGION="us-east-1"
+        export SERVICE="api"
+        export BASE="https://${SERVICE}.${REGION}.example.com"
+        export DEPLOY_URL="${BASE}/${ENV}/health"
+      response-result-format: |-
+        the resolved URL string
+      expected-result: |-
+        https://api.us-east-1.example.com/production/health
+    - name: "cicd - circleci config error - v1"
+      prompt: |-
+        The following CircleCI configuration has exactly one error that would cause validation to fail.
+        Identify the incorrect key name that needs to be fixed.
+
+        version: 2.1
+        jobs:
+          build:
+            docker:
+              - image: cimg/node:20.0
+            steps:
+              - checkout
+              - run: npm install
+              - run: npm test
+        workflows:
+          main:
+            job:
+              - build
+      response-result-format: |-
+        the incorrect key name
+      expected-result:
+        - "job"
+        - "jobs"
+      validation-rules:
+        judge:
+          enabled: true
+          name: "default"
+          variant: "fast"
+    - name: "cicd - docker port mapping - v1"
+      prompt: |-
+        Given the following Docker Compose service configuration:
+
+        services:
+          web:
+            image: nginx:latest
+            ports:
+              - "8080:80"
+              - "8443:443"
+            environment:
+              - NGINX_HOST=example.com
+
+        On which port on the host machine can you access the HTTP service?
+        On which port on the host machine can you access the HTTPS service?
+      response-result-format: |-
+        HTTP: <port>, HTTPS: <port>
+      expected-result: |-
+        HTTP: 8080, HTTPS: 8443
+    - name: "cicd - build parallelism - v1"
+      prompt: |-
+        A CI/CD pipeline has the following jobs with their durations and dependencies:
+
+        - checkout (2 min): no dependencies
+        - install_deps (3 min): depends on checkout
+        - lint (1 min): depends on install_deps
+        - unit_test (4 min): depends on install_deps
+        - build (2 min): depends on lint and unit_test
+        - deploy (1 min): depends on build
+
+        If jobs without dependency conflicts run in parallel, what is the minimum total wall-clock time (in minutes) to complete the entire pipeline?
+      response-result-format: |-
+        <number> min
+      expected-result:
+        - "12 min"
+        - "12"
+    - name: "cicd - cache key resolution - v1"
+      prompt: |-
+        In CircleCI, the following cache key template is used:
+
+        v1-deps-{{ checksum "package-lock.json" }}-{{ .Branch }}
+
+        Given:
+        - The checksum of package-lock.json is "abc123def456"
+        - The current branch is "feature/login"
+
+        What will the resolved cache key be?
+      response-result-format: |-
+        the resolved cache key string
+      expected-result: |-
+        v1-deps-abc123def456-feature/login
+    - name: "cicd - resource calculation - v1"
+      prompt: |-
+        A Kubernetes deployment has the following configuration:
+
+        replicas: 3
+        Each pod requests:
+          cpu: 250m
+          memory: 512Mi
+
+        What are the total CPU and memory resources requested by this deployment?
+      response-result-format: |-
+        CPU: <value>, Memory: <value>
+      expected-result:
+        - "CPU: 750m, Memory: 1536Mi"
+        - "CPU: 750m, Memory: 1.5Gi"
+    - name: "cicd - git branch extraction - v1"
+      prompt: |-
+        Given the following bash commands, what will be printed?
+
+        BRANCH="feature/PROJ-1234-add-auth"
+        TICKET=$(echo "$BRANCH" | grep -oP 'PROJ-\d+')
+        echo "$TICKET"
+      response-result-format: |-
+        the printed output
+      expected-result: |-
+        PROJ-1234
+    - name: "cicd - workflow filter - v1"
+      prompt: |-
+        Given this CircleCI workflow configuration:
+
+        workflows:
+          build-test-deploy:
+            jobs:
+              - build
+              - test:
+                  requires:
+                    - build
+              - deploy:
+                  requires:
+                    - test
+                  filters:
+                    branches:
+                      only: main
+
+        A developer pushes to the "feature/auth" branch. Which jobs will execute?
+      response-result-format: |-
+        list of job names that will execute, separated by ", "
+      expected-result: |-
+        build, test
+    - name: "cicd - shell exit code - v1"
+      prompt: |-
+        What will be the complete standard output of the following bash script?
+
+        set -e
+        echo "step 1"
+        false
+        echo "step 2"
+        echo "step 3"
+      response-result-format: |-
+        all lines of output
+      expected-result:
+        - "step 1"
+        - |-
+          step 1
+    - name: "cicd - matrix build count - v1"
+      prompt: |-
+        A CI configuration uses a build matrix:
+
+        matrix:
+          os: [ubuntu-22.04, ubuntu-24.04, macos-latest]
+          node-version: [18, 20, 22]
+          exclude:
+            - os: macos-latest
+              node-version: 18
+
+        How many total jobs will the matrix generate?
+      response-result-format: |-
+        <number>
+      expected-result: |-
+        8
+    - name: "cicd - resource class selection - v1"
+      prompt: |-
+        A CircleCI job needs at least 7GB of RAM to run a memory-intensive test suite.
+        Which is the smallest CircleCI Docker resource class that meets this requirement?
+
+        Available resource classes and their specs:
+        - small: 1 vCPU, 2GB RAM
+        - medium: 2 vCPUs, 4GB RAM
+        - medium+: 3 vCPUs, 6GB RAM
+        - large: 4 vCPUs, 8GB RAM
+        - xlarge: 8 vCPUs, 16GB RAM
+        - 2xlarge: 16 vCPUs, 32GB RAM
+      response-result-format: |-
+        <resource class name>
+      expected-result: |-
+        large
+    - name: "cicd - deployment strategy - v1"
+      prompt: |-
+        Match each deployment description to its standard deployment strategy name:
+
+        1. Two identical environments exist. Traffic is switched from one to the other atomically.
+        2. The new version is gradually rolled out to a small percentage of users before full deployment.
+        3. Old version instances are replaced one at a time with new version instances.
+        4. Both old and new versions run simultaneously, and a feature flag determines which version a user sees.
+      response-result-format: |-
+        1. <strategy name>
+        2. <strategy name>
+        3. <strategy name>
+        4. <strategy name>
+      expected-result:
+        - |-
+          1. Blue-Green
+          2. Canary
+          3. Rolling
+          4. Feature Flag
+        - |-
+          1. Blue/Green
+          2. Canary
+          3. Rolling
+          4. Feature Flag
+      validation-rules:
+        judge:
+          enabled: true
+          name: "default"
+          variant: "fast"
+    - name: "cicd - dockerfile optimization - v1"
+      prompt: |-
+        A developer has this Dockerfile and notices that every source code change causes the slow "pip install" step to re-run, even when requirements.txt hasn't changed:
+
+        FROM python:3.11
+        COPY . /app
+        WORKDIR /app
+        RUN pip install -r requirements.txt
+        CMD ["python", "main.py"]
+
+        Rewrite the Dockerfile to leverage Docker layer caching so that pip install only runs when requirements.txt changes.
+      response-result-format: |-
+        the complete rewritten Dockerfile, one instruction per line
+      expected-result: |-
+        FROM python:3.11
+        WORKDIR /app
+        COPY requirements.txt .
+        RUN pip install -r requirements.txt
+        COPY . .
+        CMD ["python", "main.py"]
+      validation-rules:
+        judge:
+          enabled: true
+          name: "default"
+          variant: "fast"
+    - name: "cicd - shell subshell bug - v1"
+      prompt: |-
+        This bash script is intended to count the number of .go files in a directory tree, but it always outputs "Found 0 Go files" even when .go files exist. What is the root cause of the bug?
+
+        #!/bin/bash
+        count=0
+        find . -name "*.go" | while read file; do
+          count=$((count + 1))
+        done
+        echo "Found $count Go files"
+      response-result-format: |-
+        concise explanation of the bug in one or two sentences
+      expected-result: |-
+        The pipe causes the while loop to execute in a subshell, so modifications to the count variable are not visible in the parent shell after the loop ends.
+      validation-rules:
+        judge:
+          enabled: true
+          name: "default"
+          variant: "fast"
+    - name: "cicd - circleci orb concept - v1"
+      prompt: |-
+        In CircleCI, what is an orb?
+        
+        a) A visual dashboard for monitoring pipeline health
+        b) A reusable, shareable package of CircleCI configuration (jobs, commands, executors)
+        c) A type of executor that runs jobs in a virtual machine
+        d) A caching mechanism for Docker layers
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "b)"
+        - "b) A reusable, shareable package of CircleCI configuration (jobs, commands, executors)"
+    - name: "cicd - pipeline duration calculation - v1"
+      prompt: |-
+        A CircleCI pipeline has these jobs with the given average durations:
+
+        - checkout: 10s (no dependencies)
+        - install: 45s (requires checkout)
+        - lint: 20s (requires install)
+        - test-unit: 90s (requires install)
+        - test-integration: 120s (requires install)
+        - build: 30s (requires lint, test-unit, test-integration)
+        - deploy: 15s (requires build)
+
+        All independent jobs run in parallel. What is the minimum wall-clock time for the full pipeline?
+        Express your answer in seconds.
+      response-result-format: |-
+        <number>s
+      expected-result:
+        - "220s"
+        - "220"
