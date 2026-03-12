@@ -48,6 +48,7 @@ var (
 var (
 	csvFormatter        = formatters.NewCSVFormatter()
 	htmlFormatter       = formatters.NewHTMLFormatter()
+	jsonlFormatter      = formatters.NewJSONLFormatter()
 	logFormatter        = formatters.NewLogFormatter()
 	summaryLogFormatter = formatters.NewSummaryLogFormatter()
 )
@@ -59,6 +60,7 @@ var (
 	outputFileBasename = flag.String("output-basename", unsetFlagValue, "base filename for results; replace if exists; blank = stdout")
 	formatHTML         = formatFlag(htmlFormatter, true)
 	formatCSV          = formatFlag(csvFormatter, false)
+	formatJSONL        = formatFlag(jsonlFormatter, false)
 	logFilePath        = flag.String("log", unsetFlagValue, "log file path; append if exists; blank = stdout")
 	verbose            = flag.Bool("verbose", false, "enable detailed logging")
 	debug              = flag.Bool("debug", false, "enable low-level debug logging")
@@ -288,6 +290,9 @@ func enabledFormatters() (enabled []formatters.Formatter) {
 	}
 	if isEnabled(formatCSV) {
 		enabled = append(enabled, csvFormatter)
+	}
+	if isEnabled(formatJSONL) {
+		enabled = append(enabled, jsonlFormatter)
 	}
 	return enabled
 }
