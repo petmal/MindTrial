@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/petmal/mindtrial/pkg/utils"
+	"github.com/petmal/mindtrial/pricing"
 	"github.com/petmal/mindtrial/runners"
 
 	"github.com/sergi/go-diff/diffmatchpatch"
@@ -220,4 +221,78 @@ func UniqueRuns(results runners.Results) []string {
 // Timestamp returns the current time in RFC1123Z format.
 func Timestamp() string {
 	return timestamp(time.Now())
+}
+
+// sumTokens aggregates token counts from all usage fields (answer, validation, error)
+// of the given results for the specified result kinds.
+func sumTokens(resultsByKind map[runners.ResultKind][]runners.RunResult, include []runners.ResultKind) (inputTotal, outputTotal int64) {
+	for _, kind := range include {
+		for _, result := range resultsByKind[kind] {
+			for _, usage := range []runners.TokenUsage{
+				result.Details.Answer.Usage,
+				result.Details.Validation.Usage,
+				result.Details.Error.Usage,
+			} {
+				if usage.InputTokens != nil {
+					inputTotal += *usage.InputTokens
+				}
+				if usage.OutputTokens != nil {
+					outputTotal += *usage.OutputTokens
+				}
+			}
+		}
+	}
+	return
+}
+
+// TotalInputTokens returns the total number of input tokens across results of the given kinds.
+func TotalInputTokens(resultsByKind map[runners.ResultKind][]runners.RunResult, include ...runners.ResultKind) int64 {
+	input, _ := sumTokens(resultsByKind, include)
+	return input
+}
+
+// TotalOutputTokens returns the total number of output tokens across results of the given kinds.
+func TotalOutputTokens(resultsByKind map[runners.ResultKind][]runners.RunResult, include ...runners.ResultKind) int64 {
+	_, output := sumTokens(resultsByKind, include)
+	return output
+}
+
+// EstimatedCost computes the estimated USD cost for the given results based on
+// the provider/model pricing catalog. Returns 0 if pricing data is unavailable.
+func EstimatedCost(resultsByKind map[runners.ResultKind][]runners.RunResult, include ...runners.ResultKind) float64 {
+	var provider, model string
+	for _, kind := range include {
+		for _, r := range resultsByKind[kind] {
+			provider = r.Provider
+			model = r.Model
+			break
+		}
+		if provider != "" {
+			break
+		}
+	}
+	if provider == "" || model == "" {
+		return 0
+	}
+	input, output := sumTokens(resultsByKind, include)
+	return pricing.EstimateCost(provider, model, input, output)
+}
+
+// FormatCost formats a dollar amount to a display string.
+func FormatCost(cost float64) string {
+	if cost == 0 {
+		return "-"
+	}
+	if cost < 0.01 {
+		return fmt.Sprintf("$%.4f", cost)
+	}
+	return fmt.Sprintf("$%.2f", cost)
+}
+
+// FormatTokenCount formats a token count with thousand separators for display.
+func FormatTokenCount(count int64) string {
+	if count == 0 {
+		return "-"
+	}
+	return fmt.Sprintf("%d", count)
 }

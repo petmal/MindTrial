@@ -150,6 +150,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "success",
 						Provider: "mock provider 1",
 						Run:      "mock",
+						Model:    "microchip",
 						Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
 						Want:     utils.NewValueSet("provident quas tenetur repellat deserunt ut neque culpa."),
 						Details: Details{
@@ -175,6 +176,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "failure",
 						Provider: "mock provider 1",
 						Run:      "mock",
+						Model:    "microchip",
 						Got:      "facere aperiam recusandae totam magnam nulla corrupti.",
 						Want:     utils.NewValueSet("aperiam assumenda id provident ratione eos molestiae."),
 						Details: Details{
@@ -200,6 +202,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "error",
 						Provider: "mock provider 1",
 						Run:      "mock",
+						Model:    "microchip",
 						Got:      "mock error",
 						Want:     utils.NewValueSet("doloribus quis incidunt velit quia."),
 						Details: Details{
@@ -219,6 +222,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "failure",
 						Provider: "mock provider 1",
 						Run:      "mock",
+						Model:    "microchip",
 						Got:      "facere aperiam recusandae totam magnam nulla corrupti.",
 						Want:     utils.NewValueSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
 						Details: Details{
@@ -244,6 +248,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "success",
 						Provider: "mock provider 1",
 						Run:      "mock",
+						Model:    "microchip",
 						Got:      "omnis omnis ea quia et ut est.",
 						Want:     utils.NewValueSet("omnis omnis ea quia et ut est."),
 						Details: Details{
@@ -269,6 +274,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "not_supported",
 						Provider: "mock provider 1",
 						Run:      "mock",
+						Model:    "microchip",
 						Got:      "feature not supported by provider: mock not supported",
 						Want:     utils.NewValueSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
 						Details: Details{
@@ -288,6 +294,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "failure",
 						Provider: "mock provider 1",
 						Run:      "mock",
+						Model:    "microchip",
 						Got:      "Facere aperiam recusandae totam magnam nulla corrupti.",
 						Want:     utils.NewValueSet("rerum nam illo", "dolore praesentium non"),
 						Details: Details{
@@ -314,6 +321,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "success",
 						Provider: "mock provider 1",
 						Run:      "mock",
+						Model:    "microchip",
 						Got:      "corporis et ipsa",
 						Want:     utils.NewValueSet("corporis et ipsa", "nesciunt sed quia"),
 						Details: Details{
@@ -340,6 +348,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "success",
 						Provider: "mock provider 1",
 						Run:      "pass",
+						Model:    "parsing",
 						Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
 						Want:     utils.NewValueSet("provident quas tenetur repellat deserunt ut neque culpa."),
 						Details: Details{
@@ -365,6 +374,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "failure",
 						Provider: "mock provider 1",
 						Run:      "pass",
+						Model:    "parsing",
 						Got:      "aperiam assumenda id provident ratione eos molestiae.",
 						Want:     utils.NewValueSet("aperiam assumenda id provident ratione eos molestiae."),
 						Details: Details{
@@ -390,6 +400,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "error",
 						Provider: "mock provider 1",
 						Run:      "pass",
+						Model:    "parsing",
 						Got:      "doloribus quis incidunt velit quia.",
 						Want:     utils.NewValueSet("doloribus quis incidunt velit quia."),
 						Details: Details{
@@ -415,6 +426,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "failure",
 						Provider: "mock provider 1",
 						Run:      "pass",
+						Model:    "parsing",
 						Got:      "veritatis aliquid accusantium dolore voluptate optio dolor.",
 						Want:     utils.NewValueSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
 						Details: Details{
@@ -440,6 +452,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "success",
 						Provider: "mock provider 1",
 						Run:      "pass",
+						Model:    "parsing",
 						Got:      "omnis omnis ea quia et ut est.",
 						Want:     utils.NewValueSet("omnis omnis ea quia et ut est."),
 						Details: Details{
@@ -465,6 +478,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "not_supported",
 						Provider: "mock provider 1",
 						Run:      "pass",
+						Model:    "parsing",
 						Got:      "unde accusantium sit et enim temporibus qui distinctio assumenda.",
 						Want:     utils.NewValueSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
 						Details: Details{
@@ -490,6 +504,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "failure",
 						Provider: "mock provider 1",
 						Run:      "pass",
+						Model:    "parsing",
 						Got:      "rerum nam illo",
 						Want:     utils.NewValueSet("rerum nam illo", "dolore praesentium non"),
 						Details: Details{
@@ -516,6 +531,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "success",
 						Provider: "mock provider 1",
 						Run:      "pass",
+						Model:    "parsing",
 						Got:      "corporis et ipsa",
 						Want:     utils.NewValueSet("corporis et ipsa", "nesciunt sed quia"),
 						Details: Details{
@@ -544,6 +560,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "success",
 						Provider: "mock provider 2",
 						Run:      "pass",
+						Model:    "parsing",
 						Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
 						Want:     utils.NewValueSet("provident quas tenetur repellat deserunt ut neque culpa."),
 						Details: Details{
@@ -569,6 +586,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "failure",
 						Provider: "mock provider 2",
 						Run:      "pass",
+						Model:    "parsing",
 						Got:      "aperiam assumenda id provident ratione eos molestiae.",
 						Want:     utils.NewValueSet("aperiam assumenda id provident ratione eos molestiae."),
 						Details: Details{
@@ -594,6 +612,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "error",
 						Provider: "mock provider 2",
 						Run:      "pass",
+						Model:    "parsing",
 						Got:      "doloribus quis incidunt velit quia.",
 						Want:     utils.NewValueSet("doloribus quis incidunt velit quia."),
 						Details: Details{
@@ -619,6 +638,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "failure",
 						Provider: "mock provider 2",
 						Run:      "pass",
+						Model:    "parsing",
 						Got:      "veritatis aliquid accusantium dolore voluptate optio dolor.",
 						Want:     utils.NewValueSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
 						Details: Details{
@@ -644,6 +664,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "success",
 						Provider: "mock provider 2",
 						Run:      "pass",
+						Model:    "parsing",
 						Got:      "omnis omnis ea quia et ut est.",
 						Want:     utils.NewValueSet("omnis omnis ea quia et ut est."),
 						Details: Details{
@@ -669,6 +690,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "not_supported",
 						Provider: "mock provider 2",
 						Run:      "pass",
+						Model:    "parsing",
 						Got:      "unde accusantium sit et enim temporibus qui distinctio assumenda.",
 						Want:     utils.NewValueSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
 						Details: Details{
@@ -694,6 +716,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "failure",
 						Provider: "mock provider 2",
 						Run:      "pass",
+						Model:    "parsing",
 						Got:      "rerum nam illo",
 						Want:     utils.NewValueSet("rerum nam illo", "dolore praesentium non"),
 						Details: Details{
@@ -720,6 +743,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "success",
 						Provider: "mock provider 2",
 						Run:      "pass",
+						Model:    "parsing",
 						Got:      "corporis et ipsa",
 						Want:     utils.NewValueSet("corporis et ipsa", "nesciunt sed quia"),
 						Details: Details{
@@ -794,6 +818,7 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "error",
 						Provider: "mock provider 1",
 						Run:      "custom",
+						Model:    "custom-model",
 						Got:      "error", // provider returns task name ("error") as response
 						Want:     utils.NewValueSet("Expected answer"),
 						Details: Details{

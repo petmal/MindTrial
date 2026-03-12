@@ -106,6 +106,8 @@ type RunResult struct {
 	Provider string
 	// Run is the name of the provider's run configuration used.
 	Run string
+	// Model is the model identifier used for this run (e.g., "gpt-5", "claude-opus-4-6").
+	Model string
 	// Got is the actual answer received from the AI model.
 	// For plain text response format, this should be a string that follows the format instruction precisely.
 	// For structured schema-based response format, this will be any object that conforms to the schema.

@@ -59,10 +59,15 @@ func NewHTMLFormatter() Formatter {
 		"SafeHTML": func(s string) template.HTML {
 			return template.HTML(s) //nolint:gosec
 		},
-		"ToLower":         strings.ToLower,
-		"Join":            strings.Join,
-		"UniqueRuns":      UniqueRuns,
-		"GroupParagraphs": GroupParagraphs,
+		"TotalInputTokens":  TotalInputTokens,
+		"TotalOutputTokens": TotalOutputTokens,
+		"EstimatedCost":     EstimatedCost,
+		"FormatCost":        FormatCost,
+		"FormatTokenCount":  FormatTokenCount,
+		"ToLower":           strings.ToLower,
+		"Join":              strings.Join,
+		"UniqueRuns":        UniqueRuns,
+		"GroupParagraphs":   GroupParagraphs,
 	}).ParseFS(templatesFS, templateFile))
 	return &htmlFormatter{
 		templ: templ,

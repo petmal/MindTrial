@@ -304,6 +304,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 	runResult.Task = task.Name
 	runResult.Provider = executor.Provider.Name()
 	runResult.Run = executor.RunConfig.Name
+	runResult.Model = executor.RunConfig.Model
 
 	// Skip tasks with schema response format when structured output is disabled.
 	if skipTasksWithSchemaResultFormat {
