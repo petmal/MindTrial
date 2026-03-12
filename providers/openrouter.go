@@ -35,14 +35,14 @@ func NewOpenRouter(cfg config.OpenRouterClientConfig, availableTools []config.To
 		openAIV3Opts = append(openAIV3Opts, option.WithHeader("X-Title", appTitle))
 	}
 
-	openaiProvider := newOpenAIV3Provider(availableTools, openAIV3Opts...)
+	openaiProvider := newOpenAICompletionsProvider(availableTools, openAIV3Opts...)
 
 	return &OpenRouter{openaiProvider: openaiProvider}
 }
 
 // OpenRouter implements the Provider interface for models reachable via OpenRouter.
 type OpenRouter struct {
-	openaiProvider *openAIV3Provider
+	openaiProvider *openAICompletionsProvider
 }
 
 func (o OpenRouter) Name() string {

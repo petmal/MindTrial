@@ -78,9 +78,9 @@ func (h *defaultCompletionHandler) ToParam(_ context.Context, _ logging.Logger, 
 	return message.ToParam()
 }
 
-// openAIV3Provider is an OpenAI-compatible provider implementation using
-// OpenAI's official Go SDK v3.
-type openAIV3Provider struct {
+// openAICompletionsProvider is an OpenAI-compatible Chat Completions API
+// provider implementation using OpenAI's official Go SDK v3.
+type openAICompletionsProvider struct {
 	client         openai.Client
 	availableTools []config.ToolConfig
 
@@ -90,7 +90,7 @@ type openAIV3Provider struct {
 	NewCompletionHandler func() CompletionHandler
 }
 
-// openAIV3ModelParams is an internal model configuration used by openAIV3Provider.
+// openAIV3ModelParams is an internal model configuration used by OpenAI implementations.
 // It is not user-facing; provider wrappers translate their user-facing model params
 // into this struct.
 type openAIV3ModelParams struct {
@@ -144,18 +144,18 @@ func (r ResponseFormat) Ptr() *ResponseFormat {
 	return utils.Ptr(r)
 }
 
-func newOpenAIV3Provider(availableTools []config.ToolConfig, opts ...option.RequestOption) *openAIV3Provider {
+func newOpenAICompletionsProvider(availableTools []config.ToolConfig, opts ...option.RequestOption) *openAICompletionsProvider {
 	clientOpts := append([]option.RequestOption{
 		option.WithMaxRetries(0), // disable SDK retries since MindTrial has its own retry policy
 	}, opts...)
 
-	return &openAIV3Provider{
+	return &openAICompletionsProvider{
 		client:         openai.NewClient(clientOpts...),
 		availableTools: availableTools,
 	}
 }
 
-func (o *openAIV3Provider) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (o *openAICompletionsProvider) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
 	request := openai.ChatCompletionNewParams{
 		Model:    openai.ChatModel(cfg.Model),
 		Messages: []openai.ChatCompletionMessageParamUnion{},
@@ -370,7 +370,7 @@ func (o *openAIV3Provider) Run(ctx context.Context, logger logging.Logger, cfg c
 	} // move to the next conversation turn
 }
 
-func (o *openAIV3Provider) createPromptMessage(ctx context.Context, logger logging.Logger, promptText string, files []config.TaskFile, result *Result) (message openai.ChatCompletionMessageParamUnion, err error) {
+func (o *openAICompletionsProvider) createPromptMessage(ctx context.Context, logger logging.Logger, promptText string, files []config.TaskFile, result *Result) (message openai.ChatCompletionMessageParamUnion, err error) {
 	if len(files) > 0 {
 		parts := make([]openai.ChatCompletionContentPartUnionParam, 0, (len(files)*2)+1)
 		for _, file := range files {
@@ -403,7 +403,7 @@ func (o *openAIV3Provider) createPromptMessage(ctx context.Context, logger loggi
 // to "high" (nearest higher) to avoid artificially reducing image fidelity during evaluations.
 // A nil or unrecognised value maps to "auto" (OpenAI's default behavior); a warning is logged
 // for unrecognised values so the operator is aware of the fallback.
-func (o *openAIV3Provider) mapImageDetailToOpenAI(ctx context.Context, logger logging.Logger, detail *config.ImageDetail) string {
+func (o *openAICompletionsProvider) mapImageDetailToOpenAI(ctx context.Context, logger logging.Logger, detail *config.ImageDetail) string {
 	if detail != nil {
 		switch *detail {
 		case config.ImageDetailAuto:
@@ -421,7 +421,7 @@ func (o *openAIV3Provider) mapImageDetailToOpenAI(ctx context.Context, logger lo
 	return "auto"
 }
 
-func (o *openAIV3Provider) isTransientResponse(err error) bool {
+func (o *openAICompletionsProvider) isTransientResponse(err error) bool {
 	return isOpenAITransientResponse(err)
 }
 
@@ -444,7 +444,7 @@ func isOpenAITransientResponse(err error) bool {
 
 // newCompletionHandler returns a fresh CompletionHandler for the current API call.
 // If a custom factory is set, it is used; otherwise, the defaultCompletionHandler is returned.
-func (o *openAIV3Provider) newCompletionHandler() CompletionHandler {
+func (o *openAICompletionsProvider) newCompletionHandler() CompletionHandler {
 	if o.NewCompletionHandler != nil {
 		return o.NewCompletionHandler()
 	}
@@ -452,7 +452,7 @@ func (o *openAIV3Provider) newCompletionHandler() CompletionHandler {
 }
 
 // handleRequest dispatches the request to the appropriate handler based on streaming mode.
-func (o *openAIV3Provider) handleRequest(ctx context.Context, logger logging.Logger, request openai.ChatCompletionNewParams, acc CompletionAccumulator) (*openai.ChatCompletion, error) {
+func (o *openAICompletionsProvider) handleRequest(ctx context.Context, logger logging.Logger, request openai.ChatCompletionNewParams, acc CompletionAccumulator) (*openai.ChatCompletion, error) {
 	if request.StreamOptions.IncludeUsage.Value {
 		return o.handleStreamingRequest(ctx, logger, request, acc)
 	}
@@ -461,7 +461,7 @@ func (o *openAIV3Provider) handleRequest(ctx context.Context, logger logging.Log
 
 // handleStreamingRequest executes a streaming chat completion request,
 // delegating chunk accumulation to the provided CompletionAccumulator.
-func (o *openAIV3Provider) handleStreamingRequest(ctx context.Context, logger logging.Logger, request openai.ChatCompletionNewParams, acc CompletionAccumulator) (resp *openai.ChatCompletion, err error) {
+func (o *openAICompletionsProvider) handleStreamingRequest(ctx context.Context, logger logging.Logger, request openai.ChatCompletionNewParams, acc CompletionAccumulator) (resp *openai.ChatCompletion, err error) {
 	stream := o.client.Chat.Completions.NewStreaming(ctx, request)
 	defer stream.Close()
 
@@ -476,6 +476,6 @@ func (o *openAIV3Provider) handleStreamingRequest(ctx context.Context, logger lo
 	return acc.Result(), nil
 }
 
-func (o *openAIV3Provider) Close(ctx context.Context) error {
+func (o *openAICompletionsProvider) Close(ctx context.Context) error {
 	return nil
 }

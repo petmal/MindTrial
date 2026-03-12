@@ -27,7 +27,7 @@ func NewMoonshotAI(cfg config.MoonshotAIClientConfig, availableTools []config.To
 		option.WithAPIKey(cfg.APIKey),
 		option.WithBaseURL(cfg.GetEndpoint()),
 	}
-	openaiProvider := newOpenAIV3Provider(availableTools, openAIV3Opts...)
+	openaiProvider := newOpenAICompletionsProvider(availableTools, openAIV3Opts...)
 	openaiProvider.NewCompletionHandler = func() CompletionHandler {
 		return &moonshotAICompletionHandler{}
 	}
@@ -39,7 +39,7 @@ func NewMoonshotAI(cfg config.MoonshotAIClientConfig, availableTools []config.To
 // The Kimi models from Moonshot AI support OpenAI-compatible interfaces
 // allowing them to be used with the existing OpenAI provider implementation.
 type MoonshotAI struct {
-	openaiProvider *openAIV3Provider
+	openaiProvider *openAICompletionsProvider
 }
 
 func (m MoonshotAI) Name() string {

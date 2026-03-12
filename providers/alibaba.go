@@ -22,7 +22,7 @@ func NewAlibaba(cfg config.AlibabaClientConfig, availableTools []config.ToolConf
 		option.WithAPIKey(cfg.APIKey),
 		option.WithBaseURL(cfg.GetEndpoint()),
 	}
-	openaiProvider := newOpenAIV3Provider(availableTools, openAIV3Opts...)
+	openaiProvider := newOpenAICompletionsProvider(availableTools, openAIV3Opts...)
 
 	return &Alibaba{openaiProvider: openaiProvider}
 }
@@ -31,7 +31,7 @@ func NewAlibaba(cfg config.AlibabaClientConfig, availableTools []config.ToolConf
 // The Qwen models from Alibaba Cloud support OpenAI-compatible interfaces
 // allowing them to be used with the existing OpenAI provider implementation.
 type Alibaba struct {
-	openaiProvider *openAIV3Provider
+	openaiProvider *openAICompletionsProvider
 }
 
 func (a Alibaba) Name() string {

@@ -23,14 +23,14 @@ import (
 func NewOpenAI(cfg config.OpenAIClientConfig, availableTools []config.ToolConfig) *OpenAI {
 	opts := []option.RequestOption{option.WithAPIKey(cfg.APIKey)}
 	return &OpenAI{
-		completionProvider: newOpenAIV3Provider(availableTools, opts...),
+		completionProvider: newOpenAICompletionsProvider(availableTools, opts...),
 		responsesProvider:  newOpenAIResponsesProvider(availableTools, opts...),
 	}
 }
 
 // OpenAI implements the Provider interface for OpenAI generative models.
 type OpenAI struct {
-	completionProvider *openAIV3Provider
+	completionProvider *openAICompletionsProvider
 	responsesProvider  *openAIResponsesProvider
 }
 

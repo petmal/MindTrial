@@ -18,9 +18,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestOpenAIV3_Run_IncompatibleResponseFormat(t *testing.T) {
+func TestOpenAICompletions_Run_IncompatibleResponseFormat(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
-	p := &openAIV3Provider{}
+	p := &openAICompletionsProvider{}
 	runCfg := config.RunConfig{
 		Name:                    "test-run",
 		Model:                   "gpt-test",
@@ -33,9 +33,9 @@ func TestOpenAIV3_Run_IncompatibleResponseFormat(t *testing.T) {
 	require.ErrorIs(t, err, ErrIncompatibleResponseFormat)
 }
 
-func TestOpenAIV3_FileTypeNotSupported(t *testing.T) {
+func TestOpenAICompletions_FileTypeNotSupported(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
-	p := &openAIV3Provider{} // nil client is sufficient to exercise early validation
+	p := &openAICompletionsProvider{} // nil client is sufficient to exercise early validation
 
 	runCfg := config.RunConfig{Name: "test-run", Model: "gpt-test"}
 	task := config.Task{
@@ -159,7 +159,7 @@ func TestDefaultCompletionHandler_ToParam(t *testing.T) {
 }
 
 func TestMapImageDetailToOpenAI(t *testing.T) {
-	provider := &openAIV3Provider{}
+	provider := &openAICompletionsProvider{}
 	logger := testutils.NewTestLogger(t)
 
 	tests := []struct {
