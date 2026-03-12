@@ -1,0 +1,152 @@
+config:
+  log-file: ""
+  output-dir: "./results/{{.Year}}-{{.Month}}-{{.Day}}/"
+  output-basename: "{{.Hour}}-{{.Minute}}-{{.Second}}"
+  task-source: "./tasks.yaml"
+  providers:
+    - name: openai
+      retry-policy:
+        max-retry-attempts: 5
+        initial-delay-seconds: 30
+      client-config:
+        api-key: ""
+      runs:
+        - name: "GPT-5.4 Pro (high reasoning)"
+          model: "gpt-5.4-pro"
+          max-requests-per-minute: 20
+          model-parameters:
+            reasoning-effort: "high"
+        - name: "GPT-5.4 Thinking (high reasoning)"
+          model: "gpt-5.4"
+          max-requests-per-minute: 20
+          model-parameters:
+            reasoning-effort: "high"
+        - name: "GPT-5.3-Codex"
+          model: "gpt-5.3-codex"
+          max-requests-per-minute: 20
+        - name: "GPT-5.3 Instant"
+          model: "gpt-5.3-chat-latest"
+          max-requests-per-minute: 20
+        - name: "GPT-5.2 (xhigh reasoning)"
+          model: "gpt-5.2"
+          max-requests-per-minute: 20
+          model-parameters:
+            reasoning-effort: "xhigh"
+            verbosity: "medium"
+    - name: google
+      client-config:
+        api-key: ""
+      runs:
+        - name: "Gemini 3.1 Pro (high thinking)"
+          model: "gemini-3.1-pro-preview"
+          max-requests-per-minute: 3
+          model-parameters:
+            thinking-level: "high"
+            media-resolution: "high"
+        - name: "Gemini 3.1 Flash-Lite"
+          model: "gemini-3.1-flash-lite-preview"
+          max-requests-per-minute: 10
+          model-parameters:
+            text-response-format-with-tools: true
+        - name: "Gemini 3 Flash"
+          model: "gemini-3-flash-preview"
+          max-requests-per-minute: 10
+          model-parameters:
+            text-response-format-with-tools: true
+        - name: "Gemini 2.5 Pro"
+          model: "gemini-2.5-pro"
+          max-requests-per-minute: 3
+          model-parameters:
+            text-response-format-with-tools: true
+        - name: "Gemini 2.5 Flash"
+          model: "gemini-2.5-flash"
+          max-requests-per-minute: 3
+          model-parameters:
+            text-response-format-with-tools: true
+    - name: anthropic
+      client-config:
+        api-key: ""
+      runs:
+        - name: "Claude Opus 4.6 (extended thinking)"
+          model: "claude-opus-4-6"
+          max-requests-per-minute: 10
+          model-parameters:
+            max-tokens: 16384
+            effort: max
+            stream: true
+        - name: "Claude Sonnet 4.6 (extended thinking)"
+          model: "claude-sonnet-4-6"
+          max-requests-per-minute: 10
+          model-parameters:
+            max-tokens: 8192
+            thinking-budget-tokens: 2048
+        - name: "Claude Haiku 4.5"
+          model: "claude-haiku-4-5"
+          max-requests-per-minute: 10
+          model-parameters:
+            max-tokens: 4096
+        - name: "Claude Opus 4.5 (extended thinking)"
+          model: "claude-opus-4-5"
+          max-requests-per-minute: 10
+          model-parameters:
+            max-tokens: 8192
+            thinking-budget-tokens: 2048
+        - name: "Claude Sonnet 4.5 (extended thinking)"
+          model: "claude-sonnet-4-5"
+          max-requests-per-minute: 10
+          model-parameters:
+            max-tokens: 8192
+            thinking-budget-tokens: 2048
+  judges:
+    - name: "default"
+      provider:
+        name: "anthropic"
+        client-config:
+          api-key: ""
+        runs:
+          - name: "fast"
+            model: "claude-haiku-4-5"
+            max-requests-per-minute: 30
+            model-parameters:
+              max-tokens: 4096
+              temperature: 0.20
+          - name: "reasoning"
+            model: "claude-sonnet-4-6"
+            max-requests-per-minute: 30
+            model-parameters:
+              max-tokens: 8192
+              thinking-budget-tokens: 2048
+              temperature: 0.20
+  tools:
+    - name: python-code-executor
+      image: python:latest
+      description: |
+        Executes Python 3 code in a secure, sandboxed environment to perform calculations, data manipulation, or algorithmic tasks.
+        IMPORTANT:
+        - Only the Python standard library is available. No third-party packages (like pandas or numpy) can be imported.
+        - The environment has no network access.
+        - Any files mentioned in the conversation (shown as [file: filename]) are automatically mounted to /app/data/ with their exact filenames.
+        - Use standard file operations like open('/app/data/filename', 'r') to read attached files, where 'filename' matches the name shown in [file: filename] references.
+        - A persistent shared directory is available at /app/shared/ that persists across ALL tool calls within the same task (regardless of which tool is being called). Files created in this directory will be available in any subsequent tool call.
+        - Any files or changes outside of /app/shared/ are ephemeral and will be reset between tool calls.
+        - The code must print its final result to standard output to be returned.
+      parameters:
+        type: object
+        properties:
+          code:
+            type: string
+            description: "A string containing a self-contained Python 3 script. The script must use the `print()` function to return a final result. Example: `print(sum([i for i in range(101) if i % 2 == 0]))`. To read attached files, use open('/app/data/filename', 'r') where 'filename' matches what appears in [file: filename] references."
+        required:
+          - code
+        additionalProperties: false
+      parameter-files:
+        code: /app/main.py
+      auxiliary-dir: /app/data
+      shared-dir: /app/shared
+      command:
+        - python
+        - /app/main.py
+      env:
+        PYTHONIOENCODING: "UTF-8"
+        PYTHONUNBUFFERED: "1"
+        PYTHONHASHSEED: "847629"
