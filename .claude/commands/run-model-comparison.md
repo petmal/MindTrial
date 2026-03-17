@@ -24,13 +24,13 @@ Use the Bash tool to do the following steps:
 **1. Ensure log directory and transcript exist**
 ```bash
 CONFIG_FILE="${1:-config-eval-top3-cicd.yaml}"
-LOG_FILE="${2:-logs/eval.log}"
-mkdir -p "$(dirname "$LOG_FILE")"
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 CONFIG_SLUG=$(basename "$CONFIG_FILE" .yaml)
 RESULTS_DIR="results/$CONFIG_SLUG/$(date '+%m-%d-%Y')/$(date '+%I-%M%p' | tr '[:upper:]' '[:lower:]')"
+LOG_FILE="$RESULTS_DIR/eval.log"
 mkdir -p "$RESULTS_DIR"
 echo "$RESULTS_DIR" > /tmp/.race_results_dir
+echo "$LOG_FILE" > /tmp/.race_log_file
 cat > "$RESULTS_DIR/transcript.txt" << HEADER
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   MINDTRIAL RACE — LIVE COMMENTARY TRANSCRIPT
@@ -58,7 +58,7 @@ if [ -f /tmp/.eval_pid ]; then
 fi
 
 CONFIG_FILE="${1:-config-eval-top3-cicd.yaml}"
-LOG_FILE="${2:-logs/eval.log}"
+LOG_FILE=$(cat /tmp/.race_log_file)
 nohup ./mindtrial -config "$CONFIG_FILE" -log "$LOG_FILE" run > /dev/null 2>&1 &
 EVAL_PID=$!
 echo "$EVAL_PID" > /tmp/.eval_pid
@@ -70,13 +70,14 @@ echo "Log:    $LOG_FILE"
 **4. Wait for providers to initialize, then show opening lines**
 ```bash
 sleep 5
-head -20 "${2:-logs/eval.log}" 2>/dev/null || echo "(log not yet available)"
+head -20 "$(cat /tmp/.race_log_file)" 2>/dev/null || echo "(log not yet available)"
 ```
 
 **5. Speak the race start announcement**
 ```bash
-NUM_PROVIDERS=$(grep -c "starting [0-9]* tasks on this provider" "${2:-logs/eval.log}" 2>/dev/null || echo 3)
-NUM_CONFIGS=$(grep "starting [0-9]* tasks on this provider" "${2:-logs/eval.log}" 2>/dev/null | grep -o "in [0-9]* configurations" | awk '{sum+=$2} END {print sum}')
+LOG_FILE=$(cat /tmp/.race_log_file)
+NUM_PROVIDERS=$(grep -c "starting [0-9]* tasks on this provider" "$LOG_FILE" 2>/dev/null || echo 3)
+NUM_CONFIGS=$(grep "starting [0-9]* tasks on this provider" "$LOG_FILE" 2>/dev/null | grep -o "in [0-9]* configurations" | awk '{sum+=$2} END {print sum}')
 NUM_CONFIGS=${NUM_CONFIGS:-6}
 echo "Ladies and gentlemen, welcome to MindTrial! ${NUM_CONFIGS} model configurations across ${NUM_PROVIDERS} providers are lined up, the tasks are loaded, and we are LIVE. Let the race begin!" > /tmp/commentary.txt && kokoro-tts /tmp/commentary.txt --stream --voice am_michael --speed 0.9 2>/dev/null || echo "(kokoro-tts not available)"
 ```
@@ -89,7 +90,12 @@ If the fourth arg is "with-announcer":
 - Use the Task tool with `run_in_background: true` and `subagent_type: "general-purpose"`, passing this prompt (substitute the actual sleep duration):
 
 ---
-You are the live voice announcer for a MindTrial AI model race. The race log is at logs/eval.log in the current working directory (/Users/Ryan/Desktop/CODE/ryan-circleci/MindTrial).
+You are the live voice announcer for a MindTrial AI model race.
+
+First, resolve paths:
+  RESULTS_DIR=$(cat /tmp/.race_results_dir 2>/dev/null || echo ".")
+  LOG_FILE=$(cat /tmp/.race_log_file 2>/dev/null || echo "logs/eval.log")
+  TRANSCRIPT="$RESULTS_DIR/transcript.txt"
 
 Run the following loop until the race is over. Each iteration:
 
@@ -97,14 +103,14 @@ STEP 1 — Wait between updates
 Run: sleep 300
 
 STEP 2 — Check for race completion
-Run: tail -5 logs/eval.log 2>/dev/null
+Run: tail -5 "$LOG_FILE" 2>/dev/null
 If the output contains "all tasks in all configurations have finished on all providers", the race is OVER — go to STEP 4. Otherwise go to STEP 3.
 
 STEP 3 — Live commentary (race still running)
 Get the leaderboard:
-  grep "task has finished" logs/eval.log | sed 's/.*] //' | cut -d: -f1-2 | sort | uniq -c | sort -rn
+  grep "task has finished" "$LOG_FILE" | sed 's/.*] //' | cut -d: -f1-2 | sort | uniq -c | sort -rn
 Get recent events:
-  tail -60 logs/eval.log
+  tail -60 "$LOG_FILE"
 Write 2-4 sentences of live commentary in the style of Vin Scully narrating a championship race between AI models:
 - Reference models by short name: Claude, GPT, Gemini
 - Call out the leader and close battles
@@ -112,13 +118,13 @@ Write 2-4 sentences of live commentary in the style of Vin Scully narrating a ch
 - Treat ERR lines as dramatic setbacks
 - Use racing metaphors: pulling ahead, gaining ground, the homestretch
 - Under 80 words, plain ASCII only — NO apostrophes, quotes, backticks, backslashes, or special characters. No contractions. This text goes directly to TTS.
-(a) Append to transcript.txt: blank line, separator with datetime and update number, your commentary.
+(a) Append to $TRANSCRIPT: blank line, separator with datetime and update number, your commentary.
 (b) Write commentary to /tmp/commentary.txt and speak: kokoro-tts /tmp/commentary.txt --stream --voice am_michael --speed 0.9
 Then go back to STEP 1.
 
 STEP 4 — Final wrap-up (race over)
-1. Get final leaderboard: grep "task has finished" logs/eval.log | sed 's/.*] //' | cut -d: -f1-2 | sort | uniq -c | sort -rn
-2. Get provider finish times: grep "all tasks in all configurations have finished on this provider" logs/eval.log
+1. Get final leaderboard: grep "task has finished" "$LOG_FILE" | sed 's/.*] //' | cut -d: -f1-2 | sort | uniq -c | sort -rn
+2. Get provider finish times: grep "all tasks in all configurations have finished on this provider" "$LOG_FILE"
 3. Write 2-3 sentences of Vin Scully farewell commentary — winner, final standings, plain ASCII only.
 4. Append to transcript.txt: blank line, "━━━ <datetime> — FINAL ━━━", then the sign-off.
 5. Write sign-off to /tmp/commentary.txt and speak: kokoro-tts /tmp/commentary.txt --stream --voice am_michael --speed 0.9

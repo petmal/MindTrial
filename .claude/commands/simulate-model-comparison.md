@@ -23,11 +23,12 @@ Use the Bash tool to do the following steps:
 
 **1. Initialize transcript**
 ```bash
-mkdir -p logs
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 RESULTS_DIR="results/simulation/$(date '+%m-%d-%Y')/$(date '+%I-%M%p' | tr '[:upper:]' '[:lower:]')"
+LOG_FILE="$RESULTS_DIR/eval.log"
 mkdir -p "$RESULTS_DIR"
 echo "$RESULTS_DIR" > /tmp/.race_results_dir
+echo "$LOG_FILE" > /tmp/.race_log_file
 cat > "$RESULTS_DIR/transcript.txt" << HEADER
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   MINDTRIAL RACE — LIVE COMMENTARY TRANSCRIPT
@@ -49,19 +50,20 @@ fi
 
 NUM_TASKS="${1:-30}"
 SPEED="${2:-1}"
-nohup python3 scripts/simulate-model-comparison.sh logs/eval.log "$NUM_TASKS" "$SPEED" > /dev/null 2>&1 &
+LOG_FILE=$(cat /tmp/.race_log_file)
+nohup bash scripts/simulate-model-comparison.sh "$LOG_FILE" "$NUM_TASKS" "$SPEED" > /dev/null 2>&1 &
 SIM_PID=$!
 echo "$SIM_PID" > /tmp/.eval_pid
 echo "Simulation started (PID: $SIM_PID)"
 echo "Tasks per model: $NUM_TASKS"
 echo "Speed: ${SPEED}x"
-echo "Log: logs/eval.log"
+echo "Log: $LOG_FILE"
 ```
 
 **3. Wait for simulation to begin, confirm it's writing**
 ```bash
 sleep 3
-head -15 logs/eval.log 2>/dev/null || echo "(log not yet available)"
+head -15 "$(cat /tmp/.race_log_file)" 2>/dev/null || echo "(log not yet available)"
 ```
 
 **4. Speak the race start announcement**
@@ -75,7 +77,12 @@ The announcer prompt is the same regardless of mode:
 
 ```
 ANNOUNCER_PROMPT="
-You are the live voice announcer for a MindTrial AI model race. The race log is at logs/eval.log in the current working directory (/Users/Ryan/Desktop/CODE/ryan-circleci/MindTrial).
+You are the live voice announcer for a MindTrial AI model race.
+
+First, resolve paths:
+  RESULTS_DIR=$(cat /tmp/.race_results_dir 2>/dev/null || echo ".")
+  LOG_FILE=$(cat /tmp/.race_log_file 2>/dev/null || echo "logs/eval.log")
+  TRANSCRIPT="$RESULTS_DIR/transcript.txt"
 
 Run the following loop until the race is over. Each iteration:
 
@@ -83,14 +90,14 @@ STEP 1 — Wait 60 seconds
 Run: sleep 60
 
 STEP 2 — Check for race completion
-Run: tail -5 logs/eval.log 2>/dev/null
+Run: tail -5 "$LOG_FILE" 2>/dev/null
 If the output contains 'all tasks in all configurations have finished on all providers', the race is OVER — go to STEP 4. Otherwise go to STEP 3.
 
 STEP 3 — Live commentary (race still running)
 Get the leaderboard:
-  grep 'task has finished' logs/eval.log | sed 's/.*] //' | cut -d: -f1-2 | sort | uniq -c | sort -rn
+  grep 'task has finished' "$LOG_FILE" | sed 's/.*] //' | cut -d: -f1-2 | sort | uniq -c | sort -rn
 Get recent events:
-  tail -60 logs/eval.log
+  tail -60 "$LOG_FILE"
 Write 2-4 sentences of live commentary in the style of Vin Scully narrating a championship race between AI models:
 - Reference models by short name: Claude, GPT, Gemini
 - Call out the leader and close battles
@@ -98,13 +105,13 @@ Write 2-4 sentences of live commentary in the style of Vin Scully narrating a ch
 - Use racing metaphors: pulling ahead, gaining ground, the homestretch
 - Under 80 words, plain ASCII only — NO apostrophes, quotes, backticks, backslashes, or special characters. No contractions. This text goes directly to TTS.
 Then:
-(a) Append to transcript.txt: blank line, separator with datetime and update number, your commentary.
+(a) Append to $TRANSCRIPT: blank line, separator with datetime and update number, your commentary.
 (b) Write commentary to /tmp/commentary.txt and speak: kokoro-tts /tmp/commentary.txt --stream --voice am_michael --speed 0.9
 Then go back to STEP 1.
 
 STEP 4 — Final wrap-up (race over)
-1. Get final leaderboard: grep 'task has finished' logs/eval.log | sed 's/.*] //' | cut -d: -f1-2 | sort | uniq -c | sort -rn
-2. Get provider finish times: grep 'all tasks in all configurations have finished on this provider' logs/eval.log
+1. Get final leaderboard: grep 'task has finished' "$LOG_FILE" | sed 's/.*] //' | cut -d: -f1-2 | sort | uniq -c | sort -rn
+2. Get provider finish times: grep 'all tasks in all configurations have finished on this provider' "$LOG_FILE"
 3. Write 2-3 sentences of Vin Scully farewell commentary — winner, final standings, plain ASCII only.
 4. Append to transcript.txt: blank line, '━━━ <datetime> — FINAL ━━━', then the sign-off.
 5. Write sign-off to /tmp/commentary.txt and speak: kokoro-tts /tmp/commentary.txt --stream --voice am_michael --speed 0.9
