@@ -1,23 +1,26 @@
 ---
-allowed-tools: Bash, Task, AskUserQuestion
-description: Simulate a MindTrial eval race (no API tokens) with live voice commentary
+allowed-tools: Bash, AskUserQuestion, CronCreate
+description: Simulate a MindTrial eval race (no API tokens), with optional live voice commentary
 ---
 
 The user wants to simulate a MindTrial eval race without making real API calls.
-This uses scripts/simulate-model-comparison.sh to generate realistic log output that the voice announcer narrates automatically.
-Arguments: $ARGUMENTS (optional: num_tasks, speed multiplier, announcer mode)
+This uses scripts/simulate-model-comparison.sh to generate realistic log output.
+Arguments: $ARGUMENTS (optional: num_tasks, speed multiplier, `with-announcer`)
 
 Parse $ARGUMENTS:
 - First arg: number of tasks per model (default: 30)
 - Second arg: speed multiplier (default: 1, real-time pacing)
-- Third arg: optional flag — "with-announcer" or omitted
+- Any arg equal to `with-announcer`: enable voice announcer
 
-If the third arg is not provided, use AskUserQuestion to ask:
-"How should the race announcer run?"
+**Step 0 — Determine announcer mode**
+
+If `with-announcer` is NOT present in $ARGUMENTS, use AskUserQuestion to ask:
+"Want live voice commentary for this race?"
 With options:
-1. "with-announcer" — launch silently in the background (fully automatic, speaks every ~1 min)
-2. "optional-announcer" — I'll run `/loop 1m /announce-model-comparison` myself after this (gives you the command)
-Use their answer to set the mode before continuing.
+1. Yes — enable the voice announcer (requires kokoro-tts)
+2. No — run silently (no TTS, no announcer loop)
+
+Set `ANNOUNCER_ENABLED` to `true` or `false` based on the flag or the user's answer before continuing.
 
 Use the Bash tool to do the following steps:
 
@@ -67,80 +70,39 @@ sleep 3
 head -15 "$(cat /tmp/.eval_log_file)" 2>/dev/null || echo "(log not yet available)"
 ```
 
-**4. Speak the race start announcement**
+**4. Open log and transcript in separate Terminal windows**
+```bash
+bash scripts/open-dashboard.sh
+```
+
+**5. (ANNOUNCER ONLY) Speak the race start announcement**
+
+Skip this step entirely if `ANNOUNCER_ENABLED` is `false`.
+
 ```bash
 echo "Ladies and gentlemen, welcome to a MindTrial simulation! Six model configurations are about to go head to head. No real tokens, all the drama. Let the race begin!" > /tmp/commentary.txt && kokoro-tts /tmp/commentary.txt --stream --voice am_michael --speed 0.9 2>/dev/null || echo "(kokoro-tts not available)"
 ```
 
-**5. Launch announcer — behavior depends on the third argument (mode)**
+**6. (ANNOUNCER ONLY) Auto-start the announcer loop**
 
-The announcer prompt is the same regardless of mode:
+Skip this step entirely if `ANNOUNCER_ENABLED` is `false`.
 
-```
-ANNOUNCER_PROMPT="
-You are the live voice announcer for a MindTrial AI model race.
+Use the CronCreate tool to schedule the announcer automatically:
+- `cron`: `*/1 * * * *` (every 1 minute)
+- `prompt`: `/announce-model-comparison`
+- `recurring`: `true`
 
-First, resolve paths:
-  RESULTS_DIR=$(cat /tmp/.eval_results_dir 2>/dev/null || echo ".")
-  LOG_FILE=$(cat /tmp/.eval_log_file 2>/dev/null || echo "logs/eval.log")
-  TRANSCRIPT="$RESULTS_DIR/transcript.txt"
+Save the returned job ID to show the user.
 
-Run the following loop until the race is over. Each iteration:
-
-STEP 1 — Wait 60 seconds
-Run: sleep 60
-
-STEP 2 — Check for race completion
-Run: tail -5 "$LOG_FILE" 2>/dev/null
-If the output contains 'all tasks in all configurations have finished on all providers', the race is OVER — go to STEP 4. Otherwise go to STEP 3.
-
-STEP 3 — Live commentary (race still running)
-Get the leaderboard:
-  grep 'task has finished' "$LOG_FILE" | sed 's/.*] //' | cut -d: -f1-2 | sort | uniq -c | sort -rn
-Compute tail size from interval: LOG_LINES_PER_MINUTE=50; INTERVAL_MINS=$(cat /tmp/.eval_loop_interval_mins 2>/dev/null || echo 1); TAIL_LINES=$((INTERVAL_MINS * LOG_LINES_PER_MINUTE)); [ $TAIL_LINES -lt 60 ] && TAIL_LINES=60; [ $TAIL_LINES -gt 500 ] && TAIL_LINES=500
-Get recent events:
-  tail -$TAIL_LINES "$LOG_FILE"
-Write 2-4 sentences of live commentary in the style of Ken Squier narrating a championship race between AI models:
-- Reference models by short name: Claude, GPT, Gemini
-- Call out the leader and close battles
-- Treat ERR lines as dramatic setbacks
-- Use racing metaphors: pulling ahead, gaining ground, the homestretch
-- Under 80 words, plain ASCII only — NO apostrophes, quotes, backticks, backslashes, or special characters. No contractions. This text goes directly to TTS.
-Then:
-(a) Append to $TRANSCRIPT: blank line, separator with datetime and update number, your commentary.
-(b) Write commentary to /tmp/commentary.txt and speak: kokoro-tts /tmp/commentary.txt --stream --voice am_michael --speed 0.9
-Then go back to STEP 1.
-
-STEP 4 — Final wrap-up (race over)
-1. Get final leaderboard: grep 'task has finished' "$LOG_FILE" | sed 's/.*] //' | cut -d: -f1-2 | sort | uniq -c | sort -rn
-2. Get provider finish times: grep 'all tasks in all configurations have finished on this provider' "$LOG_FILE"
-3. Write 2-3 sentences of Ken Squier farewell commentary — winner, final standings, plain ASCII only.
-4. Append to transcript.txt: blank line, '━━━ <datetime> — FINAL ━━━', then the sign-off.
-5. Write sign-off to /tmp/commentary.txt and speak: kokoro-tts /tmp/commentary.txt --stream --voice am_michael --speed 0.9
-6. Write results_summary.md: heading 'MindTrial Race Results — <datetime>', mode SIMULATION, final leaderboard as markdown table, provider finish order, notable moments, full transcript.txt contents.
-7. Write 'Results summary written. What a race folks. Until next time!' to /tmp/commentary.txt and speak it.
-8. Stop — you are done.
-"
-```
-
-If the mode is "with-announcer":
-- Use the Task tool with `run_in_background: true` and `subagent_type: "general-purpose"`, passing the announcer prompt above.
-- The announcer runs silently in the background.
-
-If the mode is "optional-announcer":
-- Do NOT launch a Task.
-- Tell the user to start the announcer with:
-
-/loop 1m /announce-model-comparison
-
-**6. Tell the user the race is running**
+**7. Tell the user the race is running**
 
 Tell the user:
-- The simulation is running (6 configs: GPT-5.4, GPT-5.2, Gemini 3.1 Pro, Gemini 2.5 Flash, Claude Opus 4.6, Claude Sonnet 4.6)
-- If with-announcer: the announcer is running silently in the background, will speak every ~1 minute
-- If no flag: they need to run the /loop command above to start the announcer
-- Watch live: `tail -f transcript.txt`
-- Stop: `/run stop-model-comparison`
-- Default is 30 tasks at 1x speed (~5-6 minutes), 4-5 announcements
-- Quick sprint: `/run simulate-model-comparison 10 10`
-- Auto announcer: `/run simulate-model-comparison 30 1 with-announcer`
+- The simulation is running (show PID, tasks, speed, log path)
+- If announcer is enabled: the announcer loop is running every 1 minute (show job ID, cancel with CronDelete if needed)
+- If announcer is disabled: mention they can re-run with `with-announcer` to enable voice commentary, or manually kick off commentary at any time with `/loop 1m /announce-model-comparison`
+- Watch live:
+  - Transcript: `tail -f <RESULTS_DIR>/transcript.txt`
+  - Log: `tail -f <LOG_FILE>`
+- Stop: `/stop-model-comparison`
+- Default is 30 tasks at 1x speed (~5-6 minutes)
+- Quick sprint: `/simulate-model-comparison 10 2`

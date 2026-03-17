@@ -1,14 +1,15 @@
 ---
-allowed-tools: Bash, AskUserQuestion
-description: Build and run MindTrial eval suite with live voice race commentary
+allowed-tools: Bash, AskUserQuestion, CronCreate
+description: Build and run MindTrial eval suite, with optional live voice race commentary
 ---
 
-The user wants to start a MindTrial eval race with live voice commentary.
-Arguments: $ARGUMENTS (optional: config file, loop interval)
+The user wants to start a MindTrial eval race.
+Arguments: $ARGUMENTS (optional: config file, loop interval, `with-announcer`)
 
 Parse $ARGUMENTS:
 - First arg: config file path (optional — if omitted, prompt interactively)
 - Second arg: loop interval in minutes (default: 5)
+- Any arg equal to `with-announcer`: enable voice announcer
 
 **Step 0 — Pick a config (interactive if no first arg)**
 
@@ -21,6 +22,16 @@ With options:
 Use their answer as the config file path before continuing.
 
 If the first arg IS provided, use it directly as the config file path.
+
+**Step 0b — Determine announcer mode**
+
+If `with-announcer` is NOT present in $ARGUMENTS, use AskUserQuestion to ask:
+"Want live voice commentary for this race?"
+With options:
+1. Yes — enable the voice announcer (requires kokoro-tts)
+2. No — run silently (no TTS, no announcer loop)
+
+Set `ANNOUNCER_ENABLED` to `true` or `false` based on the flag or the user's answer before continuing.
 
 Use the Bash tool to do the following steps:
 
@@ -77,7 +88,15 @@ sleep 5
 head -20 "$(cat /tmp/.eval_log_file)" 2>/dev/null || echo "(log not yet available)"
 ```
 
-**5. Speak the race start announcement**
+**5. Open tail windows via watch script**
+```bash
+bash scripts/open-dashboard.sh
+```
+
+**6. (ANNOUNCER ONLY) Speak the race start announcement**
+
+Skip this step entirely if `ANNOUNCER_ENABLED` is `false`.
+
 ```bash
 LOG_FILE=$(cat /tmp/.eval_log_file)
 NUM_PROVIDERS=$(grep -c "starting [0-9]* tasks on this provider" "$LOG_FILE" 2>/dev/null || echo 3)
@@ -86,20 +105,24 @@ NUM_CONFIGS=${NUM_CONFIGS:-6}
 echo "Ladies and gentlemen, welcome to MindTrial! ${NUM_CONFIGS} model configurations across ${NUM_PROVIDERS} providers are lined up, the tasks are loaded, and we are LIVE. Let the race begin!" > /tmp/commentary.txt && kokoro-tts /tmp/commentary.txt --stream --voice am_michael --speed 0.9 2>/dev/null || echo "(kokoro-tts not available)"
 ```
 
-**6. Tell the user to start the announcer loop**
+**7. (ANNOUNCER ONLY) Auto-start the announcer loop**
 
-Tell the user to start the live voice announcer by running:
+Skip this step entirely if `ANNOUNCER_ENABLED` is `false`.
 
-```
-/loop 5m /announce-model-comparison
-```
+Use the CronCreate tool to schedule the announcer automatically:
+- `cron`: `*/5 * * * *` (every 5 minutes, or use the parsed second arg if provided)
+- `prompt`: `/announce-model-comparison`
+- `recurring`: `true`
 
-(They can adjust the interval — e.g. `2m` or `10m`.)
+Save the returned job ID to show the user.
 
-**7. Tell the user the race is running**
+**8. Tell the user the race is running**
 
 Tell the user:
 - The eval is running (show PID, config, log path)
-- Run `/loop 5m /announce-model-comparison` to start the live voice announcer
-- Watch live: `tail -f <RESULTS_DIR>/transcript.txt`
-- Stop everything: `/run stop-model-comparison`
+- If announcer is enabled: the announcer loop is running (show job ID, cancel with CronDelete if needed)
+- If announcer is disabled: mention they can re-run with `with-announcer` to enable voice commentary, or manually kick off commentary at any time with `/loop 5m /announce-model-comparison`
+- Watch live:
+  - Transcript: `tail -f <RESULTS_DIR>/transcript.txt`
+  - Log: `tail -f <LOG_FILE>`
+- Stop everything: `/stop-model-comparison`
