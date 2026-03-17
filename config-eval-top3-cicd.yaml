@@ -1,6 +1,6 @@
 config:
   log-file: ""
-  output-dir: "./results/cicd/{{.Year}}-{{.Month}}-{{.Day}}/"
+  output-dir: "./results/eval/{{.Year}}-{{.Month}}-{{.Day}}/"
   output-basename: "{{.Hour}}-{{.Minute}}-{{.Second}}"
   task-source: "./tasks-cicd.yaml"
   providers:

@@ -27,8 +27,16 @@ go.work.sum
 # Built binary
 mindtrial
 
+# Voice announcer runtime artifacts
+transcript.txt
+results_summary.md
+logs/
+
 # Evaluation results (stored as CI artifacts)
-# results/
+results/
+
+# Claude session artifacts
+.claude/scheduled_tasks.lock
 
 ### VisualStudioCode ###
 .vscode/*

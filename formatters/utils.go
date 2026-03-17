@@ -186,6 +186,13 @@ func RoundToMS(value time.Duration) time.Duration {
 	return value.Round(time.Millisecond)
 }
 
+// Score returns a 0–100 quality score for a single task result.
+// Success → 100, Error → 0, NotSupported → "-",
+// Failure → character-level similarity % against the best-matching expected answer.
+func Score(result runners.RunResult) string {
+	return result.Score()
+}
+
 // GroupParagraphs splits a slice of lines into paragraphs separated by blank lines.
 // Consecutive non-empty lines are grouped; empty/whitespace-only lines act as paragraph breaks.
 func GroupParagraphs(lines []string) [][]string {
