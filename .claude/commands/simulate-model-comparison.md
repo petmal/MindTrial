@@ -51,7 +51,7 @@ fi
 NUM_TASKS="${1:-30}"
 SPEED="${2:-1}"
 LOG_FILE=$(cat /tmp/.race_log_file)
-nohup bash scripts/simulate-model-comparison.sh "$LOG_FILE" "$NUM_TASKS" "$SPEED" > /dev/null 2>&1 &
+nohup python3 scripts/simulate-model-comparison.sh "$LOG_FILE" "$NUM_TASKS" "$SPEED" > /dev/null 2>&1 &
 SIM_PID=$!
 echo "$SIM_PID" > /tmp/.eval_pid
 echo "Simulation started (PID: $SIM_PID)"
