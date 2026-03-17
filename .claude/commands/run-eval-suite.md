@@ -7,7 +7,7 @@ The user wants to start a MindTrial eval race with live voice commentary.
 Arguments: $ARGUMENTS (optional: config file, log path, loop interval)
 
 Parse $ARGUMENTS:
-- First arg: config file path (default: config-eval-top3.yaml)
+- First arg: config file path (default: config-eval-top3-cicd.yaml)
 - Second arg: log file path (default: logs/eval.log)
 - Third arg: loop interval (default: 3m)
 
@@ -15,7 +15,7 @@ Use the Bash tool to do the following steps:
 
 **1. Ensure log directory and transcript exist**
 ```bash
-CONFIG_FILE="${1:-config-eval-top3.yaml}"
+CONFIG_FILE="${1:-config-eval-top3-cicd.yaml}"
 LOG_FILE="${2:-logs/eval.log}"
 mkdir -p "$(dirname "$LOG_FILE")"
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
@@ -39,7 +39,7 @@ echo "Build complete."
 
 **3. Start the eval suite in the background**
 ```bash
-CONFIG_FILE="${1:-config-eval-top3.yaml}"
+CONFIG_FILE="${1:-config-eval-top3-cicd.yaml}"
 LOG_FILE="${2:-logs/eval.log}"
 nohup ./mindtrial -config "$CONFIG_FILE" -log "$LOG_FILE" run > /dev/null 2>&1 &
 EVAL_PID=$!
@@ -57,7 +57,7 @@ head -20 "${2:-logs/eval.log}" 2>/dev/null || echo "(log not yet available)"
 
 **5. Speak the race start announcement via Kokoro TTS**
 ```bash
-echo "Ladies and gentlemen, welcome to MindTrial! The models are lined up, the tasks are loaded, and we are LIVE! Let the race begin!" | kokoro-tts - --stream --voice af_heart 2>/dev/null || echo "(kokoro-tts not available — install with: pip install kokoro-tts)"
+echo "Ladies and gentlemen, welcome to MindTrial! The models are lined up, the tasks are loaded, and we are LIVE! Let the race begin!" | kokoro-tts - --stream --voice af_heart 2>/dev/null || echo "(kokoro-tts not available — install with: pipx install kokoro-tts --python python3.12)"
 ```
 
 **6. Confirm setup to the user, then instruct them to start the /loop**
