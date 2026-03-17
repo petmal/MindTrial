@@ -8,7 +8,7 @@ This uses scripts/simulate-model-comparison.sh to generate realistic log output 
 Arguments: $ARGUMENTS (optional: num_tasks, speed multiplier, loop interval)
 
 Parse $ARGUMENTS:
-- First arg: number of tasks per model (default: 20)
+- First arg: number of tasks per model (default: 30)
 - Second arg: speed multiplier (default: 1, real-time pacing)
 - Third arg: loop interval (default: 1m — shorter since simulation is compressed)
 
@@ -32,7 +32,7 @@ echo "Transcript initialized at transcript.txt"
 
 **2. Start the simulation in the background**
 ```bash
-NUM_TASKS="${1:-20}"
+NUM_TASKS="${1:-30}"
 SPEED="${2:-1}"
 nohup python3 scripts/simulate-model-comparison.sh logs/eval.log "$NUM_TASKS" "$SPEED" > /dev/null 2>&1 &
 SIM_PID=$!
@@ -51,7 +51,7 @@ head -15 logs/eval.log 2>/dev/null || echo "(log not yet available)"
 
 **4. Speak the race start announcement**
 ```bash
-echo "Ladies and gentlemen, welcome to a MindTrial simulation! Six model configurations are about to go head to head. No real tokens, all the drama. Let the race begin!" | kokoro-tts - --stream --voice af_heart 2>/dev/null || echo "(kokoro-tts not available)"
+echo "Ladies and gentlemen, welcome to a MindTrial simulation! Six model configurations are about to go head to head. No real tokens, all the drama. Let the race begin!" | kokoro-tts - --stream --voice am_michael --speed 0.9 2>/dev/null || echo "(kokoro-tts not available)"
 ```
 
 **5. Confirm setup and give the user the /loop command**
@@ -95,21 +95,21 @@ Now write 2-4 sentences of live race commentary in the style of legendary baseba
 
 Then do two things:
 (a) Append to transcript.txt: a blank line, then a line "━━━ <current datetime> (Update #N) ━━━" where N increments each update starting from 1, then your commentary on the next line.
-(b) Speak it aloud by running: echo "<your commentary here>" | kokoro-tts - --stream --voice af_heart
+(b) Speak it aloud by running: echo "<your commentary here>" | kokoro-tts - --stream --voice am_michael --speed 0.9
 
 STEP 2B — IF THE RACE IS OVER: final wrap-up
 Do these steps in order:
 1. Get the final leaderboard: grep "task has finished" logs/eval.log | sed 's/.*] //' | cut -d: -f1-2 | sort | uniq -c | sort -rn
 2. Get provider finish times: grep "all tasks in all configurations have finished on this provider" logs/eval.log
 3. Write a final sign-off to transcript.txt: blank line, "━━━ <datetime> — FINAL ━━━", then 2-3 sentences of Vin Scully farewell commentary announcing the winner and final standings. Plain ASCII only.
-4. Speak the sign-off: echo "<sign-off text>" | kokoro-tts - --stream --voice af_heart
+4. Speak the sign-off: echo "<sign-off text>" | kokoro-tts - --stream --voice am_michael --speed 0.9
 5. Write results_summary.md with: heading "MindTrial Race Results — <datetime>", mode SIMULATION, final leaderboard as a markdown table, provider finish order, notable moments (errors, close calls, speed records), and the full transcript.txt contents.
-6. Speak: echo "Results summary written. What a race folks. The loop is closing. Until next time!" | kokoro-tts - --stream --voice af_heart
+6. Speak: echo "Results summary written. What a race folks. The loop is closing. Until next time!" | kokoro-tts - --stream --voice am_michael --speed 0.9
 7. Stop this loop — the race is complete.
 
 ---
 
 Remind the user:
 - This is a simulation — no API tokens are spent
-- Default is 20 tasks at 1x speed (~3-4 minutes), giving the announcer several updates
+- Default is 30 tasks at 1x speed (~5-6 minutes), giving the announcer 4-5 updates before the finish
 - They can speed it up: `/run simulate-model-comparison 10 10` for a quick sprint
