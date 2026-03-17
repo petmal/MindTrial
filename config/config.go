@@ -13,6 +13,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -101,6 +102,90 @@ func (ac AppConfig) GetJudgesWithEnabledRuns() []JudgeConfig {
 		}
 	}
 	return judges
+}
+
+// defaultAPIKeyEnvVars maps provider names to their well-known environment variable names.
+// When a provider's api-key is empty, the corresponding env var is used as a fallback.
+var defaultAPIKeyEnvVars = map[string]string{
+	OPENAI:     "OPENAI_API_KEY",
+	OPENROUTER: "OPENROUTER_API_KEY",
+	GOOGLE:     "GOOGLE_API_KEY",
+	ANTHROPIC:  "ANTHROPIC_API_KEY",
+	DEEPSEEK:   "DEEPSEEK_API_KEY",
+	MISTRALAI:  "MISTRAL_API_KEY",
+	XAI:        "XAI_API_KEY",
+	ALIBABA:    "DASHSCOPE_API_KEY",
+	MOONSHOTAI: "MOONSHOT_API_KEY",
+}
+
+// resolveAPIKeysFromEnv fills empty api-key fields from well-known environment variables.
+func (ac *AppConfig) resolveAPIKeysFromEnv() {
+	for i := range ac.Providers {
+		resolveProviderAPIKey(&ac.Providers[i])
+	}
+	for i := range ac.Judges {
+		resolveProviderAPIKey(&ac.Judges[i].Provider)
+	}
+}
+
+// resolveProviderAPIKey sets a provider's API key from its default env var when empty.
+func resolveProviderAPIKey(pc *ProviderConfig) {
+	envVar, ok := defaultAPIKeyEnvVars[pc.Name]
+	if !ok {
+		return
+	}
+	key := os.Getenv(envVar)
+	if key == "" {
+		return
+	}
+
+	switch cfg := pc.ClientConfig.(type) {
+	case OpenAIClientConfig:
+		if cfg.APIKey == "" {
+			cfg.APIKey = key
+			pc.ClientConfig = cfg
+		}
+	case OpenRouterClientConfig:
+		if cfg.APIKey == "" {
+			cfg.APIKey = key
+			pc.ClientConfig = cfg
+		}
+	case GoogleAIClientConfig:
+		if cfg.APIKey == "" {
+			cfg.APIKey = key
+			pc.ClientConfig = cfg
+		}
+	case AnthropicClientConfig:
+		if cfg.APIKey == "" {
+			cfg.APIKey = key
+			pc.ClientConfig = cfg
+		}
+	case DeepseekClientConfig:
+		if cfg.APIKey == "" {
+			cfg.APIKey = key
+			pc.ClientConfig = cfg
+		}
+	case MistralAIClientConfig:
+		if cfg.APIKey == "" {
+			cfg.APIKey = key
+			pc.ClientConfig = cfg
+		}
+	case XAIClientConfig:
+		if cfg.APIKey == "" {
+			cfg.APIKey = key
+			pc.ClientConfig = cfg
+		}
+	case AlibabaClientConfig:
+		if cfg.APIKey == "" {
+			cfg.APIKey = key
+			pc.ClientConfig = cfg
+		}
+	case MoonshotAIClientConfig:
+		if cfg.APIKey == "" {
+			cfg.APIKey = key
+			pc.ClientConfig = cfg
+		}
+	}
 }
 
 // ProviderConfig defines settings for an AI provider.

@@ -28,13 +28,14 @@ func (f summaryLogFormatter) FileExt() string {
 func (f summaryLogFormatter) Write(results runners.Results, out io.Writer) error {
 	tab := tabwriter.NewWriter(out, 0, 0, 1, ' ', tabwriter.Debug)
 	defer tab.Flush()
-	if _, err := fmt.Fprintf(tab, "Provider\tRun\t%s\t%s\t%s\t%s\tPass Rate (%%)\tAccuracy (%%)\tError Rate (%%)\tTotal Duration\t\n", Passed, Failed, Error, Skipped); err != nil {
+	allKinds := []runners.ResultKind{runners.Success, runners.Failure, runners.Error, runners.NotSupported}
+	if _, err := fmt.Fprintf(tab, "Provider\tRun\t%s\t%s\t%s\t%s\tPass Rate (%%)\tAccuracy (%%)\tError Rate (%%)\tTotal Duration\tInput Tokens\tOutput Tokens\tEst. Cost\t\n", Passed, Failed, Error, Skipped); err != nil {
 		return fmt.Errorf("%w: %v", ErrPrintResults, err)
 	}
 	return ForEachOrdered(results, func(provider string, _ []runners.RunResult) error {
 		resultsByRunAndKind := results.ProviderResultsByRunAndKind(provider)
 		return ForEachOrdered(resultsByRunAndKind, func(run string, resultsByKind map[runners.ResultKind][]runners.RunResult) error {
-			if _, err := fmt.Fprintf(tab, "%s\t%s\t%d\t%d\t%d\t%d\t%.2f\t%.2f\t%.2f\t%s\t\n",
+			if _, err := fmt.Fprintf(tab, "%s\t%s\t%d\t%d\t%d\t%d\t%.2f\t%.2f\t%.2f\t%s\t%s\t%s\t%s\t\n",
 				provider, run,
 				CountByKind(resultsByKind, runners.Success),
 				CountByKind(resultsByKind, runners.Failure),
@@ -43,7 +44,10 @@ func (f summaryLogFormatter) Write(results runners.Results, out io.Writer) error
 				Percent(PassRate(resultsByKind)),
 				Percent(AccuracyRate(resultsByKind)),
 				Percent(ErrorRate(resultsByKind)),
-				RoundToMS(TotalDuration(resultsByKind, runners.Success, runners.Failure, runners.Error, runners.NotSupported))); err != nil {
+				RoundToMS(TotalDuration(resultsByKind, allKinds...)),
+				FormatTokenCount(TotalInputTokens(resultsByKind, allKinds...)),
+				FormatTokenCount(TotalOutputTokens(resultsByKind, allKinds...)),
+				FormatCost(EstimatedCost(resultsByKind, allKinds...))); err != nil {
 				return fmt.Errorf("%w: %v", ErrPrintResults, err)
 			}
 			return nil

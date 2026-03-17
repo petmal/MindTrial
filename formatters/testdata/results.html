@@ -1062,10 +1062,28 @@
                                 <span class="sort-btn" data-column="duration" data-direction="asc">↕️</span>
                             </div>
                         </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Input Tokens</span>
+                                <span class="sort-btn" data-column="inputtokens" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Output Tokens</span>
+                                <span class="sort-btn" data-column="outputtokens" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Est. Cost</span>
+                                <span class="sort-btn" data-column="cost" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-error" data-passed="0" data-failed="0" data-error="1" data-skipped="0" data-passrate="0.00" data-accuracy="0.00" data-errorrate="100.00" data-duration="0">
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-error" data-passed="0" data-failed="0" data-error="1" data-skipped="0" data-passrate="0.00" data-accuracy="0.00" data-errorrate="100.00" data-duration="0" data-inputtokens="0" data-outputtokens="0" data-cost="0.000000">
                         <td>
                             <input type="checkbox" class="run-compare-checkbox" data-provider="provider-name" data-run="run-error" title="Select for comparison">
                         </td>
@@ -1082,8 +1100,11 @@
                         <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error Rate (%)"><meta itemprop="unitText" content="%"><span itemprop="value">100.00</span></td>
                         <td><time itemprop="observationPeriod" datetime="PT0.000S">0s</time>
                         </td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
                     </tr>
-                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-failure" data-passed="0" data-failed="1" data-error="0" data-skipped="0" data-passrate="0.00" data-accuracy="0.00" data-errorrate="0.00" data-duration="10000">
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-failure" data-passed="0" data-failed="1" data-error="0" data-skipped="0" data-passrate="0.00" data-accuracy="0.00" data-errorrate="0.00" data-duration="10000" data-inputtokens="200" data-outputtokens="0" data-cost="0.000000">
                         <td>
                             <input type="checkbox" class="run-compare-checkbox" data-provider="provider-name" data-run="run-failure" title="Select for comparison">
                         </td>
@@ -1100,8 +1121,11 @@
                         <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error Rate (%)"><meta itemprop="unitText" content="%"><span itemprop="value">0.00</span></td>
                         <td><time itemprop="observationPeriod" datetime="PT10.000S">10s</time>
                         </td>
+                        <td>200</td>
+                        <td>-</td>
+                        <td>-</td>
                     </tr>
-                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-failure-multiple-answers" data-passed="0" data-failed="1" data-error="0" data-skipped="0" data-passrate="0.00" data-accuracy="0.00" data-errorrate="0.00" data-duration="180800">
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-failure-multiple-answers" data-passed="0" data-failed="1" data-error="0" data-skipped="0" data-passrate="0.00" data-accuracy="0.00" data-errorrate="0.00" data-duration="180800" data-inputtokens="500" data-outputtokens="150" data-cost="0.000000">
                         <td>
                             <input type="checkbox" class="run-compare-checkbox" data-provider="provider-name" data-run="run-failure-multiple-answers" title="Select for comparison">
                         </td>
@@ -1118,8 +1142,11 @@
                         <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error Rate (%)"><meta itemprop="unitText" content="%"><span itemprop="value">0.00</span></td>
                         <td><time itemprop="observationPeriod" datetime="PT180.800S">3m0.8s</time>
                         </td>
+                        <td>500</td>
+                        <td>150</td>
+                        <td>-</td>
                     </tr>
-                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-not-supported" data-passed="0" data-failed="0" data-error="0" data-skipped="1" data-passrate="0.00" data-accuracy="0.00" data-errorrate="0.00" data-duration="500">
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-not-supported" data-passed="0" data-failed="0" data-error="0" data-skipped="1" data-passrate="0.00" data-accuracy="0.00" data-errorrate="0.00" data-duration="500" data-inputtokens="10" data-outputtokens="0" data-cost="0.000000">
                         <td>
                             <input type="checkbox" class="run-compare-checkbox" data-provider="provider-name" data-run="run-not-supported" title="Select for comparison">
                         </td>
@@ -1136,8 +1163,11 @@
                         <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error Rate (%)"><meta itemprop="unitText" content="%"><span itemprop="value">0.00</span></td>
                         <td><time itemprop="observationPeriod" datetime="PT0.500S">500ms</time>
                         </td>
+                        <td>10</td>
+                        <td>-</td>
+                        <td>-</td>
                     </tr>
-                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-parsing-error" data-passed="0" data-failed="0" data-error="1" data-skipped="0" data-passrate="0.00" data-accuracy="0.00" data-errorrate="100.00" data-duration="314159">
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-parsing-error" data-passed="0" data-failed="0" data-error="1" data-skipped="0" data-passrate="0.00" data-accuracy="0.00" data-errorrate="100.00" data-duration="314159" data-inputtokens="0" data-outputtokens="333" data-cost="0.000000">
                         <td>
                             <input type="checkbox" class="run-compare-checkbox" data-provider="provider-name" data-run="run-parsing-error" title="Select for comparison">
                         </td>
@@ -1154,8 +1184,11 @@
                         <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error Rate (%)"><meta itemprop="unitText" content="%"><span itemprop="value">100.00</span></td>
                         <td><time itemprop="observationPeriod" datetime="PT314.159S">5m14.159s</time>
                         </td>
+                        <td>-</td>
+                        <td>333</td>
+                        <td>-</td>
                     </tr>
-                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-structured-failure" data-passed="0" data-failed="1" data-error="0" data-skipped="0" data-passrate="0.00" data-accuracy="0.00" data-errorrate="0.00" data-duration="38000">
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-structured-failure" data-passed="0" data-failed="1" data-error="0" data-skipped="0" data-passrate="0.00" data-accuracy="0.00" data-errorrate="0.00" data-duration="38000" data-inputtokens="501" data-outputtokens="213" data-cost="0.000000">
                         <td>
                             <input type="checkbox" class="run-compare-checkbox" data-provider="provider-name" data-run="run-structured-failure" title="Select for comparison">
                         </td>
@@ -1172,8 +1205,11 @@
                         <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error Rate (%)"><meta itemprop="unitText" content="%"><span itemprop="value">0.00</span></td>
                         <td><time itemprop="observationPeriod" datetime="PT38.000S">38s</time>
                         </td>
+                        <td>501</td>
+                        <td>213</td>
+                        <td>-</td>
                     </tr>
-                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-structured-success" data-passed="1" data-failed="0" data-error="0" data-skipped="0" data-passrate="100.00" data-accuracy="100.00" data-errorrate="0.00" data-duration="42000">
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-structured-success" data-passed="1" data-failed="0" data-error="0" data-skipped="0" data-passrate="100.00" data-accuracy="100.00" data-errorrate="0.00" data-duration="42000" data-inputtokens="534" data-outputtokens="246" data-cost="0.000000">
                         <td>
                             <input type="checkbox" class="run-compare-checkbox" data-provider="provider-name" data-run="run-structured-success" title="Select for comparison">
                         </td>
@@ -1190,8 +1226,11 @@
                         <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error Rate (%)"><meta itemprop="unitText" content="%"><span itemprop="value">0.00</span></td>
                         <td><time itemprop="observationPeriod" datetime="PT42.000S">42s</time>
                         </td>
+                        <td>534</td>
+                        <td>246</td>
+                        <td>-</td>
                     </tr>
-                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-success" data-passed="1" data-failed="0" data-error="0" data-skipped="0" data-passrate="100.00" data-accuracy="100.00" data-errorrate="0.00" data-duration="95000">
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-success" data-passed="1" data-failed="0" data-error="0" data-skipped="0" data-passrate="100.00" data-accuracy="100.00" data-errorrate="0.00" data-duration="95000" data-inputtokens="9876543221" data-outputtokens="1234567895" data-cost="0.000000">
                         <td>
                             <input type="checkbox" class="run-compare-checkbox" data-provider="provider-name" data-run="run-success" title="Select for comparison">
                         </td>
@@ -1208,8 +1247,11 @@
                         <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error Rate (%)"><meta itemprop="unitText" content="%"><span itemprop="value">0.00</span></td>
                         <td><time itemprop="observationPeriod" datetime="PT95.000S">1m35s</time>
                         </td>
+                        <td>9876543221</td>
+                        <td>1234567895</td>
+                        <td>-</td>
                     </tr>
-                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-success-multiple-answers" data-passed="1" data-failed="0" data-error="0" data-skipped="0" data-passrate="100.00" data-accuracy="100.00" data-errorrate="0.00" data-duration="17000">
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-success-multiple-answers" data-passed="1" data-failed="0" data-error="0" data-skipped="0" data-passrate="100.00" data-accuracy="100.00" data-errorrate="0.00" data-duration="17000" data-inputtokens="0" data-outputtokens="0" data-cost="0.000000">
                         <td>
                             <input type="checkbox" class="run-compare-checkbox" data-provider="provider-name" data-run="run-success-multiple-answers" title="Select for comparison">
                         </td>
@@ -1226,8 +1268,11 @@
                         <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error Rate (%)"><meta itemprop="unitText" content="%"><span itemprop="value">0.00</span></td>
                         <td><time itemprop="observationPeriod" datetime="PT17.000S">17s</time>
                         </td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
                     </tr>
-                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-validation-error" data-passed="0" data-failed="0" data-error="1" data-skipped="0" data-passrate="0.00" data-accuracy="0.00" data-errorrate="100.00" data-duration="2000">
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-validation-error" data-passed="0" data-failed="0" data-error="1" data-skipped="0" data-passrate="0.00" data-accuracy="0.00" data-errorrate="100.00" data-duration="2000" data-inputtokens="1234" data-outputtokens="5678" data-cost="0.000000">
                         <td>
                             <input type="checkbox" class="run-compare-checkbox" data-provider="provider-name" data-run="run-validation-error" title="Select for comparison">
                         </td>
@@ -1244,6 +1289,9 @@
                         <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error Rate (%)"><meta itemprop="unitText" content="%"><span itemprop="value">100.00</span></td>
                         <td><time itemprop="observationPeriod" datetime="PT2.000S">2s</time>
                         </td>
+                        <td>1234</td>
+                        <td>5678</td>
+                        <td>-</td>
                     </tr></tbody>
             </table>
             <div style="margin-top: 0;">

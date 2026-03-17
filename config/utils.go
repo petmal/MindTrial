@@ -13,6 +13,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -26,7 +27,26 @@ import (
 
 var validate = validator.New(validator.WithRequiredStructEnabled())
 
+// envVarPattern matches ${VAR_NAME} references for environment variable expansion.
+var envVarPattern = regexp.MustCompile(`\$\{([^}]+)\}`)
+
+// expandEnvVars replaces ${VAR_NAME} references with their environment variable values.
+// Only the ${...} syntax is supported (bare $VAR is not expanded).
+// References to unset variables are left unchanged.
+func expandEnvVars(s string) string {
+	return envVarPattern.ReplaceAllStringFunc(s, func(match string) string {
+		name := match[2 : len(match)-1]
+		if val, ok := os.LookupEnv(name); ok {
+			return val
+		}
+		return match
+	})
+}
+
 // LoadConfigFromFile reads and validates application configuration from the specified file path.
+// Environment variables referenced as ${VAR_NAME} in the YAML are expanded before parsing.
+// Additionally, if a provider's api-key is empty after parsing, the well-known environment
+// variable for that provider (e.g., OPENAI_API_KEY) is used as a fallback.
 // Returns error if the file cannot be read or contains invalid configuration.
 func LoadConfigFromFile(ctx context.Context, path string) (*Config, error) {
 	fp, err := os.Open(path)
@@ -40,10 +60,14 @@ func LoadConfigFromFile(ctx context.Context, path string) (*Config, error) {
 		return nil, fmt.Errorf("failed to read configuration file: %w", err)
 	}
 
+	fileContents = []byte(expandEnvVars(string(fileContents)))
+
 	cfg := &Config{}
 	if err := yamlUnmarshalStrict(fileContents, cfg); err != nil {
 		return nil, fmt.Errorf("malformed configuration file: %w", err)
 	}
+
+	cfg.Config.resolveAPIKeysFromEnv()
 
 	if err := validate.Struct(cfg); err != nil {
 		return cfg, fmt.Errorf("invalid configuration definition: %w", err)

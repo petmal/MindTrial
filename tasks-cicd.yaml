@@ -1,0 +1,1680 @@
+# CI/CD Domain Tasks for MindTrial
+# These tasks test AI model knowledge of CI/CD, DevOps, and CircleCI-specific concepts.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at <https://mozilla.org/MPL/2.0/>.
+
+task-config:
+  max-turns: 100
+  validation-rules:
+    case-sensitive: false
+    ignore-whitespace: false
+    trim-lines: false
+    judge:
+      prompt:
+        template: |-
+          You are an automatic grader. Decide if the candidate response is semantically equivalent to ANY ONE of the expected answers.
+
+          Definitions
+          - Semantic equivalence: the candidate conveys the same meaning and required facts as an expected answer; wording may differ.
+          - Extra content: ignore unless it contradicts or changes the meaning.
+          - Normalization: apply the flags below BEFORE comparing (case/whitespace).
+
+          Inputs
+          Original task prompt:
+          {{.OriginalTask.Prompt}}
+
+          Original answer format instruction:
+          {{.OriginalTask.ResponseResultFormat}}
+
+          Expected answer(s) (match any one):
+          {{- range .OriginalTask.ExpectedResults}}
+          - {{.}}
+          {{- end}}
+
+          Candidate response:
+          {{.Candidate.Response}}
+
+          Validation flags:
+          - Case sensitive: {{if .Rules.CaseSensitive}}yes{{else}}no{{end}}
+          - Ignore whitespace: {{if .Rules.IgnoreWhitespace}}yes{{else}}no{{end}}
+
+          Procedure
+          1. Normalize candidate and each expected answer per the flags.
+          2. Compare the candidate to each expected answer independently for semantic equivalence.
+          3. Set "correct" to true if ANY match, false otherwise.
+        verdict-format:
+          type: object
+          properties:
+            correct:
+              type: boolean
+              title: "Semantic Equivalence Verdict"
+              description: "True if the candidate response is semantically equivalent to any expected answer, false otherwise. Follow the provided evaluation criteria and normalization rules."
+          required: ["correct"]
+          additionalProperties: false
+        passing-verdicts:
+          correct: true
+  system-prompt:
+    enable-for: "text"
+    template: |-
+      Your final answer must strictly follow the format definition below. Do not add extra words, punctuation, quotes, or whitespace beyond what the format specifies.
+
+      ---
+      FORMAT DEFINITION:
+      {{.ResponseResultFormat}}
+      ---
+
+      RULES:
+      1. The format definition above describes the required structure for the final answer content.
+      2. If it contains placeholders like `<variable>`, substitute them with the correct raw value, removing the `<` and `>` characters.
+      3. Adhere to all described structural rules, such as list numbering, ordering, separators, and newlines.
+      4. If the format provides specific word choices (e.g., "true or false"), your answer must be one of those exact words.
+  tool-selector:
+    disabled: true
+    tools:
+      - name: python-code-executor
+        max-calls: 10
+        timeout: 60s
+        max-memory-mb: 512
+        cpu-percent: 25
+  tasks:
+    - name: "cicd - shell arithmetic - v1"
+      prompt: |-
+        What is the output of the following bash script?
+
+        x=1
+        for i in $(seq 1 5); do
+          x=$((x * 2))
+        done
+        echo $x
+      response-result-format: |-
+        the output number
+      expected-result: |-
+        32
+    - name: "cicd - pipeline stages - v1"
+      prompt: |-
+        A CI/CD pipeline has the following jobs with dependencies:
+
+        - lint: no dependencies
+        - unit_test: no dependencies
+        - build: depends on lint and unit_test
+        - integration_test: depends on build
+        - deploy_staging: depends on build
+        - deploy_production: depends on integration_test and deploy_staging
+
+        If independent jobs run in parallel, what is the minimum number of sequential stages required to complete the entire pipeline?
+      response-result-format: |-
+        <number>
+      expected-result: |-
+        4
+    - name: "cicd - semantic versioning - v1"
+      prompt: |-
+        A library is currently at version 3.2.5. The following changes are made in the next release:
+
+        1. A bug fix for an edge case in the parser
+        2. A new optional parameter added to an existing function (backward-compatible)
+        3. Performance improvement to the core algorithm (no API changes)
+
+        Following Semantic Versioning 2.0.0 rules strictly, what should the next version number be?
+      response-result-format: |-
+        <major>.<minor>.<patch>
+      expected-result: |-
+        3.3.0
+    - name: "cicd - environment variable resolution - v1"
+      prompt: |-
+        Given the following bash environment setup, what is the final value of the DEPLOY_URL variable?
+
+        export ENV="production"
+        export REGION="us-east-1"
+        export SERVICE="api"
+        export BASE="https://${SERVICE}.${REGION}.example.com"
+        export DEPLOY_URL="${BASE}/${ENV}/health"
+      response-result-format: |-
+        the resolved URL string
+      expected-result: |-
+        https://api.us-east-1.example.com/production/health
+    - name: "cicd - circleci config error - v1"
+      prompt: |-
+        The following CircleCI configuration has exactly one error that would cause validation to fail.
+        Identify the incorrect key name that needs to be fixed.
+
+        version: 2.1
+        jobs:
+          build:
+            docker:
+              - image: cimg/node:20.0
+            steps:
+              - checkout
+              - run: npm install
+              - run: npm test
+        workflows:
+          main:
+            job:
+              - build
+      response-result-format: |-
+        the incorrect key name
+      expected-result:
+        - "job"
+        - "jobs"
+      validation-rules:
+        judge:
+          enabled: true
+          name: "default"
+          variant: "fast"
+    - name: "cicd - docker port mapping - v1"
+      prompt: |-
+        Given the following Docker Compose service configuration:
+
+        services:
+          web:
+            image: nginx:latest
+            ports:
+              - "8080:80"
+              - "8443:443"
+            environment:
+              - NGINX_HOST=example.com
+
+        On which port on the host machine can you access the HTTP service?
+        On which port on the host machine can you access the HTTPS service?
+      response-result-format: |-
+        HTTP: <port>, HTTPS: <port>
+      expected-result: |-
+        HTTP: 8080, HTTPS: 8443
+    - name: "cicd - build parallelism - v1"
+      prompt: |-
+        A CI/CD pipeline has the following jobs with their durations and dependencies:
+
+        - checkout (2 min): no dependencies
+        - install_deps (3 min): depends on checkout
+        - lint (1 min): depends on install_deps
+        - unit_test (4 min): depends on install_deps
+        - build (2 min): depends on lint and unit_test
+        - deploy (1 min): depends on build
+
+        If jobs without dependency conflicts run in parallel, what is the minimum total wall-clock time (in minutes) to complete the entire pipeline?
+      response-result-format: |-
+        <number> min
+      expected-result:
+        - "12 min"
+        - "12"
+    - name: "cicd - cache key resolution - v1"
+      prompt: |-
+        In CircleCI, the following cache key template is used:
+
+        v1-deps-{{ checksum "package-lock.json" }}-{{ .Branch }}
+
+        Given:
+        - The checksum of package-lock.json is "abc123def456"
+        - The current branch is "feature/login"
+
+        What will the resolved cache key be?
+      response-result-format: |-
+        the resolved cache key string
+      expected-result: |-
+        v1-deps-abc123def456-feature/login
+    - name: "cicd - resource calculation - v1"
+      prompt: |-
+        A Kubernetes deployment has the following configuration:
+
+        replicas: 3
+        Each pod requests:
+          cpu: 250m
+          memory: 512Mi
+
+        What are the total CPU and memory resources requested by this deployment?
+      response-result-format: |-
+        CPU: <value>, Memory: <value>
+      expected-result:
+        - "CPU: 750m, Memory: 1536Mi"
+        - "CPU: 750m, Memory: 1.5Gi"
+    - name: "cicd - git branch extraction - v1"
+      prompt: |-
+        Given the following bash commands, what will be printed?
+
+        BRANCH="feature/PROJ-1234-add-auth"
+        TICKET=$(echo "$BRANCH" | grep -oP 'PROJ-\d+')
+        echo "$TICKET"
+      response-result-format: |-
+        the printed output
+      expected-result: |-
+        PROJ-1234
+    - name: "cicd - workflow filter - v1"
+      prompt: |-
+        Given this CircleCI workflow configuration:
+
+        workflows:
+          build-test-deploy:
+            jobs:
+              - build
+              - test:
+                  requires:
+                    - build
+              - deploy:
+                  requires:
+                    - test
+                  filters:
+                    branches:
+                      only: main
+
+        A developer pushes to the "feature/auth" branch. Which jobs will execute?
+      response-result-format: |-
+        list of job names that will execute, separated by ", "
+      expected-result: |-
+        build, test
+    - name: "cicd - shell exit code - v1"
+      prompt: |-
+        What will be the complete standard output of the following bash script?
+
+        set -e
+        echo "step 1"
+        false
+        echo "step 2"
+        echo "step 3"
+      response-result-format: |-
+        all lines of output
+      expected-result:
+        - "step 1"
+        - |-
+          step 1
+    - name: "cicd - matrix build count - v1"
+      prompt: |-
+        A CI configuration uses a build matrix:
+
+        matrix:
+          os: [ubuntu-22.04, ubuntu-24.04, macos-latest]
+          node-version: [18, 20, 22]
+          exclude:
+            - os: macos-latest
+              node-version: 18
+
+        How many total jobs will the matrix generate?
+      response-result-format: |-
+        <number>
+      expected-result: |-
+        8
+    - name: "cicd - resource class selection - v1"
+      prompt: |-
+        A CircleCI job needs at least 7GB of RAM to run a memory-intensive test suite.
+        Which is the smallest CircleCI Docker resource class that meets this requirement?
+
+        Available resource classes and their specs:
+        - small: 1 vCPU, 2GB RAM
+        - medium: 2 vCPUs, 4GB RAM
+        - medium+: 3 vCPUs, 6GB RAM
+        - large: 4 vCPUs, 8GB RAM
+        - xlarge: 8 vCPUs, 16GB RAM
+        - 2xlarge: 16 vCPUs, 32GB RAM
+      response-result-format: |-
+        <resource class name>
+      expected-result: |-
+        large
+    - name: "cicd - deployment strategy - v1"
+      prompt: |-
+        Match each deployment description to its standard deployment strategy name:
+
+        1. Two identical environments exist. Traffic is switched from one to the other atomically.
+        2. The new version is gradually rolled out to a small percentage of users before full deployment.
+        3. Old version instances are replaced one at a time with new version instances.
+        4. Both old and new versions run simultaneously, and a feature flag determines which version a user sees.
+      response-result-format: |-
+        1. <strategy name>
+        2. <strategy name>
+        3. <strategy name>
+        4. <strategy name>
+      expected-result:
+        - |-
+          1. Blue-Green
+          2. Canary
+          3. Rolling
+          4. Feature Flag
+        - |-
+          1. Blue/Green
+          2. Canary
+          3. Rolling
+          4. Feature Flag
+      validation-rules:
+        judge:
+          enabled: true
+          name: "default"
+          variant: "fast"
+    - name: "cicd - dockerfile optimization - v1"
+      prompt: |-
+        A developer has this Dockerfile and notices that every source code change causes the slow "pip install" step to re-run, even when requirements.txt hasn't changed:
+
+        FROM python:3.11
+        COPY . /app
+        WORKDIR /app
+        RUN pip install -r requirements.txt
+        CMD ["python", "main.py"]
+
+        Rewrite the Dockerfile to leverage Docker layer caching so that pip install only runs when requirements.txt changes.
+      response-result-format: |-
+        the complete rewritten Dockerfile, one instruction per line
+      expected-result: |-
+        FROM python:3.11
+        WORKDIR /app
+        COPY requirements.txt .
+        RUN pip install -r requirements.txt
+        COPY . .
+        CMD ["python", "main.py"]
+      validation-rules:
+        judge:
+          enabled: true
+          name: "default"
+          variant: "fast"
+    - name: "cicd - shell subshell bug - v1"
+      prompt: |-
+        This bash script is intended to count the number of .go files in a directory tree, but it always outputs "Found 0 Go files" even when .go files exist. What is the root cause of the bug?
+
+        #!/bin/bash
+        count=0
+        find . -name "*.go" | while read file; do
+          count=$((count + 1))
+        done
+        echo "Found $count Go files"
+      response-result-format: |-
+        concise explanation of the bug in one or two sentences
+      expected-result: |-
+        The pipe causes the while loop to execute in a subshell, so modifications to the count variable are not visible in the parent shell after the loop ends.
+      validation-rules:
+        judge:
+          enabled: true
+          name: "default"
+          variant: "fast"
+    - name: "cicd - circleci orb concept - v1"
+      prompt: |-
+        In CircleCI, what is an orb?
+        
+        a) A visual dashboard for monitoring pipeline health
+        b) A reusable, shareable package of CircleCI configuration (jobs, commands, executors)
+        c) A type of executor that runs jobs in a virtual machine
+        d) A caching mechanism for Docker layers
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "b)"
+        - "b) A reusable, shareable package of CircleCI configuration (jobs, commands, executors)"
+    - name: "cicd - pipeline duration calculation - v1"
+      prompt: |-
+        A CircleCI pipeline has these jobs with the given average durations:
+
+        - checkout: 10s (no dependencies)
+        - install: 45s (requires checkout)
+        - lint: 20s (requires install)
+        - test-unit: 90s (requires install)
+        - test-integration: 120s (requires install)
+        - build: 30s (requires lint, test-unit, test-integration)
+        - deploy: 15s (requires build)
+
+        All independent jobs run in parallel. What is the minimum wall-clock time for the full pipeline?
+        Express your answer in seconds.
+      response-result-format: |-
+        <number>s
+      expected-result:
+        - "220s"
+        - "220"
+    # ==================== CircleCI (19 new) ====================
+    - name: "cicd - circleci executor types - v1"
+      prompt: |-
+        In CircleCI, which executor type keyword is used in a job configuration to run the job on a full Linux virtual machine instead of inside a Docker container?
+      response-result-format: |-
+        the executor type keyword
+      expected-result:
+        - "machine"
+    - name: "cicd - circleci config version - v1"
+      prompt: |-
+        What is the minimum CircleCI configuration file version that supports reusable configuration features such as orbs, commands, and parameterized executors?
+      response-result-format: |-
+        <version>
+      expected-result:
+        - "2.1"
+    - name: "cicd - circleci resource class default - v1"
+      prompt: |-
+        In CircleCI, if a Docker executor job does not specify a resource_class, what is the default resource class assigned to it?
+      response-result-format: |-
+        <resource class name>
+      expected-result:
+        - "medium"
+    - name: "cicd - circleci docker layer caching - v1"
+      prompt: |-
+        In a CircleCI job using the Docker executor, you use the setup_remote_docker step to build Docker images. Which key within setup_remote_docker do you set to true to enable Docker Layer Caching?
+      response-result-format: |-
+        the key name
+      expected-result:
+        - "docker_layer_caching"
+    - name: "cicd - circleci config error - v2"
+      prompt: |-
+        This CircleCI configuration has exactly one error that would cause validation to fail. What is the incorrect key name?
+
+        version: 2.1
+        jobs:
+          build:
+            docker:
+              - image: cimg/python:3.11
+            steps:
+              - checkout
+              - run: python -m build
+          test:
+            docker:
+              - image: cimg/python:3.11
+            steps:
+              - checkout
+              - run: pytest
+        workflows:
+          main:
+            jobs:
+              - build
+              - test:
+                  require:
+                    - build
+      response-result-format: |-
+        the incorrect key name
+      expected-result:
+        - "require"
+      validation-rules:
+        judge:
+          enabled: true
+          name: "default"
+          variant: "fast"
+    - name: "cicd - circleci config error - v3"
+      prompt: |-
+        This CircleCI configuration will fail validation because the workflow references a job that is not defined in the jobs section. What is the name of the undefined job?
+
+        version: 2.1
+        jobs:
+          build:
+            docker:
+              - image: cimg/node:20.0
+            steps:
+              - checkout
+              - run: npm ci
+              - run: npm run build
+        workflows:
+          main:
+            jobs:
+              - build
+              - deploy:
+                  requires:
+                    - build
+                  filters:
+                    branches:
+                      only: main
+      response-result-format: |-
+        the undefined job name
+      expected-result:
+        - "deploy"
+    - name: "cicd - circleci config error - v4"
+      prompt: |-
+        This CircleCI config has a typo in one key name within a step that will cause validation to fail. What is the incorrect key?
+
+        version: 2.1
+        jobs:
+          build:
+            docker:
+              - image: cimg/go:1.21
+            steps:
+              - checkout
+              - run:
+                  name: Build
+                  command: go build -o bin/app ./...
+              - store_artifacts:
+                  path: ./bin
+                  destinations: artifacts/bin
+      response-result-format: |-
+        the incorrect key name
+      expected-result:
+        - "destinations"
+      validation-rules:
+        judge:
+          enabled: true
+          name: "default"
+          variant: "fast"
+    - name: "cicd - circleci workspace persistence - v1"
+      prompt: |-
+        In a CircleCI pipeline, Job A persists files to a workspace:
+
+        - persist_to_workspace:
+            root: /tmp/build
+            paths:
+              - output/
+              - config.json
+
+        Job B attaches the workspace:
+
+        - attach_workspace:
+            at: /home/circleci/project
+
+        After attach_workspace runs in Job B, what is the full path to config.json?
+      response-result-format: |-
+        the full file path
+      expected-result:
+        - "/home/circleci/project/config.json"
+    - name: "cicd - circleci cache fallback - v1"
+      prompt: |-
+        A CircleCI job restores cache with these keys:
+
+        - restore_cache:
+            keys:
+              - v2-deps-{{ checksum "yarn.lock" }}
+              - v2-deps-
+
+        The following caches exist in storage:
+        - v2-deps-abc123 (saved 2 days ago)
+        - v2-deps-def456 (saved 5 days ago)
+        - v1-deps-abc123 (saved 10 days ago)
+
+        The current checksum of yarn.lock is "xyz789".
+
+        CircleCI tries keys in order: first an exact match, then prefix matches (most recently saved first). Which cache key will be restored?
+      response-result-format: |-
+        the cache key that will be restored
+      expected-result:
+        - "v2-deps-abc123"
+    - name: "cicd - circleci pipeline parameters - v1"
+      prompt: |-
+        Given this CircleCI config:
+
+        version: 2.1
+        parameters:
+          run-integration-tests:
+            type: boolean
+            default: false
+        jobs:
+          unit-test:
+            docker:
+              - image: cimg/node:20.0
+            steps:
+              - checkout
+              - run: npm test
+          integration-test:
+            docker:
+              - image: cimg/node:20.0
+            steps:
+              - checkout
+              - run: npm run test:integration
+          deploy:
+            docker:
+              - image: cimg/node:20.0
+            steps:
+              - checkout
+              - run: ./deploy.sh
+        workflows:
+          main:
+            jobs:
+              - unit-test
+              - integration-test:
+                  filters:
+                    branches:
+                      only: main
+              - deploy:
+                  requires:
+                    - unit-test
+
+        When the pipeline is triggered with default parameters on the "develop" branch, which jobs will execute?
+      response-result-format: |-
+        list of job names that will execute, separated by ", "
+      expected-result:
+        - "unit-test, deploy"
+    - name: "cicd - circleci parallelism split - v1"
+      prompt: |-
+        A CircleCI job has parallelism: 4 and there are 17 test files to distribute. Using the default file-name-based test splitting, how many test files will the container that receives the most files run?
+      response-result-format: |-
+        <number>
+      expected-result:
+        - "5"
+    - name: "cicd - circleci approval job - v1"
+      prompt: |-
+        Given this CircleCI workflow:
+
+        workflows:
+          deploy-flow:
+            jobs:
+              - build
+              - test:
+                  requires:
+                    - build
+              - hold-for-approval:
+                  type: approval
+                  requires:
+                    - test
+              - deploy-staging:
+                  requires:
+                    - hold-for-approval
+              - deploy-production:
+                  requires:
+                    - deploy-staging
+
+        After the test job succeeds, which job enters a "pending" state waiting for manual approval in the CircleCI UI?
+      response-result-format: |-
+        the job name
+      expected-result:
+        - "hold-for-approval"
+    - name: "cicd - circleci scheduled pipeline - v1"
+      prompt: |-
+        A CircleCI scheduled pipeline trigger uses the cron expression: 0 9 * * 1-5
+
+        On which days of the week does this pipeline run?
+      response-result-format: |-
+        list of day names, separated by ", "
+      expected-result:
+        - "Monday, Tuesday, Wednesday, Thursday, Friday"
+      validation-rules:
+        judge:
+          enabled: true
+          name: "default"
+          variant: "fast"
+    - name: "cicd - circleci matrix jobs - v1"
+      prompt: |-
+        Given this CircleCI matrix configuration:
+
+        workflows:
+          test:
+            jobs:
+              - test:
+                  matrix:
+                    parameters:
+                      os: [linux, macos]
+                      node-version: ["18", "20", "22"]
+                    exclude:
+                      - os: macos
+                        node-version: "18"
+
+        How many job instances will this matrix generate?
+      response-result-format: |-
+        <number>
+      expected-result:
+        - "5"
+    - name: "cicd - circleci reusable command - v1"
+      prompt: |-
+        Given this CircleCI config:
+
+        version: 2.1
+        commands:
+          install-and-test:
+            parameters:
+              test-cmd:
+                type: string
+                default: "npm test"
+            steps:
+              - checkout
+              - run: npm ci
+              - run: << parameters.test-cmd >>
+        jobs:
+          unit-test:
+            docker:
+              - image: cimg/node:20.0
+            steps:
+              - install-and-test:
+                  test-cmd: "npm run test:unit"
+          lint:
+            docker:
+              - image: cimg/node:20.0
+            steps:
+              - install-and-test
+
+        What command will the lint job execute as its last step?
+      response-result-format: |-
+        the command string
+      expected-result:
+        - "npm test"
+    - name: "cicd - circleci env var precedence - v1"
+      prompt: |-
+        In CircleCI, environment variables can be set at multiple levels. A job uses a context called "production" and the following overlapping variables exist:
+
+        - Project-level environment variable: APP_ENV=staging
+        - Context "production" environment variable: APP_ENV=production
+        - Job-level environment variable in config (environment key): APP_ENV=development
+
+        The CircleCI precedence from lowest to highest is: project-level, then context, then job-level config.
+
+        What is the value of APP_ENV when a step runs (before any shell exports)?
+      response-result-format: |-
+        the value of APP_ENV
+      expected-result:
+        - "development"
+    - name: "cicd - circleci workflow conditional - v1"
+      prompt: |-
+        Given this CircleCI config:
+
+        version: 2.1
+        parameters:
+          deploy:
+            type: boolean
+            default: false
+        workflows:
+          always-run:
+            jobs:
+              - build
+              - test:
+                  requires:
+                    - build
+          deploy-workflow:
+            when: << pipeline.parameters.deploy >>
+            jobs:
+              - build
+              - deploy:
+                  requires:
+                    - build
+
+        When the pipeline is triggered with deploy=true, how many total job executions will occur? Count each job instance separately, even if the same job name appears in different workflows.
+      response-result-format: |-
+        <number>
+      expected-result:
+        - "4"
+    - name: "cicd - circleci ssh key step - v1"
+      prompt: |-
+        In CircleCI, which built-in step is used to add a specific SSH key (identified by fingerprint) to the job's SSH agent for deployment or git operations?
+      response-result-format: |-
+        the step name
+      expected-result:
+        - "add_ssh_keys"
+    - name: "cicd - circleci orb inline keys - v1"
+      prompt: |-
+        In CircleCI 2.1, when defining an inline orb (not importing from the registry), which three types of reusable elements can an orb definition contain?
+
+        a) commands, executors, jobs
+        b) workflows, pipelines, triggers
+        c) steps, parameters, contexts
+        d) images, volumes, networks
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "a)"
+        - "a) commands, executors, jobs"
+    # ==================== GitHub Actions (12 new) ====================
+    - name: "cicd - github actions trigger event - v1"
+      prompt: |-
+        In GitHub Actions, which event type should you use in the `on:` block to trigger a workflow when code is pushed to (or a pull request is merged into) the main branch?
+
+        a) pull_request with type: merged
+        b) push with branches: [main]
+        c) pull_request_target
+        d) merge
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "b)"
+        - "b) push with branches: [main]"
+    - name: "cicd - github actions needs parallel - v1"
+      prompt: |-
+        Given this GitHub Actions workflow:
+
+        jobs:
+          lint:
+            runs-on: ubuntu-latest
+            steps:
+              - run: echo "linting"
+          test:
+            runs-on: ubuntu-latest
+            steps:
+              - run: echo "testing"
+          build:
+            needs: [lint, test]
+            runs-on: ubuntu-latest
+            steps:
+              - run: echo "building"
+          deploy:
+            needs: build
+            runs-on: ubuntu-latest
+            steps:
+              - run: echo "deploying"
+
+        How many jobs run in the first parallel group (the first "stage")?
+      response-result-format: |-
+        <number>
+      expected-result:
+        - "2"
+    - name: "cicd - github actions if expression - v1"
+      prompt: |-
+        Given this GitHub Actions job:
+
+        deploy:
+          if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+          runs-on: ubuntu-latest
+          steps:
+            - run: echo "deploying"
+
+        A pull request is opened targeting the main branch. Will the deploy job run?
+      response-result-format: |-
+        "Yes" or "No"
+      expected-result:
+        - "No"
+    - name: "cicd - github actions concurrency cancel - v1"
+      prompt: |-
+        A GitHub Actions workflow has this configuration:
+
+        concurrency:
+          group: deploy-${{ github.ref }}
+          cancel-in-progress: true
+
+        Three pushes happen to the "main" branch in quick succession: Push A, then Push B, then Push C. Push A's workflow run is in progress when Push B arrives. Push B's run is in progress when Push C arrives. All pushes target the same ref.
+
+        How many workflow runs will complete (not be cancelled)?
+      response-result-format: |-
+        <number>
+      expected-result:
+        - "1"
+    - name: "cicd - github actions matrix - v1"
+      prompt: |-
+        Given this GitHub Actions matrix configuration:
+
+        strategy:
+          matrix:
+            os: [ubuntu-latest, windows-latest]
+            node: [18, 20]
+            include:
+              - os: ubuntu-latest
+                node: 22
+            exclude:
+              - os: windows-latest
+                node: 18
+
+        How many total jobs will be created?
+      response-result-format: |-
+        <number>
+      expected-result:
+        - "4"
+    - name: "cicd - github actions matrix fail-fast - v1"
+      prompt: |-
+        A GitHub Actions job uses this strategy:
+
+        strategy:
+          fail-fast: true
+          matrix:
+            version: [10, 12, 14, 16]
+
+        The job for version 12 fails while versions 10, 14, and 16 are still running. What happens to the remaining matrix jobs?
+
+        a) They continue running to completion
+        b) They are cancelled
+        c) They are paused until the failed job is retried
+        d) Only the next sequential job is cancelled
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "b)"
+        - "b) They are cancelled"
+    - name: "cicd - github actions reusable workflow event - v1"
+      prompt: |-
+        In GitHub Actions, what event type must a reusable workflow declare in its `on:` block to be callable from other workflows?
+      response-result-format: |-
+        the event type name
+      expected-result:
+        - "workflow_call"
+    - name: "cicd - github actions expression eval - v1"
+      prompt: |-
+        What does this GitHub Actions expression evaluate to?
+
+        ${{ fromJSON('["alpha","beta","gamma"]')[1] }}
+      response-result-format: |-
+        the resulting string value
+      expected-result:
+        - "beta"
+    - name: "cicd - github actions cache restore - v1"
+      prompt: |-
+        A GitHub Actions workflow uses the cache action:
+
+        - uses: actions/cache@v4
+          with:
+            path: node_modules
+            key: node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+            restore-keys: |
+              node-${{ runner.os }}-
+
+        The runner OS is "Linux" and the hash of package-lock.json is "a1b2c3". No cache with key "node-Linux-a1b2c3" exists, but a cache with key "node-Linux-x9y8z7" was saved yesterday.
+
+        Will a cache be restored?
+      response-result-format: |-
+        "Yes" or "No"
+      expected-result:
+        - "Yes"
+    - name: "cicd - github actions oidc permission - v1"
+      prompt: |-
+        To use OpenID Connect (OIDC) for keyless cloud authentication in a GitHub Actions workflow, which specific permission must be granted in the workflow's permissions block?
+      response-result-format: |-
+        <permission>: <level>
+      expected-result:
+        - "id-token: write"
+    - name: "cicd - github actions environment protection - v1"
+      prompt: |-
+        A GitHub Actions job targets an environment called "production" that has a required reviewers protection rule configured. What happens when the workflow reaches this job?
+
+        a) The job fails immediately
+        b) The job waits for an approved review before running
+        c) The job runs but its results are marked as pending
+        d) The workflow is cancelled
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "b)"
+        - "b) The job waits for an approved review before running"
+    - name: "cicd - github actions default shell - v1"
+      prompt: |-
+        What is the default shell used for `run` steps on a GitHub Actions ubuntu-latest runner?
+      response-result-format: |-
+        the shell name
+      expected-result:
+        - "bash"
+    # ==================== GitLab CI/CD (10 new) ====================
+    - name: "cicd - gitlab default stages - v1"
+      prompt: |-
+        In a .gitlab-ci.yml file, if no `stages` keyword is defined, what are the five default stages in their execution order?
+      response-result-format: |-
+        list of stage names in order, separated by ", "
+      expected-result:
+        - ".pre, build, test, deploy, .post"
+    - name: "cicd - gitlab rules evaluation - v1"
+      prompt: |-
+        Given this GitLab CI job:
+
+        deploy:
+          script: ./deploy.sh
+          rules:
+            - if: $CI_COMMIT_BRANCH == "main"
+              when: always
+            - if: $CI_COMMIT_BRANCH == "develop"
+              when: manual
+            - when: never
+
+        A commit is pushed to the "develop" branch. What is the job's behavior?
+
+        a) The job runs automatically
+        b) The job appears as a manual action
+        c) The job is not created
+        d) The job fails
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "b)"
+        - "b) The job appears as a manual action"
+    - name: "cicd - gitlab rules vs only - v1"
+      prompt: |-
+        In GitLab CI, can the `rules` keyword and `only/except` keywords be used together in the same job definition?
+      response-result-format: |-
+        "Yes" or "No"
+      expected-result:
+        - "No"
+    - name: "cicd - gitlab needs dag - v1"
+      prompt: |-
+        Given this GitLab CI config:
+
+        stages:
+          - build
+          - test
+          - deploy
+
+        compile:
+          stage: build
+          script: make build
+
+        unit-test:
+          stage: test
+          needs: [compile]
+          script: make test
+
+        lint:
+          stage: test
+          needs: []
+          script: make lint
+
+        deploy:
+          stage: deploy
+          needs: [unit-test]
+          script: make deploy
+
+        Which job can start running immediately without waiting for the build stage to complete?
+      response-result-format: |-
+        the job name
+      expected-result:
+        - "lint"
+    - name: "cicd - gitlab include template - v1"
+      prompt: |-
+        In GitLab CI, which `include` type is used to reference a CI/CD template maintained by GitLab (such as Auto DevOps or SAST)?
+
+        a) include:local
+        b) include:file
+        c) include:remote
+        d) include:template
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "d)"
+        - "d) include:template"
+    - name: "cicd - gitlab extends - v1"
+      prompt: |-
+        Given this GitLab CI config:
+
+        .base-test:
+          image: python:3.11
+          before_script:
+            - pip install -r requirements.txt
+          variables:
+            COVERAGE: "true"
+
+        unit-test:
+          extends: .base-test
+          variables:
+            TEST_TYPE: "unit"
+          script:
+            - pytest tests/unit
+
+        In the unit-test job, what is the value of the COVERAGE variable?
+      response-result-format: |-
+        the value of COVERAGE
+      expected-result:
+        - "true"
+    - name: "cicd - gitlab cache policy - v1"
+      prompt: |-
+        In GitLab CI, a job has cache:policy set to "pull". What does this mean?
+
+        a) The job only downloads the cache but never uploads changes to it
+        b) The job only uploads the cache but never downloads it
+        c) The job downloads and uploads the cache
+        d) The job creates a new cache from scratch
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "a)"
+        - "a) The job only downloads the cache but never uploads changes to it"
+    - name: "cicd - gitlab artifacts dependencies - v1"
+      prompt: |-
+        Given this GitLab CI pipeline:
+
+        build-frontend:
+          stage: build
+          script: npm run build
+          artifacts:
+            paths:
+              - dist/frontend/
+
+        build-backend:
+          stage: build
+          script: go build -o bin/server
+          artifacts:
+            paths:
+              - bin/
+
+        deploy:
+          stage: deploy
+          dependencies:
+            - build-frontend
+          script: ./deploy.sh
+
+        In the deploy job, will the bin/ directory from build-backend be available?
+      response-result-format: |-
+        "Yes" or "No"
+      expected-result:
+        - "No"
+    - name: "cicd - gitlab environment auto stop - v1"
+      prompt: |-
+        In GitLab CI, what does the environment:auto_stop_in keyword specify?
+
+        a) The maximum runtime for a deployment
+        b) The time after which the environment is automatically stopped
+        c) The delay before a deployment starts
+        d) The time after which artifacts expire
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "b)"
+        - "b) The time after which the environment is automatically stopped"
+    - name: "cicd - gitlab variable masking - v1"
+      prompt: |-
+        In GitLab CI, for a CI/CD variable to be masked in job logs, what is the minimum character length its value must have?
+
+        a) At least 4 characters
+        b) At least 8 characters
+        c) At least 12 characters
+        d) No length requirement
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "b)"
+        - "b) At least 8 characters"
+    # ==================== Jenkins (8 new) ====================
+    - name: "cicd - jenkins declarative structure - v1"
+      prompt: |-
+        In a Jenkins Declarative Pipeline, what is the mandatory top-level block keyword that wraps the entire pipeline definition?
+      response-result-format: |-
+        the keyword
+      expected-result:
+        - "pipeline"
+    - name: "cicd - jenkins agent none - v1"
+      prompt: |-
+        In a Jenkins Declarative Pipeline, what does specifying `agent none` at the top level mean?
+
+        a) No executor is allocated; each stage must define its own agent
+        b) The pipeline runs on the Jenkins controller
+        c) The pipeline will not run
+        d) A random agent is assigned
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "a)"
+        - "a) No executor is allocated; each stage must define its own agent"
+    - name: "cicd - jenkins post conditions - v1"
+      prompt: |-
+        In a Jenkins Declarative Pipeline, a post block has these sections:
+
+        post {
+            always { echo "Always runs" }
+            success { echo "Success" }
+            failure { echo "Failure" }
+            cleanup { echo "Cleanup" }
+        }
+
+        If the pipeline succeeds, which post sections execute and in what order?
+      response-result-format: |-
+        list of section names in execution order, separated by ", "
+      expected-result:
+        - "always, success, cleanup"
+    - name: "cicd - jenkins when directive - v1"
+      prompt: |-
+        In a Jenkins Declarative Pipeline stage, a `when` block contains two conditions:
+
+        when {
+            branch 'main'
+            environment name: 'DEPLOY', value: 'true'
+        }
+
+        By default, does the stage require both conditions to be true, or just one of them?
+      response-result-format: |-
+        "both" or "either"
+      expected-result:
+        - "both"
+    - name: "cicd - jenkins shared library dir - v1"
+      prompt: |-
+        In a Jenkins Shared Library, to define a global function called deployApp that can be invoked directly in a Jenkinsfile (e.g., deployApp()), in which directory should the Groovy file be placed?
+
+        a) src/org/example/
+        b) vars/
+        c) resources/
+        d) lib/
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "b)"
+        - "b) vars/"
+    - name: "cicd - jenkins credentials binding - v1"
+      prompt: |-
+        In a Jenkins Declarative Pipeline, which wrapper keyword is used to bind credentials to environment variables within a step block? Fill in the blank:
+
+        steps {
+            ____([usernamePassword(credentialsId: 'my-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                sh 'curl -u $USER:$PASS https://api.example.com'
+            }
+        }
+      response-result-format: |-
+        the keyword
+      expected-result:
+        - "withCredentials"
+    - name: "cicd - jenkins scripted pipeline - v1"
+      prompt: |-
+        What is the output of this Jenkins Scripted Pipeline?
+
+        node {
+            def items = ['a', 'b', 'c']
+            def results = [:]
+            for (item in items) {
+                results[item] = item.toUpperCase()
+            }
+            echo results.collect { k, v -> "${k}=${v}" }.sort().join(',')
+        }
+      response-result-format: |-
+        the echoed output string
+      expected-result:
+        - "a=A,b=B,c=C"
+    - name: "cicd - jenkins parallel keyword - v1"
+      prompt: |-
+        In a Jenkins Declarative Pipeline, what keyword is used inside a stage block to define multiple stages that execute concurrently?
+      response-result-format: |-
+        the keyword
+      expected-result:
+        - "parallel"
+    # ==================== Azure DevOps Pipelines (5 new) ====================
+    - name: "cicd - azure pipeline trigger keyword - v1"
+      prompt: |-
+        In an Azure DevOps YAML pipeline, what top-level keyword is used to specify which branches trigger the pipeline automatically on push?
+      response-result-format: |-
+        the keyword
+      expected-result:
+        - "trigger"
+    - name: "cicd - azure pipeline stage dependency - v1"
+      prompt: |-
+        Given this Azure DevOps pipeline:
+
+        stages:
+          - stage: Build
+            jobs:
+              - job: Compile
+                steps:
+                  - script: echo "Building"
+          - stage: Test
+            dependsOn: Build
+            jobs:
+              - job: UnitTest
+                steps:
+                  - script: echo "Testing"
+          - stage: Deploy
+            dependsOn:
+              - Build
+              - Test
+            jobs:
+              - job: Release
+                steps:
+                  - script: echo "Deploying"
+
+        If the Build stage succeeds but the Test stage fails, will the Deploy stage run?
+      response-result-format: |-
+        "Yes" or "No"
+      expected-result:
+        - "No"
+    - name: "cicd - azure pipeline template keyword - v1"
+      prompt: |-
+        In Azure DevOps YAML pipelines, which keyword is used to reference a template file and pass parameters to it? Fill in the blank:
+
+        stages:
+          - ________: deploy-template.yml
+            parameters:
+              environment: production
+      response-result-format: |-
+        the keyword
+      expected-result:
+        - "template"
+    - name: "cicd - azure variable group - v1"
+      prompt: |-
+        In an Azure DevOps YAML pipeline, what is the correct syntax to reference a variable group named "production-secrets"?
+
+        a) variables: [group: production-secrets]
+        b) variableGroups: [production-secrets]
+        c) A "group" entry under the "variables" section
+        d) secrets: production-secrets
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "c)"
+        - "c) A \"group\" entry under the \"variables\" section"
+      validation-rules:
+        judge:
+          enabled: true
+          name: "default"
+          variant: "fast"
+    - name: "cicd - azure deployment job type - v1"
+      prompt: |-
+        In Azure DevOps YAML pipelines, what is the special job type (keyword) used for deploying to an environment that supports deployment strategies like runOnce, rolling, and canary?
+      response-result-format: |-
+        the job type keyword
+      expected-result:
+        - "deployment"
+    # ==================== Shell Scripting (7 new) ====================
+    - name: "cicd - shell parameter expansion - v1"
+      prompt: |-
+        What is the output of this bash script?
+
+        NAME="World"
+        GREETING=""
+        echo "${GREETING:-Hello}, ${NAME:+dear $NAME}!"
+      response-result-format: |-
+        the printed output
+      expected-result:
+        - "Hello, dear World!"
+    - name: "cicd - shell pipefail - v1"
+      prompt: |-
+        What will be printed by this bash script?
+
+        set -o pipefail
+        false | true
+        echo $?
+      response-result-format: |-
+        the printed number
+      expected-result:
+        - "1"
+    - name: "cicd - shell trap handler - v1"
+      prompt: |-
+        What is the complete standard output of this bash script?
+
+        cleanup() { echo "cleanup"; }
+        trap cleanup EXIT
+        echo "start"
+        exit 0
+        echo "end"
+      response-result-format: |-
+        all lines of output, one per line
+      expected-result:
+        - |-
+          start
+          cleanup
+      validation-rules:
+        judge:
+          enabled: true
+          name: "default"
+          variant: "fast"
+    - name: "cicd - shell array slicing - v1"
+      prompt: |-
+        What is the output of this bash script?
+
+        arr=(10 20 30 40 50)
+        echo "${arr[@]:2:2}"
+      response-result-format: |-
+        the printed output
+      expected-result:
+        - "30 40"
+    - name: "cicd - shell jq processing - v1"
+      prompt: |-
+        Given this JSON input:
+
+        {"users": [{"name": "Alice", "role": "admin"}, {"name": "Bob", "role": "user"}, {"name": "Carol", "role": "admin"}]}
+
+        What does this jq command output?
+
+        jq '.users | map(select(.role == "admin")) | length'
+      response-result-format: |-
+        the output number
+      expected-result:
+        - "2"
+    - name: "cicd - shell sed replacement - v1"
+      prompt: |-
+        What is the output of this command?
+
+        echo "version: 1.2.3" | sed 's/[0-9]*\.[0-9]*\.[0-9]*/2.0.0/'
+      response-result-format: |-
+        the printed output
+      expected-result:
+        - "version: 2.0.0"
+    - name: "cicd - shell retry logic - v1"
+      prompt: |-
+        What is the complete standard output of this bash script?
+
+        attempt=0
+        max=3
+        until [ $attempt -ge $max ]; do
+          attempt=$((attempt + 1))
+          echo "try $attempt"
+          [ $attempt -eq 2 ] && break
+        done
+        echo "done after $attempt"
+      response-result-format: |-
+        all lines of output, one per line
+      expected-result:
+        - |-
+          try 1
+          try 2
+          done after 2
+      validation-rules:
+        judge:
+          enabled: true
+          name: "default"
+          variant: "fast"
+    # ==================== Docker & Containerization (7 new) ====================
+    - name: "cicd - docker multistage build - v1"
+      prompt: |-
+        Given this Dockerfile:
+
+        FROM golang:1.21 AS builder
+        WORKDIR /app
+        COPY . .
+        RUN go build -o myapp
+
+        FROM alpine:3.18
+        COPY --from=builder /app/myapp /usr/local/bin/myapp
+        CMD ["myapp"]
+
+        What is the base image of the final produced Docker image?
+      response-result-format: |-
+        the image name and tag
+      expected-result:
+        - "alpine:3.18"
+    - name: "cicd - docker arg vs env - v1"
+      prompt: |-
+        In a Dockerfile, what is the key difference between ARG and ENV?
+
+        a) ARG values persist in the running container; ENV values do not
+        b) ENV values persist in the running container; ARG values are only available during the build
+        c) ARG is for multi-stage builds only
+        d) There is no functional difference
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "b)"
+        - "b) ENV values persist in the running container; ARG values are only available during the build"
+    - name: "cicd - docker entrypoint cmd interaction - v1"
+      prompt: |-
+        Given this Dockerfile:
+
+        FROM ubuntu:22.04
+        ENTRYPOINT ["echo"]
+        CMD ["hello"]
+
+        What is the output when the container is run with: docker run myimage world
+      response-result-format: |-
+        the printed output
+      expected-result:
+        - "world"
+    - name: "cicd - docker compose healthcheck - v1"
+      prompt: |-
+        Given this Docker Compose file:
+
+        services:
+          db:
+            image: postgres:16
+            healthcheck:
+              test: ["CMD-SHELL", "pg_isready"]
+              interval: 5s
+              timeout: 5s
+              retries: 5
+          app:
+            image: myapp:latest
+            depends_on:
+              db:
+                condition: service_healthy
+
+        When does the app service start?
+
+        a) Immediately when the db container starts
+        b) After the db container's healthcheck passes
+        c) After the db container exits successfully
+        d) After 5 seconds
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "b)"
+        - "b) After the db container's healthcheck passes"
+    - name: "cicd - docker image size reduction - v1"
+      prompt: |-
+        A developer has this Dockerfile and wants to reduce the final image size. Which single change would have the MOST impact?
+
+        FROM ubuntu:22.04
+        RUN apt-get update && apt-get install -y gcc make
+        COPY . /app
+        WORKDIR /app
+        RUN make build
+        CMD ["./app"]
+
+        a) Add --no-install-recommends to apt-get install
+        b) Use a multi-stage build with a minimal final image like scratch or alpine
+        c) Combine the COPY and RUN make build steps
+        d) Use .dockerignore to exclude unnecessary files
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "b)"
+        - "b) Use a multi-stage build with a minimal final image like scratch or alpine"
+    - name: "cicd - docker user instruction - v1"
+      prompt: |-
+        In a Dockerfile, which instruction is used to set the user (and optionally group) that the container process runs as, instead of running as root?
+      response-result-format: |-
+        the Dockerfile instruction keyword
+      expected-result:
+        - "USER"
+    - name: "cicd - docker layer instructions - v1"
+      prompt: |-
+        In a Dockerfile, which three instructions create new filesystem layers (layers containing actual file changes), as opposed to metadata-only changes?
+      response-result-format: |-
+        list of instruction keywords, separated by ", "
+      expected-result:
+        - "RUN, COPY, ADD"
+      validation-rules:
+        judge:
+          enabled: true
+          name: "default"
+          variant: "fast"
+    # ==================== Kubernetes (6 new) ====================
+    - name: "cicd - k8s service selector - v1"
+      prompt: |-
+        In Kubernetes, how does a Service determine which Pods to route traffic to?
+
+        a) By Pod name prefix
+        b) By matching label selectors
+        c) By namespace
+        d) By creation order
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "b)"
+        - "b) By matching label selectors"
+    - name: "cicd - k8s memory limit exceeded - v1"
+      prompt: |-
+        In Kubernetes, what happens when a running container attempts to use more memory than its configured resources.limits.memory?
+
+        a) The container is CPU-throttled
+        b) The container is killed (OOMKilled)
+        c) The Pod is rescheduled to a larger node
+        d) Nothing, the limit is advisory
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "b)"
+        - "b) The container is killed (OOMKilled)"
+    - name: "cicd - k8s rolling update math - v1"
+      prompt: |-
+        A Kubernetes Deployment has 10 replicas with this rolling update strategy:
+
+        strategy:
+          type: RollingUpdate
+          rollingUpdate:
+            maxSurge: 3
+            maxUnavailable: 2
+
+        During a rolling update, what is the maximum total number of Pods that can exist, and what is the minimum number of available (ready) Pods?
+      response-result-format: |-
+        Max: <number>, Min: <number>
+      expected-result:
+        - "Max: 13, Min: 8"
+    - name: "cicd - k8s configmap mount path - v1"
+      prompt: |-
+        Given this Kubernetes Pod spec:
+
+        spec:
+          containers:
+            - name: app
+              image: myapp:latest
+              volumeMounts:
+                - name: config
+                  mountPath: /etc/config
+          volumes:
+            - name: config
+              configMap:
+                name: app-config
+
+        If the ConfigMap app-config has a key called database.yml, at what path will this file be accessible inside the container?
+      response-result-format: |-
+        the full file path
+      expected-result:
+        - "/etc/config/database.yml"
+    - name: "cicd - k8s readiness probe effect - v1"
+      prompt: |-
+        In Kubernetes, what is the consequence when a container's readiness probe fails?
+
+        a) The container is restarted
+        b) The Pod is removed from Service endpoints (stops receiving traffic)
+        c) The Pod is deleted
+        d) The node is marked as unschedulable
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "b)"
+        - "b) The Pod is removed from Service endpoints (stops receiving traffic)"
+    - name: "cicd - k8s maxunavailable zero - v1"
+      prompt: |-
+        A Kubernetes Deployment with 6 replicas uses maxSurge: 1 and maxUnavailable: 0. During a rolling update, how many new-version Pods must be Ready before any old-version Pod is terminated?
+      response-result-format: |-
+        <number>
+      expected-result:
+        - "1"
+    # ==================== Git & Version Control (3 new) ====================
+    - name: "cicd - git merge vs squash - v1"
+      prompt: |-
+        In Git, what is the key difference between `git merge --squash feature` and a regular `git merge feature`?
+
+        a) Squash merge creates a single commit from all branch commits; regular merge preserves all individual commits
+        b) Squash merge is faster
+        c) Regular merge always creates conflicts
+        d) There is no difference
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "a)"
+        - "a) Squash merge creates a single commit from all branch commits; regular merge preserves all individual commits"
+    - name: "cicd - git revert shared branch - v1"
+      prompt: |-
+        A developer wants to undo the effects of the last commit on a shared branch that has already been pushed to a remote. Which Git command should they use to safely undo it without rewriting history?
+
+        a) git reset --hard HEAD~1
+        b) git revert HEAD
+        c) git checkout HEAD~1
+        d) git stash
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "b)"
+        - "b) git revert HEAD"
+    - name: "cicd - git bisect steps - v1"
+      prompt: |-
+        Using `git bisect` to find the commit that introduced a bug within a range of 128 commits, what is the maximum number of bisect steps (iterations) needed?
+      response-result-format: |-
+        <number>
+      expected-result:
+        - "7"
+    # ==================== Deployment Strategies & Operations (4 new) ====================
+    - name: "cicd - deployment canary instances - v1"
+      prompt: |-
+        A service has 20 instances behind a round-robin load balancer. You want a canary deployment that routes approximately 10% of traffic to the new version. How many instances should run the new version?
+      response-result-format: |-
+        <number>
+      expected-result:
+        - "2"
+    - name: "cicd - deployment rollback trigger - v1"
+      prompt: |-
+        In a production deployment with automated rollback capabilities, which metric is most commonly used as the primary signal to trigger an automatic rollback?
+
+        a) CPU utilization exceeding 80%
+        b) Error rate exceeding a defined threshold
+        c) Deployment duration exceeding 10 minutes
+        d) Number of new log entries
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "b)"
+        - "b) Error rate exceeding a defined threshold"
+    - name: "cicd - terraform state locking - v1"
+      prompt: |-
+        In Terraform, what happens if two team members run `terraform apply` simultaneously against the same remote state file without state locking enabled?
+
+        a) Both operations succeed without issues
+        b) One operation waits for the other to complete
+        c) A race condition can corrupt the state file
+        d) Terraform automatically merges the changes
+      response-result-format: |-
+        <answer letter>)
+      expected-result:
+        - "c)"
+        - "c) A race condition can corrupt the state file"
+    - name: "cicd - slo error budget - v1"
+      prompt: |-
+        An SLO states "99.9% of requests should succeed over a 30-day window." A 30-day month has exactly 43,200 minutes. What is the maximum allowed error budget (downtime/failure window) in minutes?
+      response-result-format: |-
+        <number> minutes
+      expected-result:
+        - "43.2 minutes"
+        - "43.2"

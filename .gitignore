@@ -24,6 +24,12 @@ go.work.sum
 # env file
 .env
 
+# Built binary
+mindtrial
+
+# Evaluation results (stored as CI artifacts)
+# results/
+
 ### VisualStudioCode ###
 .vscode/*
 !.vscode/settings.json

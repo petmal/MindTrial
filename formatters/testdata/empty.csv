@@ -1,1 +1,1 @@
-TraceID,Provider,Run,Task,Status,Duration,Answer,Details
+TraceID,Provider,Run,Model,Task,Status,Duration,InputTokens,OutputTokens,EstCostUSD,Answer,Details

@@ -43,6 +43,10 @@ func (o *OpenAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunC
 	}
 
 	cfg.ModelParams = openAIV3Params
+
+	if requiresResponsesAPI(cfg.Model) {
+		return o.openaiProvider.RunResponses(ctx, logger, cfg, task)
+	}
 	return o.openaiProvider.Run(ctx, logger, cfg, task)
 }
 

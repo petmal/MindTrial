@@ -12,6 +12,7 @@ import (
 	"io"
 
 	"github.com/petmal/mindtrial/pkg/utils"
+	"github.com/petmal/mindtrial/pricing"
 	"github.com/petmal/mindtrial/runners"
 )
 
@@ -30,18 +31,42 @@ func (f csvFormatter) Write(results runners.Results, out io.Writer) error {
 	writer := csv.NewWriter(out)
 	defer writer.Flush()
 
-	headers := []string{"TraceID", "Provider", "Run", "Task", "Status", "Duration", "Answer", "Details"}
+	headers := []string{"TraceID", "Provider", "Run", "Model", "Task", "Status", "Duration", "InputTokens", "OutputTokens", "EstCostUSD", "Answer", "Details"}
 	if err := writer.Write(headers); err != nil {
 		return fmt.Errorf("%w: %v", ErrPrintResults, err)
 	}
 
 	return ForEachOrdered(results, func(_ string, runResults []runners.RunResult) error {
 		for _, result := range runResults {
-			row := []string{result.TraceID, result.Provider, result.Run, result.Task, ToStatus(result.Kind), RoundToMS(result.Duration).String(), formatAnswerText(result), utils.ToString(result.Details)}
+			inputTokens, outputTokens := taskTokens(result)
+			cost := pricing.EstimateCost(result.Provider, result.Model, inputTokens, outputTokens)
+			row := []string{
+				result.TraceID, result.Provider, result.Run, result.Model, result.Task,
+				ToStatus(result.Kind), RoundToMS(result.Duration).String(),
+				fmt.Sprintf("%d", inputTokens), fmt.Sprintf("%d", outputTokens),
+				fmt.Sprintf("%.6f", cost),
+				formatAnswerText(result), utils.ToString(result.Details),
+			}
 			if err := writer.Write(row); err != nil {
 				return fmt.Errorf("%w: %v", ErrPrintResults, err)
 			}
 		}
 		return nil
 	})
+}
+
+func taskTokens(result runners.RunResult) (input, output int64) {
+	for _, usage := range []runners.TokenUsage{
+		result.Details.Answer.Usage,
+		result.Details.Validation.Usage,
+		result.Details.Error.Usage,
+	} {
+		if usage.InputTokens != nil {
+			input += *usage.InputTokens
+		}
+		if usage.OutputTokens != nil {
+			output += *usage.OutputTokens
+		}
+	}
+	return
 }

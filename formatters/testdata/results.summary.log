@@ -1,11 +1,11 @@
-Provider      |Run                          |Passed |Failed |Error |Skipped |Pass Rate (%) |Accuracy (%) |Error Rate (%) |Total Duration |
-provider-name |run-error                    |0      |0      |1     |0       |0.00          |0.00         |100.00         |0s             |
-provider-name |run-failure                  |0      |1      |0     |0       |0.00          |0.00         |0.00           |10s            |
-provider-name |run-failure-multiple-answers |0      |1      |0     |0       |0.00          |0.00         |0.00           |3m0.8s         |
-provider-name |run-not-supported            |0      |0      |0     |1       |0.00          |0.00         |0.00           |500ms          |
-provider-name |run-parsing-error            |0      |0      |1     |0       |0.00          |0.00         |100.00         |5m14.159s      |
-provider-name |run-structured-failure       |0      |1      |0     |0       |0.00          |0.00         |0.00           |38s            |
-provider-name |run-structured-success       |1      |0      |0     |0       |100.00        |100.00       |0.00           |42s            |
-provider-name |run-success                  |1      |0      |0     |0       |100.00        |100.00       |0.00           |1m35s          |
-provider-name |run-success-multiple-answers |1      |0      |0     |0       |100.00        |100.00       |0.00           |17s            |
-provider-name |run-validation-error         |0      |0      |1     |0       |0.00          |0.00         |100.00         |2s             |
+Provider      |Run                          |Passed |Failed |Error |Skipped |Pass Rate (%) |Accuracy (%) |Error Rate (%) |Total Duration |Input Tokens |Output Tokens |Est. Cost |
+provider-name |run-error                    |0      |0      |1     |0       |0.00          |0.00         |100.00         |0s             |-            |-             |-         |
+provider-name |run-failure                  |0      |1      |0     |0       |0.00          |0.00         |0.00           |10s            |200          |-             |-         |
+provider-name |run-failure-multiple-answers |0      |1      |0     |0       |0.00          |0.00         |0.00           |3m0.8s         |500          |150           |-         |
+provider-name |run-not-supported            |0      |0      |0     |1       |0.00          |0.00         |0.00           |500ms          |10           |-             |-         |
+provider-name |run-parsing-error            |0      |0      |1     |0       |0.00          |0.00         |100.00         |5m14.159s      |-            |333           |-         |
+provider-name |run-structured-failure       |0      |1      |0     |0       |0.00          |0.00         |0.00           |38s            |501          |213           |-         |
+provider-name |run-structured-success       |1      |0      |0     |0       |100.00        |100.00       |0.00           |42s            |534          |246           |-         |
+provider-name |run-success                  |1      |0      |0     |0       |100.00        |100.00       |0.00           |1m35s          |9876543221   |1234567895    |-         |
+provider-name |run-success-multiple-answers |1      |0      |0     |0       |100.00        |100.00       |0.00           |17s            |-            |-             |-         |
+provider-name |run-validation-error         |0      |0      |1     |0       |0.00          |0.00         |100.00         |2s             |1234         |5678          |-         |

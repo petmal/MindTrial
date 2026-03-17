@@ -1,0 +1,133 @@
+# CircleCI configuration for MindTrial
+# Replaces GitHub Actions and adds scheduled/triggered eval pipelines.
+#
+# Workflows:
+#   1. build-and-test: Runs on every push/PR (standard CI)
+#   2. scheduled-eval: Weekly full eval run against all configured models
+#   3. new-model-eval: API-triggered eval for a newly released model
+#
+# Trigger a new-model eval via API:
+#   curl -X POST "https://circleci.com/api/v2/project/gh/{org}/MindTrial/pipeline" \
+#     -H "Circle-Token: ${CIRCLECI_TOKEN}" \
+#     -H "Content-Type: application/json" \
+#     -d '{"parameters": {"run-eval": true, "eval-tasks": "./tasks.yaml"}}'
+
+version: 2.1
+
+parameters:
+  run-eval:
+    type: boolean
+    default: false
+    description: "Set to true to trigger an evaluation run"
+  eval-tasks:
+    type: string
+    default: "./tasks.yaml"
+    description: "Path to the task file to evaluate (e.g., ./tasks-cicd.yaml)"
+
+executors:
+  go:
+    docker:
+      - image: cimg/go:1.25
+    resource_class: medium
+
+jobs:
+  build:
+    executor: go
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-mod-v1-{{ checksum "go.sum" }}
+      - run:
+          name: Build
+          command: go build -v ./...
+      - save_cache:
+          key: go-mod-v1-{{ checksum "go.sum" }}
+          paths:
+            - /home/circleci/go/pkg/mod
+
+  test:
+    executor: go
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-mod-v1-{{ checksum "go.sum" }}
+      - run:
+          name: Unit Tests
+          command: go test -tags=test -race -v ./...
+
+  run-eval:
+    docker:
+      - image: cimg/go:1.25
+    resource_class: large
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-mod-v1-{{ checksum "go.sum" }}
+      - setup_remote_docker:
+          version: default
+      - run:
+          name: Build MindTrial
+          command: go build -o mindtrial ./cmd/mindtrial/
+      - run:
+          name: Run Evaluation
+          command: |
+            TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
+            RESULTS_DIR="./results/${TIMESTAMP}"
+            mkdir -p "${RESULTS_DIR}"
+
+            ./mindtrial \
+              -tasks "<< pipeline.parameters.eval-tasks >>" \
+              -output-dir "${RESULTS_DIR}" \
+              -output-basename "eval" \
+              -html \
+              -csv \
+              -jsonl \
+              -log "${RESULTS_DIR}/eval.log" \
+              run
+          no_output_timeout: 60m
+      - run:
+          name: Append JSONL History
+          command: |
+            mkdir -p ./results/history
+            for f in ./results/**/*.jsonl; do
+              [ -f "$f" ] && cat "$f" >> ./results/history/results.jsonl
+            done
+          when: always
+      - store_artifacts:
+          path: ./results
+          destination: eval-results
+      - store_test_results:
+          path: ./results
+
+workflows:
+  # Standard CI: build and test on every push/PR
+  build-and-test:
+    when:
+      not: << pipeline.parameters.run-eval >>
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
+
+  # API-triggered evaluation for new model drops or ad-hoc runs.
+  # Trigger via: CircleCI API with parameters {"run-eval": true}
+  new-model-eval:
+    when: << pipeline.parameters.run-eval >>
+    jobs:
+      - run-eval
+
+  # Scheduled weekly evaluation against all configured models.
+  # Runs every Monday at 06:00 UTC.
+  scheduled-eval:
+    triggers:
+      - schedule:
+          cron: "0 6 * * 1"
+          filters:
+            branches:
+              only: main
+    jobs:
+      - run-eval

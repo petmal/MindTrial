@@ -1068,6 +1068,24 @@
                                 <span class="sort-btn" data-column="duration" data-direction="asc">↕️</span>
                             </div>
                         </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Input Tokens</span>
+                                <span class="sort-btn" data-column="inputtokens" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Output Tokens</span>
+                                <span class="sort-btn" data-column="outputtokens" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div class="header-with-sort">
+                                <span>Est. Cost</span>
+                                <span class="sort-btn" data-column="cost" data-direction="asc">↕️</span>
+                            </div>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1076,7 +1094,7 @@
                     {{- $summary := $results.ProviderResultsByRunAndKind $provider -}}
                     {{- range $run := SortResultsByRunAndKind $summary -}}
                     {{- $group := index $summary $run }}
-                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="{{$provider}}" data-run="{{$run}}" data-passed="{{CountByKind $group 0}}" data-failed="{{CountByKind $group 1}}" data-error="{{CountByKind $group 2}}" data-skipped="{{CountByKind $group 3}}" data-passrate="{{printf "%.2f" (Percent (PassRate $group))}}" data-accuracy="{{printf "%.2f" (Percent (AccuracyRate $group))}}" data-errorrate="{{printf "%.2f" (Percent (ErrorRate $group))}}" data-duration="{{(TotalDuration $group 0 1 2 3).Milliseconds}}">
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="{{$provider}}" data-run="{{$run}}" data-passed="{{CountByKind $group 0}}" data-failed="{{CountByKind $group 1}}" data-error="{{CountByKind $group 2}}" data-skipped="{{CountByKind $group 3}}" data-passrate="{{printf "%.2f" (Percent (PassRate $group))}}" data-accuracy="{{printf "%.2f" (Percent (AccuracyRate $group))}}" data-errorrate="{{printf "%.2f" (Percent (ErrorRate $group))}}" data-duration="{{(TotalDuration $group 0 1 2 3).Milliseconds}}" data-inputtokens="{{TotalInputTokens $group 0 1 2 3}}" data-outputtokens="{{TotalOutputTokens $group 0 1 2 3}}" data-cost="{{printf "%.6f" (EstimatedCost $group 0 1 2 3)}}">
                         <td>
                             <input type="checkbox" class="run-compare-checkbox" data-provider="{{$provider}}" data-run="{{$run}}" title="Select for comparison">
                         </td>
@@ -1095,6 +1113,9 @@
                             {{- $roundedTotal := (TotalDuration $group 0 1 2 3 | RoundToMS) -}}
                             <time itemprop="observationPeriod" datetime="PT{{printf "%.3f" ($roundedTotal.Seconds)}}S">{{$roundedTotal}}</time>
                         </td>
+                        <td>{{FormatTokenCount (TotalInputTokens $group 0 1 2 3)}}</td>
+                        <td>{{FormatTokenCount (TotalOutputTokens $group 0 1 2 3)}}</td>
+                        <td>{{FormatCost (EstimatedCost $group 0 1 2 3)}}</td>
                     </tr>
                     {{- end -}}
                     {{- end -}}
