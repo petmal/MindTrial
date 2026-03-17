@@ -979,6 +979,157 @@ Options:
   --interactive             Enable interactive interface for run configuration, and real-time progress monitoring (default: false)
 ```
 
+## Live Voice Race Announcer (Claude Code)
+
+This repository extends MindTrial with a set of [Claude Code](https://claude.ai/claude-code) slash commands that turn a model comparison run into a live sports-style race — complete with voice commentary narrated in real time through your speakers.
+
+When models race in parallel, Claude wakes up on a configurable interval, reads the live eval log, writes 2–4 sentences of Ken Squier–style race commentary, speaks it aloud via [Kokoro TTS](https://github.com/nazdridoy/kokoro-tts), and appends a timestamped update to a running transcript. When the race finishes, Claude delivers a final wrap-up, writes a results summary, and automatically cancels the loop.
+
+### Prerequisites: Kokoro TTS
+
+The voice announcer requires [nazdridoy/kokoro-tts](https://github.com/nazdridoy/kokoro-tts), a CLI wrapper for the Kokoro speech model. It runs on ONNX Runtime (no PyTorch needed) and supports direct speaker output via `--stream`.
+
+**1. Install the CLI:**
+
+```bash
+pip install kokoro-tts
+```
+
+**2. Download the model files (one-time, ~350 MB):**
+
+```bash
+mkdir -p ~/.config/kokoro-tts && cd ~/.config/kokoro-tts
+wget https://github.com/nazdridoy/kokoro-tts/releases/download/v1.0.0/voices-v1.0.bin
+wget https://github.com/nazdridoy/kokoro-tts/releases/download/v1.0.0/kokoro-v1.0.onnx
+cd -
+```
+
+**3. Point the CLI at your model files:**
+
+```bash
+export KOKORO_MODEL_DIR=~/.config/kokoro-tts
+# Add to your shell profile (~/.zshrc or ~/.bashrc) to persist across sessions.
+```
+
+**4. Verify it works:**
+
+```bash
+echo "We are LIVE! The race has begun!" | kokoro-tts - --stream --voice am_michael
+```
+
+> **Recommended voices:** `am_michael` (confident American male, used by default), `af_heart` (warm American female), `bf_emma` (British female — maximum BBC Sports energy).
+
+### Slash Commands
+
+All commands are Claude Code slash commands — no external infrastructure, no daemons.
+
+| Command | Description |
+|---|---|
+| `/simulate-model-comparison` | Start a zero-cost simulation (generates realistic log output, no API tokens needed) |
+| `/run-model-comparison` | Build and start a real MindTrial eval race |
+| `/announce-model-comparison` | One tick of live commentary — meant to be called by `/loop` |
+| `/stop-model-comparison` | Stop the running race and finalize the transcript |
+
+### Usage
+
+**Zero-cost simulation** (great for trying the announcer without spending API tokens):
+
+```
+/simulate-model-comparison
+```
+
+When the simulation starts, run the live announcer loop in your Claude Code session:
+
+```
+/loop 1m /announce-model-comparison
+```
+
+**Real eval race** (requires API keys configured in the eval config):
+
+```
+/run-model-comparison
+```
+
+Then start the announcer:
+
+```
+/loop 5m /announce-model-comparison
+```
+
+You can adjust the loop interval to taste — `2m`, `10m`, etc. The announcer dynamically scales how many log lines it reads based on the interval.
+
+**Watch the transcript live in a split pane:**
+
+```bash
+tail -f results/simulation/$(date +%Y-%m-%d)/*/transcript.txt
+# or for real evals:
+tail -f results/eval/$(date +%Y-%m-%d)/*/transcript.txt
+```
+
+**Stop early:**
+
+```
+/stop-model-comparison
+```
+
+Then cancel the `/loop` in your session (type `/loop` and select cancel, or close the session).
+
+### Eval Configs
+
+Two pre-built eval configurations are included:
+
+| Config | Tasks | Models |
+|---|---|---|
+| `config-eval-top3-cicd.yaml` | CI/CD & DevOps (CircleCI, Docker, Kubernetes, secrets, pipelines) | GPT-5.4, GPT-5.4 Pro, GPT-5.2 · Gemini 3.1 Pro, Gemini 2.5 Flash · Claude Opus 4.6, Claude Sonnet 4.6 |
+| `config-eval-top3.yaml` | General software engineering (coding, debugging, architecture, APIs) | Same model lineup |
+
+### Results
+
+Each run writes output to a timestamped directory:
+
+```
+results/
+├── simulation/YYYY-MM-DD/HH-MM-SS/
+│   ├── eval.log          # Raw simulation log (tasks completed per model)
+│   ├── transcript.txt    # Timestamped commentary transcript
+│   └── results_summary.md  # Final leaderboard, average scores, notable moments
+└── eval/YYYY-MM-DD/HH-MM-SS/
+    ├── eval.log
+    ├── transcript.txt
+    └── results_summary.md
+```
+
+### Sample Transcript
+
+```
+━━━ 2026-03-17 01:52:00 (Update #1) ━━━
+Gemini 2.5 Flash rockets to the front with 42 tasks complete, but Claude
+Sonnet 4.6 is right on its tail at 38. GPT-5.2 sits in third, grinding
+through the pack. An early rate-limit penalty hit Gemini 3.1 Pro on the
+logic grid task — that could cost them down the stretch.
+
+━━━ 2026-03-17 01:57:00 (Update #2) ━━━
+Lead change! Claude Sonnet 4.6 surges past Gemini Flash into first with
+67 tasks done. The Anthropic camp is rolling now...
+
+━━━ 2026-03-17 02:08:00 — FINAL ━━━
+And that is the checkered flag! Claude Sonnet 4.6 takes the win with
+134 tasks completed, edging out Gemini 2.5 Flash by just 3. What a race!
+```
+
+### Keep the Session Alive for Long Runs
+
+`/loop` is session-scoped — it stops when you exit Claude Code. For multi-hour eval runs, use tmux:
+
+```bash
+tmux new -s eval-run
+claude  # start Claude Code inside tmux
+# Run /run-model-comparison and /loop 5m /announce-model-comparison
+# Reattach later with: tmux attach -t eval-run
+```
+
+---
+
 ## Contributing
 
 Contributions are welcome! Please review our [CONTRIBUTING.md](CONTRIBUTING.md) guidelines for more details.
