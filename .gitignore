@@ -28,7 +28,7 @@ go.work.sum
 mindtrial
 
 # Evaluation results (stored as CI artifacts)
-results/
+# results/
 
 ### VisualStudioCode ###
 .vscode/*
