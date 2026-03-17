@@ -11,12 +11,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/utils"
+	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
 // Success indicates that task finished successfully with correct result.
@@ -120,6 +122,62 @@ type RunResult struct {
 	Details Details
 	// Duration represents the time taken to generate the response.
 	Duration time.Duration
+}
+
+// Score returns a 0–100 quality score for this result.
+// Success → "100", Error → "0", NotSupported → "-",
+// Failure → character-level Levenshtein similarity % against the best-matching expected answer.
+func (r RunResult) Score() string {
+	switch r.Kind {
+	case Success:
+		return "100"
+	case Error:
+		return "0"
+	case NotSupported:
+		return "-"
+	case Failure:
+		gotStr := utils.ToString(r.Got)
+		best := 0
+		for _, want := range r.Want.Values() {
+			if s := stringSimilarity(utils.ToString(want), gotStr); s > best {
+				best = s
+			}
+		}
+		return fmt.Sprintf("%d", best)
+	}
+	return "-"
+}
+
+func toStatus(kind ResultKind) string {
+	switch kind {
+	case Success:
+		return "OK"
+	case Failure:
+		return "FAIL"
+	case Error:
+		return "ERR"
+	case NotSupported:
+		return "N/A"
+	}
+	return "?"
+}
+
+func stringSimilarity(expected, actual string) int {
+	if expected == actual {
+		return 100
+	}
+	maxLen := max(len(expected), len(actual))
+	if maxLen == 0 {
+		return 100
+	}
+	engine := diffmatchpatch.New()
+	diffs := engine.DiffCleanupSemantic(engine.DiffMain(expected, actual, false))
+	dist := engine.DiffLevenshtein(diffs)
+	score := int(math.Round(float64(maxLen-dist) / float64(maxLen) * 100))
+	if score < 0 {
+		return 0
+	}
+	return score
 }
 
 // GetID generates a unique, sanitized identifier for the RunResult.

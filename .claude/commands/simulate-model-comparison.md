@@ -29,6 +29,7 @@ LOG_FILE="$RESULTS_DIR/eval.log"
 mkdir -p "$RESULTS_DIR"
 echo "$RESULTS_DIR" > /tmp/.eval_results_dir
 echo "$LOG_FILE" > /tmp/.eval_log_file
+echo "1" > /tmp/.eval_loop_interval_mins
 cat > "$RESULTS_DIR/transcript.txt" << HEADER
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   MODEL COMPARISON — LIVE COMMENTARY TRANSCRIPT
@@ -96,9 +97,10 @@ If the output contains 'all tasks in all configurations have finished on all pro
 STEP 3 — Live commentary (race still running)
 Get the leaderboard:
   grep 'task has finished' "$LOG_FILE" | sed 's/.*] //' | cut -d: -f1-2 | sort | uniq -c | sort -rn
+Compute tail size from interval: LOG_LINES_PER_MINUTE=50; INTERVAL_MINS=$(cat /tmp/.eval_loop_interval_mins 2>/dev/null || echo 1); TAIL_LINES=$((INTERVAL_MINS * LOG_LINES_PER_MINUTE)); [ $TAIL_LINES -lt 60 ] && TAIL_LINES=60; [ $TAIL_LINES -gt 500 ] && TAIL_LINES=500
 Get recent events:
-  tail -60 "$LOG_FILE"
-Write 2-4 sentences of live commentary in the style of Vin Scully narrating a championship race between AI models:
+  tail -$TAIL_LINES "$LOG_FILE"
+Write 2-4 sentences of live commentary in the style of Ken Squier narrating a championship race between AI models:
 - Reference models by short name: Claude, GPT, Gemini
 - Call out the leader and close battles
 - Treat ERR lines as dramatic setbacks
@@ -112,7 +114,7 @@ Then go back to STEP 1.
 STEP 4 — Final wrap-up (race over)
 1. Get final leaderboard: grep 'task has finished' "$LOG_FILE" | sed 's/.*] //' | cut -d: -f1-2 | sort | uniq -c | sort -rn
 2. Get provider finish times: grep 'all tasks in all configurations have finished on this provider' "$LOG_FILE"
-3. Write 2-3 sentences of Vin Scully farewell commentary — winner, final standings, plain ASCII only.
+3. Write 2-3 sentences of Ken Squier farewell commentary — winner, final standings, plain ASCII only.
 4. Append to transcript.txt: blank line, '━━━ <datetime> — FINAL ━━━', then the sign-off.
 5. Write sign-off to /tmp/commentary.txt and speak: kokoro-tts /tmp/commentary.txt --stream --voice am_michael --speed 0.9
 6. Write results_summary.md: heading 'MindTrial Race Results — <datetime>', mode SIMULATION, final leaderboard as markdown table, provider finish order, notable moments, full transcript.txt contents.

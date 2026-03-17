@@ -269,34 +269,41 @@ func (r *defaultRunner) run(ctx context.Context, tasks []config.Task, rs resultC
 func (r *defaultRunner) runTasks(ctx context.Context, logger logging.Logger, provider providers.Provider, runs []config.RunConfig, tasks []config.Task, rs resultCollector) {
 	logger.Message(ctx, logging.LevelInfo, "%s: starting %d task%s on this provider in %d configuration%s...", pluralize(provider.Name(), countable(len(tasks)), countable(len(runs)))...)
 	providerStart := time.Now()
+	var wg sync.WaitGroup
 	for _, run := range runs {
-		if run.MaxRequestsPerMinute > 0 {
-			logger.Message(ctx, logging.LevelInfo, "%s: %s: request rate limited to %d requests/min.", provider.Name(), run.Name, run.MaxRequestsPerMinute)
-		}
-		skipTasksWithSchemaResultFormat := run.DisableStructuredOutput
-		if skipTasksWithSchemaResultFormat {
-			logger.Message(ctx, logging.LevelInfo, "%s: %s: structured output disabled for this configuration.", provider.Name(), run.Name)
-		}
-		skipTasksWithFiles := run.TextOnly
-		if skipTasksWithFiles {
-			logger.Message(ctx, logging.LevelInfo, "%s: %s: text-only mode enabled for this configuration.", provider.Name(), run.Name)
-		}
-		executor := execution.NewExecutor(provider, run)
+		wg.Add(1)
+		go func(rc config.RunConfig) {
+			defer wg.Done()
+			if rc.MaxRequestsPerMinute > 0 {
+				logger.Message(ctx, logging.LevelInfo, "%s: %s: request rate limited to %d requests/min.", provider.Name(), rc.Name, rc.MaxRequestsPerMinute)
+			}
+			skipTasksWithSchemaResultFormat := rc.DisableStructuredOutput
+			if skipTasksWithSchemaResultFormat {
+				logger.Message(ctx, logging.LevelInfo, "%s: %s: structured output disabled for this configuration.", provider.Name(), rc.Name)
+			}
+			skipTasksWithFiles := rc.TextOnly
+			if skipTasksWithFiles {
+				logger.Message(ctx, logging.LevelInfo, "%s: %s: text-only mode enabled for this configuration.", provider.Name(), rc.Name)
+			}
+			executor := execution.NewExecutor(provider, rc)
 
-		for _, task := range tasks {
-			runResult := RunResult{TraceID: ulid.Make().String()}
+			for _, task := range tasks {
+				runResult := RunResult{TraceID: ulid.Make().String()}
 
-			// Create prefixed logger for this specific task.
-			taskLogger := logger.WithContext(fmt.Sprintf("[%s] %s: %s: %s: ", runResult.TraceID, provider.Name(), run.Name, task.Name))
+				// Create prefixed logger for this specific task.
+				taskLogger := logger.WithContext(fmt.Sprintf("[%s] %s: %s: %s: ", runResult.TraceID, provider.Name(), rc.Name, task.Name))
 
-			taskLogger.Message(ctx, logging.LevelInfo, "starting task...")
-			runStart := time.Now()
-			r.runTask(ctx, taskLogger, executor, task, skipTasksWithSchemaResultFormat, skipTasksWithFiles, &runResult)
-			taskLogger.Message(ctx, logging.LevelInfo, "task has finished in %s.", time.Since(runStart))
-			rs.appendResult(runResult)
-			rs.emitProgressEvent()
-		}
+				taskLogger.Message(ctx, logging.LevelInfo, "starting task...")
+				runStart := time.Now()
+				r.runTask(ctx, taskLogger, executor, task, skipTasksWithSchemaResultFormat, skipTasksWithFiles, &runResult)
+				taskLogger.Message(ctx, logging.LevelInfo, "task has finished in %s.", time.Since(runStart))
+				taskLogger.Message(ctx, logging.LevelDebug, "result: status=%s score=%s", toStatus(runResult.Kind), runResult.Score())
+				rs.appendResult(runResult)
+				rs.emitProgressEvent()
+			}
+		}(run)
 	}
+	wg.Wait()
 	logger.Message(ctx, logging.LevelInfo, "%s: all tasks in all configurations have finished on this provider in %s.", provider.Name(), time.Since(providerStart))
 }
 
