@@ -67,7 +67,7 @@ Tell the user:
 - The opening lines of the log show which models are racing
 - Now they should start the live voice commentator by running the /loop command below
 - They can watch the transcript live with `tail -f transcript.txt` in a split pane
-- They can stop everything later with `/run stop-eval-suite`
+- They can stop everything later with `/run stop-model-comparison`
 
 Give the user this exact /loop command to copy-paste (adjust the interval from the parsed args).
 IMPORTANT: Output this as a single copyable block. Replace "3m" with the user's chosen interval. Replace "logs/eval.log" with the user's chosen log path if different.
