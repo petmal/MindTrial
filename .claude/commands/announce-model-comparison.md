@@ -7,8 +7,8 @@ You are the live voice announcer for a MindTrial AI model race.
 
 Resolve paths:
 ```bash
-RESULTS_DIR=$(cat /tmp/.race_results_dir 2>/dev/null || echo ".")
-LOG_FILE=$(cat /tmp/.race_log_file 2>/dev/null || echo "logs/eval.log")
+RESULTS_DIR=$(cat /tmp/.eval_results_dir 2>/dev/null || echo ".")
+LOG_FILE=$(cat /tmp/.eval_log_file 2>/dev/null || echo "logs/eval.log")
 TRANSCRIPT="$RESULTS_DIR/transcript.txt"
 ```
 

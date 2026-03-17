@@ -24,17 +24,17 @@ Use the Bash tool to do the following steps:
 **1. Initialize transcript**
 ```bash
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
-RESULTS_DIR="results/simulation/$(date '+%m-%d-%Y')/$(date '+%I-%M%p' | tr '[:upper:]' '[:lower:]')"
+RESULTS_DIR="results/simulation/$(date '+%Y-%m-%d')/$(date '+%H-%M-%S')"
 LOG_FILE="$RESULTS_DIR/eval.log"
 mkdir -p "$RESULTS_DIR"
-echo "$RESULTS_DIR" > /tmp/.race_results_dir
-echo "$LOG_FILE" > /tmp/.race_log_file
+echo "$RESULTS_DIR" > /tmp/.eval_results_dir
+echo "$LOG_FILE" > /tmp/.eval_log_file
 cat > "$RESULTS_DIR/transcript.txt" << HEADER
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  MINDTRIAL RACE — LIVE COMMENTARY TRANSCRIPT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  MODEL COMPARISON — LIVE COMMENTARY TRANSCRIPT
   Started: $TIMESTAMP
   Mode:    SIMULATION (no API calls)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 HEADER
 echo "Transcript initialized at $RESULTS_DIR/transcript.txt"
@@ -50,7 +50,7 @@ fi
 
 NUM_TASKS="${1:-30}"
 SPEED="${2:-1}"
-LOG_FILE=$(cat /tmp/.race_log_file)
+LOG_FILE=$(cat /tmp/.eval_log_file)
 nohup python3 scripts/simulate-model-comparison.sh "$LOG_FILE" "$NUM_TASKS" "$SPEED" > /dev/null 2>&1 &
 SIM_PID=$!
 echo "$SIM_PID" > /tmp/.eval_pid
@@ -63,7 +63,7 @@ echo "Log: $LOG_FILE"
 **3. Wait for simulation to begin, confirm it's writing**
 ```bash
 sleep 3
-head -15 "$(cat /tmp/.race_log_file)" 2>/dev/null || echo "(log not yet available)"
+head -15 "$(cat /tmp/.eval_log_file)" 2>/dev/null || echo "(log not yet available)"
 ```
 
 **4. Speak the race start announcement**
@@ -80,8 +80,8 @@ ANNOUNCER_PROMPT="
 You are the live voice announcer for a MindTrial AI model race.
 
 First, resolve paths:
-  RESULTS_DIR=$(cat /tmp/.race_results_dir 2>/dev/null || echo ".")
-  LOG_FILE=$(cat /tmp/.race_log_file 2>/dev/null || echo "logs/eval.log")
+  RESULTS_DIR=$(cat /tmp/.eval_results_dir 2>/dev/null || echo ".")
+  LOG_FILE=$(cat /tmp/.eval_log_file 2>/dev/null || echo "logs/eval.log")
   TRANSCRIPT="$RESULTS_DIR/transcript.txt"
 
 Run the following loop until the race is over. Each iteration:

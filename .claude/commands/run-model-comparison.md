@@ -4,15 +4,28 @@ description: Build and run MindTrial eval suite with live voice race commentary
 ---
 
 The user wants to start a MindTrial eval race with live voice commentary.
-Arguments: $ARGUMENTS (optional: config file, log path, loop interval, announcer mode)
+Arguments: $ARGUMENTS (optional: config file, loop interval, announcer mode)
 
 Parse $ARGUMENTS:
-- First arg: config file path (default: config-eval-top3-cicd.yaml)
-- Second arg: log file path (default: logs/eval.log)
-- Third arg: loop interval in minutes (default: 5)
-- Fourth arg: optional flag — "with-announcer" or omitted
+- First arg: config file path (optional — if omitted, prompt interactively)
+- Second arg: loop interval in minutes (default: 5)
+- Third arg: optional flag — "with-announcer" or omitted
 
-If the fourth arg is not provided, use AskUserQuestion to ask:
+**Step 0 — Pick a config (interactive if no first arg)**
+
+If the first arg is NOT provided, use AskUserQuestion to ask:
+"Which eval config do you want to race?"
+With options:
+1. `config-eval-top3-cicd.yaml` — CI/CD & DevOps tasks (CircleCI, Docker, Kubernetes, secrets, pipelines) — 15 model configs across 3 providers
+2. `config-eval-top3.yaml` — General software engineering tasks (coding, debugging, architecture, APIs) — 15 model configs across 3 providers
+
+Use their answer as the config file path before continuing.
+
+If the first arg IS provided, use it directly as the config file path.
+
+**Step 0b — Pick announcer mode**
+
+If the third arg is not provided, use AskUserQuestion to ask:
 "How should the race announcer run?"
 With options:
 1. "with-announcer" — launch silently in the background (fully automatic, speaks every ~N min)
@@ -25,18 +38,17 @@ Use the Bash tool to do the following steps:
 ```bash
 CONFIG_FILE="${1:-config-eval-top3-cicd.yaml}"
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
-CONFIG_SLUG=$(basename "$CONFIG_FILE" .yaml)
-RESULTS_DIR="results/$CONFIG_SLUG/$(date '+%m-%d-%Y')/$(date '+%I-%M%p' | tr '[:upper:]' '[:lower:]')"
+RESULTS_DIR="results/eval/$(date '+%Y-%m-%d')/$(date '+%H-%M-%S')"
 LOG_FILE="$RESULTS_DIR/eval.log"
 mkdir -p "$RESULTS_DIR"
-echo "$RESULTS_DIR" > /tmp/.race_results_dir
-echo "$LOG_FILE" > /tmp/.race_log_file
+echo "$RESULTS_DIR" > /tmp/.eval_results_dir
+echo "$LOG_FILE" > /tmp/.eval_log_file
 cat > "$RESULTS_DIR/transcript.txt" << HEADER
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  MINDTRIAL RACE — LIVE COMMENTARY TRANSCRIPT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  MODEL COMPARISON — LIVE COMMENTARY TRANSCRIPT
   Started: $TIMESTAMP
   Config:  $CONFIG_FILE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 HEADER
 echo "Transcript initialized at $RESULTS_DIR/transcript.txt"
@@ -58,8 +70,9 @@ if [ -f /tmp/.eval_pid ]; then
 fi
 
 CONFIG_FILE="${1:-config-eval-top3-cicd.yaml}"
-LOG_FILE=$(cat /tmp/.race_log_file)
-nohup ./mindtrial -config "$CONFIG_FILE" -log "$LOG_FILE" run > /dev/null 2>&1 &
+LOG_FILE=$(cat /tmp/.eval_log_file)
+RESULTS_DIR=$(cat /tmp/.eval_results_dir)
+nohup ./mindtrial -config "$CONFIG_FILE" -log "$LOG_FILE" -output-dir "$RESULTS_DIR" -output-basename "results" run > /dev/null 2>&1 &
 EVAL_PID=$!
 echo "$EVAL_PID" > /tmp/.eval_pid
 echo "MindTrial eval started (PID: $EVAL_PID)"
@@ -70,12 +83,12 @@ echo "Log:    $LOG_FILE"
 **4. Wait for providers to initialize, then show opening lines**
 ```bash
 sleep 5
-head -20 "$(cat /tmp/.race_log_file)" 2>/dev/null || echo "(log not yet available)"
+head -20 "$(cat /tmp/.eval_log_file)" 2>/dev/null || echo "(log not yet available)"
 ```
 
 **5. Speak the race start announcement**
 ```bash
-LOG_FILE=$(cat /tmp/.race_log_file)
+LOG_FILE=$(cat /tmp/.eval_log_file)
 NUM_PROVIDERS=$(grep -c "starting [0-9]* tasks on this provider" "$LOG_FILE" 2>/dev/null || echo 3)
 NUM_CONFIGS=$(grep "starting [0-9]* tasks on this provider" "$LOG_FILE" 2>/dev/null | grep -o "in [0-9]* configurations" | awk '{sum+=$2} END {print sum}')
 NUM_CONFIGS=${NUM_CONFIGS:-6}
@@ -93,8 +106,8 @@ If the fourth arg is "with-announcer":
 You are the live voice announcer for a MindTrial AI model race.
 
 First, resolve paths:
-  RESULTS_DIR=$(cat /tmp/.race_results_dir 2>/dev/null || echo ".")
-  LOG_FILE=$(cat /tmp/.race_log_file 2>/dev/null || echo "logs/eval.log")
+  RESULTS_DIR=$(cat /tmp/.eval_results_dir 2>/dev/null || echo ".")
+  LOG_FILE=$(cat /tmp/.eval_log_file 2>/dev/null || echo "logs/eval.log")
   TRANSCRIPT="$RESULTS_DIR/transcript.txt"
 
 Run the following loop until the race is over. Each iteration:
