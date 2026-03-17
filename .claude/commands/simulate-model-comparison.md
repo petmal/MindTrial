@@ -26,10 +26,9 @@ Set `ANNOUNCER_ENABLED` to `true` or `false` based on the flag or the user's ans
 If `ANNOUNCER_ENABLED` is `true` AND no interval was specified in $ARGUMENTS, use AskUserQuestion to ask:
 "How often should the announcer check in?"
 With options:
-1. Every 30 seconds (fast simulation)
-2. Every 1 minute (default)
-3. Every 2 minutes
-4. Every 5 minutes
+1. Every 1 minute (default)
+2. Every 2 minutes
+3. Every 5 minutes
 
 Set `ANNOUNCER_INTERVAL` to the chosen number of minutes (default: 1 if skipped or unspecified).
 
