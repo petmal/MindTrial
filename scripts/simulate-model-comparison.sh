@@ -52,6 +52,16 @@ TASKS = [
     "cicd - artifact caching - v1",
     "scripting - error handling - v1",
     "debugging - log analysis - v1",
+    "circleci - parallelism config - v1",
+    "docker - compose networking - v1",
+    "git - rebase strategy - v1",
+    "k8s - resource limits - v1",
+    "terraform - module structure - v1",
+    "shell - cron scheduling - v1",
+    "cicd - environment variables - v1",
+    "monitoring - dashboard config - v1",
+    "networking - load balancing - v1",
+    "security - secret rotation - v1",
 ]
 
 task_count = min(NUM_TASKS, len(TASKS))

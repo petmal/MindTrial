@@ -28,7 +28,7 @@ fi
 
 **2. Speak the stop announcement**
 ```bash
-echo "The race has been stopped. MindTrial eval is shutting down. Check the transcript for the full play by play." | kokoro-tts - --stream --voice af_heart 2>/dev/null || echo "(kokoro-tts not available)"
+echo "The race has been stopped. MindTrial eval is shutting down. Check the transcript for the full play by play." | kokoro-tts - --stream --voice am_michael 2>/dev/null || echo "(kokoro-tts not available)"
 ```
 
 **3. Show final leaderboard from the log (if available)**
