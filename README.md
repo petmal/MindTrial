@@ -1032,31 +1032,34 @@ All commands are Claude Code slash commands — no external infrastructure, no d
 
 ### Usage
 
+Both commands prompt you upfront about whether to enable the voice announcer and how often it should check in. Pass `with-announcer` to skip the question, optionally followed by an interval in minutes:
+
 **Zero-cost simulation** (great for trying the announcer without spending API tokens):
 
 ```
-/simulate-model-comparison
-```
-
-When the simulation starts, run the live announcer loop in your Claude Code session:
-
-```
-/loop 1m /announce-model-comparison
+/simulate-model-comparison                      # prompts about announcer + interval
+/simulate-model-comparison with-announcer       # enables announcer, prompts for interval
+/simulate-model-comparison with-announcer 2     # every 2 minutes, no questions asked
+/simulate-model-comparison 10 2 with-announcer  # 10 tasks, 2x speed, prompts for interval
 ```
 
 **Real eval race** (requires API keys configured in the eval config):
 
 ```
-/run-model-comparison
+/run-model-comparison                           # prompts about announcer + interval
+/run-model-comparison with-announcer            # enables announcer, prompts for interval
+/run-model-comparison with-announcer 5          # every 5 minutes, no questions asked
+/run-model-comparison config.yaml with-announcer  # .yaml config detected by suffix, not position
 ```
 
-Then start the announcer:
+When the announcer is enabled, the loop is scheduled automatically — no need to start it manually. If you opted out, you can start it anytime:
 
 ```
-/loop 5m /announce-model-comparison
+/loop 1m /announce-model-comparison   # for simulation
+/loop 5m /announce-model-comparison   # for real eval
 ```
 
-You can adjust the loop interval to taste — `2m`, `10m`, etc. The announcer dynamically scales how many log lines it reads based on the interval.
+The announcer dynamically scales how many log lines it reads based on the interval.
 
 **Watch the transcript live in a split pane:**
 
