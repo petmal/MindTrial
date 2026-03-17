@@ -8,9 +8,10 @@ This uses scripts/simulate-model-comparison.sh to generate realistic log output.
 Arguments: $ARGUMENTS (optional: num_tasks, speed multiplier, `with-announcer`)
 
 Parse $ARGUMENTS:
-- First arg: number of tasks per model (default: 30)
-- Second arg: speed multiplier (default: 1, real-time pacing)
+- First numeric arg (not immediately following `with-announcer`): number of tasks per model (default: 30)
+- Second numeric arg (not immediately following `with-announcer`): speed multiplier (default: 1, real-time pacing)
 - Any arg equal to `with-announcer`: enable voice announcer
+- A numeric arg immediately following `with-announcer` in the arg list: announcer loop interval in minutes (default: 1 if not specified)
 
 **Step 0 — Determine announcer mode**
 
@@ -22,6 +23,16 @@ With options:
 
 Set `ANNOUNCER_ENABLED` to `true` or `false` based on the flag or the user's answer before continuing.
 
+If `ANNOUNCER_ENABLED` is `true` AND no interval was specified in $ARGUMENTS, use AskUserQuestion to ask:
+"How often should the announcer check in?"
+With options:
+1. Every 30 seconds (fast simulation)
+2. Every 1 minute (default)
+3. Every 2 minutes
+4. Every 5 minutes
+
+Set `ANNOUNCER_INTERVAL` to the chosen number of minutes (default: 1 if skipped or unspecified).
+
 Use the Bash tool to do the following steps:
 
 **1. Initialize transcript**
@@ -32,7 +43,7 @@ LOG_FILE="$RESULTS_DIR/eval.log"
 mkdir -p "$RESULTS_DIR"
 echo "$RESULTS_DIR" > /tmp/.eval_results_dir
 echo "$LOG_FILE" > /tmp/.eval_log_file
-echo "1" > /tmp/.eval_loop_interval_mins
+echo "${ANNOUNCER_INTERVAL:-1}" > /tmp/.eval_loop_interval_mins
 cat > "$RESULTS_DIR/transcript.txt" << HEADER
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   MODEL COMPARISON — LIVE COMMENTARY TRANSCRIPT
@@ -88,7 +99,7 @@ echo "Ladies and gentlemen, welcome to a MindTrial simulation! Six model configu
 Skip this step entirely if `ANNOUNCER_ENABLED` is `false`.
 
 Use the CronCreate tool to schedule the announcer automatically:
-- `cron`: `*/1 * * * *` (every 1 minute)
+- `cron`: `*/${ANNOUNCER_INTERVAL:-1} * * * *` (every N minutes, using the parsed interval)
 - `prompt`: `/announce-model-comparison`
 - `recurring`: `true`
 
@@ -98,7 +109,7 @@ Save the returned job ID to show the user.
 
 Tell the user:
 - The simulation is running (show PID, tasks, speed, log path)
-- If announcer is enabled: the announcer loop is running every 1 minute (show job ID, cancel with CronDelete if needed)
+- If announcer is enabled: the announcer loop is running every `ANNOUNCER_INTERVAL` minute(s) (show job ID, cancel with CronDelete if needed)
 - If announcer is disabled: mention they can re-run with `with-announcer` to enable voice commentary, or manually kick off commentary at any time with `/loop 1m /announce-model-comparison`
 - Watch live:
   - Transcript: `tail -f <RESULTS_DIR>/transcript.txt`

@@ -7,9 +7,9 @@ The user wants to start a MindTrial eval race.
 Arguments: $ARGUMENTS (optional: config file, loop interval, `with-announcer`)
 
 Parse $ARGUMENTS:
-- First arg: config file path (optional — if omitted, prompt interactively)
-- Second arg: loop interval in minutes (default: 5)
+- First arg that ends in `.yaml`: config file path (optional — if omitted, prompt interactively)
 - Any arg equal to `with-announcer`: enable voice announcer
+- A numeric arg immediately following `with-announcer` in the arg list: announcer loop interval in minutes (default: 5 if not specified)
 
 **Step 0 — Pick a config (interactive if no first arg)**
 
@@ -33,6 +33,16 @@ With options:
 
 Set `ANNOUNCER_ENABLED` to `true` or `false` based on the flag or the user's answer before continuing.
 
+If `ANNOUNCER_ENABLED` is `true` AND no interval was specified in $ARGUMENTS, use AskUserQuestion to ask:
+"How often should the announcer check in?"
+With options:
+1. Every 1 minute
+2. Every 2 minutes
+3. Every 5 minutes (default)
+4. Every 10 minutes
+
+Set `ANNOUNCER_INTERVAL` to the chosen number of minutes (default: 5 if skipped or unspecified).
+
 Use the Bash tool to do the following steps:
 
 **1. Ensure log directory and transcript exist**
@@ -44,7 +54,7 @@ LOG_FILE="$RESULTS_DIR/eval.log"
 mkdir -p "$RESULTS_DIR"
 echo "$RESULTS_DIR" > /tmp/.eval_results_dir
 echo "$LOG_FILE" > /tmp/.eval_log_file
-echo "${2:-5}" > /tmp/.eval_loop_interval_mins
+echo "${ANNOUNCER_INTERVAL:-5}" > /tmp/.eval_loop_interval_mins
 cat > "$RESULTS_DIR/transcript.txt" << HEADER
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   MODEL COMPARISON — LIVE COMMENTARY TRANSCRIPT
@@ -110,7 +120,7 @@ echo "Ladies and gentlemen, welcome to MindTrial! ${NUM_CONFIGS} model configura
 Skip this step entirely if `ANNOUNCER_ENABLED` is `false`.
 
 Use the CronCreate tool to schedule the announcer automatically:
-- `cron`: `*/5 * * * *` (every 5 minutes, or use the parsed second arg if provided)
+- `cron`: `*/${ANNOUNCER_INTERVAL:-5} * * * *` (every N minutes, using the parsed interval)
 - `prompt`: `/announce-model-comparison`
 - `recurring`: `true`
 
