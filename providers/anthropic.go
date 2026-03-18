@@ -122,9 +122,8 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 			if modelParams.Effort != nil || modelParams.ThinkingBudgetTokens != nil {
 				if modelParams.Effort != nil {
 					// Adaptive thinking: Claude dynamically allocates reasoning depth.
-					adaptive := anthropic.NewThinkingConfigAdaptiveParam()
 					request.Thinking = anthropic.ThinkingConfigParamUnion{
-						OfAdaptive: &adaptive,
+						OfAdaptive: &anthropic.ThinkingConfigAdaptiveParam{},
 					}
 					request.OutputConfig.Effort = anthropic.OutputConfigEffort(*modelParams.Effort)
 				} else {
