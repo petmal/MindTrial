@@ -12,10 +12,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/charmbracelet/bubbles/v2/progress"
-	"github.com/charmbracelet/bubbles/v2/viewport"
-	tea "github.com/charmbracelet/bubbletea/v2"
-	"github.com/charmbracelet/lipgloss/v2"
+	"charm.land/bubbles/v2/progress"
+	"charm.land/bubbles/v2/viewport"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/runners"
 )
@@ -78,6 +78,10 @@ func (m progressModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.viewport, cmd = m.viewport.Update(msg)
 			cmds = append(cmds, cmd)
 		}
+	case tea.MouseWheelMsg:
+		var cmd tea.Cmd
+		m.viewport, cmd = m.viewport.Update(msg)
+		cmds = append(cmds, cmd)
 	case tea.WindowSizeMsg:
 		// Calculate space needed for other UI elements.
 		titleHeight := 2    // title + spacing
@@ -91,7 +95,7 @@ func (m progressModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if !m.uiIsReady {
 			m.progressBar = progress.New(
-				progress.WithDefaultGradient(),
+				progress.WithDefaultBlend(),
 				progress.WithWidth(componentWidth),
 			)
 
@@ -137,9 +141,14 @@ func (m progressModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m progressModel) View() string {
+func (m progressModel) View() tea.View {
+	var v tea.View
+	v.AltScreen = true
+	v.MouseMode = tea.MouseModeCellMotion
+
 	if !m.uiIsReady {
-		return initializingMsg
+		v.SetContent(initializingMsg)
+		return v
 	}
 
 	var s strings.Builder
@@ -165,7 +174,8 @@ func (m progressModel) View() string {
 	)
 	s.WriteString(helpText)
 
-	return lipgloss.NewStyle().Padding(1, 2).Render(s.String())
+	v.SetContent(lipgloss.NewStyle().Padding(1, 2).Render(s.String()))
+	return v
 }
 
 func waitForProgress(progressEvents <-chan float32) tea.Cmd {
@@ -248,10 +258,7 @@ func (t *TaskMonitor) Run(ctx context.Context, tasks []config.Task) (userAction 
 
 	// Create and run the model.
 	model := newProgressModel(t.console, result)
-	p := tea.NewProgram(
-		model,
-		tea.WithAltScreen(),
-	)
+	p := tea.NewProgram(model)
 
 	finalModel, err := p.Run() // blocking call
 	if err != nil {

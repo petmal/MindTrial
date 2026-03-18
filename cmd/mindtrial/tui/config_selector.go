@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/v2/viewport"
-	tea "github.com/charmbracelet/bubbletea/v2"
-	"github.com/charmbracelet/lipgloss/v2"
+	"charm.land/bubbles/v2/viewport"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/petmal/mindtrial/config"
 )
 
@@ -127,9 +127,9 @@ func (m *checklistModel) setViewContent() {
 // scrollViewContent adjusts the viewport's Y-offset with the cursor's position.
 func (m *checklistModel) scrollViewContent() {
 	if m.uiIsReady {
-		if m.cursor < m.viewport.YOffset {
+		if m.cursor < m.viewport.YOffset() {
 			m.viewport.SetYOffset(m.cursor)
-		} else if m.cursor >= m.viewport.YOffset+m.viewport.Height() {
+		} else if m.cursor >= m.viewport.YOffset()+m.viewport.Height() {
 			m.viewport.SetYOffset(m.cursor - m.viewport.Height() + 1)
 		}
 	}
@@ -168,9 +168,13 @@ func (m *checklistModel) updateAncestors(itemIdx int) {
 	m.updateAncestors(parentIdx)
 }
 
-func (m checklistModel) View() string {
+func (m checklistModel) View() tea.View {
+	var v tea.View
+	v.AltScreen = true
+
 	if !m.uiIsReady {
-		return initializingMsg
+		v.SetContent(initializingMsg)
+		return v
 	}
 
 	var s strings.Builder
@@ -186,7 +190,8 @@ func (m checklistModel) View() string {
 	helpStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(helpTextColor)).Margin(1, 0, 0, 0)
 	s.WriteString(helpStyle.Render("↑/↓: navigate • space: toggle • enter: confirm • q/esc: cancel • ctrl+c: exit"))
 
-	return s.String()
+	v.SetContent(s.String())
+	return v
 }
 
 // renderItems renders the checklist items as a string.
@@ -316,10 +321,7 @@ func DisplayRunConfigurationPicker(providers []config.ProviderConfig) (UserInput
 		cursor: 0,
 	}
 
-	p := tea.NewProgram(
-		model,
-		tea.WithAltScreen(),
-	)
+	p := tea.NewProgram(model)
 	finalModel, err := p.Run() // blocking call
 	if err != nil {
 		return Exit, fmt.Errorf("%w: provider configuration selection: %v", ErrInteractiveMode, err)
@@ -401,10 +403,7 @@ func DisplayTaskPicker(taskConfig *config.TaskConfig) (UserInputEvent, error) {
 		cursor: 0,
 	}
 
-	p := tea.NewProgram(
-		model,
-		tea.WithAltScreen(),
-	)
+	p := tea.NewProgram(model)
 	finalModel, err := p.Run() // blocking call
 	if err != nil {
 		return Exit, fmt.Errorf("%w: task selection: %v", ErrInteractiveMode, err)
