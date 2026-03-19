@@ -15,13 +15,13 @@ import (
 	"time"
 
 	"github.com/oklog/ulid/v2"
-	"github.com/petmal/mindtrial/config"
-	"github.com/petmal/mindtrial/pkg/logging"
-	"github.com/petmal/mindtrial/pkg/utils"
-	"github.com/petmal/mindtrial/providers"
-	"github.com/petmal/mindtrial/providers/execution"
-	providertools "github.com/petmal/mindtrial/providers/tools"
-	"github.com/petmal/mindtrial/validators"
+	"github.com/CircleCI-Research/evalbench/config"
+	"github.com/CircleCI-Research/evalbench/pkg/logging"
+	"github.com/CircleCI-Research/evalbench/pkg/utils"
+	"github.com/CircleCI-Research/evalbench/providers"
+	"github.com/CircleCI-Research/evalbench/providers/execution"
+	providertools "github.com/CircleCI-Research/evalbench/providers/tools"
+	"github.com/CircleCI-Research/evalbench/validators"
 	"github.com/rs/zerolog"
 )
 

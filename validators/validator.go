@@ -13,10 +13,10 @@ import (
 	"context"
 	"errors"
 
-	"github.com/petmal/mindtrial/config"
-	"github.com/petmal/mindtrial/pkg/logging"
-	"github.com/petmal/mindtrial/pkg/utils"
-	"github.com/petmal/mindtrial/providers"
+	"github.com/CircleCI-Research/evalbench/config"
+	"github.com/CircleCI-Research/evalbench/pkg/logging"
+	"github.com/CircleCI-Research/evalbench/pkg/utils"
+	"github.com/CircleCI-Research/evalbench/providers"
 )
 
 // ErrUnsupportedResponseFormatValidation is returned when a validator cannot handle the response format.

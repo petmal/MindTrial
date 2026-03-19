@@ -11,9 +11,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/petmal/mindtrial/pkg/utils"
-	"github.com/petmal/mindtrial/pricing"
-	"github.com/petmal/mindtrial/runners"
+	"github.com/CircleCI-Research/evalbench/pkg/utils"
+	"github.com/CircleCI-Research/evalbench/pricing"
+	"github.com/CircleCI-Research/evalbench/runners"
 )
 
 // NewCSVFormatter creates a new formatter that outputs results in CSV format.

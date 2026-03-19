@@ -5,7 +5,7 @@
 // file, You can obtain one at <https://mozilla.org/MPL/2.0/>.
 
 // Package tools provides implementations for executing tools
-// as part of MindTrial's function calling capabilities.
+// as part of EvalBench's function calling capabilities.
 package tools
 
 import (

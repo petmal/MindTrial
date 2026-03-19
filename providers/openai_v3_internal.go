@@ -18,10 +18,10 @@ import (
 	"github.com/openai/openai-go/v3/option"
 	"github.com/openai/openai-go/v3/packages/param"
 	"github.com/openai/openai-go/v3/shared"
-	"github.com/petmal/mindtrial/config"
-	"github.com/petmal/mindtrial/pkg/logging"
-	"github.com/petmal/mindtrial/pkg/utils"
-	"github.com/petmal/mindtrial/providers/tools"
+	"github.com/CircleCI-Research/evalbench/config"
+	"github.com/CircleCI-Research/evalbench/pkg/logging"
+	"github.com/CircleCI-Research/evalbench/pkg/utils"
+	"github.com/CircleCI-Research/evalbench/providers/tools"
 )
 
 // CompletionAccumulator handles the accumulation of streaming chat completion chunks
@@ -146,7 +146,7 @@ func (r ResponseFormat) Ptr() *ResponseFormat {
 
 func newOpenAIV3Provider(availableTools []config.ToolConfig, opts ...option.RequestOption) *openAIV3Provider {
 	clientOpts := append([]option.RequestOption{
-		option.WithMaxRetries(0), // disable SDK retries since MindTrial has its own retry policy
+		option.WithMaxRetries(0), // disable SDK retries since EvalBench has its own retry policy
 	}, opts...)
 
 	return &openAIV3Provider{

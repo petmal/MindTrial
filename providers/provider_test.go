@@ -15,9 +15,9 @@ import (
 	"time"
 
 	"github.com/invopop/jsonschema"
-	"github.com/petmal/mindtrial/config"
-	"github.com/petmal/mindtrial/pkg/logging"
-	"github.com/petmal/mindtrial/pkg/testutils"
+	"github.com/CircleCI-Research/evalbench/config"
+	"github.com/CircleCI-Research/evalbench/pkg/logging"
+	"github.com/CircleCI-Research/evalbench/pkg/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
@@ -360,7 +360,7 @@ func TestResultJSONSchemaRaw(t *testing.T) {
 			responseFormat: config.NewResponseFormat("Provide a simple answer"),
 			wantSchema: map[string]interface{}{
 				"$schema":              "https://json-schema.org/draft/2020-12/schema",
-				"$id":                  "https://github.com/petmal/mindtrial/providers/result",
+				"$id":                  "https://github.com/CircleCI-Research/evalbench/providers/result",
 				"type":                 "object",
 				"additionalProperties": false,
 				"properties": map[string]interface{}{
@@ -410,7 +410,7 @@ func TestResultJSONSchemaRaw(t *testing.T) {
 			}),
 			wantSchema: map[string]interface{}{
 				"$schema":              "https://json-schema.org/draft/2020-12/schema",
-				"$id":                  "https://github.com/petmal/mindtrial/providers/result",
+				"$id":                  "https://github.com/CircleCI-Research/evalbench/providers/result",
 				"type":                 "object",
 				"additionalProperties": false,
 				"properties": map[string]interface{}{
@@ -482,7 +482,7 @@ func TestResultJSONSchema(t *testing.T) {
 			responseFormat: config.NewResponseFormat("Provide a simple answer"),
 			wantSchemaRaw: map[string]interface{}{
 				"$schema":              "https://json-schema.org/draft/2020-12/schema",
-				"$id":                  "https://github.com/petmal/mindtrial/providers/result",
+				"$id":                  "https://github.com/CircleCI-Research/evalbench/providers/result",
 				"type":                 "object",
 				"additionalProperties": false,
 				"properties": map[string]interface{}{
@@ -532,7 +532,7 @@ func TestResultJSONSchema(t *testing.T) {
 			}),
 			wantSchemaRaw: map[string]interface{}{
 				"$schema":              "https://json-schema.org/draft/2020-12/schema",
-				"$id":                  "https://github.com/petmal/mindtrial/providers/result",
+				"$id":                  "https://github.com/CircleCI-Research/evalbench/providers/result",
 				"type":                 "object",
 				"additionalProperties": false,
 				"properties": map[string]interface{}{

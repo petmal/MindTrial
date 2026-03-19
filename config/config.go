@@ -5,7 +5,7 @@
 // file, You can obtain one at <https://mozilla.org/MPL/2.0/>.
 
 // Package config contains the data models representing the structure of configuration
-// and task definition files for the MindTrial application. It provides configuration management
+// and task definition files for the EvalBench application. It provides configuration management
 // and handles loading and validation of application settings, provider configurations,
 // and task definitions from YAML files.
 package config
@@ -500,7 +500,7 @@ const (
 // OpenRouterModelParams represents OpenRouter model-specific settings.
 //
 // OpenRouter accepts a superset of OpenAI-compatible chat completion parameters.
-// MindTrial supports a typed subset of commonly used parameters and also allows
+// EvalBench supports a typed subset of commonly used parameters and also allows
 // passing through arbitrary OpenRouter/model-specific parameters via Extra.
 type OpenRouterModelParams struct {
 	// ResponseFormat configures how the model should format the response.
@@ -510,7 +510,7 @@ type OpenRouterModelParams struct {
 	// - "json-object": request valid JSON output (no schema validation)
 	// - "text": plain text output
 	//
-	// Note: MindTrial controls OpenRouter's `response_format` request field to ensure
+	// Note: EvalBench controls OpenRouter's `response_format` request field to ensure
 	// it can reliably parse results. Use this enum instead of passing `response_format`
 	// via Extra.
 	ResponseFormat *ModelResponseFormat `yaml:"response-format" validate:"omitempty,oneof=json-schema json-object text"`

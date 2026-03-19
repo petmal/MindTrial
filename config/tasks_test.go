@@ -18,8 +18,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/petmal/mindtrial/pkg/testutils"
-	"github.com/petmal/mindtrial/pkg/utils"
+	"github.com/CircleCI-Research/evalbench/pkg/testutils"
+	"github.com/CircleCI-Research/evalbench/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
@@ -44,7 +44,7 @@ func TestURI_Parse(t *testing.T) {
 		},
 		{
 			name:      "absolute windows path",
-			raw:       "D:\\projects\\mindtrial\\data.txt",
+			raw:       "D:\\projects\\evalbench\\data.txt",
 			wantErr:   false,
 			requireOs: "windows", // NOTE: This test should fail on non-Windows systems.
 		},

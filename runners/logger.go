@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/petmal/mindtrial/pkg/logging"
+	"github.com/CircleCI-Research/evalbench/pkg/logging"
 	"github.com/rs/zerolog"
 )
 

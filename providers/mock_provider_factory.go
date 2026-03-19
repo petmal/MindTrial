@@ -17,10 +17,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/petmal/mindtrial/config"
-	"github.com/petmal/mindtrial/pkg/logging"
-	"github.com/petmal/mindtrial/pkg/testutils"
-	"github.com/petmal/mindtrial/providers/tools"
+	"github.com/CircleCI-Research/evalbench/config"
+	"github.com/CircleCI-Research/evalbench/pkg/logging"
+	"github.com/CircleCI-Research/evalbench/pkg/testutils"
+	"github.com/CircleCI-Research/evalbench/providers/tools"
 )
 
 var (

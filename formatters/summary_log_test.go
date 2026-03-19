@@ -9,7 +9,7 @@ package formatters
 import (
 	"testing"
 
-	"github.com/petmal/mindtrial/runners"
+	"github.com/CircleCI-Research/evalbench/runners"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -18,8 +18,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/petmal/mindtrial/pkg/testutils"
-	"github.com/petmal/mindtrial/version"
+	"github.com/CircleCI-Research/evalbench/pkg/testutils"
+	"github.com/CircleCI-Research/evalbench/version"
 )
 
 const (

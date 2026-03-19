@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simulates a MindTrial eval race by writing realistic zerolog output.
+Simulates an EvalBench eval race by writing realistic zerolog output.
 Same log format as the real runner — the voice announcer can't tell the difference.
 
 Usage: python3 scripts/simulate-race.sh [log_file] [num_tasks] [speed]

@@ -12,7 +12,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/petmal/mindtrial/config"
+	"github.com/CircleCI-Research/evalbench/config"
 )
 
 // NewProvider creates a new AI model provider based on the given configuration.

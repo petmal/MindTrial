@@ -11,7 +11,7 @@ import (
 	"io"
 	"text/tabwriter"
 
-	"github.com/petmal/mindtrial/runners"
+	"github.com/CircleCI-Research/evalbench/runners"
 )
 
 // NewSummaryLogFormatter creates a new formatter that outputs results as an ASCII table summary.

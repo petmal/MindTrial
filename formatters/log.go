@@ -11,7 +11,7 @@ import (
 	"io"
 	"text/tabwriter"
 
-	"github.com/petmal/mindtrial/runners"
+	"github.com/CircleCI-Research/evalbench/runners"
 )
 
 // NewLogFormatter creates a new formatter that outputs detailed results as an ASCII table.

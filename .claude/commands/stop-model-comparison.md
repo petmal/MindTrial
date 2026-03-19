@@ -1,9 +1,9 @@
 ---
 allowed-tools: Bash
-description: Stop the running MindTrial eval suite and finalize the race transcript
+description: Stop the running EvalBench eval suite and finalize the race transcript
 ---
 
-Stop the MindTrial eval race.
+Stop the EvalBench eval race.
 
 Use the Bash tool to run:
 
@@ -15,7 +15,7 @@ TRANSCRIPT="$RESULTS_DIR/transcript.txt"
 if [ -f /tmp/.eval_pid ]; then
   PID=$(cat /tmp/.eval_pid)
   if kill "$PID" 2>/dev/null; then
-    echo "MindTrial eval stopped (PID $PID)."
+    echo "EvalBench eval stopped (PID $PID)."
   else
     echo "Process $PID not found (may have already finished)."
   fi
@@ -31,7 +31,7 @@ fi
 
 **2. Speak the stop announcement**
 ```bash
-echo "The race has been stopped. MindTrial eval is shutting down. Check the transcript for the full play by play." | kokoro-tts - --stream --voice am_michael 2>/dev/null || echo "(kokoro-tts not available)"
+echo "The race has been stopped. EvalBench eval is shutting down. Check the transcript for the full play by play." | kokoro-tts - --stream --voice am_michael 2>/dev/null || echo "(kokoro-tts not available)"
 ```
 
 **3. Show final leaderboard from the log (if available)**

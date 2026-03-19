@@ -5,7 +5,7 @@
 // file, You can obtain one at <https://mozilla.org/MPL/2.0/>.
 
 // Package logging provides a structured logging interface compatible with slog
-// levels and common logging utilities for the MindTrial application.
+// levels and common logging utilities for the EvalBench application.
 package logging
 
 import (

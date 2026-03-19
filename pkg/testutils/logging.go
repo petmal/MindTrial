@@ -13,7 +13,7 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/petmal/mindtrial/pkg/logging"
+	"github.com/CircleCI-Research/evalbench/pkg/logging"
 	"github.com/rs/zerolog"
 )
 

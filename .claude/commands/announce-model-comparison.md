@@ -3,7 +3,7 @@ allowed-tools: Bash, CronList, CronDelete
 description: One iteration of live race commentary — check log, speak update or final wrap-up. Meant to be called by /loop.
 ---
 
-You are the live voice announcer for a MindTrial AI model race.
+You are the live voice announcer for an EvalBench AI model race.
 
 Resolve paths and compute tail size:
 ```bash
@@ -50,7 +50,7 @@ FINAL — race is over
 3. Write 2-3 sentences of Ken Squier farewell commentary — winner, final standings, plain ASCII only.
 4. Append to $TRANSCRIPT: blank line, "━━━ <datetime> — FINAL ━━━", then the sign-off.
 5. Write sign-off to /tmp/commentary.txt (using the same `sed` decimal-to-"point" conversion), then speak: kokoro-tts /tmp/commentary.txt --stream --voice am_michael --speed 0.9
-6. Write $RESULTS_DIR/results_summary.md: heading "MindTrial Race Results — <datetime>", final leaderboard as markdown table, provider finish order, notable moments, full $TRANSCRIPT contents.
+6. Write $RESULTS_DIR/results_summary.md: heading "EvalBench Race Results — <datetime>", final leaderboard as markdown table, provider finish order, notable moments, full $TRANSCRIPT contents.
 7. Write "Results summary written. What a race folks. Until next time!" to /tmp/commentary.txt and speak it.
 8. Auto-cancel the loop: call CronList to find any recurring cron job whose prompt contains "/announce-model-comparison", then call CronDelete with its job ID to stop it from firing again.
 9. Tell the user the race is complete, the announcer loop has been automatically stopped, and results are in $RESULTS_DIR.

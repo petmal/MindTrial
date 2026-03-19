@@ -11,14 +11,14 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/petmal/mindtrial/pkg/testutils"
+	"github.com/CircleCI-Research/evalbench/pkg/testutils"
 	"github.com/stretchr/testify/assert"
 )
 
 var sourceLock sync.Mutex
 
 func TestName(t *testing.T) {
-	assert.Equal(t, "MindTrial", Name)
+	assert.Equal(t, "EvalBench", Name)
 }
 
 func TestGetVersion(t *testing.T) {

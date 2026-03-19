@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/petmal/mindtrial/pkg/utils"
-	"github.com/petmal/mindtrial/pricing"
-	"github.com/petmal/mindtrial/runners"
+	"github.com/CircleCI-Research/evalbench/pkg/utils"
+	"github.com/CircleCI-Research/evalbench/pricing"
+	"github.com/CircleCI-Research/evalbench/runners"
 
 	"github.com/sergi/go-diff/diffmatchpatch"
 )

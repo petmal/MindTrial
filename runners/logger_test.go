@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/petmal/mindtrial/pkg/logging"
+	"github.com/CircleCI-Research/evalbench/pkg/logging"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

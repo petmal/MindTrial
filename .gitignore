@@ -25,6 +25,7 @@ go.work.sum
 .env
 
 # Built binary
+evalbench
 mindtrial
 
 # Voice announcer runtime artifacts

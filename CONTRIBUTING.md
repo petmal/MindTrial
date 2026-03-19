@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for considering contributing to MindTrial!
+Thank you for considering contributing to EvalBench!
 
 ## How to Contribute
 

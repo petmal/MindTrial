@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at <https://mozilla.org/MPL/2.0/>.
 
-// Package version provides information about MindTrial including application name, version, and source code repository.
+// Package version provides information about EvalBench including application name, version, and source code repository.
 package version
 
 import (
@@ -13,7 +13,7 @@ import (
 )
 
 // Name of the application.
-const Name string = "MindTrial"
+const Name string = "EvalBench"
 
 var source = sync.OnceValue(func() debug.Module {
 	if info, ok := debug.ReadBuildInfo(); ok {

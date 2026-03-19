@@ -12,14 +12,14 @@ import (
 	"maps"
 
 	"github.com/openai/openai-go/v3/option"
-	"github.com/petmal/mindtrial/config"
-	"github.com/petmal/mindtrial/pkg/logging"
-	"github.com/petmal/mindtrial/pkg/utils"
-	"github.com/petmal/mindtrial/version"
+	"github.com/CircleCI-Research/evalbench/config"
+	"github.com/CircleCI-Research/evalbench/pkg/logging"
+	"github.com/CircleCI-Research/evalbench/pkg/utils"
+	"github.com/CircleCI-Research/evalbench/version"
 )
 
 // NewOpenRouter creates a new OpenRouter provider instance with the given configuration.
-// Injects OpenRouter attribution headers derived from MindTrial metadata into every request.
+// Injects OpenRouter attribution headers derived from EvalBench metadata into every request.
 func NewOpenRouter(cfg config.OpenRouterClientConfig, availableTools []config.ToolConfig) *OpenRouter {
 	source := version.GetSource()
 	appTitle := version.Name

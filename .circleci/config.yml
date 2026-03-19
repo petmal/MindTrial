@@ -1,4 +1,4 @@
-# CircleCI configuration for MindTrial
+# CircleCI configuration for EvalBench
 # Replaces GitHub Actions and adds scheduled/triggered eval pipelines.
 #
 # Workflows:
@@ -7,7 +7,7 @@
 #   3. new-model-eval: API-triggered eval for a newly released model
 #
 # Trigger a new-model eval via API:
-#   curl -X POST "https://circleci.com/api/v2/project/gh/{org}/MindTrial/pipeline" \
+#   curl -X POST "https://circleci.com/api/v2/project/gh/{org}/EvalBench/pipeline" \
 #     -H "Circle-Token: ${CIRCLECI_TOKEN}" \
 #     -H "Content-Type: application/json" \
 #     -d '{"parameters": {"run-eval": true, "eval-tasks": "./tasks.yaml"}}'
@@ -69,8 +69,8 @@ jobs:
       - setup_remote_docker:
           version: default
       - run:
-          name: Build MindTrial
-          command: go build -o mindtrial ./cmd/mindtrial/
+          name: Build EvalBench
+          command: go build -o evalbench ./cmd/evalbench/
       - run:
           name: Run Evaluation
           command: |
@@ -78,7 +78,7 @@ jobs:
             RESULTS_DIR="./results/${TIMESTAMP}"
             mkdir -p "${RESULTS_DIR}"
 
-            ./mindtrial \
+            ./evalbench \
               -tasks "<< pipeline.parameters.eval-tasks >>" \
               -output-dir "${RESULTS_DIR}" \
               -output-basename "eval" \

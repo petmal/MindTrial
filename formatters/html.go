@@ -14,9 +14,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/petmal/mindtrial/pkg/utils"
-	"github.com/petmal/mindtrial/runners"
-	"github.com/petmal/mindtrial/version"
+	"github.com/CircleCI-Research/evalbench/pkg/utils"
+	"github.com/CircleCI-Research/evalbench/runners"
+	"github.com/CircleCI-Research/evalbench/version"
 )
 
 const templateFile = "templates/html.tmpl"

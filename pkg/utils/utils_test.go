@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/petmal/mindtrial/pkg/testutils"
+	"github.com/CircleCI-Research/evalbench/pkg/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"

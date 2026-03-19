@@ -16,8 +16,8 @@ import (
 	"github.com/charmbracelet/bubbles/v2/viewport"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
-	"github.com/petmal/mindtrial/config"
-	"github.com/petmal/mindtrial/runners"
+	"github.com/CircleCI-Research/evalbench/config"
+	"github.com/CircleCI-Research/evalbench/runners"
 )
 
 const (

@@ -24,7 +24,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/petmal/mindtrial/pkg/utils"
+	"github.com/CircleCI-Research/evalbench/pkg/utils"
 	"gopkg.in/yaml.v3"
 )
 

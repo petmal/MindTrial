@@ -15,10 +15,10 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/petmal/mindtrial/config"
-	"github.com/petmal/mindtrial/pkg/logging"
-	xai "github.com/petmal/mindtrial/pkg/xai"
-	"github.com/petmal/mindtrial/providers/tools"
+	"github.com/CircleCI-Research/evalbench/config"
+	"github.com/CircleCI-Research/evalbench/pkg/logging"
+	xai "github.com/CircleCI-Research/evalbench/pkg/xai"
+	"github.com/CircleCI-Research/evalbench/providers/tools"
 )
 
 // NewXAI creates a new xAI provider instance with the given configuration.

@@ -1,9 +1,9 @@
 ---
 allowed-tools: Bash, AskUserQuestion, CronCreate
-description: Simulate a MindTrial eval race (no API tokens), with optional live voice commentary
+description: Simulate an EvalBench eval race (no API tokens), with optional live voice commentary
 ---
 
-The user wants to simulate a MindTrial eval race without making real API calls.
+The user wants to simulate an EvalBench eval race without making real API calls.
 This uses scripts/simulate-model-comparison.sh to generate realistic log output.
 Arguments: $ARGUMENTS (optional: num_tasks, speed multiplier, `with-announcer`)
 
@@ -90,7 +90,7 @@ bash scripts/open-dashboard.sh
 Skip this step entirely if `ANNOUNCER_ENABLED` is `false`.
 
 ```bash
-echo "Ladies and gentlemen, welcome to a MindTrial simulation! Six model configurations are about to go head to head. No real tokens, all the drama. Let the race begin!" > /tmp/commentary.txt && kokoro-tts /tmp/commentary.txt --stream --voice am_michael --speed 0.9 2>/dev/null || echo "(kokoro-tts not available)"
+echo "Ladies and gentlemen, welcome to an EvalBench simulation! Six model configurations are about to go head to head. No real tokens, all the drama. Let the race begin!" > /tmp/commentary.txt && kokoro-tts /tmp/commentary.txt --stream --voice am_michael --speed 0.9 2>/dev/null || echo "(kokoro-tts not available)"
 ```
 
 **6. (ANNOUNCER ONLY) Auto-start the announcer loop**

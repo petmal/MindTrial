@@ -11,9 +11,9 @@ import (
 	"fmt"
 
 	"github.com/openai/openai-go/v3/option"
-	"github.com/petmal/mindtrial/config"
-	"github.com/petmal/mindtrial/pkg/logging"
-	"github.com/petmal/mindtrial/pkg/utils"
+	"github.com/CircleCI-Research/evalbench/config"
+	"github.com/CircleCI-Research/evalbench/pkg/logging"
+	"github.com/CircleCI-Research/evalbench/pkg/utils"
 )
 
 // NewAlibaba creates a new Alibaba provider instance with the given configuration.

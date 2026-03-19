@@ -12,7 +12,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/petmal/mindtrial/runners"
+	"github.com/CircleCI-Research/evalbench/runners"
 )
 
 // NewJSONLFormatter creates a new formatter that outputs one JSON object per line

@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/petmal/mindtrial/pkg/testutils"
-	"github.com/petmal/mindtrial/runners"
+	"github.com/CircleCI-Research/evalbench/pkg/testutils"
+	"github.com/CircleCI-Research/evalbench/runners"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -50,9 +50,9 @@ func TestHTMLFormatterWrite(t *testing.T) {
 					// Set fixed version metadata to produce consistent results.
 					originalCurrentVersionData := currentVersionData
 					currentVersionData = VersionData{
-						Name:    "MindTrial",
+						Name:    "EvalBench",
 						Version: "(testing)",
-						Source:  "github.com/petmal/mindtrial",
+						Source:  "github.com/CircleCI-Research/evalbench",
 					}
 					defer func() { currentVersionData = originalCurrentVersionData }()
 					formatter := NewHTMLFormatter()

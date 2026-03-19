@@ -12,8 +12,8 @@ import (
 	"testing"
 
 	openai "github.com/openai/openai-go/v3"
-	"github.com/petmal/mindtrial/config"
-	"github.com/petmal/mindtrial/pkg/testutils"
+	"github.com/CircleCI-Research/evalbench/config"
+	"github.com/CircleCI-Research/evalbench/pkg/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

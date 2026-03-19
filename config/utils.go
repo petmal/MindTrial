@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/petmal/mindtrial/pkg/utils"
+	"github.com/CircleCI-Research/evalbench/pkg/utils"
 	"gopkg.in/yaml.v3"
 )
 

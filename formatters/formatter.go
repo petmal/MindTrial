@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at <https://mozilla.org/MPL/2.0/>.
 
-// Package formatters provides output formatting functionality for MindTrial results.
+// Package formatters provides output formatting functionality for EvalBench results.
 // It supports multiple output formats including HTML, CSV, and text logs.
 package formatters
 
@@ -13,8 +13,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/petmal/mindtrial/pkg/utils"
-	"github.com/petmal/mindtrial/runners"
+	"github.com/CircleCI-Research/evalbench/pkg/utils"
+	"github.com/CircleCI-Research/evalbench/runners"
 )
 
 // ErrPrintResults indicates that result formatting failed.

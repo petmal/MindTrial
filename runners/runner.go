@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at <https://mozilla.org/MPL/2.0/>.
 
-// Package runners provides interfaces and implementations for executing MindTrial tasks and collecting their results.
+// Package runners provides interfaces and implementations for executing EvalBench tasks and collecting their results.
 package runners
 
 import (
@@ -16,8 +16,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/petmal/mindtrial/config"
-	"github.com/petmal/mindtrial/pkg/utils"
+	"github.com/CircleCI-Research/evalbench/config"
+	"github.com/CircleCI-Research/evalbench/pkg/utils"
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
 

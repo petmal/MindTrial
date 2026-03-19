@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at <https://mozilla.org/MPL/2.0/>.
 
-// Package providers implements various AI model service provider connectors supported by MindTrial.
+// Package providers implements various AI model service provider connectors supported by EvalBench.
 package providers
 
 import (
@@ -16,9 +16,9 @@ import (
 	"time"
 
 	"github.com/invopop/jsonschema"
-	"github.com/petmal/mindtrial/config"
-	"github.com/petmal/mindtrial/pkg/logging"
-	"github.com/petmal/mindtrial/providers/tools"
+	"github.com/CircleCI-Research/evalbench/config"
+	"github.com/CircleCI-Research/evalbench/pkg/logging"
+	"github.com/CircleCI-Research/evalbench/providers/tools"
 	"golang.org/x/exp/constraints"
 )
 

@@ -1,9 +1,9 @@
 ---
 allowed-tools: Bash, AskUserQuestion, CronCreate
-description: Build and run MindTrial eval suite, with optional live voice race commentary
+description: Build and run EvalBench eval suite, with optional live voice race commentary
 ---
 
-The user wants to start a MindTrial eval race.
+The user wants to start an EvalBench eval race.
 Arguments: $ARGUMENTS (optional: config file, loop interval, `with-announcer`)
 
 Parse $ARGUMENTS:
@@ -66,10 +66,10 @@ HEADER
 echo "Transcript initialized at $RESULTS_DIR/transcript.txt"
 ```
 
-**2. Build MindTrial**
+**2. Build EvalBench**
 ```bash
-echo "Building MindTrial..."
-go build -o mindtrial ./cmd/mindtrial/
+echo "Building EvalBench..."
+go build -o evalbench ./cmd/evalbench/
 echo "Build complete."
 ```
 
@@ -84,10 +84,10 @@ fi
 CONFIG_FILE="${1:-config-eval-top3-cicd.yaml}"
 LOG_FILE=$(cat /tmp/.eval_log_file)
 RESULTS_DIR=$(cat /tmp/.eval_results_dir)
-nohup ./mindtrial -config "$CONFIG_FILE" -log "$LOG_FILE" -output-dir "$RESULTS_DIR" -output-basename "results" -verbose run > /dev/null 2>&1 &
+nohup ./evalbench -config "$CONFIG_FILE" -log "$LOG_FILE" -output-dir "$RESULTS_DIR" -output-basename "results" -verbose run > /dev/null 2>&1 &
 EVAL_PID=$!
 echo "$EVAL_PID" > /tmp/.eval_pid
-echo "MindTrial eval started (PID: $EVAL_PID)"
+echo "EvalBench eval started (PID: $EVAL_PID)"
 echo "Config: $CONFIG_FILE"
 echo "Log:    $LOG_FILE"
 ```
@@ -112,7 +112,7 @@ LOG_FILE=$(cat /tmp/.eval_log_file)
 NUM_PROVIDERS=$(grep -c "starting [0-9]* tasks on this provider" "$LOG_FILE" 2>/dev/null || echo 3)
 NUM_CONFIGS=$(grep "starting [0-9]* tasks on this provider" "$LOG_FILE" 2>/dev/null | grep -o "in [0-9]* configurations" | awk '{sum+=$2} END {print sum}')
 NUM_CONFIGS=${NUM_CONFIGS:-6}
-echo "Ladies and gentlemen, welcome to MindTrial! ${NUM_CONFIGS} model configurations across ${NUM_PROVIDERS} providers are lined up, the tasks are loaded, and we are LIVE. Let the race begin!" > /tmp/commentary.txt && kokoro-tts /tmp/commentary.txt --stream --voice am_michael --speed 0.9 2>/dev/null || echo "(kokoro-tts not available)"
+echo "Ladies and gentlemen, welcome to EvalBench! ${NUM_CONFIGS} model configurations across ${NUM_PROVIDERS} providers are lined up, the tasks are loaded, and we are LIVE. Let the race begin!" > /tmp/commentary.txt && kokoro-tts /tmp/commentary.txt --stream --voice am_michael --speed 0.9 2>/dev/null || echo "(kokoro-tts not available)"
 ```
 
 **7. (ANNOUNCER ONLY) Auto-start the announcer loop**

@@ -1,25 +1,25 @@
-# MindTrial
+# EvalBench
 
-[![Build](https://github.com/petmal/mindtrial/actions/workflows/go.yml/badge.svg)](https://github.com/petmal/mindtrial/actions/workflows/go.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/petmal/mindtrial)](https://goreportcard.com/report/github.com/petmal/mindtrial)
+[![Build](https://github.com/CircleCI-Research/evalbench/actions/workflows/go.yml/badge.svg)](https://github.com/CircleCI-Research/evalbench/actions/workflows/go.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/CircleCI-Research/evalbench)](https://goreportcard.com/report/github.com/CircleCI-Research/evalbench)
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL_2.0-brightgreen.svg)](https://mozilla.org/MPL/2.0/)
-[![Go Version](https://img.shields.io/github/go-mod/go-version/petmal/mindtrial)](https://go.dev/)
-[![Go Reference](https://pkg.go.dev/badge/github.com/petmal/mindtrial.svg)](https://pkg.go.dev/github.com/petmal/mindtrial)
+[![Go Version](https://img.shields.io/github/go-mod-go-version/CircleCI-Research/evalbench)](https://go.dev/)
+[![Go Reference](https://pkg.go.dev/badge/github.com/CircleCI-Research/evalbench.svg)](https://pkg.go.dev/github.com/CircleCI-Research/evalbench)
 
-**MindTrial** lets you test a single AI language model (LLM) or evaluate multiple models side-by-side. It supports providers like OpenAI, Google, Anthropic, DeepSeek, Mistral AI, xAI, Alibaba, Moonshot AI, and OpenRouter. You can create your own custom tasks with text prompts, plain text or structured JSON response formats, optional file attachments, and tool use for enhanced capabilities; validate responses through exact value matching or an LLM judge for semantic evaluation; and get results in easy-to-read HTML and CSV formats.
+**EvalBench** lets you test a single AI language model (LLM) or evaluate multiple models side-by-side. It supports providers like OpenAI, Google, Anthropic, DeepSeek, Mistral AI, xAI, Alibaba, Moonshot AI, and OpenRouter. You can create your own custom tasks with text prompts, plain text or structured JSON response formats, optional file attachments, and tool use for enhanced capabilities; validate responses through exact value matching or an LLM judge for semantic evaluation; and get results in easy-to-read HTML and CSV formats.
 
 ## Quick Start Guide
 
 1. Install the tool:
 
    ```bash
-   go install github.com/petmal/mindtrial/cmd/mindtrial@latest
+   go install github.com/CircleCI-Research/evalbench/cmd/evalbench@latest
    ```
 
 2. Run with default settings:
 
    ```bash
-   mindtrial run
+   evalbench run
    ```
 
 ### Prerequisites
@@ -45,34 +45,34 @@
 1. Display available commands and options:
 
    ```bash
-   mindtrial help
+   evalbench help
    ```
 
 2. Run with custom configuration and output options:
 
    ```bash
-   mindtrial --config="custom-config.yaml" --tasks="custom-tasks.yaml" --output-dir="./results" --output-basename="custom-tasks-results" run
+   evalbench --config="custom-config.yaml" --tasks="custom-tasks.yaml" --output-dir="./results" --output-basename="custom-tasks-results" run
    ```
 
 3. Run with specific output formats (CSV only, no HTML):
 
    ```bash
-   mindtrial --csv=true --html=false run
+   evalbench --csv=true --html=false run
    ```
 
 4. Run in interactive mode to select models and tasks before starting:
 
    ```bash
-   mindtrial --interactive run
+   evalbench --interactive run
    ```
 
 ## Configuration Guide
 
-MindTrial uses two simple YAML files to control everything:
+EvalBench uses two simple YAML files to control everything:
 
 ### 1. config.yaml - Application Settings
 
-Controls how MindTrial operates, including:
+Controls how EvalBench operates, including:
 
 - Where to save results
 - Which AI models to use
@@ -87,7 +87,7 @@ Defines what you want to evaluate, including:
 - Response format rules
 
 > [!TIP]
-> **New to MindTrial?** Start with the example files provided and modify them for your needs.
+> **New to EvalBench?** Start with the example files provided and modify them for your needs.
 
 > [!TIP]
 > Use **interactive mode** with the `--interactive` flag to select model configurations and tasks before running, without having to edit configuration files.
@@ -105,7 +105,7 @@ This file defines the tool's settings and target model configurations evaluated 
     - **name**: A unique display-friendly name to be shown in the results.
     - **model**: Model name must be exactly as defined by the backend service's API (e.g. *gpt-4o-mini*).
     - **disable-structured-output**: Disable structured JSON responses for this run and force plain-text answers.
-      When enabled, MindTrial:
+      When enabled, EvalBench:
       - treats the model's entire response as the **final answer** (title and explanation are filled with placeholders)
       - forces the model to use plain-text response mode
       - skips tasks that require schema-based (`response-result-format`) JSON outputs
@@ -166,7 +166,7 @@ This file defines the tool's settings and target model configurations evaluated 
 >
 > Currently supported parameters for **OpenRouter** models include:
 >
-> - **response-format**: Controls response format (values: `json-schema`, `json-object`, `text`, default: `json-schema`). MindTrial adjusts its parsing logic based on this value, so always use this typed parameter rather than passing `response_format` directly (see note below about extra parameters).
+> - **response-format**: Controls response format (values: `json-schema`, `json-object`, `text`, default: `json-schema`). EvalBench adjusts its parsing logic based on this value, so always use this typed parameter rather than passing `response_format` directly (see note below about extra parameters).
 > - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 2.0, default: 1.0). Lower values produce more focused and deterministic outputs.
 > - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0, default: 1.0). Lower values produce more focused outputs.
 > - **top-k**: Limits token selection to top K candidates (range: 0 or above, default: 0). Value 0 disables this setting.
@@ -270,7 +270,7 @@ This file defines the tool's settings and target model configurations evaluated 
 > If `log-file` and/or `output-basename` is blank, the log and/or output will be written to the `stdout`.
 
 > [!NOTE]
-> MindTrial processes tasks across different AI providers simultaneously (in parallel). However, when running multiple configurations from the same provider (e.g. different OpenAI models), these are processed one after another (sequentially).
+> EvalBench processes tasks across different AI providers simultaneously (in parallel). However, when running multiple configurations from the same provider (e.g. different OpenAI models), these are processed one after another (sequentially).
 
 > [!TIP]
 > Models can use the `max-requests-per-minute` property in their run configurations to limit the number of requests made per minute.
@@ -471,7 +471,7 @@ Optionally, a task can include a list of `files` to be sent along with the promp
 
 #### Structured Response Formats
 
-MindTrial supports two types of response formats for tasks:
+EvalBench supports two types of response formats for tasks:
 
 ##### Plain Text Format
 
@@ -660,7 +660,7 @@ To use judge validation:
 
 #### Judge Prompt Customization
 
-MindTrial automatically applies a built-in semantic evaluation template that compares candidate responses against expected answers. For advanced use cases, you can customize the judge prompt template, response format, and acceptance criteria.
+EvalBench automatically applies a built-in semantic evaluation template that compares candidate responses against expected answers. For advanced use cases, you can customize the judge prompt template, response format, and acceptance criteria.
 
 Judge prompts can be customized in the `validation-rules.judge.prompt` section of your `tasks.yaml` file, either globally in `task-config` or individually per task.
 
@@ -831,7 +831,7 @@ task-config:
 
 #### Tools
 
-MindTrial supports tool use for tasks, allowing AI models to execute external tools during task solving. Tools are executed in sandboxed Docker containers with resource limits and network isolation.
+EvalBench supports tool use for tasks, allowing AI models to execute external tools during task solving. Tools are executed in sandboxed Docker containers with resource limits and network isolation.
 
 ##### Tool Definitions
 
@@ -959,7 +959,7 @@ task-config:
 ## Command Reference
 
 ```bash
-mindtrial [options] [command]
+evalbench [options] [command]
 
 Commands:
   run                       Start the trials
@@ -981,7 +981,7 @@ Options:
 
 ## Live Voice Race Announcer (Claude Code)
 
-This repository extends MindTrial with a set of [Claude Code](https://claude.ai/claude-code) slash commands that turn a model comparison run into a live sports-style race — complete with voice commentary narrated in real time through your speakers.
+This repository extends EvalBench with a set of [Claude Code](https://claude.ai/claude-code) slash commands that turn a model comparison run into a live sports-style race — complete with voice commentary narrated in real time through your speakers.
 
 When models race in parallel, Claude wakes up on a configurable interval, reads the live eval log, writes 2–4 sentences of Ken Squier–style race commentary, speaks it aloud via [Kokoro TTS](https://github.com/nazdridoy/kokoro-tts), and appends a timestamped update to a running transcript. When the race finishes, Claude delivers a final wrap-up, writes a results summary, and automatically cancels the loop.
 
@@ -1026,7 +1026,7 @@ All commands are Claude Code slash commands — no external infrastructure, no d
 | Command | Description |
 |---|---|
 | `/simulate-model-comparison` | Start a zero-cost simulation (generates realistic log output, no API tokens needed) |
-| `/run-model-comparison` | Build and start a real MindTrial eval race |
+| `/run-model-comparison` | Build and start a real EvalBench eval race |
 | `/announce-model-comparison` | One tick of live commentary — meant to be called by `/loop` |
 | `/stop-model-comparison` | Stop the running race and finalize the transcript |
 
@@ -1142,8 +1142,8 @@ Contributions are welcome! Please review our [CONTRIBUTING.md](CONTRIBUTING.md) 
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/petmal/mindtrial.git
-cd mindtrial
+git clone https://github.com/CircleCI-Research/evalbench.git
+cd evalbench
 go mod download
 ```
 
@@ -1160,7 +1160,7 @@ go test -tags=test -race -v ./...
 ```text
 /
 ├── cmd/
-│   └── mindtrial/       # Command-line interface and main entry point
+│   └── evalbench/       # Command-line interface and main entry point
 │       └── tui/         # Terminal-based UI and interactive mode functionality
 ├── config/              # Data models and management for configuration and task definitions
 ├── formatters/          # Output formatting for results
@@ -1177,3 +1177,5 @@ go test -tags=test -race -v ./...
 ### License
 
 This project is licensed under the Mozilla Public License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+Originally created by [Petr Malik](https://github.com/petmal) as MindTrial. Maintained by the CircleCI AI Team.

@@ -28,8 +28,8 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/oklog/ulid/v2"
-	"github.com/petmal/mindtrial/config"
-	"github.com/petmal/mindtrial/pkg/logging"
+	"github.com/CircleCI-Research/evalbench/config"
+	"github.com/CircleCI-Research/evalbench/pkg/logging"
 )
 
 // DockerToolExecutor executes tools within Docker containers.
@@ -52,7 +52,7 @@ type ToolUsage struct {
 // The directory is created once on the first call and the same path is returned for all subsequent calls.
 func newSharedDirFactory() func(context.Context, *DockerToolExecutor) (string, error) {
 	return config.OnceWithContext(func(ctx context.Context, state *DockerToolExecutor) (sharedDir string, err error) {
-		sharedDir, err = os.MkdirTemp("", "mindtrial-tool-shared-*")
+		sharedDir, err = os.MkdirTemp("", "evalbench-tool-shared-*")
 		if err != nil {
 			return "", fmt.Errorf("failed to create shared temporary directory: %w", err)
 		}
@@ -175,7 +175,7 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 	logger.Message(ctx, logging.LevelTrace, "parsed input arguments: %v", argMap)
 
 	// Create a temporary directory for file mappings.
-	tempDir, err := os.MkdirTemp("", "mindtrial-tool-*")
+	tempDir, err := os.MkdirTemp("", "evalbench-tool-*")
 	if err != nil {
 		return nil, fmt.Errorf("%w: failed to create temporary workspace directory: %v", ErrToolInternal, err)
 	}

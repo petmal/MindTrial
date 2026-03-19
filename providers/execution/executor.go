@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at <https://mozilla.org/MPL/2.0/>.
 
-// Package execution provides unified provider execution patterns for the MindTrial application.
+// Package execution provides unified provider execution patterns for the EvalBench application.
 // It handles common execution concerns such as retry logic, rate limiting, and error handling
 // that are shared between different components like task runners and validators.
 package execution
@@ -18,9 +18,9 @@ import (
 	"github.com/sethvargo/go-retry"
 	"golang.org/x/time/rate"
 
-	"github.com/petmal/mindtrial/config"
-	"github.com/petmal/mindtrial/pkg/logging"
-	"github.com/petmal/mindtrial/providers"
+	"github.com/CircleCI-Research/evalbench/config"
+	"github.com/CircleCI-Research/evalbench/pkg/logging"
+	"github.com/CircleCI-Research/evalbench/providers"
 )
 
 // BackoffWithCallback wraps a retry.Backoff with a callback function that is called

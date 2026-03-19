@@ -1,4 +1,4 @@
-module github.com/petmal/mindtrial
+module github.com/CircleCI-Research/evalbench
 
 go 1.25.0
 

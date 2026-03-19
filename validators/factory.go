@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/petmal/mindtrial/config"
+	"github.com/CircleCI-Research/evalbench/config"
 )
 
 const valueMatchValidatorCacheKey = "value_match_validator"
