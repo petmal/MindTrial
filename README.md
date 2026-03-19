@@ -985,9 +985,12 @@ This repository extends EvalBench with a set of [Claude Code](https://claude.ai/
 
 When models race in parallel, Claude wakes up on a configurable interval, reads the live eval log, writes 2–4 sentences of Ken Squier–style race commentary, speaks it aloud via [Kokoro TTS](https://github.com/nazdridoy/kokoro-tts), and appends a timestamped update to a running transcript. When the race finishes, Claude delivers a final wrap-up, writes a results summary, and automatically cancels the loop.
 
-### Prerequisites: Kokoro TTS
+### Prerequisites
 
-The voice announcer requires [nazdridoy/kokoro-tts](https://github.com/nazdridoy/kokoro-tts), a CLI wrapper for the Kokoro speech model. It runs on ONNX Runtime (no PyTorch needed) and supports direct speaker output via `--stream`.
+- **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)** — the slash commands (`/simulate-model-comparison`, etc.) run inside Claude Code sessions.
+- **[Kokoro TTS](https://github.com/nazdridoy/kokoro-tts)** — a CLI wrapper for the Kokoro speech model. It runs on ONNX Runtime (no PyTorch needed) and supports direct speaker output via `--stream`.
+
+### Installing Kokoro TTS
 
 **1. Install the CLI:**
 
@@ -1004,20 +1007,23 @@ wget https://github.com/nazdridoy/kokoro-tts/releases/download/v1.0.0/kokoro-v1.
 cd -
 ```
 
-**3. Point the CLI at your model files:**
+**3. Point the CLI at your model files and persist across sessions:**
 
 ```bash
 export KOKORO_MODEL_DIR=~/.config/kokoro-tts
-# Add to your shell profile (~/.zshrc or ~/.bashrc) to persist across sessions.
+echo 'export KOKORO_MODEL_DIR=~/.config/kokoro-tts' >> ~/.zshrc   # or ~/.bashrc
 ```
 
-**4. Verify it works:**
+**4. Verify it works (you should hear audio through your speakers):**
 
 ```bash
 echo "We are LIVE! The race has begun!" | kokoro-tts - --stream --voice am_michael
 ```
 
 > **Recommended voices:** `am_michael` (confident American male, used by default), `af_heart` (warm American female), `bf_emma` (British female — maximum BBC Sports energy).
+
+> [!TIP]
+> **No audio?** Make sure your system volume is up and your default audio output device is set correctly. On macOS, `kokoro-tts --stream` uses the system default output. If the `wget` downloads failed or were incomplete, delete the files in `~/.config/kokoro-tts/` and re-download them.
 
 ### Slash Commands
 
