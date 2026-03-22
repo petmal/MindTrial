@@ -340,8 +340,146 @@
         font-size: 0.9em;
         color: #666;
     }
+
+     
+    .dynamic-summary-container {
+        display: none;
+        margin-top: 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 16px 20px;
+        background-color: var(--table-bg);
+        box-shadow: var(--table-shadow);
+        overflow-x: auto;
+    }
+    .dynamic-summary-subset { margin-bottom: 1.5em; }
+    .dynamic-summary-subset:last-child { margin-bottom: 0; }
+    .dynamic-summary-subset h3 {
+        color: var(--header-color);
+        font-size: 1.05em;
+        margin: 0 0 0.3em 0;
+    }
+    .dynamic-summary-subset .subset-description {
+        font-size: 0.85em;
+        color: #666;
+        margin: 0 0 0.6em 0;
+    }
+    .dynamic-summary-subset .subset-description code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+        font-size: 0.92em;
+        background: #f0f0f0;
+        padding: 1px 5px;
+        border-radius: 3px;
+    }
+    .dynamic-summary-subset table {
+        margin-bottom: 0;
+        font-size: 0.85em;
+        table-layout: auto;
+    }
+    .dynamic-summary-subset th,
+    .dynamic-summary-subset td {
+        padding: 6px 8px;
+        white-space: nowrap;
+    }
+    .dynamic-summary-subset thead th {
+        text-transform: none;
+    }
+    .dynamic-summary-empty {
+        color: #666;
+        font-style: italic;
+        font-size: 0.9em;
+        padding: 8px 0;
+    }
+    #analyze-selected-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .ds-column-selector {
+        margin-bottom: 1em;
+        padding: 8px 12px;
+        background: #f8f8f8;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 0.85em;
+    }
+    .ds-column-selector summary {
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--header-color);
+    }
+    .ds-column-checkboxes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 16px;
+        margin-top: 6px;
+    }
+    .ds-column-checkboxes label {
+        white-space: nowrap;
+        cursor: pointer;
+    }
+    .ds-column-actions {
+        margin-top: 6px;
+    }
+    .ds-column-actions button {
+        font-size: 0.85em;
+        padding: 2px 8px;
+        margin-right: 6px;
+        cursor: pointer;
+    }
+    .ds-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        align-items: flex-end;
+        margin-bottom: 1em;
+        font-size: 0.85em;
+    }
+    .ds-filters label,
+    .ds-filters .ds-filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        font-weight: 600;
+        color: var(--header-color);
+    }
+    .ds-filters input[type="text"],
+    .ds-filters select {
+        font-size: 1em;
+        padding: 4px 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
     </style>
     <script>
+        const dsColumns = [
+            { key: 'provider', label: 'Provider', alwaysVisible: true, format: 'string' },
+            { key: 'run', label: 'Run', alwaysVisible: true, format: 'string' },
+            { key: 'count', label: 'Count', alwaysVisible: true, tooltip: 'Number of non-skipped tasks', format: 'count' },
+            { key: 'passed', label: 'Passed', format: 'count' },
+            { key: 'failed', label: 'Failed', format: 'count' },
+            { key: 'error', label: 'Error', format: 'count' },
+            { key: 'skipped', label: 'Skipped', format: 'count' },
+            { key: 'passRate', label: 'Pass Rate (%)', format: 'rate' },
+            { key: 'accuracy', label: 'Accuracy (%)', format: 'rate' },
+            { key: 'errorRate', label: 'Error Rate (%)', format: 'rate' },
+            { key: 'totalDuration', label: '\u03a3 Duration', tooltip: 'Total (sum) duration', format: 'duration' },
+            { key: 'medianDuration', label: 'x\u0303 Duration', tooltip: 'Median duration', format: 'duration' },
+            { key: 'stddevDuration', label: '\u03c3 Duration', tooltip: 'Standard deviation of duration', format: 'duration' },
+            { key: 'totalInput', label: '\u03a3 Input Tokens', tooltip: 'Total (sum) input tokens', format: 'token' },
+            { key: 'medianInput', label: 'x\u0303 Input Tokens', tooltip: 'Median input tokens', format: 'token' },
+            { key: 'stddevInput', label: '\u03c3 Input Tokens', tooltip: 'Standard deviation of input tokens', format: 'token' },
+            { key: 'totalOutput', label: '\u03a3 Output Tokens', tooltip: 'Total (sum) output tokens', format: 'token' },
+            { key: 'medianOutput', label: 'x\u0303 Output Tokens', tooltip: 'Median output tokens', format: 'token' },
+            { key: 'stddevOutput', label: '\u03c3 Output Tokens', tooltip: 'Standard deviation of output tokens', format: 'token' },
+            { key: 'totalToolCalls', label: '\u03a3 Tool Calls', tooltip: 'Total (sum) tool calls', format: 'toolcall' },
+            { key: 'medianToolCalls', label: 'x\u0303 Tool Calls', tooltip: 'Median tool calls', format: 'toolcall' },
+            { key: 'stddevToolCalls', label: '\u03c3 Tool Calls', tooltip: 'Standard deviation of tool calls', format: 'toolcall' },
+        ];
+        const dsVisibleColumns = new Set(dsColumns.map(c => c.key));
+        const dsSortState = { column: null, direction: 'asc' };
+        let dsShowComplement = false;
+        const dsTableData = {
+            'dynamic-summary-filtered': { title: '', description: '', data: [] },
+            'dynamic-summary-complement': { title: '', description: '', data: [] }
+        };
+
         function toggleDetails(id, btn) {
             const element = document.getElementById(id);
             const show = (element.style.display === "none" || element.style.display === "");
@@ -350,6 +488,10 @@
                 btn.setAttribute('aria-expanded', show ? 'true' : 'false');
                 btn.textContent = show ? 'Hide Details' : 'Show Details';
             }
+        }
+
+        function escapeHtml(s) {
+            return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c] || c);
         }
 
         function copyTraceID(traceID, btn) {
@@ -472,10 +614,20 @@
         function updateCompareButton() {
             const checkboxes = document.querySelectorAll('.run-compare-checkbox:checked');
             const button = document.getElementById('compare-selected-btn');
+            const analyzeButton = document.getElementById('analyze-selected-btn');
             const counter = document.getElementById('selected-count');
             
             button.disabled = checkboxes.length < 2;
+            analyzeButton.disabled = checkboxes.length < 1;
             counter.textContent = checkboxes.length > 0 ? `${checkboxes.length} selected` : '';
+
+            
+            if (checkboxes.length < 1) {
+                const section = document.getElementById('dynamic-summary-section');
+                section.style.display = 'none';
+                analyzeButton.textContent = 'Analyze Selected Runs';
+            }
+            updateDynamicSummary();
         }
 
         function compareSelectedRuns() {
@@ -490,6 +642,375 @@
 
             const matrix = generateComparisonMatrix(selectedRuns);
             openMatrixWindow(matrix, selectedRuns);
+        }
+
+        function toggleDynamicSummary() {
+            const section = document.getElementById('dynamic-summary-section');
+            const btn = document.getElementById('analyze-selected-btn');
+            const show = section.style.display === 'none' || section.style.display === '';
+            section.style.display = show ? 'block' : 'none';
+            btn.textContent = show ? 'Hide Analysis' : 'Analyze Selected Runs';
+            if (show) {
+                renderDsColumnSelector();
+                updateDynamicSummary();
+            }
+        }
+
+        function extractRowTokens(row) {
+            let inputTokens = null, outputTokens = null;
+            const detailsDiv = document.getElementById('details-' + row.id);
+            if (!detailsDiv) return { inputTokens, outputTokens };
+            detailsDiv.querySelectorAll('details').forEach(det => {
+                if (det.closest('.section-validation')) return;
+                const summary = det.querySelector('summary');
+                if (!summary || summary.textContent.trim() !== 'Token Usage') return;
+                const dl = det.querySelector('dl');
+                if (!dl) return;
+                dl.querySelectorAll('dt').forEach(dt => {
+                    const dd = dt.nextElementSibling;
+                    if (!dd || dd.tagName !== 'DD') return;
+                    const label = dt.textContent.trim();
+                    const val = parseInt(dd.textContent.trim(), 10) || 0;
+                    if (label === 'Input') inputTokens = (inputTokens ?? 0) + val;
+                    else if (label === 'Output') outputTokens = (outputTokens ?? 0) + val;
+                });
+            });
+            return { inputTokens, outputTokens };
+        }
+
+        function extractRowToolCalls(row) {
+            let totalCalls = null;
+            const detailsDiv = document.getElementById('details-' + row.id);
+            if (!detailsDiv) return null;
+            detailsDiv.querySelectorAll('details').forEach(det => {
+                if (det.closest('.section-validation')) return;
+                const summary = det.querySelector('summary');
+                if (!summary || summary.textContent.trim() !== 'Tool Usage') return;
+                const dl = det.querySelector('dl');
+                if (!dl) return;
+                dl.querySelectorAll('dd').forEach(dd => {
+                    const match = dd.textContent.trim().match(/^(\d+)\s+call/);
+                    if (match) totalCalls = (totalCalls ?? 0) + parseInt(match[1], 10);
+                });
+            });
+            return totalCalls;
+        }
+
+        function calculateRunStats(dataArray) {
+            let passed = 0, failed = 0, error = 0, skipped = 0;
+            let totalDuration = null, totalInput = null, totalOutput = null, totalToolCalls = null;
+            const nonSkippedDurations = [];
+            const inputTokensList = [];
+            const outputTokensList = [];
+            const toolCallsList = [];
+
+            dataArray.forEach(d => {
+                switch (d.status) {
+                    case 'passed': passed++; break;
+                    case 'failed': failed++; break;
+                    case 'error': error++; break;
+                    case 'skipped': skipped++; break;
+                }
+                if (d.status !== 'skipped') {
+                    if (d.duration !== null) {
+                        totalDuration = (totalDuration ?? 0) + d.duration;
+                        nonSkippedDurations.push(d.duration);
+                    }
+                    if (d.inputTokens !== null) {
+                        totalInput = (totalInput ?? 0) + d.inputTokens;
+                        inputTokensList.push(d.inputTokens);
+                    }
+                    if (d.outputTokens !== null) {
+                        totalOutput = (totalOutput ?? 0) + d.outputTokens;
+                        outputTokensList.push(d.outputTokens);
+                    }
+                    if (d.toolCalls !== null) {
+                        totalToolCalls = (totalToolCalls ?? 0) + d.toolCalls;
+                        toolCallsList.push(d.toolCalls);
+                    }
+                }
+            });
+
+            const prDenom = passed + failed + error;
+            const passRate = prDenom > 0 ? (passed / prDenom) * 100 : 0;
+            const accDenom = passed + failed;
+            const accuracy = accDenom > 0 ? (passed / accDenom) * 100 : 0;
+            const errorRate = prDenom > 0 ? (error / prDenom) * 100 : 0;
+
+            function medianOf(arr) {
+                if (arr.length < 2) return null;
+                const sorted = arr.slice().sort((a, b) => a - b);
+                const n = sorted.length;
+                const mid = Math.floor(n / 2);
+                return n % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+            }
+
+            function stddevOf(arr) {
+                if (arr.length < 2) return null;
+                const n = arr.length;
+                const mean = arr.reduce((s, v) => s + v, 0) / n;
+                const variance = arr.reduce((s, v) => s + (v - mean) * (v - mean), 0) / n;
+                return Math.sqrt(variance);
+            }
+
+            return {
+                count: passed + failed + error,
+                passed, failed, error, skipped,
+                passRate, accuracy, errorRate,
+                totalDuration, medianDuration: medianOf(nonSkippedDurations), stddevDuration: stddevOf(nonSkippedDurations),
+                totalInput, medianInput: medianOf(inputTokensList), stddevInput: stddevOf(inputTokensList),
+                totalOutput, medianOutput: medianOf(outputTokensList), stddevOutput: stddevOf(outputTokensList),
+                totalToolCalls, medianToolCalls: medianOf(toolCallsList), stddevToolCalls: stddevOf(toolCallsList)
+            };
+        }
+
+        function formatDuration(ms) {
+            if (ms === null || ms === undefined) return '\u2014';
+            if (ms === 0) return '0s';
+            ms = Math.round(ms);
+            if (ms < 1000) return ms + 'ms';
+            const totalSec = ms / 1000;
+            if (totalSec < 60) {
+                
+                let s = totalSec.toFixed(3).replace(/(\.[0-9]*?)0+$/, '$1').replace(/\.$/, '');
+                return s + 's';
+            }
+            const hours = Math.floor(totalSec / 3600);
+            const mins = Math.floor((totalSec % 3600) / 60);
+            const secs = totalSec % 60;
+            let result = '';
+            if (hours > 0) {
+                result += hours + 'h';
+                result += mins + 'm';
+            } else if (mins > 0) {
+                result += mins + 'm';
+            }
+            const secStr = secs.toFixed(3).replace(/(\.[0-9]*?)0+$/, '$1').replace(/\.$/, '');
+            result += secStr + 's';
+            return result;
+        }
+
+        function formatDsCell(entry, col) {
+            const v = col.key === 'provider' ? entry.provider : col.key === 'run' ? entry.run : entry.stats[col.key];
+            const noData = entry.stats.count === 0;
+            switch (col.format) {
+                case 'string': return escapeHtml(v);
+                case 'count': return noData ? '\u2014' : v.toLocaleString();
+                case 'rate': return noData ? '\u2014' : v.toFixed(2);
+                case 'duration': return noData ? '\u2014' : formatDuration(v);
+                case 'token': return noData ? '\u2014' : (v !== null && v !== undefined ? (Number.isInteger(v) ? v.toLocaleString() : v.toFixed(2)) : '\u2014');
+                case 'toolcall': return noData ? '\u2014' : (v !== null && v !== undefined ? (Number.isInteger(v) ? v.toLocaleString() : v.toFixed(2)) : '\u2014');
+                default: return escapeHtml(String(v));
+            }
+        }
+
+        function getDsSortValue(entry, columnKey) {
+            if (columnKey === 'provider') return entry.provider.toLowerCase();
+            if (columnKey === 'run') return entry.run.toLowerCase();
+            const v = entry.stats[columnKey];
+            return v !== null && v !== undefined ? v : -Infinity;
+        }
+
+        function renderDsColumnSelector() {
+            const container = document.getElementById('ds-column-selector-container');
+            if (container.children.length > 0) return;
+            let html = '<details class="ds-column-selector"><summary>Columns</summary><div class="ds-column-checkboxes">';
+            dsColumns.forEach(col => {
+                if (col.alwaysVisible) return;
+                const checked = dsVisibleColumns.has(col.key) ? 'checked' : '';
+                const tip = col.tooltip ? ` title="${col.tooltip}"` : '';
+                html += `<label${tip}><input type="checkbox" value="${col.key}" ${checked} class="ds-col-toggle"> ${col.label}</label>`;
+            });
+            html += '</div><div class="ds-column-actions"><button type="button" id="ds-select-all-cols">Select All</button><button type="button" id="ds-deselect-all-cols">Deselect All</button></div></details>';
+            container.innerHTML = html;
+            container.querySelectorAll('.ds-col-toggle').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    if (cb.checked) dsVisibleColumns.add(cb.value);
+                    else dsVisibleColumns.delete(cb.value);
+                    rerenderDsTables();
+                });
+            });
+            document.getElementById('ds-select-all-cols').addEventListener('click', () => {
+                dsColumns.forEach(c => dsVisibleColumns.add(c.key));
+                container.querySelectorAll('.ds-col-toggle').forEach(cb => { cb.checked = true; });
+                rerenderDsTables();
+            });
+            document.getElementById('ds-deselect-all-cols').addEventListener('click', () => {
+                dsColumns.forEach(c => { if (!c.alwaysVisible) dsVisibleColumns.delete(c.key); });
+                container.querySelectorAll('.ds-col-toggle').forEach(cb => { cb.checked = false; });
+                rerenderDsTables();
+            });
+        }
+
+        function rerenderDsTables() {
+            renderDsTable('dynamic-summary-filtered');
+            const cc = document.getElementById('dynamic-summary-complement');
+            if (cc.style.display !== 'none') renderDsTable('dynamic-summary-complement');
+        }
+
+        function sortDsData(data) {
+            if (!dsSortState.column) return data;
+            return data.slice().sort((a, b) => {
+                const va = getDsSortValue(a, dsSortState.column);
+                const vb = getDsSortValue(b, dsSortState.column);
+                if (va < vb) return dsSortState.direction === 'asc' ? -1 : 1;
+                if (va > vb) return dsSortState.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        function renderDsTable(containerId) {
+            const container = document.getElementById(containerId);
+            const td = dsTableData[containerId];
+            if (!td || td.data.length === 0) {
+                container.innerHTML = td ? `<h3>${td.title}</h3><p class="dynamic-summary-empty">No matching tasks.</p>` : '';
+                return;
+            }
+
+            const sorted = sortDsData(td.data);
+            const visCols = dsColumns.filter(c => dsVisibleColumns.has(c.key));
+            let html = `<h3>${td.title}</h3>`;
+            if (td.description) html += `<p class="subset-description">${td.description}</p>`;
+            html += '<table><thead><tr>';
+            visCols.forEach(col => {
+                const isSorted = dsSortState.column === col.key;
+                const arrow = isSorted ? (dsSortState.direction === 'asc' ? '\ud83d\udd3c' : '\ud83d\udd3d') : '\u2195\ufe0f';
+                const nextDir = isSorted ? (dsSortState.direction === 'asc' ? 'desc' : 'asc') : 'asc';
+                const tip = col.tooltip ? ` title="${col.tooltip}"` : '';
+                html += `<th${tip}><div class="header-with-sort"><span>${col.label}</span><span class="sort-btn ds-sort-btn" data-ds-column="${col.key}" data-ds-direction="${nextDir}">${arrow}</span></div></th>`;
+            });
+            html += '</tr></thead><tbody>';
+            sorted.forEach(entry => {
+                html += '<tr>';
+                visCols.forEach(col => { html += `<td>${formatDsCell(entry, col)}</td>`; });
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+
+            container.querySelectorAll('.ds-sort-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    dsSortState.column = btn.dataset.dsColumn;
+                    dsSortState.direction = btn.dataset.dsDirection;
+                    rerenderDsTables();
+                });
+            });
+        }
+
+        function updateDynamicSummary() {
+            const section = document.getElementById('dynamic-summary-section');
+            if (section.style.display === 'none' || section.style.display === '') return;
+
+            const checkedBoxes = document.querySelectorAll('.run-compare-checkbox:checked');
+            if (checkedBoxes.length === 0) return;
+
+            const selectedRuns = new Set();
+            checkedBoxes.forEach(cb => selectedRuns.add(cb.dataset.provider + '\x1f' + cb.dataset.run));
+
+            const taskSelectorValue = document.getElementById('ds-task-selector').value.trim();
+            const taskSelectorMode = document.getElementById('ds-task-selector-mode').value;
+            const statusFilter = document.getElementById('ds-status-filter').value.toLowerCase();
+            let taskMatcher = null;
+            let taskMatcherError = null;
+            if (taskSelectorValue) {
+                if (taskSelectorMode === 'regexp') {
+                    try { taskMatcher = new RegExp(taskSelectorValue, 'i'); } catch (e) { taskMatcherError = e.message; }
+                } else {
+                    const parts = taskSelectorValue.split(',').map(p => p.trim()).filter(p => p);
+                    if (parts.length > 0) {
+                        const patterns = parts.map(p => {
+                            const escaped = p.replace(/[-\.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.');
+                            return '^' + escaped + '$';
+                        });
+                        try { taskMatcher = new RegExp(patterns.join('|'), 'i'); } catch (e) { taskMatcherError = e.message; }
+                    }
+                }
+            }
+
+            if (taskMatcherError) {
+                document.getElementById('dynamic-summary-filtered').innerHTML = `<p class="dynamic-summary-empty">Invalid pattern: ${escapeHtml(taskMatcherError)}</p>`;
+                document.getElementById('dynamic-summary-complement').innerHTML = '';
+                document.getElementById('dynamic-summary-complement').style.display = 'none';
+                document.getElementById('ds-show-complement').disabled = true;
+                return;
+            }
+
+            const filteredByRun = {};
+            const complementByRun = {};
+
+            const rows = document.querySelectorAll('#results-table tbody tr');
+            rows.forEach(row => {
+                const provider = row.dataset.provider;
+                const run = row.dataset.run;
+                const key = provider + '\x1f' + run;
+                if (!selectedRuns.has(key)) return;
+
+                const task = row.dataset.task;
+                const status = row.dataset.status;
+
+                if (statusFilter && status !== statusFilter) return;
+
+                const durationRaw = parseFloat(row.dataset.duration);
+                const duration = isNaN(durationRaw) ? null : durationRaw;
+                const tokens = extractRowTokens(row);
+                const toolCalls = extractRowToolCalls(row);
+
+                const entry = { status, duration, inputTokens: tokens.inputTokens, outputTokens: tokens.outputTokens, toolCalls };
+
+                if (!taskMatcher) {
+                    if (!filteredByRun[key]) filteredByRun[key] = [];
+                    filteredByRun[key].push(entry);
+                } else {
+                    if (taskMatcher.test(task)) {
+                        if (!filteredByRun[key]) filteredByRun[key] = [];
+                        filteredByRun[key].push(entry);
+                    } else {
+                        if (!complementByRun[key]) complementByRun[key] = [];
+                        complementByRun[key].push(entry);
+                    }
+                }
+            });
+
+            checkedBoxes.forEach(cb => {
+                const key = cb.dataset.provider + '\x1f' + cb.dataset.run;
+                if (!filteredByRun[key]) filteredByRun[key] = [];
+                if (taskMatcher && !complementByRun[key]) complementByRun[key] = [];
+            });
+
+            function buildStatsArray(dataByRun) {
+                const arr = [];
+                const keys = Object.keys(dataByRun).sort();
+                keys.forEach(key => {
+                    const [provider, run] = key.split('\x1f');
+                    arr.push({ provider, run, stats: calculateRunStats(dataByRun[key]) });
+                });
+                return arr;
+            }
+
+            const statusDesc = statusFilter ? `; status: <code>${escapeHtml(statusFilter)}</code>` : '';
+            const modeLabel = taskSelectorMode === 'regexp' ? 'regexp' : 'wildcard';
+            const filteredTitle = taskMatcher ? 'Selected Tasks' : 'Results';
+            const filteredDesc = taskMatcher ? `Tasks matching ${modeLabel}: <code>${escapeHtml(taskSelectorValue)}</code>${statusDesc}` : (statusFilter ? `Status: <code>${escapeHtml(statusFilter)}</code>` : '');
+            dsTableData['dynamic-summary-filtered'] = { title: filteredTitle, description: filteredDesc, data: buildStatsArray(filteredByRun) };
+            renderDsTable('dynamic-summary-filtered');
+
+            const complementContainer = document.getElementById('dynamic-summary-complement');
+            const complementCheckbox = document.getElementById('ds-show-complement');
+            if (taskMatcher) {
+                complementCheckbox.disabled = false;
+                const complementDesc = `Tasks NOT matching ${modeLabel}: <code>${escapeHtml(taskSelectorValue)}</code>${statusDesc}`;
+                dsTableData['dynamic-summary-complement'] = { title: 'Remaining Tasks', description: complementDesc, data: buildStatsArray(complementByRun) };
+                if (dsShowComplement) {
+                    renderDsTable('dynamic-summary-complement');
+                    complementContainer.style.display = '';
+                } else {
+                    complementContainer.style.display = 'none';
+                }
+            } else {
+                complementCheckbox.disabled = true;
+                complementContainer.style.display = 'none';
+                complementContainer.innerHTML = '';
+            }
         }
 
     function generateComparisonMatrix(runs) {
@@ -983,6 +1504,15 @@
             
             
             filterAndSortTable();
+
+            
+            document.getElementById('ds-task-selector').addEventListener('input', updateDynamicSummary);
+            document.getElementById('ds-task-selector-mode').addEventListener('change', updateDynamicSummary);
+            document.getElementById('ds-status-filter').addEventListener('change', updateDynamicSummary);
+            document.getElementById('ds-show-complement').addEventListener('change', function() {
+                dsShowComplement = this.checked;
+                updateDynamicSummary();
+            });
         });
     </script>
 </head>
@@ -1248,7 +1778,36 @@
             </table>
             <div style="margin-top: 0;">
                 <button id="compare-selected-btn" onclick="compareSelectedRuns()" disabled>Compare Selected Runs</button>
+                <button id="analyze-selected-btn" onclick="toggleDynamicSummary()" disabled>Analyze Selected Runs</button>
                 <span id="selected-count" class="selected-count"></span>
+            </div>
+            <div id="dynamic-summary-section" class="dynamic-summary-container">
+                <p class="subset-description">Statistics for selected runs. Skipped tasks are excluded from all aggregations. The task selector splits results into selected and remaining subsets. The status filter narrows both subsets to matching statuses.</p>
+                <div class="ds-filters">
+                    <div class="ds-filter-group" title="Select tasks by name pattern or regular expression. Wildcard mode supports comma-separated values with * (any characters) and ? (single character) wildcards. Splits results into selected and remaining subsets.">
+                        Task Selector
+                        <div style="display:flex; gap:4px;">
+                            <select id="ds-task-selector-mode" style="width:auto;">
+                                <option value="wildcard">Wildcard</option>
+                                <option value="regexp">Regexp</option>
+                            </select>
+                            <input id="ds-task-selector" type="text" placeholder="e.g. task-one, task-two*" style="flex:1; min-width:180px;">
+                        </div>
+                    </div>
+                    <label title="Filter by task status. Narrows both the selected and remaining subsets.">
+                        Status Filter
+                        <select id="ds-status-filter">
+                            <option value="">All</option>
+                            <option value="passed">Passed</option>
+                            <option value="failed">Failed</option>
+                            <option value="error">Error</option>
+                        </select>
+                    </label>
+                </div>
+                <div id="ds-column-selector-container"></div>
+                <div id="dynamic-summary-filtered" class="dynamic-summary-subset"></div>
+                <label id="ds-complement-toggle" style="font-size:0.85em; cursor:pointer; display:inline-block; margin:0.5em 0;" title="Show statistics for tasks not matching the task selector (the remaining subset). Requires a task selector."><input type="checkbox" id="ds-show-complement" disabled> Show Remaining Tasks</label>
+                <div id="dynamic-summary-complement" class="dynamic-summary-subset"></div>
             </div>
         </section>
         <section aria-labelledby="detailedresults" itemscope itemtype="https://schema.org/Table" itemprop="hasPart">
