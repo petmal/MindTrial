@@ -114,6 +114,12 @@ type ProviderConfig struct {
 	// Runs lists run configurations for this provider.
 	Runs []RunConfig `yaml:"runs" validate:"required,unique=Name,dive"`
 
+	// MaxParallelRequestsPerMinute enables parallel execution of runs within this provider
+	// and limits the aggregate number of API requests per minute across all runs.
+	// When set to a value greater than 0, runs execute concurrently with a shared rate limiter.
+	// Value of 0 (default) means runs execute sequentially.
+	MaxParallelRequestsPerMinute int `yaml:"max-parallel-requests-per-minute" validate:"omitempty,numeric,min=0"`
+
 	// Disabled indicates if all runs should be disabled by default.
 	Disabled bool `yaml:"disabled" validate:"omitempty"`
 
@@ -821,11 +827,12 @@ func (jc JudgeConfig) Validate() error {
 // It handles provider-specific client configuration based on provider name.
 func (pc *ProviderConfig) UnmarshalYAML(value *yaml.Node) error {
 	var temp struct {
-		Name         string      `yaml:"name"`
-		ClientConfig yaml.Node   `yaml:"client-config"`
-		Runs         yaml.Node   `yaml:"runs"`
-		Disabled     bool        `yaml:"disabled"`
-		RetryPolicy  RetryPolicy `yaml:"retry-policy"`
+		Name                         string      `yaml:"name"`
+		ClientConfig                 yaml.Node   `yaml:"client-config"`
+		Runs                         yaml.Node   `yaml:"runs"`
+		MaxParallelRequestsPerMinute int         `yaml:"max-parallel-requests-per-minute"`
+		Disabled                     bool        `yaml:"disabled"`
+		RetryPolicy                  RetryPolicy `yaml:"retry-policy"`
 	}
 
 	if err := value.Decode(&temp); err != nil {
@@ -833,6 +840,7 @@ func (pc *ProviderConfig) UnmarshalYAML(value *yaml.Node) error {
 	}
 
 	pc.Name = temp.Name
+	pc.MaxParallelRequestsPerMinute = temp.MaxParallelRequestsPerMinute
 	pc.Disabled = temp.Disabled
 	pc.RetryPolicy = temp.RetryPolicy
 

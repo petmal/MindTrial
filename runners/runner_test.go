@@ -1281,7 +1281,7 @@ func TestRunnerRunWithTools(t *testing.T) {
 				{Name: "mock", Model: "test-model"},
 			},
 		},
-	}, []config.JudgeConfig{}, tools, zerolog.Nop())
+	}, []config.JudgeConfig{}, tools, zerolog.New(zerolog.NewTestWriter(t)))
 
 	// Helper function to verify tool usage.
 	verifyToolUsage := func(t *testing.T, toolUsage map[string]ToolUsage) {
@@ -1366,6 +1366,276 @@ func TestRunnerRunWithTools(t *testing.T) {
 	}
 }
 
+func TestRunnerRunParallel(t *testing.T) {
+	runner := createParallelMockRunner(t)
+	defer runner.Close(context.Background())
+
+	expectedUsage := TokenUsage{
+		InputTokens:  testutils.Ptr(int64(8200209999917998)),
+		OutputTokens: nil,
+	}
+	expectedToolUsage := map[string]ToolUsage{
+		"tool1": {
+			CallCount:     testutils.Ptr(int64(2)),
+			TotalDuration: testutils.Ptr(150 * time.Millisecond),
+		},
+	}
+	emptyToolUsage := map[string]ToolUsage{}
+
+	tasks := []config.Task{
+		{
+			Name:           "success",
+			ExpectedResult: utils.NewValueSet("Provident quas tenetur repellat deserunt ut neque culpa."),
+		},
+		{
+			Name:           "failure",
+			ExpectedResult: utils.NewValueSet("Aperiam assumenda id provident ratione eos molestiae."),
+		},
+		{
+			Name:           "error",
+			ExpectedResult: utils.NewValueSet("Doloribus quis incidunt velit quia."),
+		},
+		{
+			Name:           "not_supported",
+			ExpectedResult: utils.NewValueSet("Unde accusantium sit et enim temporibus qui distinctio assumenda."),
+		},
+		{
+			Name:           "judge_success",
+			ExpectedResult: utils.NewValueSet("corporis et ipsa", "nesciunt sed quia"),
+			ValidationRules: &config.ValidationRules{
+				Judge: config.JudgeSelector{
+					Enabled: testutils.Ptr(true),
+					Name:    testutils.Ptr("test-judge"),
+					Variant: testutils.Ptr("judge_evaluation"),
+				},
+			},
+		},
+	}
+
+	for i := range tasks {
+		if err := tasks[i].ResolveValidationRules(config.ValidationRules{}); err != nil {
+			t.Fatalf("failed to resolve validation rules: %v", err)
+		}
+	}
+
+	results, err := runner.Run(context.Background(), tasks)
+	require.NoError(t, err)
+
+	allResults := results.GetResults()
+	require.Contains(t, allResults, "mock provider 1")
+
+	providerResults := allResults["mock provider 1"]
+	// 5 tasks * 2 runs = 10 results
+	require.Len(t, providerResults, 10, "Should have results from all runs executing in parallel")
+
+	// Group results by run+task for order-independent verification.
+	type resultKey struct{ run, task string }
+	resultMap := make(map[resultKey]RunResult, len(providerResults))
+	for _, r := range providerResults {
+		key := resultKey{r.Run, r.Task}
+		require.NotContains(t, resultMap, key, "Duplicate result for %s/%s", r.Run, r.Task)
+		resultMap[key] = r
+	}
+
+	// Verify each expected result.
+	type expected struct {
+		kind       ResultKind
+		got        string
+		want       utils.ValueSet
+		answer     AnswerDetails
+		validation ValidationDetails
+		errDetails ErrorDetails
+	}
+	expectations := map[resultKey]expected{
+		// --- mock run ---
+		{run: "mock", task: "success"}: {
+			kind: Success,
+			got:  "provident quas tenetur repellat deserunt ut neque culpa.",
+			want: utils.NewValueSet("provident quas tenetur repellat deserunt ut neque culpa."),
+			answer: AnswerDetails{
+				Title:          "success",
+				Explanation:    []string{"mock success"},
+				ActualAnswer:   []string{"Provident quas tenetur repellat deserunt ut neque culpa."},
+				ExpectedAnswer: [][]string{{"Provident quas tenetur repellat deserunt ut neque culpa."}},
+				Usage:          expectedUsage,
+				ToolUsage:      expectedToolUsage,
+			},
+			validation: ValidationDetails{
+				Title:       "Response Assessment",
+				Explanation: []string{"Response matches one of the accepted answers."},
+				ToolUsage:   emptyToolUsage,
+			},
+		},
+		{run: "mock", task: "failure"}: {
+			kind: Failure,
+			got:  "facere aperiam recusandae totam magnam nulla corrupti.",
+			want: utils.NewValueSet("aperiam assumenda id provident ratione eos molestiae."),
+			answer: AnswerDetails{
+				Title:          "failure",
+				Explanation:    []string{"mock failure"},
+				ActualAnswer:   []string{"Facere aperiam recusandae totam magnam nulla corrupti."},
+				ExpectedAnswer: [][]string{{"Aperiam assumenda id provident ratione eos molestiae."}},
+				Usage:          expectedUsage,
+				ToolUsage:      expectedToolUsage,
+			},
+			validation: ValidationDetails{
+				Title:       "Response Assessment",
+				Explanation: []string{"Response does not match any of the accepted answers."},
+				ToolUsage:   emptyToolUsage,
+			},
+		},
+		{run: "mock", task: "error"}: {
+			kind: Error,
+			got:  "mock error",
+			want: utils.NewValueSet("doloribus quis incidunt velit quia."),
+			errDetails: ErrorDetails{
+				Title:     "Execution Error",
+				Message:   "mock error",
+				Usage:     expectedUsage,
+				ToolUsage: expectedToolUsage,
+			},
+		},
+		{run: "mock", task: "not_supported"}: {
+			kind: NotSupported,
+			got:  "feature not supported by provider: mock not supported",
+			want: utils.NewValueSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
+			errDetails: ErrorDetails{
+				Title:     "Feature Not Supported",
+				Message:   "feature not supported by provider: mock not supported",
+				Usage:     expectedUsage,
+				ToolUsage: expectedToolUsage,
+			},
+		},
+		{run: "mock", task: "judge_success"}: {
+			kind: Success,
+			got:  "corporis et ipsa",
+			want: utils.NewValueSet("corporis et ipsa", "nesciunt sed quia"),
+			answer: AnswerDetails{
+				Title:          "judge_success",
+				Explanation:    []string{"mock success"},
+				ActualAnswer:   []string{"corporis et ipsa"},
+				ExpectedAnswer: [][]string{{"corporis et ipsa"}, {"nesciunt sed quia"}},
+				Usage:          expectedUsage,
+				ToolUsage:      expectedToolUsage,
+			},
+			validation: ValidationDetails{
+				Title:       "Semantic Assessment",
+				Explanation: []string{"Response is semantically equivalent to one of the accepted answers.", "", "Judge reasoning:", "mock success"},
+				Usage:       expectedUsage,
+				ToolUsage:   emptyToolUsage,
+			},
+		},
+		// --- pass run ---
+		{run: "pass", task: "success"}: {
+			kind: Success,
+			got:  "provident quas tenetur repellat deserunt ut neque culpa.",
+			want: utils.NewValueSet("provident quas tenetur repellat deserunt ut neque culpa."),
+			answer: AnswerDetails{
+				Title:          "success",
+				Explanation:    []string{"mock pass"},
+				ActualAnswer:   []string{"Provident quas tenetur repellat deserunt ut neque culpa."},
+				ExpectedAnswer: [][]string{{"Provident quas tenetur repellat deserunt ut neque culpa."}},
+				Usage:          expectedUsage,
+				ToolUsage:      expectedToolUsage,
+			},
+			validation: ValidationDetails{
+				Title:       "Response Assessment",
+				Explanation: []string{"Response matches one of the accepted answers."},
+				ToolUsage:   emptyToolUsage,
+			},
+		},
+		{run: "pass", task: "failure"}: {
+			kind: Success,
+			got:  "aperiam assumenda id provident ratione eos molestiae.",
+			want: utils.NewValueSet("aperiam assumenda id provident ratione eos molestiae."),
+			answer: AnswerDetails{
+				Title:          "failure",
+				Explanation:    []string{"mock pass"},
+				ActualAnswer:   []string{"Aperiam assumenda id provident ratione eos molestiae."},
+				ExpectedAnswer: [][]string{{"Aperiam assumenda id provident ratione eos molestiae."}},
+				Usage:          expectedUsage,
+				ToolUsage:      expectedToolUsage,
+			},
+			validation: ValidationDetails{
+				Title:       "Response Assessment",
+				Explanation: []string{"Response matches one of the accepted answers."},
+				ToolUsage:   emptyToolUsage,
+			},
+		},
+		{run: "pass", task: "error"}: {
+			kind: Success,
+			got:  "doloribus quis incidunt velit quia.",
+			want: utils.NewValueSet("doloribus quis incidunt velit quia."),
+			answer: AnswerDetails{
+				Title:          "error",
+				Explanation:    []string{"mock pass"},
+				ActualAnswer:   []string{"Doloribus quis incidunt velit quia."},
+				ExpectedAnswer: [][]string{{"Doloribus quis incidunt velit quia."}},
+				Usage:          expectedUsage,
+				ToolUsage:      expectedToolUsage,
+			},
+			validation: ValidationDetails{
+				Title:       "Response Assessment",
+				Explanation: []string{"Response matches one of the accepted answers."},
+				ToolUsage:   emptyToolUsage,
+			},
+		},
+		{run: "pass", task: "not_supported"}: {
+			kind: Success,
+			got:  "unde accusantium sit et enim temporibus qui distinctio assumenda.",
+			want: utils.NewValueSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
+			answer: AnswerDetails{
+				Title:          "not_supported",
+				Explanation:    []string{"mock pass"},
+				ActualAnswer:   []string{"Unde accusantium sit et enim temporibus qui distinctio assumenda."},
+				ExpectedAnswer: [][]string{{"Unde accusantium sit et enim temporibus qui distinctio assumenda."}},
+				Usage:          expectedUsage,
+				ToolUsage:      expectedToolUsage,
+			},
+			validation: ValidationDetails{
+				Title:       "Response Assessment",
+				Explanation: []string{"Response matches one of the accepted answers."},
+				ToolUsage:   emptyToolUsage,
+			},
+		},
+		{run: "pass", task: "judge_success"}: {
+			kind: Success,
+			got:  "corporis et ipsa",
+			want: utils.NewValueSet("corporis et ipsa", "nesciunt sed quia"),
+			answer: AnswerDetails{
+				Title:          "judge_success",
+				Explanation:    []string{"mock pass"},
+				ActualAnswer:   []string{"corporis et ipsa"},
+				ExpectedAnswer: [][]string{{"corporis et ipsa"}, {"nesciunt sed quia"}},
+				Usage:          expectedUsage,
+				ToolUsage:      expectedToolUsage,
+			},
+			validation: ValidationDetails{
+				Title:       "Semantic Assessment",
+				Explanation: []string{"Response is semantically equivalent to one of the accepted answers.", "", "Judge reasoning:", "mock success"},
+				Usage:       expectedUsage,
+				ToolUsage:   emptyToolUsage,
+			},
+		},
+	}
+
+	for key, exp := range expectations {
+		r, ok := resultMap[key]
+		require.True(t, ok, "Missing result for %s/%s", key.run, key.task)
+
+		assert.Equal(t, exp.kind, r.Kind, "%s/%s: Kind", key.run, key.task)
+		assert.Equal(t, "mock provider 1", r.Provider, "%s/%s: Provider", key.run, key.task)
+		assert.Equal(t, key.run, r.Run, "%s/%s: Run", key.run, key.task)
+		assert.Equal(t, key.task, r.Task, "%s/%s: Task", key.run, key.task)
+		assert.Equal(t, exp.got, r.Got, "%s/%s: Got", key.run, key.task)
+		assert.Equal(t, exp.want, r.Want, "%s/%s: Want", key.run, key.task)
+		assert.Equal(t, 7211609999927884*time.Nanosecond, r.Duration, "%s/%s: Duration", key.run, key.task)
+		assert.Equal(t, exp.answer, r.Details.Answer, "%s/%s: Answer", key.run, key.task)
+		assert.Equal(t, exp.validation, r.Details.Validation, "%s/%s: Validation", key.run, key.task)
+		assert.Equal(t, exp.errDetails, r.Details.Error, "%s/%s: Error", key.run, key.task)
+	}
+}
+
 func createMockRunner(t *testing.T) Runner {
 	return createMockRunnerFromConfig(t, []config.ProviderConfig{
 		{
@@ -1404,7 +1674,44 @@ func createMockRunner(t *testing.T) Runner {
 				},
 			},
 		},
-	}, nil, zerolog.Nop())
+	}, nil, zerolog.New(zerolog.NewTestWriter(t)))
+}
+
+func createParallelMockRunner(t *testing.T) Runner {
+	return createMockRunnerFromConfig(t, []config.ProviderConfig{
+		{
+			Name:                         "mock provider 1",
+			MaxParallelRequestsPerMinute: 120,
+			Runs: []config.RunConfig{
+				{
+					Name:                 "mock",
+					Model:                "microchip",
+					MaxRequestsPerMinute: 50,
+				},
+				{
+					Name:  "pass",
+					Model: "parsing",
+				},
+			},
+		},
+	}, []config.JudgeConfig{
+		{
+			Name: "test-judge",
+			Provider: config.ProviderConfig{
+				Name: "mock",
+				Runs: []config.RunConfig{
+					{
+						Name:  "judge_evaluation",
+						Model: "judge-model-default",
+					},
+				},
+			},
+		},
+	}, []config.ToolConfig{
+		{
+			Name: "tool1",
+		},
+	}, zerolog.New(zerolog.NewTestWriter(t)))
 }
 
 func createMockRunnerFromConfig(t *testing.T, cfg []config.ProviderConfig, judges []config.JudgeConfig, tools []config.ToolConfig, logger zerolog.Logger) Runner {

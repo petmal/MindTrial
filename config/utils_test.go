@@ -291,6 +291,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 							ClientConfig: OpenAIClientConfig{
 								APIKey: "09eca6f7-d51e-45bd-bc5d-2023c624c428",
 							},
+							MaxParallelRequestsPerMinute: 0,
 							Runs: []RunConfig{
 								{
 									Name:                 "Avon",
@@ -305,6 +306,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 							ClientConfig: OpenRouterClientConfig{
 								APIKey: "sk-openrouter-test-key",
 							},
+							MaxParallelRequestsPerMinute: 0,
 							Runs: []RunConfig{
 								{
 									Name:                 "Router",
@@ -319,6 +321,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 							ClientConfig: GoogleAIClientConfig{
 								APIKey: "df2270f9-d4e1-4761-b809-bee219390d00",
 							},
+							MaxParallelRequestsPerMinute: 0,
 							Runs: []RunConfig{
 								{
 									Name:                 "didactic",
@@ -333,6 +336,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 							ClientConfig: AnthropicClientConfig{
 								APIKey: "c86be894-ad2e-4c7f-b0bd-4397df9f234f",
 							},
+							MaxParallelRequestsPerMinute: 0,
 							Runs: []RunConfig{
 								{
 									Name:                 "innovative",
@@ -347,6 +351,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 							ClientConfig: DeepseekClientConfig{
 								APIKey: "b8d40c7c-b169-49a9-9a5c-291741e86daa",
 							},
+							MaxParallelRequestsPerMinute: 0,
 							Runs: []RunConfig{
 								{
 									Name:                 "Afghani",
@@ -361,6 +366,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 							ClientConfig: MistralAIClientConfig{
 								APIKey: "f1a2b3c4-d5e6-7f8g-9h0i-j1k2l3m4n5o6",
 							},
+							MaxParallelRequestsPerMinute: 0,
 							Runs: []RunConfig{
 								{
 									Name:                 "bypass",
@@ -375,6 +381,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 							ClientConfig: XAIClientConfig{
 								APIKey: "49bdde73-d1bf-4a69-8bf6-a73c80fc8008",
 							},
+							MaxParallelRequestsPerMinute: 0,
 							Runs: []RunConfig{
 								{
 									Name:                 "Vision",
@@ -389,6 +396,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 							ClientConfig: AlibabaClientConfig{
 								APIKey: "sk-alibaba-test-key",
 							},
+							MaxParallelRequestsPerMinute: 0,
 							Runs: []RunConfig{
 								{
 									Name:                 "Qwen",
@@ -403,6 +411,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 							ClientConfig: MoonshotAIClientConfig{
 								APIKey: "sk-moonshot-test-key",
 							},
+							MaxParallelRequestsPerMinute: 0,
 							Runs: []RunConfig{
 								{
 									Name:                 "Kimi",
@@ -522,6 +531,7 @@ func TestLoadConfigFromFile(t *testing.T) {
           retry-policy:
               max-retry-attempts: 5
               initial-delay-seconds: 10
+          max-parallel-requests-per-minute: 30
           runs:
               - name: "Mistral"
                 model: "mistral-large"
@@ -593,6 +603,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 							ClientConfig: OpenAIClientConfig{
 								APIKey: "fb6a325d-03c8-4b22-9bf1-ed0950dcfe34",
 							},
+							MaxParallelRequestsPerMinute: 0,
 							Runs: []RunConfig{
 								{
 									Name:                    "Sports",
@@ -618,6 +629,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 							ClientConfig: OpenRouterClientConfig{
 								APIKey: "sk-openrouter-optional-test",
 							},
+							MaxParallelRequestsPerMinute: 0,
 							Runs: []RunConfig{
 								{
 									Name:                 "OpenRouter GPT",
@@ -653,6 +665,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 								APIKey:         "c86be894-ad2e-4c7f-b0bd-4397df9f234f",
 								RequestTimeout: testutils.Ptr(30 * time.Second),
 							},
+							MaxParallelRequestsPerMinute: 0,
 							Runs: []RunConfig{
 								{
 									Name:                 "Claude",
@@ -685,6 +698,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 								APIKey:         "b8d40c7c-b169-49a9-9a5c-291741e86daa",
 								RequestTimeout: testutils.Ptr(45 * time.Second),
 							},
+							MaxParallelRequestsPerMinute: 0,
 							Runs: []RunConfig{
 								{
 									Name:                 "DeepSeek",
@@ -705,6 +719,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 							ClientConfig: GoogleAIClientConfig{
 								APIKey: "df2270f9-d4e1-4761-b809-bee219390d00",
 							},
+							MaxParallelRequestsPerMinute: 0,
 							Runs: []RunConfig{
 								{
 									Name:                 "Gemini",
@@ -735,6 +750,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 								MaxRetryAttempts:    5,
 								InitialDelaySeconds: 10,
 							},
+							MaxParallelRequestsPerMinute: 30,
 							Runs: []RunConfig{
 								{
 									Name:                 "Mistral",
@@ -763,6 +779,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 							ClientConfig: XAIClientConfig{
 								APIKey: "b990bc70-169c-4de8-8dd1-fd4253527046",
 							},
+							MaxParallelRequestsPerMinute: 0,
 							Runs: []RunConfig{
 								{
 									Name:                 "Grok 4",
@@ -787,6 +804,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 								APIKey:   "sk-alibaba-test-endpoint",
 								Endpoint: "https://dashscope.aliyuncs.com/compatible-mode/v1",
 							},
+							MaxParallelRequestsPerMinute: 0,
 							Runs: []RunConfig{
 								{
 									Name:                 "Qwen Beijing",
@@ -812,6 +830,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 								APIKey:   "sk-moonshot-test-key",
 								Endpoint: "https://api.moonshot.6ee41fa3-1279-4f8c-a348-c9a00c6f5b06.ai/v1",
 							},
+							MaxParallelRequestsPerMinute: 0,
 							Runs: []RunConfig{
 								{
 									Name:                 "Kimi K2",
@@ -877,6 +896,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 							ClientConfig: OpenAIClientConfig{
 								APIKey: "test-key",
 							},
+							MaxParallelRequestsPerMinute: 0,
 							Runs: []RunConfig{
 								{
 									Name:                 "test-run",
@@ -1091,6 +1111,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 							ClientConfig: OpenAIClientConfig{
 								APIKey: "primary-key",
 							},
+							MaxParallelRequestsPerMinute: 0,
 							Runs: []RunConfig{
 								{
 									Name:                 "primary",
@@ -1109,6 +1130,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 								ClientConfig: OpenAIClientConfig{
 									APIKey: "judge-key-1",
 								},
+								MaxParallelRequestsPerMinute: 0,
 								Runs: []RunConfig{
 									{
 										Name:                 "default",
@@ -1126,6 +1148,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 								ClientConfig: AnthropicClientConfig{
 									APIKey: "judge-key-2",
 								},
+								MaxParallelRequestsPerMinute: 0,
 								Runs: []RunConfig{
 									{
 										Name:                 "claude",

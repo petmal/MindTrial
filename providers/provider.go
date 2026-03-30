@@ -71,6 +71,8 @@ var supportedImageMimeTypes = map[string]bool{
 }
 
 // Provider interacts with AI model services.
+// Implementations must support concurrent calls on the same provider instance.
+// Close must be idempotent.
 type Provider interface {
 	// Name returns the provider's unique identifier.
 	Name() string

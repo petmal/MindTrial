@@ -19,6 +19,7 @@ import (
 	"github.com/petmal/mindtrial/pkg/testutils"
 	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/petmal/mindtrial/providers"
+	"golang.org/x/time/rate"
 )
 
 func TestBackoffWithCallback(t *testing.T) {
@@ -78,9 +79,11 @@ func TestNewExecutor(t *testing.T) {
 	require.NoError(t, err)
 
 	tests := []struct {
-		name        string
-		runConfig   config.RunConfig
-		wantLimiter bool
+		name              string
+		runConfig         config.RunConfig
+		sharedLimiter     *rate.Limiter
+		wantLimiter       bool
+		wantSharedLimiter bool
 	}{
 		{
 			name: "without rate limiting",
@@ -88,7 +91,8 @@ func TestNewExecutor(t *testing.T) {
 				Name:  "test-run",
 				Model: "test-model",
 			},
-			wantLimiter: false,
+			wantLimiter:       false,
+			wantSharedLimiter: false,
 		},
 		{
 			name: "with rate limiting",
@@ -97,13 +101,35 @@ func TestNewExecutor(t *testing.T) {
 				Model:                "test-model",
 				MaxRequestsPerMinute: 60,
 			},
-			wantLimiter: true,
+			wantLimiter:       true,
+			wantSharedLimiter: false,
+		},
+		{
+			name: "with shared limiter",
+			runConfig: config.RunConfig{
+				Name:  "test-run",
+				Model: "test-model",
+			},
+			sharedLimiter:     rate.NewLimiter(rate.Limit(2), 2),
+			wantLimiter:       false,
+			wantSharedLimiter: true,
+		},
+		{
+			name: "with both rate limiting and shared limiter",
+			runConfig: config.RunConfig{
+				Name:                 "test-run",
+				Model:                "test-model",
+				MaxRequestsPerMinute: 60,
+			},
+			sharedLimiter:     rate.NewLimiter(rate.Limit(2), 2),
+			wantLimiter:       true,
+			wantSharedLimiter: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			executor := NewExecutor(provider, tt.runConfig)
+			executor := NewExecutor(provider, tt.runConfig, tt.sharedLimiter)
 
 			assert.Equal(t, provider, executor.Provider)
 			assert.Equal(t, tt.runConfig, executor.RunConfig)
@@ -112,6 +138,12 @@ func TestNewExecutor(t *testing.T) {
 				assert.NotNil(t, executor.limiter)
 			} else {
 				assert.Nil(t, executor.limiter)
+			}
+
+			if tt.wantSharedLimiter {
+				assert.NotNil(t, executor.sharedLimiter)
+			} else {
+				assert.Nil(t, executor.sharedLimiter)
 			}
 		})
 	}
@@ -125,7 +157,7 @@ func TestExecutor_Execute_WithoutRetry(t *testing.T) {
 		Name:  "mock",
 		Model: "test-model",
 	}
-	executor := NewExecutor(provider, runConfig)
+	executor := NewExecutor(provider, runConfig, nil)
 	logger := testutils.NewTestLogger(t)
 	task := config.Task{
 		Name:           "success",
@@ -152,7 +184,7 @@ func TestExecutor_Execute_WithRetry_Success(t *testing.T) {
 		},
 	}
 
-	executor := NewExecutor(provider, runConfig)
+	executor := NewExecutor(provider, runConfig, nil)
 	logger := testutils.NewTestLogger(t)
 	task := config.Task{
 		Name:           "retry_1: success", // will fail once, then succeed
@@ -180,7 +212,7 @@ func TestExecutor_Execute_WithRetry_Failure(t *testing.T) {
 		},
 	}
 
-	executor := NewExecutor(provider, runConfig)
+	executor := NewExecutor(provider, runConfig, nil)
 	logger := testutils.NewTestLogger(t)
 	task := config.Task{
 		Name:           "retry_3", // will fail 3 times, but only 1 retry allowed
@@ -206,7 +238,7 @@ func TestExecutor_Execute_PermanentError(t *testing.T) {
 		},
 	}
 
-	executor := NewExecutor(provider, runConfig)
+	executor := NewExecutor(provider, runConfig, nil)
 	logger := testutils.NewTestLogger(t)
 	task := config.Task{
 		Name:           "error",
@@ -227,7 +259,7 @@ func TestExecutor_Execute_ContextCanceled(t *testing.T) {
 		Name:  "mock",
 		Model: "test-model",
 	}
-	executor := NewExecutor(provider, runConfig)
+	executor := NewExecutor(provider, runConfig, nil)
 	logger := testutils.NewTestLogger(t)
 	task := config.Task{
 		Name:           "success",
@@ -241,6 +273,108 @@ func TestExecutor_Execute_ContextCanceled(t *testing.T) {
 
 	require.Error(t, err)
 	assert.Equal(t, context.Canceled, err)
+}
+
+func TestExecutor_Execute_RateLimited(t *testing.T) {
+	// The per-run limiter follows the same Wait(ctx) code path;
+	// its correct initialization is verified in TestNewExecutor.
+	provider, err := createMockProvider("test-provider")
+	require.NoError(t, err)
+
+	logger := testutils.NewTestLogger(t)
+	task := config.Task{
+		Name:           "success",
+		ExpectedResult: utils.NewValueSet("expected answer"),
+	}
+
+	// All sub-tests use 10 tokens/sec with burst 1.
+	// First call consumes the burst token instantly.
+	// Each subsequent call waits ~100ms for a new token.
+	// 4 calls: 1 burst + 3 waits of ~100ms = ~300ms minimum.
+	callCount := 4
+	minExpectedDuration := 250 * time.Millisecond
+
+	executeAndMeasure := func(t *testing.T, executor *Executor) time.Duration {
+		t.Helper()
+		start := time.Now()
+		for range callCount {
+			result, err := executor.Execute(context.Background(), logger, task)
+			require.NoError(t, err)
+			assert.Equal(t, "expected answer", result.GetFinalAnswerContent())
+		}
+		return time.Since(start)
+	}
+
+	t.Run("shared limiter only", func(t *testing.T) {
+		sharedLimiter := rate.NewLimiter(rate.Limit(10), 1)
+		executor := NewExecutor(provider, config.RunConfig{
+			Name:  "mock",
+			Model: "test-model",
+		}, sharedLimiter)
+
+		elapsed := executeAndMeasure(t, executor)
+
+		assert.GreaterOrEqual(t, elapsed, minExpectedDuration,
+			"shared limiter should throttle execution to ~10 req/sec")
+	})
+
+	t.Run("per-run limiter only", func(t *testing.T) {
+		// NewExecutor sets burst = MaxRequestsPerMinute, which would allow all 4
+		// test calls through instantly. We inject the limiter directly with burst=1
+		// so the test stays deterministic.
+		perRunLimiter := rate.NewLimiter(rate.Limit(10), 1)
+		executor := &Executor{
+			Provider: provider,
+			RunConfig: config.RunConfig{
+				Name:  "mock",
+				Model: "test-model",
+			},
+			limiter: perRunLimiter,
+		}
+
+		elapsed := executeAndMeasure(t, executor)
+
+		assert.GreaterOrEqual(t, elapsed, minExpectedDuration,
+			"per-run limiter should throttle execution to ~10 req/sec")
+	})
+
+	t.Run("both limiters with shared as bottleneck", func(t *testing.T) {
+		// Shared: 10 req/sec, Per-run: 20 req/sec.
+		// The slower shared limiter should be the bottleneck.
+		executor := &Executor{
+			Provider: provider,
+			RunConfig: config.RunConfig{
+				Name:  "mock",
+				Model: "test-model",
+			},
+			sharedLimiter: rate.NewLimiter(rate.Limit(10), 1),
+			limiter:       rate.NewLimiter(rate.Limit(20), 1),
+		}
+
+		elapsed := executeAndMeasure(t, executor)
+
+		assert.GreaterOrEqual(t, elapsed, minExpectedDuration,
+			"the slower shared limiter should be the bottleneck")
+	})
+
+	t.Run("both limiters with per-run as bottleneck", func(t *testing.T) {
+		// Shared: 20 req/sec, Per-run: 10 req/sec.
+		// The slower per-run limiter should be the bottleneck.
+		executor := &Executor{
+			Provider: provider,
+			RunConfig: config.RunConfig{
+				Name:  "mock",
+				Model: "test-model",
+			},
+			sharedLimiter: rate.NewLimiter(rate.Limit(20), 1),
+			limiter:       rate.NewLimiter(rate.Limit(10), 1),
+		}
+
+		elapsed := executeAndMeasure(t, executor)
+
+		assert.GreaterOrEqual(t, elapsed, minExpectedDuration,
+			"the slower per-run limiter should be the bottleneck")
+	})
 }
 
 func TestExecutor_Execute_PreservesMetadataOnError(t *testing.T) {
@@ -271,7 +405,7 @@ func TestExecutor_Execute_PreservesMetadataOnError(t *testing.T) {
 		assert.NotNil(t, directResult.GetUsage().InputTokens, "provider should populate usage on attempt")
 
 		// Executor should preserve the last attempt's Result.
-		executor := NewExecutor(provider, runConfig)
+		executor := NewExecutor(provider, runConfig, nil)
 		execResult, execErr := executor.Execute(context.Background(), logger, task)
 		require.Error(t, execErr)
 		assert.NotEmpty(t, execResult.GetPrompts(), "executor should preserve prompts from last attempt")
@@ -295,7 +429,7 @@ func TestExecutor_Execute_PreservesMetadataOnError(t *testing.T) {
 		assert.NotEmpty(t, directResult.GetPrompts(), "provider should populate prompts on hard error")
 		assert.NotNil(t, directResult.GetUsage().InputTokens, "provider should populate usage on hard error")
 
-		executor := NewExecutor(provider, runConfig)
+		executor := NewExecutor(provider, runConfig, nil)
 		execResult, execErr := executor.Execute(context.Background(), logger, task)
 		require.Error(t, execErr)
 		assert.NotEmpty(t, execResult.GetPrompts(), "executor should preserve prompts on hard error")
@@ -314,7 +448,7 @@ func TestExecutor_Execute_PreservesMetadataOnSuccess(t *testing.T) {
 			Name:  "mock",
 			Model: "test-model",
 		}
-		executor := NewExecutor(provider, runConfig)
+		executor := NewExecutor(provider, runConfig, nil)
 		task := config.Task{
 			Name:           "success",
 			ExpectedResult: utils.NewValueSet("expected answer"),
@@ -340,7 +474,7 @@ func TestExecutor_Execute_PreservesMetadataOnSuccess(t *testing.T) {
 				InitialDelaySeconds: 1,
 			},
 		}
-		executor := NewExecutor(provider, runConfig)
+		executor := NewExecutor(provider, runConfig, nil)
 		task := config.Task{
 			Name:           "retry_1: success",
 			ExpectedResult: utils.NewValueSet("expected answer"),

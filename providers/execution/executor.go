@@ -43,13 +43,17 @@ func BackoffWithCallback(onBackoff func(nextRetryAttempt uint64, nextDelay time.
 
 // Executor provides a unified way to execute provider tasks with retry logic and rate limiting.
 type Executor struct {
-	Provider  providers.Provider
-	RunConfig config.RunConfig
-	limiter   *rate.Limiter
+	Provider      providers.Provider
+	RunConfig     config.RunConfig
+	sharedLimiter *rate.Limiter
+	limiter       *rate.Limiter
 }
 
 // NewExecutor creates a new provider executor with the given provider and run configuration.
-func NewExecutor(provider providers.Provider, runConfig config.RunConfig) *Executor {
+// An optional shared rate limiter can be provided to enforce an aggregate rate limit across
+// multiple executors (e.g., all runs within a provider). When both a shared limiter and
+// a per-run limiter are configured, the shared limiter is checked first.
+func NewExecutor(provider providers.Provider, runConfig config.RunConfig, sharedLimiter *rate.Limiter) *Executor {
 	var limiter *rate.Limiter
 	if runConfig.MaxRequestsPerMinute > 0 {
 		ratePerSecond := rate.Limit(runConfig.MaxRequestsPerMinute) / 60
@@ -57,9 +61,10 @@ func NewExecutor(provider providers.Provider, runConfig config.RunConfig) *Execu
 	}
 
 	return &Executor{
-		Provider:  provider,
-		RunConfig: runConfig,
-		limiter:   limiter,
+		Provider:      provider,
+		RunConfig:     runConfig,
+		sharedLimiter: sharedLimiter,
+		limiter:       limiter,
 	}
 }
 
@@ -92,6 +97,13 @@ func (e *Executor) executeOnce(ctx context.Context, logger logging.Logger, task 
 	if err = ctx.Err(); err != nil {
 		logger.Error(ctx, logging.LevelWarn, err, "aborting task")
 		return
+	}
+
+	if e.sharedLimiter != nil {
+		if err = e.sharedLimiter.Wait(ctx); err != nil {
+			logger.Error(ctx, logging.LevelWarn, err, "aborting task")
+			return
+		}
 	}
 
 	if e.limiter != nil {

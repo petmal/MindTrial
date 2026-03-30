@@ -94,13 +94,14 @@ Defines what you want to evaluate, including:
 
 ### config.yaml
 
-This file defines the tool's settings and target model configurations evaluated during the trial run. The following properties are required:
+This file defines the tool's settings and target model configurations evaluated during the trial run. The main sections include:
 
 - **output-dir**: Path to the directory where results will be saved.
 - **task-source**: Path to the file with definitions of tasks to run.
 - **providers**: List of providers (i.e. target LLM configurations) to execute tasks during the trial run.
   - **name**: Name of the LLM provider (e.g. *openai*).
   - **client-config**: Configuration for this provider's client (e.g. *API key*).
+  - **max-parallel-requests-per-minute**: Enables parallel execution of runs within this provider and limits the aggregate number of API requests per minute across all runs. Set to `0` or omit for sequential execution (default).
   - **runs**: List of runs (i.e. model configurations) for this provider. Unless disabled, all configurations will be trialed.
     - **name**: A unique display-friendly name to be shown in the results.
     - **model**: Model name must be exactly as defined by the backend service's API (e.g. *gpt-4o-mini*).
@@ -273,7 +274,12 @@ This file defines the tool's settings and target model configurations evaluated 
 > If `log-file` and/or `output-basename` is blank, the log and/or output will be written to the `stdout`.
 
 > [!NOTE]
-> MindTrial processes tasks across different AI providers simultaneously (in parallel). However, when running multiple configurations from the same provider (e.g. different OpenAI models), these are processed one after another (sequentially).
+> MindTrial processes tasks across different AI providers simultaneously (in parallel). However, when running multiple configurations from the same provider (e.g. different OpenAI models), these are processed one after another (sequentially) by default.
+
+> [!TIP]
+> To run multiple configurations from the same provider in parallel, set `max-parallel-requests-per-minute` on the provider.
+> This enables parallel execution of all runs within that provider, while limiting the aggregate number of API requests per minute across all runs to the specified value.
+> When set to `0` (or omitted), runs execute sequentially (the default behavior).
 
 > [!TIP]
 > Models can use the `max-requests-per-minute` property in their run configurations to limit the number of requests made per minute.
@@ -327,6 +333,7 @@ config:
       retry-policy:
         max-retry-attempts: 5
         initial-delay-seconds: 30
+      max-parallel-requests-per-minute: 30
       client-config:
         api-key: "<your-api-key>"
       runs:

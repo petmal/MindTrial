@@ -37,7 +37,7 @@ func NewJudgeValidator(ctx context.Context, judgeConfig *config.JudgeConfig, jud
 		return nil, fmt.Errorf("failed to create judge provider: %w", err)
 	}
 
-	executor := execution.NewExecutor(judgeProvider, judgeRunVariant)
+	executor := execution.NewExecutor(judgeProvider, judgeRunVariant, nil)
 	name := fmt.Sprintf("%s %s judge", judgeRunVariant.Name, judgeConfig.Name)
 
 	return &judgeValidator{

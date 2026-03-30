@@ -111,6 +111,10 @@ func (d *DockerToolExecutor) ExecuteTool(ctx context.Context, logger logging.Log
 	}
 
 	// Check MaxCalls limit.
+	// NOTE: The current execution model creates a new DockerToolExecutor per provider Run,
+	// so ExecuteTool is not called concurrently on this executor instance today.
+	// If this ever changes (shared executor across concurrent calls), reserve a call slot
+	// atomically before execution to avoid check-then-act races.
 	if tool.maxCalls != nil {
 		usageValue, _ := d.usage.LoadOrStore(toolName, &ToolUsage{})
 		usage := usageValue.(*ToolUsage)

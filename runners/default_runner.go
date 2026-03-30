@@ -23,6 +23,7 @@ import (
 	providertools "github.com/petmal/mindtrial/providers/tools"
 	"github.com/petmal/mindtrial/validators"
 	"github.com/rs/zerolog"
+	"golang.org/x/time/rate"
 )
 
 const asyncEventBufferSize = 3
@@ -113,7 +114,8 @@ func (r *asyncResultSet) emitMessageEvent(message string) {
 }
 
 // NewDefaultRunner creates a new Runner that executes tasks on all configured providers
-// in parallel. The individual runs on a single provider are executed sequentially.
+// in parallel. The individual runs on a single provider are executed sequentially by default,
+// or in parallel when the provider's MaxParallelRequestsPerMinute is set to a value greater than 0.
 // It returns an error if any provider initialization fails.
 func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, judges []config.JudgeConfig, tools []config.ToolConfig, logger zerolog.Logger) (Runner, error) {
 	toolValidator, err := providertools.NewDockerToolExecutor(ctx)
@@ -121,7 +123,7 @@ func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, judges [
 		return nil, fmt.Errorf("failed to initialize tool validator: %w", err)
 	}
 
-	targets := make(map[providers.Provider][]config.RunConfig, len(cfg))
+	targets := make(map[providers.Provider]config.ProviderConfig, len(cfg))
 	totalTargetCount := 0
 	for _, providerConfig := range cfg {
 		client, err := providers.NewProvider(ctx, providerConfig, tools)
@@ -132,7 +134,7 @@ func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, judges [
 
 			return nil, fmt.Errorf("failed to initialize task runner: %w", err)
 		}
-		targets[client] = providerConfig.Runs
+		targets[client] = providerConfig
 		totalTargetCount += len(providerConfig.Runs)
 	}
 
@@ -149,7 +151,7 @@ func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, judges [
 }
 
 type defaultRunner struct {
-	targets          map[providers.Provider][]config.RunConfig // All tasks will be executed against all run configurations of each target provider.
+	targets          map[providers.Provider]config.ProviderConfig // All tasks will be executed against all run configurations of each target provider.
 	totalTargetCount int
 	validatorFactory *validators.Factory
 	tools            []config.ToolConfig
@@ -253,23 +255,32 @@ func (r *defaultRunner) run(ctx context.Context, tasks []config.Task, rs resultC
 	logger.Message(ctx, logging.LevelInfo, "starting %d task%s on %d provider%s...", pluralize(countable(len(tasks)), countable(len(r.targets)))...)
 	start := time.Now()
 	var wg sync.WaitGroup
-	for provider, runs := range r.targets {
+	for provider, providerConfig := range r.targets {
 		wg.Add(1)
-		// pass provider and its runs to avoid closure variable capture
-		go func(p providers.Provider, rcs []config.RunConfig) {
+		go func(p providers.Provider, c config.ProviderConfig) {
 			defer wg.Done()
-			r.runTasks(ctx, logger, p, rcs, tasks, rs)
-		}(provider, runs)
+			r.runTasks(ctx, logger, p, c, tasks, rs)
+		}(provider, providerConfig)
 	}
 	wg.Wait()
 	logger.Message(ctx, logging.LevelInfo, "all tasks in all configurations have finished on all providers in %s.", time.Since(start))
 	return
 }
 
-func (r *defaultRunner) runTasks(ctx context.Context, logger logging.Logger, provider providers.Provider, runs []config.RunConfig, tasks []config.Task, rs resultCollector) {
+func (r *defaultRunner) runTasks(ctx context.Context, logger logging.Logger, provider providers.Provider, providerConfig config.ProviderConfig, tasks []config.Task, rs resultCollector) {
+	runs := providerConfig.Runs
 	logger.Message(ctx, logging.LevelInfo, "%s: starting %d task%s on this provider in %d configuration%s...", pluralize(provider.Name(), countable(len(tasks)), countable(len(runs)))...)
 	providerStart := time.Now()
-	for _, run := range runs {
+
+	var sharedLimiter *rate.Limiter
+	parallelRunsEnabled := providerConfig.MaxParallelRequestsPerMinute > 0
+	if parallelRunsEnabled {
+		ratePerSecond := rate.Limit(providerConfig.MaxParallelRequestsPerMinute) / 60
+		sharedLimiter = rate.NewLimiter(ratePerSecond, providerConfig.MaxParallelRequestsPerMinute)
+		logger.Message(ctx, logging.LevelInfo, "%s: parallel run execution enabled, aggregate rate limited to %d requests/min.", provider.Name(), providerConfig.MaxParallelRequestsPerMinute)
+	}
+
+	executeRun := func(run config.RunConfig) {
 		if run.MaxRequestsPerMinute > 0 {
 			logger.Message(ctx, logging.LevelInfo, "%s: %s: request rate limited to %d requests/min.", provider.Name(), run.Name, run.MaxRequestsPerMinute)
 		}
@@ -281,7 +292,7 @@ func (r *defaultRunner) runTasks(ctx context.Context, logger logging.Logger, pro
 		if skipTasksWithFiles {
 			logger.Message(ctx, logging.LevelInfo, "%s: %s: text-only mode enabled for this configuration.", provider.Name(), run.Name)
 		}
-		executor := execution.NewExecutor(provider, run)
+		executor := execution.NewExecutor(provider, run, sharedLimiter)
 
 		for _, task := range tasks {
 			runResult := RunResult{TraceID: ulid.Make().String()}
@@ -297,6 +308,23 @@ func (r *defaultRunner) runTasks(ctx context.Context, logger logging.Logger, pro
 			rs.emitProgressEvent()
 		}
 	}
+
+	if parallelRunsEnabled {
+		var wg sync.WaitGroup
+		for _, run := range runs {
+			wg.Add(1)
+			go func(rc config.RunConfig) {
+				defer wg.Done()
+				executeRun(rc)
+			}(run)
+		}
+		wg.Wait()
+	} else {
+		for _, run := range runs {
+			executeRun(run)
+		}
+	}
+
 	logger.Message(ctx, logging.LevelInfo, "%s: all tasks in all configurations have finished on this provider in %s.", provider.Name(), time.Since(providerStart))
 }
 

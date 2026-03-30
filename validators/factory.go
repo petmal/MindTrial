@@ -131,7 +131,11 @@ func (f *Factory) getJudgeValidator(ctx context.Context, judge config.JudgeSelec
 		return nil, err
 	}
 
-	actual, _ := f.cache.LoadOrStore(key, validator)
+	actual, loaded := f.cache.LoadOrStore(key, validator)
+	if loaded {
+		// Another goroutine won the cache race; close this redundant instance.
+		_ = validator.Close(ctx) // best-effort cleanup; caller gets the cached validator
+	}
 	return actual.(Validator), nil
 }
 
