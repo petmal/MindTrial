@@ -1606,7 +1606,7 @@
                     {{- $summary := $results.ProviderResultsByRunAndKind $provider -}}
                     {{- range $run := SortResultsByRunAndKind $summary -}}
                     {{- $group := index $summary $run }}
-                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="{{$provider}}" data-run="{{$run}}" data-passed="{{CountByKind $group 0}}" data-failed="{{CountByKind $group 1}}" data-error="{{CountByKind $group 2}}" data-skipped="{{CountByKind $group 3}}" data-passrate="{{printf "%.2f" (Percent (PassRate $group))}}" data-accuracy="{{printf "%.2f" (Percent (AccuracyRate $group))}}" data-errorrate="{{printf "%.2f" (Percent (ErrorRate $group))}}" data-duration="{{(TotalDuration $group 0 1 2 3).Milliseconds}}">
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="{{$provider}}" data-run="{{$run}}" data-passed="{{CountByKind $group 0}}" data-failed="{{CountByKind $group 1}}" data-error="{{CountByKind $group 2}}" data-skipped="{{CountByKind $group 3}}" data-passrate="{{printf "%.2f" (Percent (PassRate $group))}}" data-accuracy="{{printf "%.2f" (Percent (AccuracyRate $group))}}" data-errorrate="{{printf "%.2f" (Percent (ErrorRate $group))}}" data-duration="{{(RoundToMS (TotalDuration $group 0 1 2 3)).Milliseconds}}">
                         <td>
                             <input type="checkbox" class="run-compare-checkbox" data-provider="{{$provider}}" data-run="{{$run}}" title="Select for comparison">
                         </td>
@@ -1745,7 +1745,7 @@
                     {{- $results := .ResultsData -}}
                     {{- range $provider := SortResultsByProvider $results -}}
                     {{- range $index, $result := index $results $provider }}
-                    <tr id="{{$result.GetID}}" itemscope itemtype="https://schema.org/Question" data-provider="{{$provider}}" data-run="{{$result.Run}}" data-task="{{$result.Task}}" data-status="{{ToStatus $result.Kind | ToLower}}" data-duration="{{$result.Duration.Milliseconds}}">
+                    <tr id="{{$result.GetID}}" itemscope itemtype="https://schema.org/Question" data-provider="{{$provider}}" data-run="{{$result.Run}}" data-task="{{$result.Task}}" data-status="{{ToStatus $result.Kind | ToLower}}" data-duration="{{(RoundToMS $result.Duration).Milliseconds}}">
                         <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="{{$provider}}" title="Filter by provider: {{$provider}}"><span itemprop="name">{{$provider}}</span></td>
                         <td class="clickable-filter clickable" data-filter-type="run" data-filter-value="{{$result.Run}}" title="Filter by run: {{$result.Run}}"><span itemprop="identifier">{{$result.Run}}</span></td>
                         <td class="clickable-filter clickable" data-filter-type="task" data-filter-value="{{$result.Task}}" title="Filter by task: {{$result.Task}}"><span itemprop="name">{{$result.Task}}</span></td>
