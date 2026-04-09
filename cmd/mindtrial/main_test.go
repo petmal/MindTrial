@@ -7,6 +7,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -130,10 +131,12 @@ var (
 	allOutputFormatsEnabled = map[string]bool{
 		"csv":  true,
 		"html": true,
+		"json": true,
 	}
 	noOutputFormatsEnabled = map[string]bool{
 		"csv":  false,
 		"html": false,
+		"json": false,
 	}
 	expectedStdoutMessages = []string{
 		"Current working directory:",
@@ -142,6 +145,12 @@ var (
 		"Loading tasks from file:",
 	}
 )
+
+func resetFlags() {
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+	inputFiles = nil
+	registerFlags()
+}
 
 func TestCommands(t *testing.T) {
 	tests := []struct {
@@ -210,6 +219,7 @@ func TestRun(t *testing.T) {
 				"Log messages will be saved to:",
 				"Results in HTML format will be saved to:",
 				"Results in CSV format will be saved to:",
+				"Results in JSON format will be saved to:",
 			}, expectedStdoutMessages...),
 			wantStdoutNotContains: []string{
 				"judge not found",
@@ -266,6 +276,7 @@ func TestRun(t *testing.T) {
 				"Log messages will be saved to:",
 				"Results in HTML format will be saved to:",
 				"Results in CSV format will be saved to:",
+				"Results in JSON format will be saved to:",
 			},
 			wantOutputContains: nil,
 			wantLogContains:    nil,
@@ -313,6 +324,7 @@ func TestRun(t *testing.T) {
 				"Log messages will be saved to:",
 				"Results in HTML format will be saved to:",
 				"Results in CSV format will be saved to:",
+				"Results in JSON format will be saved to:",
 			},
 			wantOutputContains: nil,
 			wantLogContains:    nil,
@@ -329,6 +341,7 @@ func TestRun(t *testing.T) {
 				"Log messages will be saved to:",
 				"Results in HTML format will be saved to:",
 				"Results in CSV format will be saved to:",
+				"Results in JSON format will be saved to:",
 			}, expectedStdoutMessages...),
 			wantOutputContains: []string{
 				"unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37",
@@ -360,6 +373,7 @@ func TestRun(t *testing.T) {
 				"Log messages will be saved to:",
 				"Results in HTML format will be saved to:",
 				"Results in CSV format will be saved to:",
+				"Results in JSON format will be saved to:",
 			}, expectedStdoutMessages...),
 			wantOutputContains: []string{
 				"unique-enabled-task-name-68315b95-de8c-4f19-9f76-d70829ec0e37",
@@ -390,6 +404,7 @@ func TestRun(t *testing.T) {
 			wantStdoutNotContains: []string{
 				"Results in HTML format will be saved to:",
 				"Results in CSV format will be saved to:",
+				"Results in JSON format will be saved to:",
 			},
 			wantOutputContains: []string{},
 			wantLogContains: []string{
@@ -419,6 +434,7 @@ func TestRun(t *testing.T) {
 			wantStdoutNotContains: []string{
 				"Results in HTML format will be saved to:",
 				"Results in CSV format will be saved to:",
+				"Results in JSON format will be saved to:",
 			},
 			wantOutputContains: []string{},
 			wantLogContains: []string{
@@ -448,6 +464,7 @@ func TestRun(t *testing.T) {
 			wantStdoutNotContains: []string{
 				"Results in HTML format will be saved to:",
 				"Results in CSV format will be saved to:",
+				"Results in JSON format will be saved to:",
 			},
 			wantOutputContains: []string{},
 			wantLogContains: []string{
@@ -466,6 +483,7 @@ func TestRun(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			resetFlags()
 			configFilePath := testutils.CreateMockFile(t, "*.config.yaml", tt.config)
 			tasksFilePath := testutils.CreateMockFile(t, "*.tasks.yaml", tt.tasks)
 
@@ -510,6 +528,14 @@ func TestRun(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("unsupported flag input", func(t *testing.T) {
+		resetFlags()
+		require.NoError(t, flag.Set("input", "file.json"))
+
+		_, err := run(context.Background())
+		require.ErrorIs(t, err, errUnsupportedFlag)
+	})
 }
 
 func createFile(t *testing.T, filePath string, contents []byte) {
@@ -525,4 +551,264 @@ func assertTestArtifact(t *testing.T, filePath string, want []string, notWant []
 	} else {
 		require.NoFileExists(t, filePath)
 	}
+}
+
+func TestMergeResults(t *testing.T) {
+	fixture1 := `{
+  "FormatVersion": 1,
+  "Results": {
+    "ProviderA": [
+      {
+        "TraceID": "trace-1",
+        "Kind": "Passed",
+        "Task": "task-alpha",
+        "Provider": "ProviderA",
+        "Run": "run1",
+        "Got": "answer-a1",
+        "Want": "expected-a1",
+        "Details": {},
+        "DurationNS": 1000000000
+      }
+    ]
+  }
+}`
+	fixture2 := `{
+  "FormatVersion": 1,
+  "Results": {
+    "ProviderB": [
+      {
+        "TraceID": "trace-2",
+        "Kind": "Failed",
+        "Task": "task-beta",
+        "Provider": "ProviderB",
+        "Run": "run2",
+        "Got": "answer-b1",
+        "Want": "expected-b1",
+        "Details": {},
+        "DurationNS": 2000000000
+      }
+    ]
+  }
+}`
+	fixtureOverlap := `{
+  "FormatVersion": 1,
+  "Results": {
+    "ProviderA": [
+      {
+        "TraceID": "trace-1-updated",
+        "Kind": "Failed",
+        "Task": "task-alpha",
+        "Provider": "ProviderA",
+        "Run": "run1",
+        "Got": "answer-a1-updated",
+        "Want": "expected-a1",
+        "Details": {},
+        "DurationNS": 3000000000
+      }
+    ]
+  }
+}`
+	fixtureEmptyProvider := `{
+	"FormatVersion": 1,
+	"Results": {
+	    "ProviderA": []
+	}
+}`
+
+	t.Run("merge single JSON file", func(t *testing.T) {
+		resetFlags()
+		inputFile := testutils.CreateMockFile(t, "*.json", []byte(fixture1))
+		outBasePath := filepath.Join(os.TempDir(), uuid.NewString())
+
+		require.NoError(t, flag.Set("input", inputFile))
+		require.NoError(t, flag.Set("output-dir", outBasePath))
+		require.NoError(t, flag.Set("output-basename", "merged"))
+		require.NoError(t, flag.Set("html", "true"))
+		require.NoError(t, flag.Set("csv", "true"))
+		require.NoError(t, flag.Set("json", "true"))
+		require.NoError(t, flag.Set("verbose", "true"))
+
+		sout := testutils.CaptureStdout(t, func() { testutils.WithArgs(t, main, "merge-results") })
+		testutils.AssertContainsAll(t, sout, []string{
+			fmt.Sprintf("Loading results from file: %s", inputFile),
+			fmt.Sprintf("Results in HTML format will be saved to: %s", filepath.Join(outBasePath, "merged.html")),
+			fmt.Sprintf("Results in CSV format will be saved to: %s", filepath.Join(outBasePath, "merged.csv")),
+			fmt.Sprintf("Results in JSON format will be saved to: %s", filepath.Join(outBasePath, "merged.json")),
+			"task-alpha",
+			"ProviderA",
+			"Merged results:",
+			"ProviderA:",
+			"run1: 1 total",
+		})
+
+		require.FileExists(t, filepath.Join(outBasePath, "merged.html"))
+		require.FileExists(t, filepath.Join(outBasePath, "merged.csv"))
+		require.FileExists(t, filepath.Join(outBasePath, "merged.json"))
+	})
+
+	t.Run("merge multiple JSON files", func(t *testing.T) {
+		resetFlags()
+		inputFile1 := testutils.CreateMockFile(t, "*.json", []byte(fixture1))
+		inputFile2 := testutils.CreateMockFile(t, "*.json", []byte(fixture2))
+		outBasePath := filepath.Join(os.TempDir(), uuid.NewString())
+
+		require.NoError(t, flag.Set("input", inputFile1))
+		require.NoError(t, flag.Set("input", inputFile2))
+		require.NoError(t, flag.Set("output-dir", outBasePath))
+		require.NoError(t, flag.Set("output-basename", "merged"))
+		require.NoError(t, flag.Set("html", "true"))
+		require.NoError(t, flag.Set("csv", "false"))
+		require.NoError(t, flag.Set("json", "true"))
+		require.NoError(t, flag.Set("verbose", "true"))
+
+		sout := testutils.CaptureStdout(t, func() { testutils.WithArgs(t, main, "merge-results") })
+		testutils.AssertContainsAll(t, sout, []string{
+			fmt.Sprintf("Loading results from file: %s", inputFile1),
+			fmt.Sprintf("Loading results from file: %s", inputFile2),
+			fmt.Sprintf("Results in HTML format will be saved to: %s", filepath.Join(outBasePath, "merged.html")),
+			fmt.Sprintf("Results in JSON format will be saved to: %s", filepath.Join(outBasePath, "merged.json")),
+			"task-alpha",
+			"task-beta",
+			"ProviderA",
+			"ProviderB",
+			"Merged results:",
+			"ProviderA:",
+			"run1: 1 total",
+			"ProviderB:",
+			"run2: 1 total",
+		})
+		testutils.AssertContainsNone(t, sout, []string{
+			"Results in CSV format will be saved to:",
+		})
+
+		// Verify JSON output contains both providers.
+		jsonOutputPath := filepath.Join(outBasePath, "merged.json")
+		require.FileExists(t, jsonOutputPath)
+		testutils.AssertFileContains(t, jsonOutputPath, []string{
+			"ProviderA",
+			"ProviderB",
+			"task-alpha",
+			"task-beta",
+		}, nil)
+
+		require.FileExists(t, filepath.Join(outBasePath, "merged.html"))
+		require.FileExists(t, filepath.Join(outBasePath, "merged.json"))
+
+		// Verify CSV output was not generated.
+		assert.NoFileExists(t, filepath.Join(outBasePath, "merged.csv"))
+	})
+
+	t.Run("merge with overlapping results last-in wins", func(t *testing.T) {
+		resetFlags()
+		inputFile1 := testutils.CreateMockFile(t, "*.json", []byte(fixture1))
+		inputFile2 := testutils.CreateMockFile(t, "*.json", []byte(fixtureOverlap))
+		outBasePath := filepath.Join(os.TempDir(), uuid.NewString())
+
+		require.NoError(t, flag.Set("input", inputFile1))
+		require.NoError(t, flag.Set("input", inputFile2))
+		require.NoError(t, flag.Set("output-dir", outBasePath))
+		require.NoError(t, flag.Set("output-basename", "merged"))
+		require.NoError(t, flag.Set("html", "false"))
+		require.NoError(t, flag.Set("csv", "false"))
+		require.NoError(t, flag.Set("json", "true"))
+		require.NoError(t, flag.Set("verbose", "true"))
+
+		sout := testutils.CaptureStdout(t, func() { testutils.WithArgs(t, main, "merge-results") })
+		testutils.AssertContainsAll(t, sout, []string{
+			fmt.Sprintf("Loading results from file: %s", inputFile1),
+			fmt.Sprintf("Loading results from file: %s", inputFile2),
+			fmt.Sprintf("Results in JSON format will be saved to: %s", filepath.Join(outBasePath, "merged.json")),
+			"task-alpha",
+			"Merged results:",
+			"ProviderA:",
+			"run1: 1 total, 1 updated",
+		})
+
+		// Verify the updated value won.
+		jsonOutputPath := filepath.Join(outBasePath, "merged.json")
+		require.FileExists(t, jsonOutputPath)
+		testutils.AssertFileContains(t, jsonOutputPath, []string{
+			"answer-a1-updated",
+			"trace-1-updated",
+		}, []string{
+			"\"Got\": \"answer-a1\"",
+		})
+	})
+
+	t.Run("merge ignores empty provider input in summary and output", func(t *testing.T) {
+		resetFlags()
+		inputFile1 := testutils.CreateMockFile(t, "*.json", []byte(fixtureEmptyProvider))
+		inputFile2 := testutils.CreateMockFile(t, "*.json", []byte(fixture2))
+		outBasePath := filepath.Join(os.TempDir(), uuid.NewString())
+
+		require.NoError(t, flag.Set("input", inputFile1))
+		require.NoError(t, flag.Set("input", inputFile2))
+		require.NoError(t, flag.Set("output-dir", outBasePath))
+		require.NoError(t, flag.Set("output-basename", "merged"))
+		require.NoError(t, flag.Set("html", "false"))
+		require.NoError(t, flag.Set("csv", "false"))
+		require.NoError(t, flag.Set("json", "true"))
+		require.NoError(t, flag.Set("verbose", "false"))
+
+		sout := testutils.CaptureStdout(t, func() { testutils.WithArgs(t, main, "merge-results") })
+		testutils.AssertContainsAll(t, sout, []string{
+			fmt.Sprintf("Loading results from file: %s", inputFile1),
+			fmt.Sprintf("Loading results from file: %s", inputFile2),
+			fmt.Sprintf("Results in JSON format will be saved to: %s", filepath.Join(outBasePath, "merged.json")),
+			"Merged results:",
+			"ProviderB:",
+			"run2: 1 total",
+		})
+		testutils.AssertContainsNone(t, sout, []string{
+			"ProviderA:",
+		})
+
+		jsonOutputPath := filepath.Join(outBasePath, "merged.json")
+		require.FileExists(t, jsonOutputPath)
+		testutils.AssertFileContains(t, jsonOutputPath, []string{
+			"ProviderB",
+			"task-beta",
+		}, []string{
+			"\"ProviderA\"",
+		})
+	})
+
+	t.Run("no input files", func(t *testing.T) {
+		resetFlags()
+		outBasePath := filepath.Join(os.TempDir(), uuid.NewString())
+
+		require.NoError(t, flag.Set("output-dir", outBasePath))
+		require.NoError(t, flag.Set("output-basename", "merged"))
+		require.NoError(t, flag.Set("html", "false"))
+		require.NoError(t, flag.Set("csv", "false"))
+		require.NoError(t, flag.Set("json", "true"))
+		require.NoError(t, flag.Set("verbose", "true"))
+
+		sout := testutils.CaptureStdout(t, func() { testutils.WithArgs(t, main, "merge-results") })
+		testutils.AssertContainsAll(t, sout, []string{
+			"Nothing to merge: no input files provided.",
+		})
+
+		assert.NoFileExists(t, filepath.Join(outBasePath, "merged.json"))
+	})
+
+	t.Run("nonexistent input file", func(t *testing.T) {
+		resetFlags()
+		inputFiles = append(stringSliceFlag(nil), filepath.Join(os.TempDir(), uuid.NewString(), "nonexistent.json"))
+		_, err := mergeResults(context.Background())
+		require.Error(t, err)
+	})
+
+	t.Run("unsupported flags", func(t *testing.T) {
+		unsupported := []string{"config", "tasks", "log", "debug", "interactive"}
+		for _, name := range unsupported {
+			t.Run(name, func(t *testing.T) {
+				resetFlags()
+				require.NoError(t, flag.Set(name, "true"))
+
+				_, err := mergeResults(context.Background())
+				require.ErrorIs(t, err, errUnsupportedFlag)
+			})
+		}
+	})
 }

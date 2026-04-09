@@ -9,15 +9,20 @@ package formatters
 import (
 	"sync"
 	"testing"
-	"time"
 
-	"github.com/petmal/mindtrial/pkg/testutils"
 	"github.com/petmal/mindtrial/runners"
 	"github.com/stretchr/testify/assert"
 )
 
 var timestampLock sync.Mutex
 var currentVersionDataLock sync.Mutex
+
+func TestUpdateGoldenHTML(t *testing.T) {
+	updateGoldenFiles(t, NewHTMLFormatter(), []goldenFileTestCase{
+		{"testdata/empty.html", runners.Results{}},
+		{"testdata/results.html", mockResults},
+	})
+}
 
 func TestHTMLFormatterWrite(t *testing.T) {
 	tests := []struct {
@@ -38,26 +43,9 @@ func TestHTMLFormatterWrite(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			testutils.SyncCall(&timestampLock, func() {
-				// Set fixed timestamp to produce consistent results.
-				originalTimestamp := timestamp
-				timestamp = func(_ time.Time) string {
-					return "1985-03-04T22:10:00"
-				}
-				defer func() { timestamp = originalTimestamp }()
-
-				testutils.SyncCall(&currentVersionDataLock, func() {
-					// Set fixed version metadata to produce consistent results.
-					originalCurrentVersionData := currentVersionData
-					currentVersionData = VersionData{
-						Name:    "MindTrial",
-						Version: "(testing)",
-						Source:  "github.com/petmal/mindtrial",
-					}
-					defer func() { currentVersionData = originalCurrentVersionData }()
-					formatter := NewHTMLFormatter()
-					assertFormatterOutputFromFile(t, formatter, tt.results, tt.want)
-				})
+			withFixedMetadata(t, func() {
+				formatter := NewHTMLFormatter()
+				assertFormatterOutputFromFile(t, formatter, tt.results, tt.want)
 			})
 		})
 	}

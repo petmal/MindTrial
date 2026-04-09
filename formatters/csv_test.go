@@ -7,7 +7,9 @@
 package formatters
 
 import (
+	"flag"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -17,6 +19,29 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+var updateGolden = flag.Bool("update-golden", false, "update golden test files")
+
+type goldenFileTestCase struct {
+	path    string
+	results runners.Results
+}
+
+func updateGoldenFiles(t *testing.T, formatter Formatter, cases []goldenFileTestCase) {
+	t.Helper()
+	if !*updateGolden {
+		t.Skip("use -update-golden to regenerate golden files")
+	}
+	for _, tc := range cases {
+		withFixedMetadata(t, func() {
+			f, err := os.Create(tc.path)
+			require.NoError(t, err)
+			require.NoError(t, formatter.Write(tc.results, f))
+			require.NoError(t, f.Close())
+			t.Logf("Updated %s", tc.path)
+		})
+	}
+}
 
 var mockResults = runners.Results{
 	"provider-name": []runners.RunResult{
@@ -495,6 +520,13 @@ var mockResults = runners.Results{
 			},
 		},
 	},
+}
+
+func TestUpdateGoldenCSV(t *testing.T) {
+	updateGoldenFiles(t, NewCSVFormatter(), []goldenFileTestCase{
+		{"testdata/empty.csv", runners.Results{}},
+		{"testdata/results.csv", mockResults},
+	})
 }
 
 func TestCSVFormatterWrite(t *testing.T) {

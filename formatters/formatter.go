@@ -5,20 +5,31 @@
 // file, You can obtain one at <https://mozilla.org/MPL/2.0/>.
 
 // Package formatters provides output formatting functionality for MindTrial results.
-// It supports multiple output formats including HTML, CSV, and text logs.
+// It supports multiple output formats including HTML, CSV, JSON, and text logs.
+// The JSON format implements the Codec interface, enabling bidirectional serialization
+// for result persistence and merging across separate runs.
 package formatters
 
 import (
 	"errors"
+	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/petmal/mindtrial/runners"
 )
 
-// ErrPrintResults indicates that result formatting failed.
-var ErrPrintResults = errors.New("failed to print formatted results")
+var (
+	// ErrPrintResults indicates that result formatting failed.
+	ErrPrintResults = errors.New("failed to print formatted results")
+	// ErrReadResults indicates that result reading failed.
+	ErrReadResults = errors.New("failed to read results")
+	// ErrUnsupportedInputFormat indicates an unsupported file format.
+	ErrUnsupportedInputFormat = errors.New("unsupported input format")
+)
 
 // Formatter handles converting results into specific output formats.
 type Formatter interface {
@@ -26,6 +37,32 @@ type Formatter interface {
 	FileExt() string
 	// Write outputs formatted results to the writer.
 	Write(results runners.Results, out io.Writer) error
+}
+
+// Codec extends the Formatter interface with the ability to read results back.
+type Codec interface {
+	Formatter
+	// Read parses results from the reader.
+	Read(in io.Reader) (runners.Results, error)
+}
+
+// codecs is the registry of all available codecs.
+var codecs = []Codec{NewJSONCodec()}
+
+// ReadResultsFromFile reads results from a file, selecting the appropriate codec based on file extension.
+func ReadResultsFromFile(path string) (runners.Results, error) {
+	ext := strings.TrimPrefix(filepath.Ext(path), ".")
+	for _, codec := range codecs {
+		if strings.EqualFold(codec.FileExt(), ext) {
+			f, err := os.Open(filepath.Clean(path))
+			if err != nil {
+				return nil, fmt.Errorf("%w: %v", ErrReadResults, err)
+			}
+			defer f.Close()
+			return codec.Read(f)
+		}
+	}
+	return nil, fmt.Errorf("%w: %q", ErrUnsupportedInputFormat, ext)
 }
 
 // formatAnswerText returns a single plain text block containing all possible formatted answers for

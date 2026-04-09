@@ -1,5 +1,5 @@
-TraceID,Provider,Run,Task,Status,Duration,Answer,Details
-01JEDE7Z8X0000000000000001,provider-name,run-success,task-name,Passed,1m35s,Quos aut rerum quaerat qui ad culpa.,"{
+TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details
+01JEDE7Z8X0000000000000001,provider-name,run-success,task-name,Passed,95000,Quos aut rerum quaerat qui ad culpa.,"{
   ""Answer"": {
     ""Title"": ""Responsio Bona"",
     ""Explanation"": [
@@ -21,17 +21,17 @@ TraceID,Provider,Run,Task,Status,Duration,Answer,Details
     ""ToolUsage"": {
       ""calculator"": {
         ""CallCount"": 127,
-        ""TotalDuration"": 45000000000
+        ""TotalDurationNS"": 45000000000
       },
       ""file_processor"": {
-        ""TotalDuration"": 350000000
+        ""TotalDurationNS"": 350000000
       },
       ""memory_tool"": {
         ""CallCount"": 8
       },
       ""web_search"": {
         ""CallCount"": 1,
-        ""TotalDuration"": 135000000000
+        ""TotalDurationNS"": 135000000000
       }
     }
   },
@@ -50,18 +50,12 @@ TraceID,Provider,Run,Task,Status,Duration,Answer,Details
       },
       ""validator"": {
         ""CallCount"": 15,
-        ""TotalDuration"": 7250000000
+        ""TotalDurationNS"": 7250000000
       }
     }
-  },
-  ""Error"": {
-    ""Title"": """",
-    ""Message"": """",
-    ""Details"": null,
-    ""Usage"": {}
   }
 }"
-01JEDE7Z8X0000000000000002,provider-name,run-failure,task-name,Failed,10s,"@@ -1,67 +1,36 @@
+01JEDE7Z8X0000000000000002,provider-name,run-failure,task-name,Failed,10000,"@@ -1,67 +1,36 @@
 -Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui
 +Ipsam ea et optio explicabo eius et
  .
@@ -87,7 +81,7 @@ TraceID,Provider,Run,Task,Status,Duration,Answer,Details
     },
     ""ToolUsage"": {
       ""json_parser"": {
-        ""TotalDuration"": 55000000
+        ""TotalDurationNS"": 55000000
       }
     }
   },
@@ -95,17 +89,10 @@ TraceID,Provider,Run,Task,Status,Duration,Answer,Details
     ""Title"": ""Validatio Defecit"",
     ""Explanation"": [
       ""At vero eos et accusamus et iusto odio dignissimos ducimus qui.""
-    ],
-    ""Usage"": {}
-  },
-  ""Error"": {
-    ""Title"": """",
-    ""Message"": """",
-    ""Details"": null,
-    ""Usage"": {}
+    ]
   }
 }"
-01JEDE7Z8X0000000000000003,provider-name,run-success-multiple-answers,task-name,Passed,17s,Quos aut rerum quaerat qui ad culpa.,"{
+01JEDE7Z8X0000000000000003,provider-name,run-success-multiple-answers,task-name,Passed,17000,Quos aut rerum quaerat qui ad culpa.,"{
   ""Answer"": {
     ""Title"": ""Multiplex Responsio"",
     ""Explanation"": [
@@ -122,8 +109,7 @@ TraceID,Provider,Run,Task,Status,Duration,Answer,Details
       [
         ""Quos aut rerum quaerat qui ad culpa.""
       ]
-    ],
-    ""Usage"": {}
+    ]
   },
   ""Validation"": {
     ""Title"": ""Selectio Validata"",
@@ -131,17 +117,10 @@ TraceID,Provider,Run,Task,Status,Duration,Answer,Details
       ""Blanditiis praesentium voluptatum deleniti atque corrupti quos dolores."",
       ""Et quas molestias excepturi sint occaecati cupiditate non provident."",
       ""Similique sunt in culpa qui officia deserunt mollitia animi.""
-    ],
-    ""Usage"": {}
-  },
-  ""Error"": {
-    ""Title"": """",
-    ""Message"": """",
-    ""Details"": null,
-    ""Usage"": {}
+    ]
   }
 }"
-01JEDE7Z8X0000000000000004,provider-name,run-failure-multiple-answers,task-name,Failed,3m0.8s,"[
+01JEDE7Z8X0000000000000004,provider-name,run-failure-multiple-answers,task-name,Failed,180800,"[
     @@ -1,48 +1,36 @@
     -Dolores saepe ad sed rerum autem iure minima
     +Ipsam ea et optio explicabo eius
@@ -172,8 +151,7 @@ TraceID,Provider,Run,Task,Status,Duration,Answer,Details
       [
         ""Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui.""
       ]
-    ],
-    ""Usage"": {}
+    ]
   },
   ""Validation"": {
     ""Title"": ""Selectio Rejicienda"",
@@ -186,38 +164,19 @@ TraceID,Provider,Run,Task,Status,Duration,Answer,Details
     },
     ""ToolUsage"": {
       ""grammar_analyzer"": {
-        ""TotalDuration"": 12000000000
+        ""TotalDurationNS"": 12000000000
       },
       ""spell_checker"": {
         ""CallCount"": 847,
-        ""TotalDuration"": 222300000000
+        ""TotalDurationNS"": 222300000000
       }
     }
-  },
-  ""Error"": {
-    ""Title"": """",
-    ""Message"": """",
-    ""Details"": null,
-    ""Usage"": {}
   }
 }"
-01JEDE7Z8X0000000000000005,provider-name,run-error,task-name,Error,0s,error message,"{
-  ""Answer"": {
-    ""Title"": """",
-    ""Explanation"": null,
-    ""ActualAnswer"": null,
-    ""ExpectedAnswer"": null,
-    ""Usage"": {}
-  },
-  ""Validation"": {
-    ""Title"": """",
-    ""Explanation"": null,
-    ""Usage"": {}
-  },
+01JEDE7Z8X0000000000000005,provider-name,run-error,task-name,Error,0,error message,"{
   ""Error"": {
     ""Title"": ""Errorem Executionis"",
     ""Message"": ""Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus."",
-    ""Details"": null,
     ""Usage"": {
       ""InputTokens"": 0,
       ""OutputTokens"": 0
@@ -228,24 +187,12 @@ TraceID,Provider,Run,Task,Status,Duration,Answer,Details
       },
       ""file_reader"": {
         ""CallCount"": 3456,
-        ""TotalDuration"": 1512100000000
+        ""TotalDurationNS"": 1512100000000
       }
     }
   }
 }"
-01JEDE7Z8X0000000000000006,provider-name,run-not-supported,task-name,Skipped,500ms,Sequi molestiae iusto sit sit dolorum aut.,"{
-  ""Answer"": {
-    ""Title"": """",
-    ""Explanation"": null,
-    ""ActualAnswer"": null,
-    ""ExpectedAnswer"": null,
-    ""Usage"": {}
-  },
-  ""Validation"": {
-    ""Title"": """",
-    ""Explanation"": null,
-    ""Usage"": {}
-  },
+01JEDE7Z8X0000000000000006,provider-name,run-not-supported,task-name,Skipped,500,Sequi molestiae iusto sit sit dolorum aut.,"{
   ""Error"": {
     ""Title"": ""Functio Non Supporta"",
     ""Message"": ""Voluptate velit esse cillum dolore eu fugiat nulla pariatur."",
@@ -267,19 +214,7 @@ TraceID,Provider,Run,Task,Status,Duration,Answer,Details
     }
   }
 }"
-01JEDE7Z8X0000000000000007,provider-name,run-validation-error,task-name,Error,2s,Adipiscing elit sed do eiusmod tempor.,"{
-  ""Answer"": {
-    ""Title"": """",
-    ""Explanation"": null,
-    ""ActualAnswer"": null,
-    ""ExpectedAnswer"": null,
-    ""Usage"": {}
-  },
-  ""Validation"": {
-    ""Title"": """",
-    ""Explanation"": null,
-    ""Usage"": {}
-  },
+01JEDE7Z8X0000000000000007,provider-name,run-validation-error,task-name,Error,2000,Adipiscing elit sed do eiusmod tempor.,"{
   ""Error"": {
     ""Title"": ""Validatio Deficiens"",
     ""Message"": ""Ut enim ad minim veniam quis nostrud exercitation ullamco laboris."",
@@ -305,19 +240,7 @@ TraceID,Provider,Run,Task,Status,Duration,Answer,Details
     }
   }
 }"
-01JEDE7Z8X0000000000000008,provider-name,run-parsing-error,task-name,Error,5m14.159s,Invalid JSON: {broken,"{
-  ""Answer"": {
-    ""Title"": """",
-    ""Explanation"": null,
-    ""ActualAnswer"": null,
-    ""ExpectedAnswer"": null,
-    ""Usage"": {}
-  },
-  ""Validation"": {
-    ""Title"": """",
-    ""Explanation"": null,
-    ""Usage"": {}
-  },
+01JEDE7Z8X0000000000000008,provider-name,run-parsing-error,task-name,Error,314159,Invalid JSON: {broken,"{
   ""Error"": {
     ""Title"": ""Parsing Errorem Responsi"",
     ""Message"": ""Duis aute irure dolor in reprehenderit in voluptate velit esse."",
@@ -345,7 +268,7 @@ TraceID,Provider,Run,Task,Status,Duration,Answer,Details
     }
   }
 }"
-01JEDE7Z8X0000000000000009,provider-name,run-structured-success,task-name,Passed,42s,"[
+01JEDE7Z8X0000000000000009,provider-name,run-structured-success,task-name,Passed,42000,"[
   {
     ""level"": ""INFO"",
     ""message"": ""User 'admin' logged in successfully."",
@@ -403,11 +326,11 @@ TraceID,Provider,Run,Task,Status,Duration,Answer,Details
     ""ToolUsage"": {
       ""json_parser"": {
         ""CallCount"": 2,
-        ""TotalDuration"": 50000000
+        ""TotalDurationNS"": 50000000
       },
       ""validator"": {
         ""CallCount"": 1,
-        ""TotalDuration"": 25000000
+        ""TotalDurationNS"": 25000000
       }
     }
   },
@@ -425,18 +348,12 @@ TraceID,Provider,Run,Task,Status,Duration,Answer,Details
     ""ToolUsage"": {
       ""schema_validator"": {
         ""CallCount"": 1,
-        ""TotalDuration"": 15000000
+        ""TotalDurationNS"": 15000000
       }
     }
-  },
-  ""Error"": {
-    ""Title"": """",
-    ""Message"": """",
-    ""Details"": null,
-    ""Usage"": {}
   }
 }"
-01JEDE7Z8X0000000000000010,provider-name,run-structured-failure,task-name,Failed,38s,"[
+01JEDE7Z8X0000000000000010,provider-name,run-structured-failure,task-name,Failed,38000,"[
     @@ -11,12 +11,13 @@
      %22: %22
     -INFO
@@ -539,11 +456,5 @@ TraceID,Provider,Run,Task,Status,Duration,Answer,Details
       ""InputTokens"": 89,
       ""OutputTokens"": 15
     }
-  },
-  ""Error"": {
-    ""Title"": """",
-    ""Message"": """",
-    ""Details"": null,
-    ""Usage"": {}
   }
 }"

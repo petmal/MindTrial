@@ -7,6 +7,8 @@
 package utils
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -104,4 +106,34 @@ func (v ValueSet) MarshalYAML() (interface{}, error) {
 		return v.values[0], nil
 	}
 	return v.values, nil
+}
+
+// MarshalJSON implements the json.Marshaler interface.
+// A single-value set is marshaled as a scalar; multiple values as an array.
+func (v ValueSet) MarshalJSON() ([]byte, error) {
+	if len(v.values) == 1 {
+		return json.Marshal(v.values[0])
+	}
+	return json.Marshal(v.values)
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
+// Accepts a scalar (single-value set) or an array (multi-value set).
+// Uses json.Number for numeric precision.
+func (v *ValueSet) UnmarshalJSON(data []byte) error {
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.UseNumber()
+
+	var raw interface{}
+	if err := dec.Decode(&raw); err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalidValueSetValue, err)
+	}
+
+	switch val := raw.(type) {
+	case []interface{}:
+		v.values = val
+	default:
+		v.values = []interface{}{val}
+	}
+	return nil
 }

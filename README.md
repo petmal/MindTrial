@@ -6,7 +6,7 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/petmal/mindtrial)](https://go.dev/)
 [![Go Reference](https://pkg.go.dev/badge/github.com/petmal/mindtrial.svg)](https://pkg.go.dev/github.com/petmal/mindtrial)
 
-**MindTrial** lets you test a single AI language model (LLM) or evaluate multiple models side-by-side. It supports providers like OpenAI, Google, Anthropic, DeepSeek, Mistral AI, xAI, Alibaba, Moonshot AI, and OpenRouter. You can create your own custom tasks with text prompts, plain text or structured JSON response formats, optional file attachments, and tool use for enhanced capabilities; validate responses through exact value matching or an LLM judge for semantic evaluation; and get results in easy-to-read HTML and CSV formats.
+**MindTrial** lets you test a single AI language model (LLM) or evaluate multiple models side-by-side. It supports providers like OpenAI, Google, Anthropic, DeepSeek, Mistral AI, xAI, Alibaba, Moonshot AI, and OpenRouter. You can create your own custom tasks with text prompts, plain text or structured JSON response formats, optional file attachments, and tool use for enhanced capabilities; validate responses through exact value matching or an LLM judge for semantic evaluation; and get results in easy-to-read HTML, CSV, and JSON formats.
 
 ## Quick Start Guide
 
@@ -35,7 +35,8 @@
 - Attach files or images to prompts for visual tasks
 - Enable tool use for tasks with secure sandboxed execution
 - Use LLM judges for semantic validation of complex and creative tasks
-- Get results in HTML and CSV formats
+- Get results in HTML, CSV, and JSON formats
+- Merge and compare results from multiple runs
 - Easy to extend with new AI models
 - Smart rate limiting to prevent API overload
 - Interactive mode with terminal-based UI
@@ -65,6 +66,26 @@
    ```bash
    mindtrial --interactive run
    ```
+
+5. Merge results from multiple runs into a single output:
+
+   ```bash
+   mindtrial --input="results-1.json" --input="results-2.json" --html=true --csv=true --output-basename="merged" merge-results
+   ```
+
+### Merging Results
+
+The `merge-results` command combines results from multiple trial runs into a single output. Input files are specified with the `--input` flag (can be repeated). Currently, only **JSON** is supported as the input format. Use the `--json=true` flag during trial runs to generate JSON output files that can later be merged. The merged output can be generated in any of the supported formats (HTML, CSV, JSON) using the corresponding flags.
+
+> [!TIP]
+> You can also use `merge-results` with a single input file to convert between formats. For example, if you store results in JSON, you can convert them to HTML or CSV at any time:
+>
+> ```bash
+> mindtrial --input="results.json" --html=true --csv=true merge-results
+> ```
+
+> [!TIP]
+> If some results failed due to transient errors (e.g., network timeouts), you can re-run only the failed tasks and merge the new results into the original set. Because `merge-results` uses a **last-in-wins** strategy for duplicate entries (same provider, run, and task), the corrected results will replace the failed ones.
 
 ## Configuration Guide
 
@@ -979,6 +1000,7 @@ mindtrial [options] [command]
 
 Commands:
   run                       Start the trials
+  merge-results             Merge results from multiple runs
   help                      Show help
   version                   Show version
 
@@ -989,6 +1011,8 @@ Options:
   --output-basename string  Base filename for results; replace if exists; blank = stdout
   --html                    Generate HTML output (default: true)
   --csv                     Generate CSV output (default: false)
+  --json                    Generate JSON output (default: false)
+  --input string            Input result file path for merge-results; can be specified multiple times
   --log string              Log file path; append if exists; blank = stdout
   --verbose                 Enable detailed logging
   --debug                   Enable low-level debug logging (implies --verbose)

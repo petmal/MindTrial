@@ -7,6 +7,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -221,4 +222,152 @@ func TestValueSet_EmptySet(t *testing.T) {
 	stringSet, ok := v.AsStringSet()
 	assert.True(t, ok)
 	assert.Empty(t, stringSet.Values())
+}
+
+func TestValueSet_JSONMarshal(t *testing.T) {
+	tests := []struct {
+		name     string
+		values   []interface{}
+		expected string
+	}{
+		{
+			name:     "single string",
+			values:   []interface{}{"hello"},
+			expected: `"hello"`,
+		},
+		{
+			name:     "single number",
+			values:   []interface{}{42},
+			expected: `42`,
+		},
+		{
+			name:     "multiple strings",
+			values:   []interface{}{"a", "b", "c"},
+			expected: `["a","b","c"]`,
+		},
+		{
+			name:     "mixed types",
+			values:   []interface{}{"hello", 123, true},
+			expected: `["hello",123,true]`,
+		},
+		{
+			name: "single map object",
+			values: []interface{}{
+				map[string]interface{}{"key": "value"},
+			},
+			expected: `{"key":"value"}`,
+		},
+		{
+			name: "list of map objects",
+			values: []interface{}{
+				map[string]interface{}{"answer": "YES", "confidence": 0.95},
+				map[string]interface{}{"answer": "NO", "confidence": 0.90},
+			},
+			expected: `[{"answer":"YES","confidence":0.95},{"answer":"NO","confidence":0.9}]`,
+		},
+		{
+			name: "nested objects",
+			values: []interface{}{
+				map[string]interface{}{"name": "test", "values": []interface{}{1, 2, 3}},
+			},
+			expected: `{"name":"test","values":[1,2,3]}`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := NewValueSet(tt.values...)
+			data, err := json.Marshal(v)
+			require.NoError(t, err)
+			assert.JSONEq(t, tt.expected, string(data))
+		})
+	}
+}
+
+func TestValueSet_JSONUnmarshal(t *testing.T) {
+	tests := []struct {
+		name     string
+		json     string
+		expected []interface{}
+	}{
+		{
+			name:     "single string",
+			json:     `"hello"`,
+			expected: []interface{}{"hello"},
+		},
+		{
+			name:     "single number preserves precision",
+			json:     `9876543210`,
+			expected: []interface{}{json.Number("9876543210")},
+		},
+		{
+			name:     "array of strings",
+			json:     `["a","b","c"]`,
+			expected: []interface{}{"a", "b", "c"},
+		},
+		{
+			name:     "boolean",
+			json:     `true`,
+			expected: []interface{}{true},
+		},
+		{
+			name: "array of map objects",
+			json: `[{"answer":"YES","confidence":0.95},{"answer":"NO","confidence":0.90}]`,
+			expected: []interface{}{
+				map[string]interface{}{"answer": "YES", "confidence": json.Number("0.95")},
+				map[string]interface{}{"answer": "NO", "confidence": json.Number("0.90")},
+			},
+		},
+		{
+			name: "single map object",
+			json: `{"key":"value"}`,
+			expected: []interface{}{
+				map[string]interface{}{"key": "value"},
+			},
+		},
+		{
+			name:     "mixed types",
+			json:     `["hello",123,true]`,
+			expected: []interface{}{"hello", json.Number("123"), true},
+		},
+		{
+			name: "nested objects",
+			json: `[{"name":"test","values":[1,2,3]},{"name":"other","values":[4,5,6]}]`,
+			expected: []interface{}{
+				map[string]interface{}{"name": "test", "values": []interface{}{json.Number("1"), json.Number("2"), json.Number("3")}},
+				map[string]interface{}{"name": "other", "values": []interface{}{json.Number("4"), json.Number("5"), json.Number("6")}},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var v ValueSet
+			err := json.Unmarshal([]byte(tt.json), &v)
+			require.NoError(t, err)
+			assert.Equal(t, tt.expected, v.Values())
+		})
+	}
+}
+
+func TestValueSet_JSONUnmarshal_Error(t *testing.T) {
+	var v ValueSet
+	err := json.Unmarshal([]byte(`{invalid}`), &v)
+	require.Error(t, err)
+}
+
+func TestValueSet_JSONRoundTrip(t *testing.T) {
+	original := NewValueSet("hello", "world", 3.14, 9999999999999)
+	data, err := json.Marshal(original)
+	require.NoError(t, err)
+
+	var restored ValueSet
+	require.NoError(t, json.Unmarshal(data, &restored))
+
+	// Numeric types become json.Number after round-trip (UseNumber preserves precision).
+	expected := []interface{}{"hello", "world", json.Number("3.14"), json.Number("9999999999999")}
+	assert.Equal(t, expected, restored.Values())
+
+	// Re-marshaling produces identical JSON regardless of the underlying numeric type.
+	restoredData, err := json.Marshal(restored)
+	require.NoError(t, err)
+	assert.JSONEq(t, string(data), string(restoredData))
 }

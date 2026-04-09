@@ -13,6 +13,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestUpdateGoldenLog(t *testing.T) {
+	updateGoldenFiles(t, NewLogFormatter(), []goldenFileTestCase{
+		{"testdata/empty.log", runners.Results{}},
+		{"testdata/results.log", mockResults},
+	})
+}
+
 func TestLogFormatterWrite(t *testing.T) {
 	tests := []struct {
 		name    string

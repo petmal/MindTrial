@@ -210,3 +210,81 @@ func toLines(expectedResult utils.ValueSet) [][]string {
 	}
 	return result
 }
+
+// RunMergeStats holds per-run statistics collected during a merge operation.
+type RunMergeStats struct {
+	// Total is the number of results for this run after merging.
+	Total int
+	// Updated is the number of unique tasks whose results were replaced by a later input.
+	Updated int
+}
+
+// MergeStats holds statistics collected during a MergeResults operation.
+type MergeStats struct {
+	// Runs maps provider name → run name → merge statistics for that run.
+	Runs map[string]map[string]RunMergeStats
+}
+
+// MergeResults combines multiple result sets into one.
+// When the same (Provider, Run, Task) tuple exists in multiple inputs, the last occurrence wins.
+// New tasks for an existing run are grouped with that run's entries rather than appended to the end.
+// Runs within a provider keep first-seen order.
+// Tasks within each run keep insertion order, with replaced entries keeping their position.
+func MergeResults(resultSets ...Results) (Results, MergeStats) {
+	type runState struct {
+		results   []RunResult
+		taskIndex map[string]int
+		updated   map[string]struct{}
+	}
+
+	type providerState struct {
+		runOrder []string
+		runs     map[string]*runState
+	}
+
+	providers := make(map[string]*providerState)
+
+	for _, rs := range resultSets {
+		for provider, results := range rs {
+			providerResults, ok := providers[provider]
+			if !ok {
+				providerResults = &providerState{runs: make(map[string]*runState)}
+				providers[provider] = providerResults
+			}
+			for _, r := range results {
+				runResults, ok := providerResults.runs[r.Run]
+				if !ok {
+					runResults = &runState{
+						taskIndex: make(map[string]int),
+						updated:   make(map[string]struct{}),
+					}
+					providerResults.runs[r.Run] = runResults
+					providerResults.runOrder = append(providerResults.runOrder, r.Run)
+				}
+				if index, exists := runResults.taskIndex[r.Task]; exists {
+					runResults.results[index] = r
+					runResults.updated[r.Task] = struct{}{}
+				} else {
+					runResults.taskIndex[r.Task] = len(runResults.results)
+					runResults.results = append(runResults.results, r)
+				}
+			}
+		}
+	}
+
+	// Pass 2: reconstruct merged slices in recorded order and build stats.
+	merged := make(Results)
+	stats := MergeStats{Runs: make(map[string]map[string]RunMergeStats)}
+	for provider, providerResults := range providers {
+		if len(providerResults.runOrder) > 0 {
+			stats.Runs[provider] = make(map[string]RunMergeStats)
+			for _, run := range providerResults.runOrder {
+				runResults := providerResults.runs[run]
+				merged[provider] = append(merged[provider], runResults.results...)
+				stats.Runs[provider][run] = RunMergeStats{Total: len(runResults.results), Updated: len(runResults.updated)}
+			}
+		}
+	}
+
+	return merged, stats
+}

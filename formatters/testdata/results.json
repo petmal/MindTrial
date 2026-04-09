@@ -1,0 +1,548 @@
+{
+  "FormatVersion": 1,
+  "AppName": "MindTrial",
+  "AppVersion": "(testing)",
+  "CreatedAt": "1985-03-04T22:10:00",
+  "Results": {
+    "provider-name": [
+      {
+        "TraceID": "01JEDE7Z8X0000000000000001",
+        "Kind": "Passed",
+        "Task": "task-name",
+        "Provider": "provider-name",
+        "Run": "run-success",
+        "Got": "Quos aut rerum quaerat qui ad culpa.",
+        "Want": "Quos aut rerum quaerat qui ad culpa.",
+        "Details": {
+          "Answer": {
+            "Title": "Responsio Bona",
+            "Explanation": [
+              "Quis ea voluptatem non aperiam dolor est.",
+              "Alias odit enim fugiat vitae aliquam dolor quo ratione."
+            ],
+            "ActualAnswer": [
+              "Quos aut rerum quaerat qui ad culpa."
+            ],
+            "ExpectedAnswer": [
+              [
+                "Quos aut rerum quaerat qui ad culpa."
+              ]
+            ],
+            "Usage": {
+              "InputTokens": 9876543210,
+              "OutputTokens": 1234567890
+            },
+            "ToolUsage": {
+              "calculator": {
+                "CallCount": 127,
+                "TotalDurationNS": 45000000000
+              },
+              "file_processor": {
+                "TotalDurationNS": 350000000
+              },
+              "memory_tool": {
+                "CallCount": 8
+              },
+              "web_search": {
+                "CallCount": 1,
+                "TotalDurationNS": 135000000000
+              }
+            }
+          },
+          "Validation": {
+            "Title": "Validatio Perfecta",
+            "Explanation": [
+              "Sed ut perspiciatis unde omnis iste natus error sit voluptatem."
+            ],
+            "Usage": {
+              "InputTokens": 11,
+              "OutputTokens": 5
+            },
+            "ToolUsage": {
+              "data_formatter": {
+                "CallCount": 1
+              },
+              "validator": {
+                "CallCount": 15,
+                "TotalDurationNS": 7250000000
+              }
+            }
+          }
+        },
+        "DurationNS": 95000000000
+      },
+      {
+        "TraceID": "01JEDE7Z8X0000000000000002",
+        "Kind": "Failed",
+        "Task": "task-name",
+        "Provider": "provider-name",
+        "Run": "run-failure",
+        "Got": "Ipsam ea et optio explicabo eius et.",
+        "Want": "Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui.",
+        "Details": {
+          "Answer": {
+            "Title": "Generatio Responsi",
+            "Explanation": [
+              "Ut eos eius modi nihil voluptatem error.",
+              "Veniam omnis at possimus aliquid tempore.",
+              "Ut voluptatem ullam et ea non beatae eos adipisci incidunt.",
+              "Consequatur hic sint laboriosam maiores unde vero ipsum magnam."
+            ],
+            "ActualAnswer": [
+              "Ipsam ea et optio explicabo eius et."
+            ],
+            "ExpectedAnswer": [
+              [
+                "Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui."
+              ]
+            ],
+            "Usage": {
+              "InputTokens": 200
+            },
+            "ToolUsage": {
+              "json_parser": {
+                "TotalDurationNS": 55000000
+              }
+            }
+          },
+          "Validation": {
+            "Title": "Validatio Defecit",
+            "Explanation": [
+              "At vero eos et accusamus et iusto odio dignissimos ducimus qui."
+            ]
+          }
+        },
+        "DurationNS": 10000000000
+      },
+      {
+        "TraceID": "01JEDE7Z8X0000000000000003",
+        "Kind": "Passed",
+        "Task": "task-name",
+        "Provider": "provider-name",
+        "Run": "run-success-multiple-answers",
+        "Got": "Quos aut rerum quaerat qui ad culpa.",
+        "Want": [
+          "Deserunt quo sint minus eos officiis et.",
+          "Quos aut rerum quaerat qui ad culpa."
+        ],
+        "Details": {
+          "Answer": {
+            "Title": "Multiplex Responsio",
+            "Explanation": [
+              "Quis ea voluptatem non aperiam.",
+              "Dolor est alias odit enim fugiat vitae aliquam dolore ratione."
+            ],
+            "ActualAnswer": [
+              "Quos aut rerum quaerat qui ad culpa."
+            ],
+            "ExpectedAnswer": [
+              [
+                "Deserunt quo sint minus eos officiis et."
+              ],
+              [
+                "Quos aut rerum quaerat qui ad culpa."
+              ]
+            ]
+          },
+          "Validation": {
+            "Title": "Selectio Validata",
+            "Explanation": [
+              "Blanditiis praesentium voluptatum deleniti atque corrupti quos dolores.",
+              "Et quas molestias excepturi sint occaecati cupiditate non provident.",
+              "Similique sunt in culpa qui officia deserunt mollitia animi."
+            ]
+          }
+        },
+        "DurationNS": 17000000000
+      },
+      {
+        "TraceID": "01JEDE7Z8X0000000000000004",
+        "Kind": "Failed",
+        "Task": "task-name",
+        "Provider": "provider-name",
+        "Run": "run-failure-multiple-answers",
+        "Got": "Ipsam ea et optio explicabo eius et.",
+        "Want": [
+          "Dolores saepe ad sed rerum autem iure minima et.",
+          "Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui."
+        ],
+        "Details": {
+          "Answer": {
+            "Title": "Responsum Generatum",
+            "Explanation": [
+              "Ut eos eius modi nihil voluptatem error quidem.",
+              "Veniam omnis at possimus aliquid corporis.",
+              "Ut voluptatem ullam et ea non beatae eos adipisci incidunt tempore.",
+              "Consequatur hic sint laboriosam maiores unde vero ipsum dolorem."
+            ],
+            "ActualAnswer": [
+              "Ipsam ea et optio explicabo eius et."
+            ],
+            "ExpectedAnswer": [
+              [
+                "Dolores saepe ad sed rerum autem iure minima et."
+              ],
+              [
+                "Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui."
+              ]
+            ]
+          },
+          "Validation": {
+            "Title": "Selectio Rejicienda",
+            "Explanation": [
+              "Et harum quidem rerum facilis est et expedita distinctio nam libero."
+            ],
+            "Usage": {
+              "InputTokens": 500,
+              "OutputTokens": 150
+            },
+            "ToolUsage": {
+              "grammar_analyzer": {
+                "TotalDurationNS": 12000000000
+              },
+              "spell_checker": {
+                "CallCount": 847,
+                "TotalDurationNS": 222300000000
+              }
+            }
+          }
+        },
+        "DurationNS": 180800000000
+      },
+      {
+        "TraceID": "01JEDE7Z8X0000000000000005",
+        "Kind": "Error",
+        "Task": "task-name",
+        "Provider": "provider-name",
+        "Run": "run-error",
+        "Got": "error message",
+        "Want": "Cum et rem.",
+        "Details": {
+          "Error": {
+            "Title": "Errorem Executionis",
+            "Message": "Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus.",
+            "Usage": {
+              "InputTokens": 0,
+              "OutputTokens": 0
+            },
+            "ToolUsage": {
+              "config_loader": {
+                "CallCount": 92
+              },
+              "file_reader": {
+                "CallCount": 3456,
+                "TotalDurationNS": 1512100000000
+              }
+            }
+          }
+        },
+        "DurationNS": 0
+      },
+      {
+        "TraceID": "01JEDE7Z8X0000000000000006",
+        "Kind": "Skipped",
+        "Task": "task-name",
+        "Provider": "provider-name",
+        "Run": "run-not-supported",
+        "Got": "Sequi molestiae iusto sit sit dolorum aut.",
+        "Want": "Animi aut eligendi repellendus debitis harum aut.",
+        "Details": {
+          "Error": {
+            "Title": "Functio Non Supporta",
+            "Message": "Voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+            "Details": {
+              "Feature Type": [
+                "advanced-reasoning"
+              ],
+              "Provider": [
+                "legacy-model-v1"
+              ],
+              "Suggestion": [
+                "Excepteur sint occaecat cupidatat non proident.",
+                "Sunt in culpa qui officia deserunt mollit anim."
+              ]
+            },
+            "Usage": {
+              "InputTokens": 10,
+              "OutputTokens": 0
+            }
+          }
+        },
+        "DurationNS": 500000000
+      },
+      {
+        "TraceID": "01JEDE7Z8X0000000000000007",
+        "Kind": "Error",
+        "Task": "task-name",
+        "Provider": "provider-name",
+        "Run": "run-validation-error",
+        "Got": "Adipiscing elit sed do eiusmod tempor.",
+        "Want": "Lorem ipsum dolor sit amet consectetur.",
+        "Details": {
+          "Error": {
+            "Title": "Validatio Deficiens",
+            "Message": "Ut enim ad minim veniam quis nostrud exercitation ullamco laboris.",
+            "Details": {
+              "Diagnostic": [
+                "Nemo enim ipsam voluptatem quia voluptas sit"
+              ],
+              "Endpoint": [
+                "validate-response"
+              ],
+              "Raw Response": [
+                "Excepteur sint occaecat cupidatat non proident",
+                "Sunt in culpa qui officia deserunt mollit anim",
+                "Id est laborum et dolorum fuga"
+              ],
+              "Service": [
+                "validation-service-v2"
+              ]
+            },
+            "Usage": {
+              "InputTokens": 1234,
+              "OutputTokens": 5678
+            }
+          }
+        },
+        "DurationNS": 2000000000
+      },
+      {
+        "TraceID": "01JEDE7Z8X0000000000000008",
+        "Kind": "Error",
+        "Task": "task-name",
+        "Provider": "provider-name",
+        "Run": "run-parsing-error",
+        "Got": "Invalid JSON: {broken",
+        "Want": "Sed do eiusmod tempor incididunt ut.",
+        "Details": {
+          "Error": {
+            "Title": "Parsing Errorem Responsi",
+            "Message": "Duis aute irure dolor in reprehenderit in voluptate velit esse.",
+            "Details": {
+              "Error Position": [
+                "line 3, column 25"
+              ],
+              "Parser State": [
+                "Expected: closing quote or brace",
+                "Found: end of input",
+                "Context: within object literal"
+              ],
+              "Raw Response": [
+                "Invalid JSON: {broken",
+                "  \"field1\": \"value1\",",
+                "  \"field2\": incomplete...",
+                "} // missing closing brace"
+              ],
+              "Recovery": [
+                "Cillum dolore eu fugiat nulla pariatur."
+              ]
+            },
+            "Usage": {
+              "OutputTokens": 333
+            }
+          }
+        },
+        "DurationNS": 314159000000
+      },
+      {
+        "TraceID": "01JEDE7Z8X0000000000000009",
+        "Kind": "Passed",
+        "Task": "task-name",
+        "Provider": "provider-name",
+        "Run": "run-structured-success",
+        "Got": [
+          {
+            "level": "INFO",
+            "message": "User 'admin' logged in successfully.",
+            "timestamp": "2025-09-14T10:30:00Z",
+            "user_id": "admin"
+          },
+          {
+            "level": "WARN",
+            "message": "System memory usage is high.",
+            "timestamp": "2025-09-14T10:31:15Z"
+          }
+        ],
+        "Want": [
+          {
+            "level": "INFO",
+            "message": "User 'admin' logged in successfully.",
+            "timestamp": "2025-09-14T10:30:00Z",
+            "user_id": "admin"
+          },
+          {
+            "level": "WARN",
+            "message": "System memory usage is high.",
+            "timestamp": "2025-09-14T10:31:15Z"
+          }
+        ],
+        "Details": {
+          "Answer": {
+            "Title": "Log Parsing Success",
+            "Explanation": [
+              "Successfully parsed log entries with structured JSON output.",
+              "Extracted timestamps, levels, messages, and user IDs where present."
+            ],
+            "ActualAnswer": [
+              "[",
+              "  {",
+              "    \"timestamp\": \"2025-09-14T10:30:00Z\",",
+              "    \"level\": \"INFO\",",
+              "    \"message\": \"User 'admin' logged in successfully.\",",
+              "    \"user_id\": \"admin\"",
+              "  },",
+              "  {",
+              "    \"timestamp\": \"2025-09-14T10:31:15Z\",",
+              "    \"level\": \"WARN\",",
+              "    \"message\": \"System memory usage is high.\"",
+              "  }",
+              "]"
+            ],
+            "ExpectedAnswer": [
+              [
+                "[",
+                "  {",
+                "    \"timestamp\": \"2025-09-14T10:30:00Z\",",
+                "    \"level\": \"INFO\",",
+                "    \"message\": \"User 'admin' logged in successfully.\",",
+                "    \"user_id\": \"admin\"",
+                "  },",
+                "  {",
+                "    \"timestamp\": \"2025-09-14T10:31:15Z\",",
+                "    \"level\": \"WARN\",",
+                "    \"message\": \"System memory usage is high.\"",
+                "  }",
+                "]"
+              ]
+            ],
+            "Usage": {
+              "InputTokens": 456,
+              "OutputTokens": 234
+            },
+            "ToolUsage": {
+              "json_parser": {
+                "CallCount": 2,
+                "TotalDurationNS": 50000000
+              },
+              "validator": {
+                "CallCount": 1,
+                "TotalDurationNS": 25000000
+              }
+            }
+          },
+          "Validation": {
+            "Title": "Structured Validation Success",
+            "Explanation": [
+              "JSON structure matches expected schema.",
+              "All required fields present with correct types.",
+              "Deep equality comparison passed."
+            ],
+            "Usage": {
+              "InputTokens": 78,
+              "OutputTokens": 12
+            },
+            "ToolUsage": {
+              "schema_validator": {
+                "CallCount": 1,
+                "TotalDurationNS": 15000000
+              }
+            }
+          }
+        },
+        "DurationNS": 42000000000
+      },
+      {
+        "TraceID": "01JEDE7Z8X0000000000000010",
+        "Kind": "Failed",
+        "Task": "task-name",
+        "Provider": "provider-name",
+        "Run": "run-structured-failure",
+        "Got": {
+          "level": "ERROR",
+          "message": "Authentication failed for user 'admin'.",
+          "timestamp": "2025-09-14T10:30:00Z",
+          "user_id": "admin"
+        },
+        "Want": [
+          {
+            "level": "INFO",
+            "message": "User 'admin' logged in successfully.",
+            "timestamp": "2025-09-14T10:30:00Z",
+            "user_id": "admin"
+          },
+          {
+            "level": "WARN",
+            "message": "System memory usage is high.",
+            "timestamp": "2025-09-14T10:31:15Z"
+          },
+          {
+            "level": "INFO",
+            "message": "User login successful.",
+            "timestamp": "2025-09-14T10:30:00Z",
+            "user_id": "admin"
+          }
+        ],
+        "Details": {
+          "Answer": {
+            "Title": "Log Parsing with Incorrect Data",
+            "Explanation": [
+              "Parsed log entries but with incorrect content.",
+              "First entry shows authentication failure instead of success.",
+              "Second entry is correct."
+            ],
+            "ActualAnswer": [
+              "{",
+              "  \"level\": \"ERROR\",",
+              "  \"message\": \"Authentication failed for user 'admin'.\",",
+              "  \"timestamp\": \"2025-09-14T10:30:00Z\",",
+              "  \"user_id\": \"admin\"",
+              "}"
+            ],
+            "ExpectedAnswer": [
+              [
+                "{",
+                "  \"level\": \"INFO\",",
+                "  \"message\": \"User 'admin' logged in successfully.\",",
+                "  \"timestamp\": \"2025-09-14T10:30:00Z\",",
+                "  \"user_id\": \"admin\"",
+                "}"
+              ],
+              [
+                "{",
+                "  \"level\": \"WARN\",",
+                "  \"message\": \"System memory usage is high.\",",
+                "  \"timestamp\": \"2025-09-14T10:31:15Z\"",
+                "}"
+              ],
+              [
+                "{",
+                "  \"level\": \"INFO\",",
+                "  \"message\": \"User login successful.\",",
+                "  \"timestamp\": \"2025-09-14T10:30:00Z\",",
+                "  \"user_id\": \"admin\"",
+                "}"
+              ]
+            ],
+            "Usage": {
+              "InputTokens": 412,
+              "OutputTokens": 198
+            }
+          },
+          "Validation": {
+            "Title": "Structured Validation Failure",
+            "Explanation": [
+              "JSON structure is valid but content doesn't match any expected results.",
+              "First log entry shows ERROR level instead of expected INFO level.",
+              "Message content mismatch: authentication failure vs login success."
+            ],
+            "Usage": {
+              "InputTokens": 89,
+              "OutputTokens": 15
+            }
+          }
+        },
+        "DurationNS": 38000000000
+      }
+    ]
+  }
+}

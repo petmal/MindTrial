@@ -10,6 +10,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"strconv"
 
 	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/petmal/mindtrial/runners"
@@ -30,14 +31,14 @@ func (f csvFormatter) Write(results runners.Results, out io.Writer) error {
 	writer := csv.NewWriter(out)
 	defer writer.Flush()
 
-	headers := []string{"TraceID", "Provider", "Run", "Task", "Status", "Duration", "Answer", "Details"}
+	headers := []string{"TraceID", "Provider", "Run", "Task", "Status", "DurationMS", "Answer", "Details"}
 	if err := writer.Write(headers); err != nil {
 		return fmt.Errorf("%w: %v", ErrPrintResults, err)
 	}
 
 	return ForEachOrdered(results, func(_ string, runResults []runners.RunResult) error {
 		for _, result := range runResults {
-			row := []string{result.TraceID, result.Provider, result.Run, result.Task, ToStatus(result.Kind), RoundToMS(result.Duration).String(), formatAnswerText(result), utils.ToString(result.Details)}
+			row := []string{result.TraceID, result.Provider, result.Run, result.Task, ToStatus(result.Kind), strconv.FormatInt(RoundToMS(result.Duration).Milliseconds(), 10), formatAnswerText(result), utils.ToString(newDetailsView(result.Details))}
 			if err := writer.Write(row); err != nil {
 				return fmt.Errorf("%w: %v", ErrPrintResults, err)
 			}

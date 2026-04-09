@@ -9,6 +9,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -22,12 +23,14 @@ import (
 	"github.com/petmal/mindtrial/cmd/mindtrial/tui"
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/formatters"
+	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/petmal/mindtrial/runners"
 	"github.com/petmal/mindtrial/version"
 )
 
 const (
 	runCommandName             = "run"
+	mergeResultsCommandName    = "merge-results"
 	helpCommandName            = "help"
 	versionCommandName         = "version"
 	unsetFlagValue             = "\x00"
@@ -39,31 +42,54 @@ const (
 
 var (
 	commandDoc = map[string]string{
-		runCommandName:     "start the trials",
-		helpCommandName:    "show help",
-		versionCommandName: "show version",
+		runCommandName:          "start the trials",
+		mergeResultsCommandName: "merge results from multiple runs",
+		helpCommandName:         "show help",
+		versionCommandName:      "show version",
 	}
 )
 
 var (
 	csvFormatter        = formatters.NewCSVFormatter()
 	htmlFormatter       = formatters.NewHTMLFormatter()
+	jsonCodec           = formatters.NewJSONCodec()
 	logFormatter        = formatters.NewLogFormatter()
 	summaryLogFormatter = formatters.NewSummaryLogFormatter()
 )
 
 var (
-	configFilePath     = flag.String("config", defaultConfigFile, "configuration file path")
-	tasksFilePath      = flag.String("tasks", unsetFlagValue, "task definitions file path")
-	outputFileDir      = flag.String("output-dir", unsetFlagValue, "results output directory")
-	outputFileBasename = flag.String("output-basename", unsetFlagValue, "base filename for results; replace if exists; blank = stdout")
-	formatHTML         = formatFlag(htmlFormatter, true)
-	formatCSV          = formatFlag(csvFormatter, false)
-	logFilePath        = flag.String("log", unsetFlagValue, "log file path; append if exists; blank = stdout")
-	verbose            = flag.Bool("verbose", false, "enable detailed logging")
-	debug              = flag.Bool("debug", false, "enable low-level debug logging")
-	interactive        = flag.Bool("interactive", false, "enable interactive interface for run configuration, and real-time progress monitoring")
+	configFilePath     *string
+	tasksFilePath      *string
+	outputFileDir      *string
+	outputFileBasename *string
+	formatHTML         *bool
+	formatCSV          *bool
+	formatJSON         *bool
+	logFilePath        *string
+	verbose            *bool
+	debug              *bool
+	interactive        *bool
 )
+
+var inputFiles stringSliceFlag
+
+// stringSliceFlag implements flag.Value for collecting multiple string flag values.
+type stringSliceFlag []string
+
+func (s *stringSliceFlag) String() string {
+	return strings.Join(*s, ", ")
+}
+
+func (s *stringSliceFlag) Set(value string) error {
+	*s = append(*s, value)
+	return nil
+}
+
+// outputTarget pairs a formatter with its destination writer.
+type outputTarget struct {
+	formatter formatters.Formatter
+	writer    io.Writer
+}
 
 func formatFlag(formatter formatters.Formatter, defaultValue bool) *bool {
 	fileExt := formatter.FileExt()
@@ -79,12 +105,29 @@ var stderr = zerolog.New(zerolog.NewConsoleWriter(
 )).Level(zerolog.TraceLevel).With().Timestamp().Logger()
 
 func init() {
+	registerFlags()
+}
+
+func registerFlags() {
+	configFilePath = flag.String("config", defaultConfigFile, "configuration file path")
+	tasksFilePath = flag.String("tasks", unsetFlagValue, "task definitions file path")
+	outputFileDir = flag.String("output-dir", unsetFlagValue, "results output directory")
+	outputFileBasename = flag.String("output-basename", unsetFlagValue, "base filename for results; replace if exists; blank = stdout")
+	formatHTML = formatFlag(htmlFormatter, true)
+	formatCSV = formatFlag(csvFormatter, false)
+	formatJSON = formatFlag(jsonCodec, false)
+	logFilePath = flag.String("log", unsetFlagValue, "log file path; append if exists; blank = stdout")
+	verbose = flag.Bool("verbose", false, "enable detailed logging")
+	debug = flag.Bool("debug", false, "enable low-level debug logging")
+	interactive = flag.Bool("interactive", false, "enable interactive interface for run configuration, and real-time progress monitoring")
+	flag.Var(&inputFiles, "input", "input result file path for merge-results; can be specified multiple times")
+
 	flag.Usage = func() {
 		w := flag.CommandLine.Output()
 		fmt.Fprintf(w, "Usage: %s [options] [command]\n", os.Args[0])
 		fmt.Fprintln(w)
 		fmt.Fprintln(w, "Commands:")
-		printCommandHelp(w, runCommandName, helpCommandName, versionCommandName)
+		printCommandHelp(w, runCommandName, mergeResultsCommandName, helpCommandName, versionCommandName)
 		fmt.Fprintln(w)
 		fmt.Fprintln(w, "Options:")
 		flag.PrintDefaults()
@@ -119,6 +162,13 @@ func main() {
 				os.Exit(exitCodeFinishedWithErrors)
 			}
 			return
+		case mergeResultsCommandName:
+			if ok, err := mergeResults(context.Background()); err != nil {
+				stderr.Fatal().Err(err).Send()
+			} else if !ok {
+				os.Exit(exitCodeFinishedWithErrors)
+			}
+			return
 		}
 	}
 	printHelp(nil) // os.Stderr
@@ -126,6 +176,13 @@ func main() {
 }
 
 func run(ctx context.Context) (ok bool, err error) {
+	if err = validateFlags(runCommandName,
+		"config", "tasks", "output-dir", "output-basename",
+		"html", "csv", "json", "log", "verbose", "debug", "interactive",
+	); err != nil {
+		return
+	}
+
 	configPath := filepath.Clean(*configFilePath)
 	workingDir, configDir, err := getWorkingDirectories(configPath)
 	if err != nil {
@@ -200,9 +257,9 @@ func run(ctx context.Context) (ok bool, err error) {
 	timeRef := time.Now()
 
 	// Create output files.
-	outputWriters := make(map[formatters.Formatter]io.Writer)
+	var outputWriters []outputTarget
 	for _, formatter := range enabledFormatters() {
-		outputWriters[formatter] = os.Stdout // default
+		out := os.Stdout // default
 		if fileName := getFlagValueIfSet(outputFileBasename, cfg.Config.OutputBaseName); config.IsNotBlank(fileName) {
 			fileName = fmt.Sprintf("%s.%s", fileName, formatter.FileExt())
 			if fp, outputPath, err := createOutputFile(config.MakeAbs(
@@ -211,9 +268,10 @@ func run(ctx context.Context) (ok bool, err error) {
 			} else if fp != nil {
 				defer fp.Close()
 				fmt.Printf("Results in %s format will be saved to: %s\n", strings.ToUpper(formatter.FileExt()), outputPath)
-				outputWriters[formatter] = fp
+				out = fp
 			}
 		}
+		outputWriters = append(outputWriters, outputTarget{formatter: formatter, writer: out})
 	}
 
 	// Configure logger.
@@ -288,6 +346,9 @@ func enabledFormatters() (enabled []formatters.Formatter) {
 	}
 	if isEnabled(formatCSV) {
 		enabled = append(enabled, csvFormatter)
+	}
+	if isEnabled(formatJSON) {
+		enabled = append(enabled, jsonCodec)
 	}
 	return enabled
 }
@@ -366,12 +427,104 @@ func logResults(results runners.Results, out io.Writer) (finishedWithErrors bool
 	return
 }
 
-func saveResults(results runners.Results, outputWriters map[formatters.Formatter]io.Writer) (finishedWithErrors bool) {
-	for formatter, out := range outputWriters {
-		if err := formatter.Write(results, out); err != nil {
-			stderr.Warn().Err(err).Msgf("failed to write %s output", strings.ToUpper(formatter.FileExt()))
+func saveResults(results runners.Results, outputWriters []outputTarget) (finishedWithErrors bool) {
+	for _, ow := range outputWriters {
+		if err := ow.formatter.Write(results, ow.writer); err != nil {
+			stderr.Warn().Err(err).Msgf("failed to write %s output", strings.ToUpper(ow.formatter.FileExt()))
 			finishedWithErrors = true
 		}
 	}
+	return
+}
+
+var errUnsupportedFlag = errors.New("unsupported flag for command")
+
+func validateFlags(command string, supported ...string) error {
+	allowed := make(map[string]bool, len(supported))
+	for _, name := range supported {
+		allowed[name] = true
+	}
+	var unsupported string
+	flag.Visit(func(f *flag.Flag) {
+		if !allowed[f.Name] {
+			unsupported = f.Name
+		}
+	})
+	if unsupported != "" {
+		return fmt.Errorf("%w: --%s is not supported by %q", errUnsupportedFlag, unsupported, command)
+	}
+	return nil
+}
+
+func mergeResults(_ context.Context) (ok bool, err error) {
+	if err = validateFlags(mergeResultsCommandName,
+		"input", "output-dir", "output-basename", "html", "csv", "json", "verbose",
+	); err != nil {
+		return
+	}
+
+	if len(inputFiles) < 1 {
+		fmt.Println("Nothing to merge: no input files provided.")
+		return true, nil
+	}
+
+	// Read all input files.
+	resultSets := make([]runners.Results, 0, len(inputFiles))
+	for _, inputPath := range inputFiles {
+		fmt.Printf("Loading results from file: %s\n", inputPath)
+		rs, readErr := formatters.ReadResultsFromFile(inputPath)
+		if readErr != nil {
+			return false, readErr
+		}
+		resultSets = append(resultSets, rs)
+	}
+
+	// Merge results.
+	results, stats := runners.MergeResults(resultSets...)
+
+	// Time to be used to resolve name patterns.
+	timeRef := time.Now()
+
+	// Create output files.
+	var outputWriters []outputTarget
+	for _, formatter := range enabledFormatters() {
+		out := os.Stdout // default
+		if fileName := getFlagValueIfSet(outputFileBasename, ""); config.IsNotBlank(fileName) {
+			fileName = fmt.Sprintf("%s.%s", fileName, formatter.FileExt())
+			outputDir := getFlagValueIfSet(outputFileDir, "")
+			if config.IsNotBlank(outputDir) {
+				fileName = filepath.Join(outputDir, fileName)
+			}
+			if fp, outputPath, createErr := createOutputFile(fileName, timeRef, false); createErr != nil {
+				return ok, createErr
+			} else if fp != nil {
+				defer fp.Close()
+				fmt.Printf("Results in %s format will be saved to: %s\n", strings.ToUpper(formatter.FileExt()), outputPath)
+				out = fp
+			}
+		}
+		outputWriters = append(outputWriters, outputTarget{formatter: formatter, writer: out})
+	}
+
+	// Print merge summary.
+	fmt.Println()
+	fmt.Println("Merged results:")
+	for _, provider := range utils.SortedKeys(stats.Runs) {
+		fmt.Printf("  %s:\n", provider)
+		for _, run := range utils.SortedKeys(stats.Runs[provider]) {
+			rs := stats.Runs[provider][run]
+			if rs.Updated > 0 {
+				fmt.Printf("    %s: %d total, %d updated\n", run, rs.Total, rs.Updated)
+			} else {
+				fmt.Printf("    %s: %d total\n", run, rs.Total)
+			}
+		}
+	}
+	fmt.Println()
+
+	// Print and save the results.
+	ok = !isEnabled(verbose) || !logResults(results, os.Stdout)
+	ok = ok && !saveResults(results, outputWriters)
+
 	return
 }

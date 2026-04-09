@@ -2464,3 +2464,220 @@ func TestToLines(t *testing.T) {
 		})
 	}
 }
+
+func TestMergeResults(t *testing.T) {
+	resultA1 := RunResult{Provider: "ProviderA", Run: "run1", Task: "task1", Kind: Success, Got: "a1"}
+	resultA2 := RunResult{Provider: "ProviderA", Run: "run1", Task: "task2", Kind: Failure, Got: "a2"}
+	resultA3 := RunResult{Provider: "ProviderA", Run: "run2", Task: "task1", Kind: Success, Got: "a3"}
+	resultB1 := RunResult{Provider: "ProviderB", Run: "run1", Task: "task1", Kind: Success, Got: "b1"}
+	resultA1Updated := RunResult{Provider: "ProviderA", Run: "run1", Task: "task1", Kind: Success, Got: "a1-updated"}
+
+	t.Run("merge with no overlap", func(t *testing.T) {
+		rs1 := Results{"ProviderA": {resultA1}}
+		rs2 := Results{"ProviderB": {resultB1}}
+
+		merged, stats := MergeResults(rs1, rs2)
+		require.Len(t, merged, 2)
+		require.Len(t, merged["ProviderA"], 1)
+		require.Len(t, merged["ProviderB"], 1)
+		assert.Equal(t, "a1", merged["ProviderA"][0].Got)
+		assert.Equal(t, "b1", merged["ProviderB"][0].Got)
+		assert.Equal(t, RunMergeStats{Total: 1, Updated: 0}, stats.Runs["ProviderA"]["run1"])
+		assert.Equal(t, RunMergeStats{Total: 1, Updated: 0}, stats.Runs["ProviderB"]["run1"])
+	})
+
+	t.Run("merge with full overlap last-in wins", func(t *testing.T) {
+		rs1 := Results{"ProviderA": {resultA1}}
+		rs2 := Results{"ProviderA": {resultA1Updated}}
+
+		merged, stats := MergeResults(rs1, rs2)
+		require.Len(t, merged, 1)
+		require.Len(t, merged["ProviderA"], 1)
+		assert.Equal(t, "a1-updated", merged["ProviderA"][0].Got)
+		assert.Equal(t, RunMergeStats{Total: 1, Updated: 1}, stats.Runs["ProviderA"]["run1"])
+	})
+
+	t.Run("merge with partial overlap", func(t *testing.T) {
+		rs1 := Results{"ProviderA": {resultA1, resultA2}}
+		rs2 := Results{"ProviderA": {resultA1Updated}}
+
+		merged, stats := MergeResults(rs1, rs2)
+		require.Len(t, merged, 1)
+		require.Len(t, merged["ProviderA"], 2)
+		assert.Equal(t, "a1-updated", merged["ProviderA"][0].Got)
+		assert.Equal(t, "a2", merged["ProviderA"][1].Got)
+		assert.Equal(t, RunMergeStats{Total: 2, Updated: 1}, stats.Runs["ProviderA"]["run1"])
+	})
+
+	t.Run("merge distinct keys same provider", func(t *testing.T) {
+		rs1 := Results{"ProviderA": {resultA1}}
+		rs2 := Results{"ProviderA": {resultA3}}
+
+		merged, stats := MergeResults(rs1, rs2)
+		require.Len(t, merged, 1)
+		require.Len(t, merged["ProviderA"], 2)
+		assert.Equal(t, "a1", merged["ProviderA"][0].Got)
+		assert.Equal(t, "a3", merged["ProviderA"][1].Got)
+		assert.Equal(t, RunMergeStats{Total: 1, Updated: 0}, stats.Runs["ProviderA"]["run1"])
+		assert.Equal(t, RunMergeStats{Total: 1, Updated: 0}, stats.Runs["ProviderA"]["run2"])
+	})
+
+	t.Run("merge empty results", func(t *testing.T) {
+		merged, stats := MergeResults(Results{}, Results{})
+		assert.Empty(t, merged)
+		assert.Empty(t, stats.Runs)
+	})
+
+	t.Run("merge ignores empty provider entries", func(t *testing.T) {
+		rs := Results{
+			"ProviderA": {},
+			"ProviderB": {resultB1},
+		}
+
+		merged, stats := MergeResults(rs)
+		require.Len(t, merged, 1)
+		require.Len(t, stats.Runs, 1)
+		assert.NotContains(t, merged, "ProviderA")
+		assert.NotContains(t, stats.Runs, "ProviderA")
+		require.Len(t, merged["ProviderB"], 1)
+		assert.Equal(t, "b1", merged["ProviderB"][0].Got)
+		assert.Equal(t, RunMergeStats{Total: 1, Updated: 0}, stats.Runs["ProviderB"]["run1"])
+	})
+
+	t.Run("merge keeps provider after earlier empty entry", func(t *testing.T) {
+		rs1 := Results{"ProviderA": {}}
+		rs2 := Results{"ProviderA": {resultA1}}
+
+		merged, stats := MergeResults(rs1, rs2)
+		require.Len(t, merged, 1)
+		require.Len(t, stats.Runs, 1)
+		require.Len(t, merged["ProviderA"], 1)
+		assert.Equal(t, "a1", merged["ProviderA"][0].Got)
+		assert.Equal(t, RunMergeStats{Total: 1, Updated: 0}, stats.Runs["ProviderA"]["run1"])
+	})
+
+	t.Run("merge ignores later empty provider entry", func(t *testing.T) {
+		rs1 := Results{"ProviderA": {resultA1}}
+		rs2 := Results{"ProviderA": {}}
+
+		merged, stats := MergeResults(rs1, rs2)
+		require.Len(t, merged, 1)
+		require.Len(t, stats.Runs, 1)
+		require.Len(t, merged["ProviderA"], 1)
+		assert.Equal(t, "a1", merged["ProviderA"][0].Got)
+		assert.Equal(t, RunMergeStats{Total: 1, Updated: 0}, stats.Runs["ProviderA"]["run1"])
+	})
+
+	t.Run("merge single input", func(t *testing.T) {
+		rs := Results{"ProviderA": {resultA1, resultA2, resultA3}}
+		merged, stats := MergeResults(rs)
+		require.Len(t, merged, 1)
+		require.Len(t, merged["ProviderA"], 3)
+		assert.Equal(t, "a1", merged["ProviderA"][0].Got)
+		assert.Equal(t, "a2", merged["ProviderA"][1].Got)
+		assert.Equal(t, "a3", merged["ProviderA"][2].Got)
+		assert.Equal(t, RunMergeStats{Total: 2, Updated: 0}, stats.Runs["ProviderA"]["run1"])
+		assert.Equal(t, RunMergeStats{Total: 1, Updated: 0}, stats.Runs["ProviderA"]["run2"])
+	})
+
+	t.Run("merge no inputs", func(t *testing.T) {
+		merged, stats := MergeResults()
+		assert.Empty(t, merged)
+		assert.Empty(t, stats.Runs)
+	})
+
+	t.Run("merge groups new tasks with existing run", func(t *testing.T) {
+		rs1 := Results{"ProviderA": {resultA1, resultA3}} // run1/task1, run2/task1
+		rs2 := Results{"ProviderA": {resultA2}}           // run1/task2
+
+		merged, stats := MergeResults(rs1, rs2)
+		require.Len(t, merged, 1)
+		require.Len(t, merged["ProviderA"], 3)
+		// run1 tasks should be grouped together, not fragmented.
+		assert.Equal(t, "a1", merged["ProviderA"][0].Got) // run1/task1 (from rs1)
+		assert.Equal(t, "a2", merged["ProviderA"][1].Got) // run1/task2 (from rs2, grouped with run1)
+		assert.Equal(t, "a3", merged["ProviderA"][2].Got) // run2/task1 (from rs1)
+		assert.Equal(t, RunMergeStats{Total: 2, Updated: 0}, stats.Runs["ProviderA"]["run1"])
+		assert.Equal(t, RunMergeStats{Total: 1, Updated: 0}, stats.Runs["ProviderA"]["run2"])
+	})
+
+	t.Run("merge multiple insertions same run", func(t *testing.T) {
+		resultA4 := RunResult{Provider: "ProviderA", Run: "run1", Task: "task3", Kind: Success, Got: "a4"}
+		rs1 := Results{"ProviderA": {resultA1, resultA3}} // run1/task1, run2/task1
+		rs2 := Results{"ProviderA": {resultA2, resultA4}} // run1/task2, run1/task3
+
+		merged, stats := MergeResults(rs1, rs2)
+		require.Len(t, merged, 1)
+		require.Len(t, merged["ProviderA"], 4)
+		// All run1 tasks grouped consecutively.
+		assert.Equal(t, "a1", merged["ProviderA"][0].Got) // run1/task1
+		assert.Equal(t, "a2", merged["ProviderA"][1].Got) // run1/task2
+		assert.Equal(t, "a4", merged["ProviderA"][2].Got) // run1/task3
+		assert.Equal(t, "a3", merged["ProviderA"][3].Got) // run2/task1
+		assert.Equal(t, RunMergeStats{Total: 3, Updated: 0}, stats.Runs["ProviderA"]["run1"])
+		assert.Equal(t, RunMergeStats{Total: 1, Updated: 0}, stats.Runs["ProviderA"]["run2"])
+	})
+
+	t.Run("merge interleaved runs with updates and insertions", func(t *testing.T) {
+		resultRun2Task2 := RunResult{Provider: "ProviderA", Run: "run2", Task: "task2", Kind: Failure, Got: "a5"}
+		resultRun2Task1Updated := RunResult{Provider: "ProviderA", Run: "run2", Task: "task1", Kind: Success, Got: "a3-updated"}
+		rs1 := Results{"ProviderA": {resultA1, resultA3}}                      // run1/task1, run2/task1
+		rs2 := Results{"ProviderA": {resultRun2Task2}}                         // run2/task2
+		rs3 := Results{"ProviderA": {resultA2}}                                // run1/task2
+		rs4 := Results{"ProviderA": {resultA1Updated, resultRun2Task1Updated}} // updates in both runs
+
+		merged, stats := MergeResults(rs1, rs2, rs3, rs4)
+		require.Len(t, merged, 1)
+		require.Len(t, merged["ProviderA"], 4)
+		assert.Equal(t, "a1-updated", merged["ProviderA"][0].Got)
+		assert.Equal(t, "a2", merged["ProviderA"][1].Got)
+		assert.Equal(t, "a3-updated", merged["ProviderA"][2].Got)
+		assert.Equal(t, "a5", merged["ProviderA"][3].Got)
+		assert.Equal(t, RunMergeStats{Total: 2, Updated: 1}, stats.Runs["ProviderA"]["run1"])
+		assert.Equal(t, RunMergeStats{Total: 2, Updated: 1}, stats.Runs["ProviderA"]["run2"])
+	})
+
+	t.Run("merge updates same task name independently per run", func(t *testing.T) {
+		resultRun2Task1Updated := RunResult{Provider: "ProviderA", Run: "run2", Task: "task1", Kind: Success, Got: "a3-updated"}
+		rs1 := Results{"ProviderA": {resultA1, resultA3}}
+		rs2 := Results{"ProviderA": {resultA1Updated, resultRun2Task1Updated}}
+
+		merged, stats := MergeResults(rs1, rs2)
+		require.Len(t, merged, 1)
+		require.Len(t, merged["ProviderA"], 2)
+		assert.Equal(t, "a1-updated", merged["ProviderA"][0].Got)
+		assert.Equal(t, "a3-updated", merged["ProviderA"][1].Got)
+		assert.Equal(t, RunMergeStats{Total: 1, Updated: 1}, stats.Runs["ProviderA"]["run1"])
+		assert.Equal(t, RunMergeStats{Total: 1, Updated: 1}, stats.Runs["ProviderA"]["run2"])
+	})
+
+	t.Run("merge multi-file replacement counts unique updates", func(t *testing.T) {
+		resultA1V2 := RunResult{Provider: "ProviderA", Run: "run1", Task: "task1", Kind: Success, Got: "a1-v2"}
+		resultA1V3 := RunResult{Provider: "ProviderA", Run: "run1", Task: "task1", Kind: Success, Got: "a1-v3"}
+		rs1 := Results{"ProviderA": {resultA1}}
+		rs2 := Results{"ProviderA": {resultA1V2}}
+		rs3 := Results{"ProviderA": {resultA1V3}}
+
+		merged, stats := MergeResults(rs1, rs2, rs3)
+		require.Len(t, merged["ProviderA"], 1)
+		assert.Equal(t, "a1-v3", merged["ProviderA"][0].Got)
+		// Updated should be 1 (unique task), not 2 (number of overwrites).
+		assert.Equal(t, RunMergeStats{Total: 1, Updated: 1}, stats.Runs["ProviderA"]["run1"])
+	})
+
+	t.Run("merge does not mutate inputs", func(t *testing.T) {
+		rs1 := Results{"ProviderA": {resultA1, resultA3}}
+		rs2 := Results{"ProviderA": {resultA2}, "ProviderB": {resultB1}}
+		rs1Before := Results{"ProviderA": append([]RunResult(nil), rs1["ProviderA"]...)}
+		rs2Before := Results{
+			"ProviderA": append([]RunResult(nil), rs2["ProviderA"]...),
+			"ProviderB": append([]RunResult(nil), rs2["ProviderB"]...),
+		}
+
+		merged, stats := MergeResults(rs1, rs2)
+		require.Len(t, merged, 2)
+		assert.Equal(t, RunMergeStats{Total: 2, Updated: 0}, stats.Runs["ProviderA"]["run1"])
+		assert.Equal(t, rs1Before, rs1)
+		assert.Equal(t, rs2Before, rs2)
+	})
+}
