@@ -6,8 +6,8 @@ retract v0.4.0 // no longer available, use v0.4.1 instead
 
 require (
 	charm.land/bubbles/v2 v2.1.0
-	charm.land/bubbletea/v2 v2.0.2
-	charm.land/lipgloss/v2 v2.0.2
+	charm.land/bubbletea/v2 v2.0.6
+	charm.land/lipgloss/v2 v2.0.3
 	github.com/charmbracelet/x/term v0.2.2
 	github.com/containerd/errdefs v1.0.0
 	github.com/docker/docker v28.5.2+incompatible
@@ -15,12 +15,12 @@ require (
 	github.com/invopop/jsonschema v0.13.0
 	github.com/kaptinlin/jsonrepair v0.2.8
 	github.com/oklog/ulid/v2 v2.1.1
-	github.com/openai/openai-go/v3 v3.31.0
+	github.com/openai/openai-go/v3 v3.32.0
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
 	github.com/sethvargo/go-retry v0.3.0
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/time v0.15.0
-	google.golang.org/genai v1.53.0
+	google.golang.org/genai v1.54.0
 	gopkg.in/validator.v2 v2.0.1
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -35,8 +35,8 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/harmonica v0.2.0 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20260330092749-0f94982c930b // indirect
-	github.com/charmbracelet/x/ansi v0.11.6 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20260416161146-9c68a866306c // indirect
+	github.com/charmbracelet/x/ansi v0.11.7 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
@@ -44,7 +44,7 @@ require (
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
-	github.com/docker/go-connections v0.6.0 // indirect
+	github.com/docker/go-connections v0.7.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.13 // indirect
@@ -54,8 +54,8 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
-	github.com/googleapis/enterprise-certificate-proxy v0.3.14 // indirect
-	github.com/googleapis/gax-go/v2 v2.21.0 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.3.15 // indirect
+	github.com/googleapis/gax-go/v2 v2.22.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
@@ -69,7 +69,7 @@ require (
 	github.com/moby/term v0.5.2 // indirect
 	github.com/morikuni/aec v1.1.0 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
-	github.com/ollama/ollama v0.20.5 // indirect
+	github.com/ollama/ollama v0.20.7 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -92,16 +92,16 @@ require (
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/text v0.36.0 // indirect
-	google.golang.org/api v0.275.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20260406210006-6f92a3bedf2d // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260406210006-6f92a3bedf2d // indirect
+	google.golang.org/api v0.276.0 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260414002931-afd174a4e478 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260414002931-afd174a4e478 // indirect
 	google.golang.org/grpc v1.80.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gotest.tools/v3 v3.5.2 // indirect
 )
 
 require (
-	github.com/anthropics/anthropic-sdk-go v1.35.0
+	github.com/anthropics/anthropic-sdk-go v1.37.0
 	github.com/cohesion-org/deepseek-go v1.3.4
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-playground/validator/v10 v10.30.2

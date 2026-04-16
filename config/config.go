@@ -566,30 +566,43 @@ type AnthropicModelParams struct {
 	// ThinkingBudgetTokens enables extended thinking with a fixed token budget, giving the model
 	// more reasoning capacity on complex tasks. Must be at least 1024 and less than MaxTokens.
 	// Ignored when Effort is also set. If neither is set, extended thinking is disabled.
+	//
+	// Deprecated: Claude Opus 4.7+ removed fixed thinking budgets; setting this returns a 400 error.
+	// Use Effort with adaptive thinking instead. Retained for backward compatibility with older models.
 	ThinkingBudgetTokens *int64 `yaml:"thinking-budget-tokens" validate:"omitempty,min=1024,ltfield=MaxTokens"`
 
 	// Effort enables adaptive extended thinking and guides how deeply the model reasons before responding,
 	// from quick answers ("low") to thorough multi-step reasoning ("max").
-	// Valid values: "low", "medium", "high", "max".
+	// Valid values: "low", "medium", "high", "xhigh", "max".
 	// If neither is set, extended thinking is disabled.
 	// When set, ThinkingBudgetTokens is ignored.
 	// Use MaxTokens to cap total output (thinking + response text).
-	Effort *string `yaml:"effort" validate:"omitempty,oneof=low medium high max"`
+	// The "xhigh" level is recommended for coding and agentic use cases on Claude Opus 4.7+.
+	Effort *string `yaml:"effort" validate:"omitempty,oneof=low medium high xhigh max"`
 
 	// Temperature controls the randomness or "creativity" of responses.
 	// Values range from 0.0 to 1.0, with lower values making the output more focused.
 	// The default value is 1.0.
 	// It is generally recommended to alter this or `TopP` but not both.
+	//
+	// Deprecated: Claude Opus 4.7+ rejects non-default values with a 400 error.
+	// Retained for backward compatibility with older models.
 	Temperature *float64 `yaml:"temperature" validate:"omitempty,min=0,max=1"`
 
 	// TopP controls diversity via nucleus sampling.
 	// Values range from 0.0 to 1.0, with lower values making the output more focused.
 	// You usually only need to use `Temperature`.
+	//
+	// Deprecated: Claude Opus 4.7+ rejects non-default values with a 400 error.
+	// Retained for backward compatibility with older models.
 	TopP *float64 `yaml:"top-p" validate:"omitempty,min=0,max=1"`
 
 	// TopK limits response tokens to top K options for each token position.
 	// Higher values allow more diverse outputs by considering more token options.
 	// You usually only need to use `Temperature`.
+	//
+	// Deprecated: Claude Opus 4.7+ rejects any value with a 400 error.
+	// Retained for backward compatibility with older models.
 	TopK *int64 `yaml:"top-k" validate:"omitempty,min=0"`
 
 	// Stream enables streaming mode for the API response.

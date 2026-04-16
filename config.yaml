@@ -211,8 +211,15 @@ config:
           model: "claude-opus-4-6"
           max-requests-per-minute: 10
           model-parameters:
-            max-tokens: 16384
+            max-tokens: 65536
             effort: max
+            stream: true
+        - name: "Claude Opus 4.7 - latest (xhigh adaptive thinking)"
+          model: "claude-opus-4-7"
+          max-requests-per-minute: 10
+          model-parameters:
+            max-tokens: 65536
+            effort: xhigh
             stream: true
     - name: deepseek
       client-config:

@@ -210,11 +210,11 @@ This file defines the tool's settings and target model configurations evaluated 
 > Currently supported parameters for **Anthropic** models include:
 >
 > - **max-tokens**: Controls the maximum number of tokens available to the model for generating a response.
-> - **thinking-budget-tokens**: Enables extended thinking with a fixed token budget, giving the model more reasoning capacity on complex tasks. Must be at least 1024 and less than `max-tokens`. Ignored when `effort` is also set. If neither is set, extended thinking is disabled.
-> - **effort**: Enables adaptive extended thinking and guides how deeply the model reasons before responding, from quick answers (`low`) to thorough multi-step reasoning (`max`) (values: `low`, `medium`, `high`, `max`). If neither is set, extended thinking is disabled. When set, `thinking-budget-tokens` is ignored. Use `max-tokens` to cap total output (thinking + response text).
-> - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 1.0, default: 1.0). Lower values produce more focused and deterministic outputs.
-> - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0). Lower values produce more focused outputs.
-> - **top-k**: Limits tokens considered for each position to top K options. Higher values allow more diverse outputs.
+> - **thinking-budget-tokens**: Enables extended thinking with a fixed token budget, giving the model more reasoning capacity on complex tasks. Must be at least 1024 and less than `max-tokens`. Ignored when `effort` is also set. If neither is set, extended thinking is disabled. **Deprecated**: Claude Opus 4.7+ removed fixed thinking budgets; setting this returns a 400 error. Use `effort` instead.
+> - **effort**: Enables adaptive extended thinking and guides how deeply the model reasons before responding, from quick answers (`low`) to thorough multi-step reasoning (`max`) (values: `low`, `medium`, `high`, `xhigh`, `max`). If neither is set, extended thinking is disabled. When set, `thinking-budget-tokens` is ignored. Use `max-tokens` to cap total output (thinking + response text). The `xhigh` level is recommended for coding and agentic use cases on Claude Opus 4.7+.
+> - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 1.0, default: 1.0). Lower values produce more focused and deterministic outputs. **Deprecated**: Claude Opus 4.7+ rejects non-default values with a 400 error.
+> - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0). Lower values produce more focused outputs. **Deprecated**: Claude Opus 4.7+ rejects non-default values with a 400 error.
+> - **top-k**: Limits tokens considered for each position to top K options. Higher values allow more diverse outputs. **Deprecated**: Claude Opus 4.7+ rejects any value with a 400 error.
 > - **stream**: If `true`, enables streaming mode for the API response. Streaming is recommended for requests with large `max-tokens` values, especially when extended thinking is enabled, to prevent HTTP timeouts on long-running requests. Responses are streamed incrementally and buffered internally before processing.
 >
 > Currently supported parameters for **Google** models include:
@@ -405,8 +405,15 @@ config:
           model: "claude-opus-4-6"
           max-requests-per-minute: 5
           model-parameters:
-            max-tokens: 16384
+            max-tokens: 65536
             effort: max
+            stream: true
+        - name: "Claude Opus 4.7 (xhigh adaptive thinking)"
+          model: "claude-opus-4-7"
+          max-requests-per-minute: 5
+          model-parameters:
+            max-tokens: 65536
+            effort: xhigh
             stream: true
     - name: deepseek
       client-config:
