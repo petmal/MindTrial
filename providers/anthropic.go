@@ -183,7 +183,7 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 		logFinishReason(ctx, logger, string(resp.StopReason), isTerminal)
 
 		// Append assistant message to conversation history before processing content blocks.
-		request.Messages = append(request.Messages, resp.ToParam())
+		request.Messages = append(request.Messages, sanitizeAssistantMessage(resp.ToParam()))
 
 		// Collect tool results from this turn. When user tools are invoked, all tool results
 		// are gathered and sent together in a single user message to maintain valid
@@ -248,6 +248,23 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 			request.Messages = append(request.Messages, anthropic.NewUserMessage(toolResults...))
 		}
 	} // move to the next conversation turn
+}
+
+// sanitizeAssistantMessage removes empty text blocks from a MessageParam.
+// This works around a known SDK bug where resp.ToParam() preserves empty text
+// blocks that the API rejects with 400 "text content blocks must be non-empty"
+// on subsequent requests.
+// See: https://github.com/anthropics/anthropic-sdk-go/issues/242
+func sanitizeAssistantMessage(msg anthropic.MessageParam) anthropic.MessageParam {
+	filtered := msg.Content[:0]
+	for _, block := range msg.Content {
+		if block.OfText != nil && block.OfText.Text == "" {
+			continue
+		}
+		filtered = append(filtered, block)
+	}
+	msg.Content = filtered
+	return msg
 }
 
 func (o *Anthropic) isTerminalStopReason(stopReason anthropic.StopReason) bool {
