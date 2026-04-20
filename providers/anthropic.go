@@ -23,6 +23,7 @@ import (
 )
 
 const defaultMaxTokens = 2048
+const submitResponseToolName = "submit_response"
 
 // NewAnthropic creates a new Anthropic provider instance with the given configuration.
 func NewAnthropic(cfg config.AnthropicClientConfig, availableTools []config.ToolConfig) *Anthropic {
@@ -50,17 +51,6 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 	request := anthropic.MessageNewParams{
 		MaxTokens: defaultMaxTokens,
 		Model:     anthropic.Model(cfg.Model),
-	}
-
-	// Configure native structured output via output_config.format when not disabled.
-	if !cfg.DisableStructuredOutput {
-		responseSchema, err := ResultJSONSchemaRaw(task.ResponseResultFormat)
-		if err != nil {
-			return result, err
-		}
-		request.OutputConfig.Format = anthropic.JSONOutputFormatParam{
-			Schema: responseSchema,
-		}
 	}
 
 	// Setup tools if any.
@@ -114,6 +104,7 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 		})
 	}
 	var useStreaming bool
+	var useLegacyStructuredOutput bool
 	if cfg.ModelParams != nil {
 		if modelParams, ok := cfg.ModelParams.(config.AnthropicModelParams); ok {
 			if modelParams.MaxTokens != nil {
@@ -141,8 +132,55 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 				request.TopK = anthropic.Int(*modelParams.TopK)
 			}
 			useStreaming = modelParams.Stream
+			useLegacyStructuredOutput = modelParams.LegacyStructuredOutput && !cfg.DisableStructuredOutput
 		} else {
 			return result, fmt.Errorf("%w: %s", ErrInvalidModelParams, cfg.Name)
+		}
+	}
+
+	// Configure structured output mode.
+	if !cfg.DisableStructuredOutput {
+		if useLegacyStructuredOutput {
+			// Validate that no user tool conflicts with the internal response tool name.
+			if slices.ContainsFunc(request.Tools, func(t anthropic.ToolUnionParam) bool {
+				return t.OfTool != nil && t.OfTool.Name == submitResponseToolName
+			}) {
+				return result, fmt.Errorf("%w: tool name %q is reserved for legacy structured output", ErrToolSetup, submitResponseToolName)
+			}
+			// Tool-based structured output: register a submit_response tool with the
+			// result schema as its input schema. This works around models that have difficulty
+			// producing valid responses with native JSON schema output when extended thinking
+			// is enabled.
+			responseSchema, err := ResultJSONSchema(task.ResponseResultFormat)
+			if err != nil {
+				return result, err
+			}
+			request.Tools = append(request.Tools, anthropic.ToolUnionParam{
+				OfTool: &anthropic.ToolParam{
+					Name:        submitResponseToolName,
+					Description: anthropic.String("Submit your final response to the task. Call this tool exactly once when you have determined your answer. Do not call it for any other purpose."),
+					InputSchema: anthropic.ToolInputSchemaParam{
+						Properties: responseSchema.Properties,
+						Required:   responseSchema.Required,
+					},
+				},
+			})
+			request.System = append(request.System, anthropic.TextBlockParam{
+				Text: result.recordPrompt("Always use the " + submitResponseToolName + " tool to submit your final response. Do not write the response as plain text."),
+			})
+			// Ensure auto tool choice is set for the response tool.
+			request.ToolChoice = anthropic.ToolChoiceUnionParam{
+				OfAuto: &anthropic.ToolChoiceAutoParam{},
+			}
+		} else {
+			// Native structured output via output_config.format constrained decoding.
+			responseSchema, err := ResultJSONSchemaRaw(task.ResponseResultFormat)
+			if err != nil {
+				return result, err
+			}
+			request.OutputConfig.Format = anthropic.JSONOutputFormatParam{
+				Schema: responseSchema,
+			}
 		}
 	}
 
@@ -203,6 +241,13 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 				}
 
 			case anthropic.ToolUseBlock:
+				// Intercept the response tool in legacy structured output mode.
+				if useLegacyStructuredOutput && block.Name == submitResponseToolName {
+					if err := json.Unmarshal([]byte(block.Input), &result); err != nil {
+						return result, NewErrUnmarshalResponse(err, []byte(block.Input), []byte(resp.StopReason))
+					}
+					return result, nil
+				}
 				if !isTerminal {
 					data, err := taskFilesToDataMap(ctx, task.Files)
 					if err != nil {

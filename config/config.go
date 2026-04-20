@@ -611,6 +611,13 @@ type AnthropicModelParams struct {
 	// When enabled, responses are streamed incrementally and buffered internally
 	// before processing. This is functionally transparent to the user.
 	Stream bool `yaml:"stream" validate:"omitempty"`
+
+	// LegacyStructuredOutput enables tool-based structured output as a workaround
+	// for models that have difficulty producing valid responses with native JSON schema
+	// output when extended thinking is enabled. When set, the provider registers a
+	// submit_response tool and instructs the model to use it instead of relying
+	// on output_config.format constrained decoding.
+	LegacyStructuredOutput bool `yaml:"legacy-structured-output" validate:"omitempty"`
 }
 
 // DeepseekModelParams represents DeepSeek model-specific settings.

@@ -496,6 +496,7 @@ func TestLoadConfigFromFile(t *testing.T) {
                 model-parameters:
                     max-tokens: 16000
                     effort: medium
+                    legacy-structured-output: true
         - name: deepseek
           client-config:
               api-key: "b8d40c7c-b169-49a9-9a5c-291741e86daa"
@@ -685,8 +686,9 @@ func TestLoadConfigFromFile(t *testing.T) {
 									Model:                "claude-opus-4-6",
 									MaxRequestsPerMinute: 0,
 									ModelParams: AnthropicModelParams{
-										MaxTokens: testutils.Ptr(int64(16000)),
-										Effort:    testutils.Ptr("medium"),
+										MaxTokens:              testutils.Ptr(int64(16000)),
+										Effort:                 testutils.Ptr("medium"),
+										LegacyStructuredOutput: true,
 									},
 								},
 							},

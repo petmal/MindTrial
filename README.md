@@ -216,6 +216,7 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0). Lower values produce more focused outputs. **Deprecated**: Claude Opus 4.7+ rejects non-default values with a 400 error.
 > - **top-k**: Limits tokens considered for each position to top K options. Higher values allow more diverse outputs. **Deprecated**: Claude Opus 4.7+ rejects any value with a 400 error.
 > - **stream**: If `true`, enables streaming mode for the API response. Streaming is recommended for requests with large `max-tokens` values, especially when extended thinking is enabled, to prevent HTTP timeouts on long-running requests. Responses are streamed incrementally and buffered internally before processing.
+> - **legacy-structured-output**: If `true`, uses tool-based structured output instead of native JSON schema output. This is a workaround for models that have difficulty producing valid responses with native `output_config.format` constrained decoding when extended thinking is enabled. When set, the provider registers a `submit_response` tool and instructs the model to use it to submit its response.
 >
 > Currently supported parameters for **Google** models include:
 >
