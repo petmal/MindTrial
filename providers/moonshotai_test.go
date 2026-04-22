@@ -55,7 +55,7 @@ func TestMoonshotAI_FileTypeNotSupported(t *testing.T) {
 
 func TestMoonshotAICopyToOpenAIV3Params(t *testing.T) {
 	buildParams := func(t *testing.T, cfg config.RunConfig) openAIV3ModelParams {
-		params := openAIV3ModelParams{}
+		params := openAIV3ModelParams{ExtraFields: map[string]any{}}
 		if cfg.ModelParams == nil {
 			return params
 		}
@@ -103,6 +103,47 @@ func TestMoonshotAICopyToOpenAIV3Params(t *testing.T) {
 		require.Nil(t, params.PresencePenalty)
 		require.Nil(t, params.FrequencyPenalty)
 		require.Nil(t, params.MaxTokens)
+		// The "thinking" object must be omitted when neither field is set so that models
+		// which do not recognize it (e.g. kimi-k2, kimi-k2-thinking) are not sent an
+		// unknown field.
+		require.NotContains(t, params.ExtraFields, "thinking")
+	})
+
+	t.Run("thinking type only sets ExtraFields", func(t *testing.T) {
+		cfg := config.RunConfig{
+			Name: "run",
+			ModelParams: config.MoonshotAIModelParams{
+				Thinking: utils.Ptr("enabled"),
+			},
+		}
+		params := buildParams(t, cfg)
+		require.Contains(t, params.ExtraFields, "thinking")
+		require.Equal(t, map[string]any{"type": "enabled"}, params.ExtraFields["thinking"])
+	})
+
+	t.Run("thinking keep only sets ExtraFields", func(t *testing.T) {
+		cfg := config.RunConfig{
+			Name: "run",
+			ModelParams: config.MoonshotAIModelParams{
+				PreserveThinking: utils.Ptr("all"),
+			},
+		}
+		params := buildParams(t, cfg)
+		require.Contains(t, params.ExtraFields, "thinking")
+		require.Equal(t, map[string]any{"keep": "all"}, params.ExtraFields["thinking"])
+	})
+
+	t.Run("thinking type and keep combined", func(t *testing.T) {
+		cfg := config.RunConfig{
+			Name: "run",
+			ModelParams: config.MoonshotAIModelParams{
+				Thinking:         utils.Ptr("disabled"),
+				PreserveThinking: utils.Ptr("all"),
+			},
+		}
+		params := buildParams(t, cfg)
+		require.Contains(t, params.ExtraFields, "thinking")
+		require.Equal(t, map[string]any{"type": "disabled", "keep": "all"}, params.ExtraFields["thinking"])
 	})
 }
 

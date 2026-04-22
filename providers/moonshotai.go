@@ -47,7 +47,9 @@ func (m MoonshotAI) Name() string {
 }
 
 func (m *MoonshotAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
-	openAIV3Params := openAIV3ModelParams{}
+	openAIV3Params := openAIV3ModelParams{
+		ExtraFields: map[string]any{},
+	}
 
 	// Kimi models from MoonshotAI prefer json-object response mode by default
 	// unless structured output is disabled.
@@ -88,11 +90,32 @@ func (m *MoonshotAI) copyToOpenAIV3Params(moonshotAIParams config.MoonshotAIMode
 	if moonshotAIParams.FrequencyPenalty != nil {
 		openAIV3Params.FrequencyPenalty = utils.Ptr(float64(*moonshotAIParams.FrequencyPenalty))
 	}
+
+	// The "thinking" object is a non-standard Moonshot AI field supported by Kimi K2.6
+	// and newer thinking-capable models. It carries two independent sub-fields:
+	//   - "type" ("enabled" / "disabled") toggles whether the model produces reasoning
+	//     output for the current request.
+	//   - "keep" ("all") enables Moonshot's "Preserved Thinking" feature, which retains
+	//     prior reasoning output in the context across model calls within the same
+	//     conversation so the model can continue its earlier chain-of-thought.
+	// The object is only emitted when at least one sub-field is set; older models that
+	// do not recognize it will simply not see the field when both are absent.
+	// See: https://platform.kimi.ai/docs/guide/use-kimi-k2-thinking-model#preserved-thinking
+	if moonshotAIParams.Thinking != nil || moonshotAIParams.PreserveThinking != nil {
+		thinking := map[string]any{}
+		if moonshotAIParams.Thinking != nil {
+			thinking["type"] = *moonshotAIParams.Thinking
+		}
+		if moonshotAIParams.PreserveThinking != nil {
+			thinking["keep"] = *moonshotAIParams.PreserveThinking
+		}
+		openAIV3Params.ExtraFields["thinking"] = thinking
+	}
 }
 
 // moonshotAICompletionHandler extends the default completion handler to preserve
 // the non-standard reasoning_content field required by Moonshot AI's thinking models
-// (e.g., kimi-k2.5, kimi-k2-thinking) during multi-turn tool-call conversations.
+// (e.g., kimi-k2.5, kimi-k2.6, kimi-k2-thinking) during multi-turn tool-call conversations.
 //
 // See: https://platform.moonshot.ai/docs/guide/use-kimi-k2-thinking-model#accessing-the-reasoning-content
 type moonshotAICompletionHandler struct {

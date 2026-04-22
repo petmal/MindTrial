@@ -278,6 +278,11 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **max-tokens**: Controls the maximum number of tokens to generate for the chat completion.
 > - **presence-penalty**: Penalizes new tokens based on whether they appear in the text (range: -2.0 to 2.0, default: 0.0). Positive values increase the likelihood of the model discussing new topics.
 > - **frequency-penalty**: Penalizes new tokens based on their existing frequency in the text (range: -2.0 to 2.0, default: 0.0). Positive values reduce the likelihood of the model repeating the same phrases verbatim.
+> - **thinking**: Toggles the reasoning (thinking) capability for thinking-capable models such as `kimi-k2.6`. Accepted values are `enabled` (default for `kimi-k2.6`) and `disabled`. Older Kimi models that do not support this parameter should omit it.
+> - **preserve-thinking**: Enables Moonshot's **Preserved Thinking** feature for `kimi-k2.6`, which preserves the model's **chain-of-thought** across model calls that share the same conversation context (e.g. successive calls in a tool-using task), so the model can build on its earlier reasoning. Accepted value: `all`; when omitted, prior reasoning is dropped between calls — reducing token cost at the expense of chain-of-thought continuity. Older Kimi models do not support this parameter and should omit it.
+>
+> [!IMPORTANT]
+> For `kimi-k2.5` and `kimi-k2.6`, Moonshot AI fixes `temperature`, `top-p`, `presence-penalty`, and `frequency-penalty` to model-specific defaults — supplying any of these parameters will cause the API to reject the request.
 
 > [!NOTE]
 > The results will be saved to `<output-dir>/<output-basename>.<format>`. If the result output file already exists, it will be replaced. If the log file already exists, it will be appended to.
@@ -475,6 +480,13 @@ config:
           model-parameters:
             temperature: 1.0
             max-tokens: 16000
+        - name: "Kimi K2.6 (thinking)"
+          model: "kimi-k2.6"
+          max-requests-per-minute: 3
+          model-parameters:
+            max-tokens: 32000
+            thinking: enabled     # default for kimi-k2.6; "disabled" turns off reasoning
+            preserve-thinking: all  # preserve chain-of-thought across model calls (Preserved Thinking)
 ```
 
 ### tasks.yaml

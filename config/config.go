@@ -807,6 +807,18 @@ type MoonshotAIModelParams struct {
 	// decreasing the model's likelihood to repeat the same line verbatim.
 	// The default value is 0.0.
 	FrequencyPenalty *float32 `yaml:"frequency-penalty" validate:"omitempty,min=-2,max=2"`
+
+	// Thinking toggles the reasoning (thinking) capability for Kimi K2.6 and newer
+	// thinking-capable models. Accepted values are "enabled" (default for K2.6) and "disabled".
+	Thinking *string `yaml:"thinking" validate:"omitempty,oneof=enabled disabled"`
+
+	// PreserveThinking enables Moonshot's "Preserved Thinking" feature for Kimi K2.6 and newer
+	// thinking-capable models. It preserves the model's chain-of-thought across model calls
+	// that share the same conversation context (e.g. successive calls in a tool-using task),
+	// so the model can build on its earlier reasoning. When nil/omitted, prior reasoning is
+	// dropped between calls (shorter context and lower cost, at the expense of reasoning
+	// continuity). The only accepted value is "all" (mapped to the API's thinking.keep field).
+	PreserveThinking *string `yaml:"preserve-thinking" validate:"omitempty,oneof=all"`
 }
 
 // JudgeConfig defines configuration for an LLM judge used for semantic evaluation of complex open-ended task responses.

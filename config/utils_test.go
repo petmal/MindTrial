@@ -592,6 +592,12 @@ func TestLoadConfigFromFile(t *testing.T) {
                     max-tokens: 2048
                     presence-penalty: 0.1
                     frequency-penalty: 0.2
+              - name: "Kimi K2.6"
+                model: "kimi-k2.6"
+                model-parameters:
+                    max-tokens: 32000
+                    thinking: enabled
+                    preserve-thinking: all
 `)),
 			},
 			want: &Config{
@@ -845,6 +851,16 @@ func TestLoadConfigFromFile(t *testing.T) {
 										MaxTokens:        testutils.Ptr(int32(2048)),
 										PresencePenalty:  testutils.Ptr(float32(0.1)),
 										FrequencyPenalty: testutils.Ptr(float32(0.2)),
+									},
+								},
+								{
+									Name:                 "Kimi K2.6",
+									Model:                "kimi-k2.6",
+									MaxRequestsPerMinute: 0,
+									ModelParams: MoonshotAIModelParams{
+										MaxTokens:        testutils.Ptr(int32(32000)),
+										Thinking:         testutils.Ptr("enabled"),
+										PreserveThinking: testutils.Ptr("all"),
 									},
 								},
 							},

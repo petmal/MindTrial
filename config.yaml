@@ -322,6 +322,14 @@ config:
           max-requests-per-minute: 3
           model-parameters:
             max-tokens: 16000
+        - name: "Kimi K2.6 - latest (thinking)"
+          model: "kimi-k2.6"
+          disable-structured-output: true
+          max-requests-per-minute: 3
+          model-parameters:
+            max-tokens: 32000
+            thinking: enabled
+            preserve-thinking: all
   judges:
     - name: "default"
       provider:
