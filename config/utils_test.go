@@ -509,6 +509,8 @@ func TestLoadConfigFromFile(t *testing.T) {
                     top-p: 0.95
                     presence-penalty: 0.1
                     frequency-penalty: 0.1
+                    thinking: enabled
+                    reasoning-effort: max
         - name: google
           client-config:
               api-key: "df2270f9-d4e1-4761-b809-bee219390d00"
@@ -717,6 +719,8 @@ func TestLoadConfigFromFile(t *testing.T) {
 										TopP:             testutils.Ptr(float32(0.95)),
 										PresencePenalty:  testutils.Ptr(float32(0.1)),
 										FrequencyPenalty: testutils.Ptr(float32(0.1)),
+										Thinking:         testutils.Ptr("enabled"),
+										ReasoningEffort:  testutils.Ptr("max"),
 									},
 								},
 							},

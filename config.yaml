@@ -62,6 +62,11 @@ config:
           model-parameters:
             reasoning-effort: "xhigh"
             verbosity: "medium"
+        - name: "GPT-5.5 - latest (high reasoning)"
+          model: "gpt-5.5"
+          max-requests-per-minute: 20
+          model-parameters:
+            reasoning-effort: "high"
     - name: openrouter
       retry-policy:
         max-retry-attempts: 5
@@ -226,12 +231,18 @@ config:
         api-key: ""
         request-timeout: 15m
       runs:
-        - name: "DeepSeek-V3.2 - latest (thinking mode)"
-          model: "deepseek-reasoner"
+        - name: "DeepSeek V4 Pro - latest (thinking, max effort)"
+          model: "deepseek-v4-pro"
           max-requests-per-minute: 15
-        - name: "DeepSeek-V3.2 - latest (non-thinking mode)"
-          model: "deepseek-chat"
+          model-parameters:
+            thinking: enabled
+            reasoning-effort: max
+        - name: "DeepSeek V4 Flash - latest (thinking, max effort)"
+          model: "deepseek-v4-flash"
           max-requests-per-minute: 15
+          model-parameters:
+            thinking: enabled
+            reasoning-effort: max
     - name: mistralai
       retry-policy:
         max-retry-attempts: 5

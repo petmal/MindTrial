@@ -630,6 +630,7 @@ type DeepseekModelParams struct {
 	// - 1.0: Data Cleaning / Data Analysis
 	// - 1.3: General Conversation / Translation
 	// - 1.5: Creative Writing / Poetry (more varied and creative outputs)
+	// Note: silently ignored by V4 and newer models when thinking mode is enabled.
 	Temperature *float32 `yaml:"temperature" validate:"omitempty,min=0,max=2"`
 
 	// TopP controls diversity via nucleus sampling.
@@ -648,6 +649,20 @@ type DeepseekModelParams struct {
 	// decreasing the model's likelihood to repeat the same line verbatim.
 	// The default value is 0.0.
 	FrequencyPenalty *float32 `yaml:"frequency-penalty" validate:"omitempty,min=-2,max=2"`
+
+	// Thinking toggles the reasoning (thinking) capability for V4 and newer thinking-capable
+	// models. Accepted values are "enabled" (default for V4 models) and "disabled".
+	// When thinking is enabled, the model produces chain-of-thought reasoning before the final
+	// answer. Note: temperature, top-p, presence-penalty, and frequency-penalty are silently
+	// ignored in thinking mode.
+	Thinking *string `yaml:"thinking" validate:"omitempty,oneof=enabled disabled"`
+
+	// ReasoningEffort controls how deeply the model reasons in thinking mode.
+	// Accepted values: "low", "medium", "high", "xhigh", "max". The server defaults
+	// to "high" when omitted. Note: at this time only "high" and "max" are distinct
+	// effective values — "low" and "medium" are mapped to "high", and "xhigh" is
+	// mapped to "max".
+	ReasoningEffort *string `yaml:"reasoning-effort" validate:"omitempty,oneof=low medium high xhigh max"`
 }
 
 // MistralAIModelParams represents Mistral AI model-specific settings.

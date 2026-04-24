@@ -170,7 +170,6 @@ func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 		}, &result.duration)
 		result.recordToolUsage(executor.GetUsageStats())
 		if err != nil {
-
 			return result, WrapErrGenerateResponse(err)
 		} else if resp == nil {
 			return result, nil // return current result state
@@ -271,11 +270,22 @@ func (o *Deepseek) applyModelParameters(request any, modelParams config.Deepseek
 		setIfNotNil(&req.TopP, modelParams.TopP)
 		setIfNotNil(&req.FrequencyPenalty, modelParams.FrequencyPenalty)
 		setIfNotNil(&req.PresencePenalty, modelParams.PresencePenalty)
+		if modelParams.Thinking != nil {
+			req.Thinking = &deepseek.ThinkingConfig{Type: *modelParams.Thinking}
+		}
+		if modelParams.ReasoningEffort != nil {
+			if req.ExtraFields == nil {
+				req.ExtraFields = map[string]interface{}{}
+			}
+			req.ExtraFields["reasoning_effort"] = *modelParams.ReasoningEffort
+		}
 	case *deepseek.ChatCompletionRequestWithImage:
 		setIfNotNil(&req.Temperature, modelParams.Temperature)
 		setIfNotNil(&req.TopP, modelParams.TopP)
 		setIfNotNil(&req.FrequencyPenalty, modelParams.FrequencyPenalty)
 		setIfNotNil(&req.PresencePenalty, modelParams.PresencePenalty)
+		// NOTE: thinking and reasoning-effort are not applied here — ChatCompletionRequestWithImage
+		// does not expose these fields in the deepseek-go library.
 	default:
 		panic(fmt.Sprintf("unsupported request type: %T", request))
 	}

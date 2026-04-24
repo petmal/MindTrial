@@ -237,6 +237,8 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0). Lower values produce more focused outputs.
 > - **presence-penalty**: Penalizes new tokens based on their presence in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use new tokens.
 > - **frequency-penalty**: Penalizes new tokens based on their frequency in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use less frequent tokens.
+> - **thinking**: Toggles reasoning (thinking) mode for V4 and newer thinking-capable models. When enabled, the model produces chain-of-thought reasoning before the final answer (values: `enabled`, `disabled`; default: `enabled` for V4 models). Note: `temperature`, `top-p`, `presence-penalty`, and `frequency-penalty` are silently ignored in thinking mode.
+> - **reasoning-effort**: Controls how deeply the model reasons in thinking mode (values: `low`, `medium`, `high`, `xhigh`, `max`). Default is `high`. Currently only `high` and `max` are distinct effective values — `low` and `medium` are mapped to `high`, and `xhigh` is mapped to `max`.
 >
 > Currently supported parameters for **Mistral AI** models include:
 >
@@ -281,7 +283,6 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **thinking**: Toggles the reasoning (thinking) capability for thinking-capable models such as `kimi-k2.6`. Accepted values are `enabled` (default for `kimi-k2.6`) and `disabled`. Older Kimi models that do not support this parameter should omit it.
 > - **preserve-thinking**: Enables Moonshot's **Preserved Thinking** feature for `kimi-k2.6`, which preserves the model's **chain-of-thought** across model calls that share the same conversation context (e.g. successive calls in a tool-using task), so the model can build on its earlier reasoning. Accepted value: `all`; when omitted, prior reasoning is dropped between calls — reducing token cost at the expense of chain-of-thought continuity. Older Kimi models do not support this parameter and should omit it.
 >
-> [!IMPORTANT]
 > For `kimi-k2.5` and `kimi-k2.6`, Moonshot AI fixes `temperature`, `top-p`, `presence-penalty`, and `frequency-penalty` to model-specific defaults — supplying any of these parameters will cause the API to reject the request.
 
 > [!NOTE]
