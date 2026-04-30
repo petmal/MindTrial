@@ -1182,3 +1182,471 @@ task-config:
           enabled: true
           name: "default"
           variant: "reasoning"
+    - name: "visual2 - spatial awareness - v1"
+      prompt: |-
+        The attached picture shows a net for a die-like cube, and five cubes labeled A to E.
+        One of the cubes cannot be formed from the net. Identify which one.
+      response-result-format: |-
+        The letter identifying the cube that cannot be formed from the net.
+      expected-result: |-
+        E
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-spatial-awareness-v1.png"
+          type: "image/png"
+    - name: "visual2 - deduction - v1"
+      prompt: |-
+        The attached diagram shows a rotary telephone dial and a list of ten numbers labeled A-J, each representing a US state.
+        Use the diagram to decode the numbers and determine which state corresponds to each label.
+      response-result-format: |-
+        decoded names from A to J separated by ", "
+      expected-result: |-
+        California, Texas, Nebraska, Alaska, Idaho, Oregon, Virginia, Florida, Colorado, Arizona
+      validation-rules:
+        ignore-whitespace: true
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-deduction-v1.png"
+          type: "image/png"
+    - name: "visual2 - spatial awareness - v2"
+      prompt: |-
+        The attached picture shows a net for a cube, and five cubes labeled A to E.
+        One of the cubes cannot be formed from the net. Identify which one.
+      response-result-format: |-
+        The letter identifying the cube that cannot be formed from the net.
+      expected-result: |-
+        C
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-spatial-awareness-v2.png"
+          type: "image/png"
+    - name: "visual2 - spatial awareness - v3"
+      prompt: |-
+        You are given one shape at the top and five candidate shapes labeled A - E below it.
+        Exactly one candidate shape, when rotated and placed adjacent to the top shape, fills all of its notches and completes a full rectangle with no gaps or overlaps.
+        Which candidate shape completes the rectangle?
+      response-result-format: |-
+        letter identifying the matching shape in the picture
+      expected-result: |-
+        B
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-spatial-awareness-v3.png"
+          type: "image/png"
+    - name: "visual2 - spatial awareness - v4"
+      prompt: |-
+        The attached picture contains five cubes labeled A to E.
+        Four of these cubes are in fact the same cube, just rotated differently.
+        One cube cannot be made identical to the others by any rotation. Identify the cube that cannot match the rest.
+      response-result-format: |-
+        letter identifying the unique cube in the picture
+      expected-result: |-
+        C
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-spatial-awareness-v4.png"
+          type: "image/png"
+    - name: "visual2 - deduction pattern - v1"
+      prompt: |-
+        The numbers in the attached grid occur in the following order: 9, 4, 8, 3, 7, 2
+        and run in an anti-clockwise spiral starting at the top right.
+        It is complicated by the addition of spaces and repeats according to a pattern.
+        Determine the pattern and use it to complete the missing section.
+      response-result-format: |-
+        replace the "?" with missing values, use "-" to indicate empty squares:
+        ? ? ?
+        ? ? ?
+        ? ? ?
+      expected-result: |-
+        - - 2
+        9 - 7
+        4 8 3
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-deduction-pattern-v1.png"
+          type: "image/png"
+    - name: "visual2 - spatial awareness - v5"
+      prompt: |-
+        The top four shapes are pieces of a circle, but one piece is missing.
+        Among the four candidate pieces labeled A - D at the bottom, identify which one correctly completes the circle.
+      response-result-format: |-
+        letter identifying the matching piece in the picture
+      expected-result: |-
+        B
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-spatial-awareness-v5.png"
+          type: "image/png"
+    - name: "visual2 - spatial awareness - v6"
+      prompt: |-
+        The top four shapes are pieces of a circle, but one piece is missing.
+        Among the four candidate pieces labeled A - D at the bottom, identify which one correctly completes the circle.
+      response-result-format: |-
+        letter identifying the matching piece in the picture
+      expected-result: |-
+        A
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-spatial-awareness-v6.png"
+          type: "image/png"
+    - name: "visual2 - deduction pattern - v3"
+      prompt: |-
+        The symbols in the attached grid are arranged according to a repeating rule.
+        Determine the repeating sequence, its starting point, and how it propagates through the grid.
+        Use this information to complete the missing 3x3 section of the grid.
+      response-result-format: |-
+        Pattern Sequence: <continuous_pattern_sequence>
+        Missing Grid:
+        ? ? ?
+        ? ? ?
+        ? ? ?
+
+        Replace ? with appropriate unicode symbols (Φ, Ω, Σ).
+
+        The Pattern Sequence must be a single continuous string with no spaces, no separators,
+        and no additional characters.
+
+        To ensure a unique representation of the Pattern Sequence, output the
+        lexicographically smallest rotation of the sequence (using the ordering Φ < Σ < Ω).
+      expected-result: |-
+        Pattern Sequence: ΦΦΣΣΩΩΩΣΣ
+        Missing Grid:
+        Ω Ω Σ
+        Ω Φ Σ
+        Φ Ω Σ
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-deduction-pattern-v3.png"
+          type: "image/png"
+    - name: "visual2 - deduction - v2"
+      prompt: |-
+        The attached picture shows eight flower-like shapes, each containing five letters.
+        Pick one letter from each flower in the order indicated by the numerical labels to form the names of five US cities.
+        Each city name has as many letters as there are flowers.
+      response-result-format: |-
+        names of five US cities in alphabetical order, separated by ", "
+      expected-result: |-
+        COLUMBUS, HONOLULU, PORTLAND, SAN DIEGO, SYRACUSE
+      validation-rules:
+        ignore-whitespace: true
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-deduction-v2.png"
+          type: "image/png"
+    - name: "visual2 - spatial awareness - v7"
+      prompt: |-
+        The pieces in the attached picture, when fitted together correctly, form a square.
+        However, two are not needed. Identify the two redundant pieces.
+      response-result-format: |-
+        letters identifying the redundant pieces in alphabetical order separated by ", "
+      expected-result: |-
+        B, E
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-spatial-awareness-v7.png"
+          type: "image/png"
+    - name: "visual2 - spatial awareness - v8"
+      prompt: |-
+        The pieces in the attached picture, when fitted together correctly, form a square.
+        However, one is not needed. Identify the redundant piece.
+      response-result-format: |-
+        letter identifying the redundant piece in the picture
+      expected-result: |-
+        G
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-spatial-awareness-v8.png"
+          type: "image/png"
+    - name: "visual2 - ocr - v1"
+      prompt: |-
+        Convert the attached grid to text.
+      response-result-format: |-
+        Columns separated by " " and rows separated by "\n".
+      expected-result: |-
+        S E R E P E N S T I N E R E S E
+        E E S E N R P E N S E R P E N T
+        R S R S E I S R T E R P E N T I
+        P E P P S E T P I N E N E S S S
+        E R E S N T N N N E R I N N N E
+        N P N E R T E T E P N S E E I R
+        T E T R P S I I T P T P T R T P
+        N N I P E E N N T R R S E P N E
+        E T N E N T E E E E S E T E E N
+        I N E N T R S E S R E T S N P T
+        S E R T P E N T I N E T S T R I
+        S E R N P E N T I N E E N I E T
+        E S R E I S E R P E N T I N S E
+        S E T E N N I T N E P R E S T E
+        R S E N E I T N I P R E S E S T
+        S E R P E N S N I T N E P R E S
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-numerical-awareness-v1.png"
+          type: "image/png"
+    - name: "visual2 - numerical awareness - v1"
+      prompt: |-
+        The word SERPENTINE appears in this grid exactly once.
+        It may be spelled in any direction (horizontally, vertically, diagonally) and may be forwards or backwards.
+        Find the word and report its coordinates.
+      response-result-format: |-
+        (x_start, y_start) -> (x_end, y_end)
+
+        where (x_start, y_start) are the coordinates of the first letter of the word, and (x_end, y_end) are the coordinates of the last letter of the word.
+        Coordinates use (column, row), with the top-left cell at (1, 1).
+      expected-result: |-
+        (13, 10) -> (4, 1)
+      validation-rules:
+        ignore-whitespace: true
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-numerical-awareness-v1.png"
+          type: "image/png"
+    - name: "visual2 - ocr - v2"
+      prompt: |-
+        Convert the attached grid to text.
+      response-result-format: |-
+        Columns separated by " " and rows separated by "\n".
+      expected-result: |-
+        D R I V E R I D V E R D D R I V
+        R D R I V E R D R I V E R V E R
+        I V E R D V E R D D R I V E R V
+        V D R I V E R D E R C I E V V E
+        E D R I V E E R V D I V E R D R
+        D R I V E V R V D E R I V E R D
+        V D E R I D I V E R D R I V E R
+        D R I R V E R D R I D R D V D E
+        D R R V I D R E V E R D R I V E
+        D A D R I V E D R I V D R I V E
+        I R D R E V I R D R E V I R D R
+        V E R D D R I V E R D R I V E D
+        V I V I V E V R D E V D E V I R
+        E R E R E D E D R R I R V E R I
+        R D R D R R R R I D R I I R D V
+        I I D I D I D E V I D V R D R E
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-numerical-awareness-v2.png"
+          type: "image/png"
+    - name: "visual2 - numerical awareness - v2"
+      prompt: |-
+        The word VERDI appears in this grid exactly once.
+        It may be spelled in any direction (horizontally, vertically, diagonally) and may be forwards or backwards.
+        Find the word and report its coordinates.
+      response-result-format: |-
+        (x_start, y_start) -> (x_end, y_end)
+
+        where (x_start, y_start) are the coordinates of the first letter of the word, and (x_end, y_end) are the coordinates of the last letter of the word.
+        Coordinates use (column, row), with the top-left cell at (1, 1).
+      expected-result: |-
+        (9, 9) -> (5, 9)
+      validation-rules:
+        ignore-whitespace: true
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-numerical-awareness-v2.png"
+          type: "image/png"
+    - name: "visual2 - ocr - v3"
+      prompt: |-
+        Convert the attached grid to text.
+      response-result-format: |-
+        Columns separated by " " and rows separated by "\n".
+      expected-result: |-
+        A G K A V E D C B V D N P R U V
+        W C Q D H K F L G M R S A B Q Y
+        Z K E X A L H O I A B G B Q C R
+        V R A W T B I T K N K A O B G U
+        B C D G X A E Y M Z B M B F M N
+        D O Z F A J R J K L T W A W X Y
+        F A E O H R S A O G A C E G T A
+        H K L A X Y Z B R F J F O P Q R
+        J S T U A B C O V T Q X S T U V
+        L M N G F J D U Z A V L M N T O
+        P Q R M O Q A T V Y D E F R G H
+        I J N X Y Z B V C D E F A B C D
+        S K O A B C F X G H X Z K L M N
+        O U P R Y W S T U K L A B C A B
+        P A W F G H I N A E X D P V X E
+        Q B E Y A C K Q D F Z L M A R C
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-numerical-awareness-v3.png"
+          type: "image/png"
+    - name: "visual2 - numerical awareness - v3"
+      prompt: |-
+        Look at the attached grid and find all pairs of adjacent letters where the two letters are separated by exactly one letter in the alphabet (i.e., AC, DF, etc.).
+        The pairs can be in a horizontal, vertical or diagonal direction.
+        Count each adjacent two-cell pair only once, regardless of reading direction.
+      response-result-format: |-
+        number of pairs found
+      expected-result: |-
+        55
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-numerical-awareness-v3.png"
+          type: "image/png"
+    - name: "visual2 - ocr - v4"
+      prompt: |-
+        Convert the attached grid to text.
+      response-result-format: |-
+        Columns separated by " " and rows separated by "\n".
+      expected-result: |-
+        I D I A I D D A I A I I D A I D
+        D I A I A D A A D A I I A D A I
+        A A D I I A D D A D D A I D I A
+        I A A I D I D D D I A D A A D A
+        D A D A I D I A D D A D D A I D
+        I A A D A D A I A D D A D I D A
+        A D I I I I D D A I I A D A I D
+        D A I D D A D D D A I D D I D A
+        D A D A D D A D D A A D A A D I
+        I A D D A I A D D A A D D A D I
+        D A A D A D A D D D D I A I D I
+        A D A A D A D A D A D A D A D A
+        I A A D A A I A I D A A D D A D
+        D I D A D D D I D A A D I D D A
+        I D A D D D A A I D I D A A I A
+        A I A D A A D I D A D I I D I D
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-numerical-awareness-v4.png"
+          type: "image/png"
+    - name: "visual2 - numerical awareness - v4"
+      prompt: |-
+        The word AIDA appears in this grid exactly twice.
+        It may be spelled in any direction (horizontally, vertically, diagonally) and may be forwards or backwards.
+        Find both occurrences and report their coordinates.
+      response-result-format: |-
+        (x1_start, y1_start) -> (x1_end, y1_end)
+        (x2_start, y2_start) -> (x2_end, y2_end)
+
+        where (x_start, y_start) are the coordinates of the first letter of the word, and (x_end, y_end) are the coordinates of the last letter of the word.
+        Coordinates use (column, row), with the top-left cell at (1, 1).
+      expected-result:
+        - |
+          (7, 6) -> (4, 9)
+          (8, 13) -> (11, 13)
+        - |
+          (8, 13) -> (11, 13)
+          (7, 6) -> (4, 9)
+      validation-rules:
+        ignore-whitespace: true
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-numerical-awareness-v4.png"
+          type: "image/png"
+    - name: "visual2 - ocr - v5"
+      prompt: |-
+        Convert the attached grid to text.
+      response-result-format: |-
+        Columns separated by " " and rows separated by "\n".
+      expected-result: |-
+        18 3 16 7 10 3 14 15 2 13 7 6 12 19 2 8
+        16 5 12 10 14 7 9 19 12 6 13 3 8 7 7 6
+        16 18 3 16 12 14 7 4 13 12 15 9 14 5 13 4
+        12 8 8 3 7 11 6 8 5 11 9 13 11 7 6 12
+        15 8 11 19 10 10 7 14 4 12 5 7 16 13 9 15
+        13 14 11 4 3 10 17 9 18 7 3 6 12 5 14 19
+        11 4 9 11 18 4 18 12 9 12 14 15 14 17 2 6
+        17 5 4 18 3 17 6 8 19 17 4 15 8 11 12 15
+        4 6 8 19 15 11 19 12 12 13 11 8 4 3 14 3
+        13 5 1 19 6 8 15 2 17 13 7 15 11 14 17 12
+        9 1 2 13 4 6 5 8 19 12 9 8 17 7 15 4
+        5 12 2 18 11 8 15 6 3 4 2 1 4 6 16 12
+        17 18 9 12 5 13 2 8 6 16 10 14 3 4 12 11
+        8 6 13 16 5 11 12 8 9 14 7 3 8 9 13 6
+        5 6 19 1 7 8 15 4 5 15 3 6 15 8 8 11
+        9 18 2 4 3 1 19 8 13 16 12 18 14 19 2 12
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-numerical-awareness-v5.png"
+          type: "image/png"
+    - name: "visual2 - numerical awareness - v5"
+      prompt: |-
+        Look at the attached grid and find all pairs of adjacent numbers that add up to 20,
+        in either horizontal, vertical or diagonal direction.
+        Count each adjacent two-cell pair only once, regardless of reading direction.
+      response-result-format: |-
+        number of pairs found
+      expected-result: |-
+        51
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-numerical-awareness-v5.png"
+          type: "image/png"
+    - name: "visual2 - ocr - v6"
+      prompt: |-
+        Convert the attached grid to text.
+      response-result-format: |-
+        Columns separated by " " and rows separated by "\n".
+      expected-result: |-
+        N O Q R D F G S J T U V K G L T
+        V A W U D X Q R Z D F M P H J R
+        S E B C M O T A V N W K Y I A K
+        M B G O Z V J Y M D L T L Q C E
+        O G L B R I N K L V Q J H L G N
+        B P D F K P S C A C T M D Q M K
+        Q S U W A C L A K S W U X Z B F
+        H L B R Q J M H R G E R V W S D
+        R S O K P C N D T Y R P G O U X
+        D V K M R T F A F O U E F X T C
+        L T X Y K M D H B C I N U O V Z
+        B G Z H E R O Q L E D A R Q P A
+        G U D A V K S U F V Y F J T A E
+        T L N W X O Q V A M T S A L J M
+        O R B Y C F S T J Q U P D H I G
+        H K Z L O Q K B D G X V Y A Z B
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-numerical-awareness-v6.png"
+          type: "image/png"
+    - name: "visual2 - numerical awareness - v6"
+      prompt: |-
+        Look at the attached grid and find all pairs of adjacent letters that are consecutive in the alphabet (i.e., AB, CD, etc.).
+        The pairs can be in a horizontal, vertical or diagonal direction.
+        Count each adjacent two-cell pair only once, regardless of reading direction.
+      response-result-format: |-
+        number of pairs found
+      expected-result: |-
+        62
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-numerical-awareness-v6.png"
+          type: "image/png"
+    - name: "visual2 - ocr - v7"
+      prompt: |-
+        Convert the attached grid to text.
+      response-result-format: |-
+        Columns separated by " " and rows separated by "\n".
+      expected-result: |-
+        5 0 5 6 4 3 5 0 5 6 4 3
+        1 8 7 1 8 7 1 8 7 1 8 7
+        6 4 3 5 0 5 6 4 3 5 0 5
+        5 3 4 1 5 6 5 4 4 0 5 6
+        7 7 8 8 2 1 8 7 8 8 1 1
+        3 5 0 4 6 6 3 5 0 4 6 5
+        4 6 5 3 6 0 5 6 5 3 5 0
+        8 1 1 8 7 8 8 2 1 7 7 8
+        0 5 6 5 3 4 0 5 6 5 3 4
+        5 0 5 6 4 3 5 0 5 6 4 3
+        1 8 7 1 8 7 1 8 7 1 8 7
+        6 4 3 5 0 5 6 4 3 5 0 5
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-deduction-pattern-v2.png"
+          type: "image/png"
+    - name: "visual2 - deduction pattern - v2"
+      prompt: |-
+        The attached grid follows the pattern: 6, 1, 5, 0, 8, 4, 3, 7, 5.
+        However, some numbers have been increased by 1. These numbers, when highlighted, form a letter.
+        Locate the known elements of the pattern within the grid.
+        Determine the starting point and the direction in which the pattern progresses.
+        Use this insight to identify the increased numbers.
+        Find the letter hidden in the grid.
+      response-result-format: |-
+        The letter formed by the numbers that have been incremented by one.
+      expected-result: |-
+        X
+      files:
+        - name: "picture"
+          uri: "./taskdata/visual2-deduction-pattern-v2.png"
+          type: "image/png"
