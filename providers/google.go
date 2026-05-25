@@ -241,6 +241,11 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 					// Append assistant content for every non-terminal turn.
 					contents = append(contents, candidate.Content)
 
+					// Collect one FunctionResponse Part per FunctionCall Part, in order,
+					// and bundle them into a single user Content. Gemini 3.x requires one
+					// Content with N Parts for N parallel FunctionCalls; interleaving each
+					// FR as its own Content causes HTTP 400.
+					var frParts []*genai.Part
 					for _, part := range candidate.Content.Parts {
 						logSkippedPreambleText(ctx, logger, string(candidate.FinishReason), part.Text)
 						if part.FunctionCall != nil {
@@ -266,14 +271,13 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 								logger.Message(ctx, logging.LevelWarn, "tool %q was called again after max-calls error; removing it from available tools for next turn", part.FunctionCall.Name)
 								removeFunctionCallFromRequestConfig(generateConfig, part.FunctionCall.Name)
 							}
-							functionResponseContent := genai.NewContentFromFunctionResponse(
-								part.FunctionCall.Name,
-								response,
-								genai.RoleUser,
-							)
-							functionResponseContent.Parts[0].FunctionResponse.ID = part.FunctionCall.ID
-							contents = append(contents, functionResponseContent)
+							frPart := genai.NewPartFromFunctionResponse(part.FunctionCall.Name, response)
+							frPart.FunctionResponse.ID = part.FunctionCall.ID
+							frParts = append(frParts, frPart)
 						}
+					}
+					if len(frParts) > 0 {
+						contents = append(contents, genai.NewContentFromParts(frParts, genai.RoleUser))
 					}
 				}
 			} else {

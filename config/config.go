@@ -509,7 +509,7 @@ type GoogleAIModelParams struct {
 	TextResponseFormatWithTools bool `yaml:"text-response-format-with-tools" validate:"omitempty"`
 
 	// ThinkingLevel controls the maximum depth of the model's internal reasoning process.
-	// Valid values: "minimal", "low", "medium", "high". Gemini 3 Pro defaults to "high" if not specified.
+	// Valid values: "minimal", "low", "medium", "high". The default is model-dependent.
 	// - "minimal": Minimizes reasoning for lowest latency; does not guarantee thinking is disabled
 	// - "low": Minimizes latency and cost, best for simple instruction following
 	// - "medium": Balances reasoning depth and latency

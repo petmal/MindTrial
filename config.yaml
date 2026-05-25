@@ -167,6 +167,12 @@ config:
           model-parameters:
             thinking-level: "high"
             media-resolution: "high"
+        - name: "Gemini 3.5 Flash - latest (high thinking)"
+          model: "gemini-3.5-flash"
+          max-requests-per-minute: 3
+          model-parameters:
+            thinking-level: "high"
+            media-resolution: "high"
     - name: anthropic
       client-config:
         api-key: ""
