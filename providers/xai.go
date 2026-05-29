@@ -238,7 +238,7 @@ func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConf
 					return result, nil
 				}
 
-				return result, NewErrNoActionableContent([]byte(finishReason))
+				return result, NewErrNoActionableContent([]byte(finishReason), nil)
 			}
 		}
 	} // move to the next conversation turn

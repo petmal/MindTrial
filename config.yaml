@@ -225,8 +225,15 @@ config:
             max-tokens: 65536
             effort: max
             stream: true
-        - name: "Claude Opus 4.7 - latest (xhigh adaptive thinking)"
+        - name: "Claude 4.7 Opus - latest (xhigh adaptive thinking)"
           model: "claude-opus-4-7"
+          max-requests-per-minute: 10
+          model-parameters:
+            max-tokens: 65536
+            effort: xhigh
+            stream: true
+        - name: "Claude 4.8 Opus - latest (xhigh adaptive thinking)"
+          model: "claude-opus-4-8"
           max-requests-per-minute: 10
           model-parameters:
             max-tokens: 65536

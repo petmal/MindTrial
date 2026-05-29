@@ -358,7 +358,7 @@ func (o *openAIResponsesProvider) Run(ctx context.Context, logger logging.Logger
 				return result, nil
 			}
 
-			return result, NewErrNoActionableContent([]byte(resp.Status))
+			return result, NewErrNoActionableContent([]byte(resp.Status), nil)
 		}
 	} // move to the next conversation turn
 }

@@ -301,7 +301,7 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 					return result, nil
 				}
 
-				return result, NewErrNoActionableContent([]byte(string(candidate.FinishReason)))
+				return result, NewErrNoActionableContent([]byte(string(candidate.FinishReason)), nil)
 			}
 		}
 	} // move to the next conversation turn

@@ -1113,13 +1113,21 @@ func TestErrNoActionableContent_LogFields(t *testing.T) {
 	}{
 		{
 			name:     "stop reason populated",
-			err:      NewErrNoActionableContent([]byte("end_turn")),
+			err:      NewErrNoActionableContent([]byte("end_turn"), nil),
 			expected: map[string]any{"stop_reason": "end_turn"},
 		},
 		{
 			name:     "empty stop reason",
-			err:      NewErrNoActionableContent(nil),
+			err:      NewErrNoActionableContent(nil, nil),
 			expected: map[string]any{},
+		},
+		{
+			name: "stop details populated",
+			err:  NewErrNoActionableContent([]byte("refusal"), map[string]string{"category": "content_policy", "type": "refusal"}),
+			expected: map[string]any{
+				"stop_reason":  "refusal",
+				"stop_details": map[string]string{"category": "content_policy", "type": "refusal"},
+			},
 		},
 	}
 

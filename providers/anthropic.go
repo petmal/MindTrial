@@ -285,7 +285,11 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 			// No actionable content was found: no parseable text block and no tool calls.
 			// Return an error only when the model has clearly terminated. Otherwise,
 			// continue the conversation loop and ask for forgiveness.
-			return result, NewErrNoActionableContent([]byte(resp.StopReason))
+			var stopDetails any
+			if resp.JSON.StopDetails.Valid() {
+				stopDetails = resp.StopDetails
+			}
+			return result, NewErrNoActionableContent([]byte(resp.StopReason), stopDetails)
 		}
 
 		// If tool results were collected, send them in a single user message.

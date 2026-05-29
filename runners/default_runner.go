@@ -501,6 +501,9 @@ func populateErrorDetails(errorDetails *ErrorDetails, err error) {
 		errorDetails.Details = map[string][]string{
 			"Stop Reason": {string(noActionableContentErr.StopReason)},
 		}
+		if noActionableContentErr.StopDetails != nil {
+			errorDetails.Details["Stop Details"] = utils.ToLines(noActionableContentErr.StopDetails)
+		}
 	case errors.As(err, &apiErr) && apiErr.Body != nil:
 		errorDetails.Details = map[string][]string{
 			"HTTP Response": utils.SplitLines(string(apiErr.Body)),

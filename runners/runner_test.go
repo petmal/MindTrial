@@ -43,9 +43,17 @@ func TestPopulateErrorDetails(t *testing.T) {
 		},
 		{
 			name: "no actionable content includes stop reason",
-			err:  providers.NewErrNoActionableContent([]byte("max_tokens")),
+			err:  providers.NewErrNoActionableContent([]byte("max_tokens"), nil),
 			expects: map[string][]string{
 				"Stop Reason": {"max_tokens"},
+			},
+		},
+		{
+			name: "no actionable content includes stop reason and stop details",
+			err:  providers.NewErrNoActionableContent([]byte("refusal"), map[string]string{"category": "content_policy", "type": "refusal"}),
+			expects: map[string][]string{
+				"Stop Reason":  {"refusal"},
+				"Stop Details": {"{", `  "category": "content_policy",`, `  "type": "refusal"`, "}"},
 			},
 		},
 		{

@@ -212,7 +212,7 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 					return result, nil
 				}
 
-				return result, NewErrNoActionableContent([]byte(candidate.FinishReason))
+				return result, NewErrNoActionableContent([]byte(candidate.FinishReason), nil)
 			}
 		}
 	} // move to the next conversation turn

@@ -364,7 +364,7 @@ func (o *openAICompletionsProvider) Run(ctx context.Context, logger logging.Logg
 					return result, nil
 				}
 
-				return result, NewErrNoActionableContent([]byte(candidate.FinishReason))
+				return result, NewErrNoActionableContent([]byte(candidate.FinishReason), nil)
 			}
 		}
 	} // move to the next conversation turn

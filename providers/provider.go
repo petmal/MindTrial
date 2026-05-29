@@ -173,6 +173,9 @@ func WrapErrGenerateResponse(err error) error {
 type ErrNoActionableContent struct {
 	// StopReason contains the provider-specific terminal reason (finish_reason/stop_reason/etc.).
 	StopReason []byte
+	// StopDetails contains optional structured details about why the model stopped,
+	// when the provider exposes them (currently Anthropic refusal metadata).
+	StopDetails any
 }
 
 func (e *ErrNoActionableContent) Error() string {
@@ -189,13 +192,19 @@ func (e *ErrNoActionableContent) LogFields() map[string]any {
 	if len(e.StopReason) > 0 {
 		fields["stop_reason"] = string(e.StopReason)
 	}
+	if e.StopDetails != nil {
+		fields["stop_details"] = e.StopDetails
+	}
 	return fields
 }
 
 // NewErrNoActionableContent creates a standardized generation error when the model
 // provided neither actionable tool calls nor parseable text at a terminal stop reason.
-func NewErrNoActionableContent(stopReason []byte) error {
-	return &ErrNoActionableContent{StopReason: stopReason}
+func NewErrNoActionableContent(stopReason []byte, stopDetails any) error {
+	return &ErrNoActionableContent{
+		StopReason:  stopReason,
+		StopDetails: stopDetails,
+	}
 }
 
 func logFinishReason(ctx context.Context, logger logging.Logger, stopReason string, isTerminal bool) {

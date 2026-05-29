@@ -15,12 +15,12 @@ require (
 	github.com/invopop/jsonschema v0.13.0
 	github.com/kaptinlin/jsonrepair v0.2.8
 	github.com/oklog/ulid/v2 v2.1.1
-	github.com/openai/openai-go/v3 v3.32.0
+	github.com/openai/openai-go/v3 v3.37.0
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
 	github.com/sethvargo/go-retry v0.3.0
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/time v0.15.0
-	google.golang.org/genai v1.54.0
+	google.golang.org/genai v1.58.0
 	gopkg.in/validator.v2 v2.0.1
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -31,11 +31,11 @@ require (
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
-	github.com/buger/jsonparser v1.1.2 // indirect
+	github.com/buger/jsonparser v1.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/harmonica v0.2.0 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20260422141423-a0f1f21775f7 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20260525132238-948f4557a654 // indirect
 	github.com/charmbracelet/x/ansi v0.11.7 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
@@ -62,7 +62,7 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.4.0 // indirect
 	github.com/mailru/easyjson v0.9.2 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
-	github.com/mattn/go-isatty v0.0.21 // indirect
+	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/mattn/go-runewidth v0.0.23 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/sys/atomicwriter v0.1.0 // indirect
@@ -74,39 +74,40 @@ require (
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
+	github.com/standard-webhooks/standard-webhooks/libraries v0.0.1 // indirect
 	github.com/stretchr/objx v0.5.3 // indirect
-	github.com/tidwall/gjson v1.18.0 // indirect
+	github.com/tidwall/gjson v1.19.0 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.68.0 // indirect
-	go.opentelemetry.io/otel v1.43.0 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.43.0 // indirect
-	go.opentelemetry.io/otel/metric v1.43.0 // indirect
-	go.opentelemetry.io/otel/trace v1.43.0 // indirect
-	golang.org/x/crypto v0.50.0 // indirect
-	golang.org/x/net v0.53.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.69.0 // indirect
+	go.opentelemetry.io/otel v1.44.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.44.0 // indirect
+	go.opentelemetry.io/otel/metric v1.44.0 // indirect
+	go.opentelemetry.io/otel/trace v1.44.0 // indirect
+	golang.org/x/crypto v0.52.0 // indirect
+	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.43.0 // indirect
-	golang.org/x/text v0.36.0 // indirect
+	golang.org/x/sys v0.45.0 // indirect
+	golang.org/x/text v0.37.0 // indirect
 	google.golang.org/api v0.276.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20260420184626-e10c466a9529 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260420184626-e10c466a9529 // indirect
-	google.golang.org/grpc v1.80.0 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260526163538-3dc84a4a5aaa // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
+	google.golang.org/grpc v1.81.1 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gotest.tools/v3 v3.5.2 // indirect
 )
 
 require (
-	github.com/anthropics/anthropic-sdk-go v1.37.0
+	github.com/anthropics/anthropic-sdk-go v1.46.0
 	github.com/cohesion-org/deepseek-go v1.3.4
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-playground/validator/v10 v10.30.2
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rs/zerolog v1.35.1
 	github.com/sergi/go-diff v1.4.0
-	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f
+	golang.org/x/exp v0.0.0-20260528193900-50dc527dd6c7
 )

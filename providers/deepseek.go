@@ -215,7 +215,7 @@ func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 					return result, nil
 				}
 
-				return result, NewErrNoActionableContent([]byte(candidate.FinishReason))
+				return result, NewErrNoActionableContent([]byte(candidate.FinishReason), nil)
 			}
 		}
 	} // move to the next conversation turn
