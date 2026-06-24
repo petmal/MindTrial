@@ -119,4 +119,11 @@ func (o *OpenRouter) copyToOpenAIV3Params(openRouterParams config.OpenRouterMode
 		openAIV3Params.MaxTokens = utils.Ptr(int64(*openRouterParams.MaxTokens))
 	}
 	openAIV3Params.Seed = openRouterParams.Seed
+
+	for _, st := range openRouterParams.ServerTools {
+		openAIV3Params.ServerTools = append(openAIV3Params.ServerTools, openAIServerTool{
+			Type:       st.Type,
+			Parameters: st.Parameters,
+		})
+	}
 }

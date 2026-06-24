@@ -112,9 +112,31 @@ type openAIV3ModelParams struct {
 	// ExtraFields are applied to the JSON request body.
 	ExtraFields map[string]any
 
+	// ServerTools are provider-managed tools appended to request.Tools alongside
+	// SDK function tools.
+	ServerTools []openAIServerTool
+
 	// Stream enables streaming mode for the API response.
 	// When true, uses NewStreaming() instead of New() and buffers the response.
 	Stream *bool
+}
+
+// openAIServerTool is the internal representation of a provider-managed server-side tool
+// for OpenAI-compatible API requests.
+type openAIServerTool struct {
+	// Type identifies the server tool (e.g. "openrouter:fusion").
+	Type string
+	// Parameters holds optional tool-specific configuration passed verbatim to the API.
+	Parameters map[string]any
+}
+
+// toMap converts the server tool to the raw map representation required by param.Override.
+func (t openAIServerTool) toMap() map[string]any {
+	m := map[string]any{"type": t.Type}
+	if len(t.Parameters) > 0 {
+		m["parameters"] = t.Parameters
+	}
+	return m
 }
 
 // ResponseFormat specifies the response format mode for the internal OpenAI-compatible provider.
@@ -243,6 +265,9 @@ func (o *openAICompletionsProvider) Run(ctx context.Context, logger logging.Logg
 				request.StreamOptions = openai.ChatCompletionStreamOptionsParam{
 					IncludeUsage: param.NewOpt(true),
 				}
+			}
+			for _, st := range modelParams.ServerTools {
+				request.Tools = append(request.Tools, param.Override[openai.ChatCompletionToolUnionParam](st.toMap()))
 			}
 		} else {
 			return result, fmt.Errorf("%w: %s", ErrInvalidModelParams, cfg.Name)

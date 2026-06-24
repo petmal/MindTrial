@@ -486,6 +486,12 @@ type OpenRouterModelParams struct {
 	// Values: "low", "medium", "high". Default: "medium".
 	Verbosity *string `yaml:"verbosity" validate:"omitempty,oneof=low medium high"`
 
+	// ServerTools lists provider-managed (server-side) tools to inject into every
+	// request for this run. Each tool is appended to the request's tools array
+	// alongside any enabled local tools. Use Extra to pass tool_choice if needed
+	// (e.g., tool_choice: required to guarantee a tool is invoked on every request).
+	ServerTools []ServerToolConfig `yaml:"server-tools" validate:"omitempty,dive"`
+
 	// Extra holds arbitrary OpenRouter/model-specific parameters.
 	//
 	// These values are attached to the outgoing request JSON using the OpenAI SDK's
@@ -493,6 +499,18 @@ type OpenRouterModelParams struct {
 	// are specified (e.g., MaxTokens and max_tokens in Extra), the extra parameter takes
 	// precedence and the API receives the extra parameter's value.
 	Extra map[string]any `yaml:",inline"`
+}
+
+// ServerToolConfig defines a provider-managed (server-side) tool to inject into
+// every request for a run. Unlike local Docker-based tools, server tools are
+// executed by the API provider, not MindTrial. The Type field identifies the
+// tool; Parameters is optional and tool-type-specific.
+type ServerToolConfig struct {
+	// Type is the server tool identifier (e.g. "openrouter:fusion").
+	Type string `yaml:"type" validate:"required"`
+	// Parameters holds optional tool-specific configuration passed verbatim to the
+	// API. The accepted fields depend on the tool type.
+	Parameters map[string]any `yaml:"parameters" validate:"omitempty"`
 }
 
 // GoogleAIModelParams represents Google AI model-specific settings.

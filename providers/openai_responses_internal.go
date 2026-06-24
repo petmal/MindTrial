@@ -196,6 +196,9 @@ func (o *openAIResponsesProvider) Run(ctx context.Context, logger logging.Logger
 			if modelParams.Stream != nil && *modelParams.Stream {
 				useStreaming = true
 			}
+			for _, st := range modelParams.ServerTools {
+				request.Tools = append(request.Tools, param.Override[responses.ToolUnionParam](st.toMap()))
+			}
 		} else {
 			return result, fmt.Errorf("%w: %s", ErrInvalidModelParams, cfg.Name)
 		}

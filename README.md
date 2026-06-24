@@ -204,6 +204,7 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **seed**: Enables deterministic sampling when supported.
 > - **parallel-tool-calls**: Enables parallel function calling during tool use (default: true).
 > - **verbosity**: Controls response verbosity (values: `low`, `medium`, `high`, default: `medium`).
+> - **server-tools**: Injects provider-managed server-side tools into every request for this run. Each entry requires a `type` (the tool identifier, e.g. `openrouter:fusion`) and an optional `parameters` map whose fields are tool-specific. Server tools are appended to the request's tools array alongside any local Docker-based tools. Use an extra parameter (e.g. `tool_choice: required`) to control invocation behavior.
 >
 > Any additional parameters not listed above can be specified directly in `model-parameters` and will be forwarded to the OpenRouter API. Use for provider-specific or OpenRouter-specific parameters. Prefer typed parameters where they exist. Note: if both a typed parameter and an equivalent extra parameter are specified (e.g., `max-tokens: 100` and `max_tokens: 500`), the extra parameter takes precedence and the API will receive the extra parameter's value.
 >
@@ -372,6 +373,29 @@ config:
             verbosity: "medium"
             # Pass-through parameters use OpenAI API naming (underscores).
             reasoning_effort: "xhigh"
+        - name: "GPT via Fusion (xhigh panel + judge, high outer)"
+          # Outer model.
+          model: "~openai/gpt-latest"
+          max-requests-per-minute: 2
+          model-parameters:
+            # Outer model reasoning effort.
+            reasoning:
+              effort: "high"
+            server-tools:
+              - type: openrouter:fusion
+                parameters:
+                  # Inner panel models.
+                  analysis_models:
+                    - "~anthropic/claude-opus-latest"
+                    - "~openai/gpt-latest"
+                    - "~google/gemini-pro-latest"
+                  # Judge model.
+                  model: "~anthropic/claude-opus-latest"
+                  # Inner panel + judge parameters.
+                  reasoning:
+                    effort: "xhigh"
+                  max_completion_tokens: 65536
+                  max_tool_calls: 16
         - name: "Google Gemma 3 27B IT (free)"
           model: "google/gemma-3-27b-it:free"
           max-requests-per-minute: 3

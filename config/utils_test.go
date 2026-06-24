@@ -474,6 +474,19 @@ func TestLoadConfigFromFile(t *testing.T) {
                     seed: 42
                     parallel-tool-calls: false
                     verbosity: low
+                    server-tools:
+                      - type: openrouter:fusion
+                        parameters:
+                          analysis_models:
+                            - "~anthropic/claude-opus-latest"
+                            - "~openai/gpt-latest"
+                            - "~google/gemini-pro-latest"
+                          model: "~anthropic/claude-opus-latest"
+                          reasoning:
+                            effort: "xhigh"
+                          max_completion_tokens: 65536
+                          max_tool_calls: 16
+                          temperature: 0
                     provider:
                         order:
                           - "OpenAI"
@@ -658,6 +671,25 @@ func TestLoadConfigFromFile(t *testing.T) {
 										Seed:              testutils.Ptr(int64(42)),
 										ParallelToolCalls: testutils.Ptr(false),
 										Verbosity:         testutils.Ptr("low"),
+										ServerTools: []ServerToolConfig{
+											{
+												Type: "openrouter:fusion",
+												Parameters: map[string]any{
+													"analysis_models": []any{
+														"~anthropic/claude-opus-latest",
+														"~openai/gpt-latest",
+														"~google/gemini-pro-latest",
+													},
+													"model": "~anthropic/claude-opus-latest",
+													"reasoning": map[string]any{
+														"effort": "xhigh",
+													},
+													"max_completion_tokens": 65536,
+													"max_tool_calls":        16,
+													"temperature":           0,
+												},
+											},
+										},
 										Extra: map[string]any{
 											"provider": map[string]any{
 												"order": []any{"OpenAI"},

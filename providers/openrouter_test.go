@@ -201,5 +201,59 @@ func TestOpenRouterCopyToOpenAIV3Params(t *testing.T) {
 		require.Nil(t, params.Seed)
 		require.Nil(t, params.Verbosity)
 		require.Nil(t, params.ResponseFormat)
+		require.Empty(t, params.ServerTools)
+	})
+
+	t.Run("server tools translated with parameters", func(t *testing.T) {
+		cfg := config.RunConfig{
+			Name: "run",
+			ModelParams: config.OpenRouterModelParams{
+				ServerTools: []config.ServerToolConfig{
+					{
+						Type: "openrouter:fusion",
+						Parameters: map[string]any{
+							"analysis_models": []any{
+								"~anthropic/claude-opus-latest",
+								"~openai/gpt-latest",
+								"~google/gemini-pro-latest",
+							},
+							"model":   "~anthropic/claude-opus-latest",
+							"reasoning": map[string]any{"effort": "xhigh"},
+							"max_completion_tokens": 65536,
+							"max_tool_calls":        16,
+							"temperature":           0,
+						},
+					},
+				},
+			},
+		}
+
+		params := buildParams(t, cfg)
+		require.Len(t, params.ServerTools, 1)
+		require.Equal(t, "openrouter:fusion", params.ServerTools[0].Type)
+		p := params.ServerTools[0].Parameters
+		require.NotNil(t, p)
+		require.Equal(t, []any{"~anthropic/claude-opus-latest", "~openai/gpt-latest", "~google/gemini-pro-latest"}, p["analysis_models"])
+		require.Equal(t, "~anthropic/claude-opus-latest", p["model"])
+		require.Equal(t, map[string]any{"effort": "xhigh"}, p["reasoning"])
+		require.Equal(t, 65536, p["max_completion_tokens"])
+		require.Equal(t, 16, p["max_tool_calls"])
+		require.Equal(t, 0, p["temperature"])
+	})
+
+	t.Run("server tool without parameters omits parameters key", func(t *testing.T) {
+		cfg := config.RunConfig{
+			Name: "run",
+			ModelParams: config.OpenRouterModelParams{
+				ServerTools: []config.ServerToolConfig{
+					{Type: "openrouter:fusion"},
+				},
+			},
+		}
+
+		params := buildParams(t, cfg)
+		require.Len(t, params.ServerTools, 1)
+		require.Equal(t, "openrouter:fusion", params.ServerTools[0].Type)
+		require.Empty(t, params.ServerTools[0].Parameters)
 	})
 }

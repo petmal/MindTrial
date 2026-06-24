@@ -33,6 +33,24 @@ func TestOpenAIResponses_Run_IncompatibleResponseFormat(t *testing.T) {
 	require.ErrorIs(t, err, ErrIncompatibleResponseFormat)
 }
 
+func TestOpenAIResponses_Run_ServerTools_CapturedBeforeValidation(t *testing.T) {
+	logger := testutils.NewTestLogger(t)
+	p := &openAIResponsesProvider{}
+	runCfg := config.RunConfig{
+		Name:                    "test-run",
+		Model:                   "gpt-test",
+		DisableStructuredOutput: true,
+		ModelParams: openAIV3ModelParams{
+			ResponseFormat: ResponseFormatJSONObject.Ptr(),
+			ServerTools: []openAIServerTool{
+				{Type: "openrouter:fusion"},
+			},
+		},
+	}
+	_, err := p.Run(context.Background(), logger, runCfg, config.Task{Name: "t"})
+	require.ErrorIs(t, err, ErrIncompatibleResponseFormat)
+}
+
 func TestOpenAIResponses_FileTypeNotSupported(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
 	p := &openAIResponsesProvider{}
