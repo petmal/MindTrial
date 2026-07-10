@@ -8,6 +8,7 @@ package providers
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/petmal/mindtrial/config"
@@ -88,6 +89,21 @@ func TestOpenAICopyToOpenAIV3Params(t *testing.T) {
 		require.Equal(t, "medium", *params.Verbosity)
 	})
 
+	t.Run("ReasoningContext and ReasoningMode copied", func(t *testing.T) {
+		cfg := config.RunConfig{
+			Name: "run",
+			ModelParams: config.OpenAIModelParams{
+				ReasoningEffort:  utils.Ptr("max"),
+				ReasoningContext: utils.Ptr("all_turns"),
+				ReasoningMode:    utils.Ptr("pro"),
+			},
+		}
+		params := buildParams(t, cfg)
+		require.Equal(t, "max", *params.ReasoningEffort)
+		require.Equal(t, "all_turns", *params.ReasoningContext)
+		require.Equal(t, "pro", *params.ReasoningMode)
+	})
+
 	t.Run("numeric parameters with type conversion", func(t *testing.T) {
 		cfg := config.RunConfig{
 			Name: "run",
@@ -136,6 +152,8 @@ func TestOpenAICopyToOpenAIV3Params(t *testing.T) {
 		params := buildParams(t, cfg)
 		require.Nil(t, params.ResponseFormat)
 		require.Nil(t, params.ReasoningEffort)
+		require.Nil(t, params.ReasoningContext)
+		require.Nil(t, params.ReasoningMode)
 		require.Nil(t, params.Verbosity)
 		require.Nil(t, params.Temperature)
 		require.Nil(t, params.TopP)
@@ -144,6 +162,51 @@ func TestOpenAICopyToOpenAIV3Params(t *testing.T) {
 		require.Nil(t, params.MaxCompletionTokens)
 		require.Nil(t, params.MaxTokens)
 		require.Nil(t, params.Seed)
+	})
+}
+
+func TestPromptCacheKeyFor(t *testing.T) {
+	t.Run("deterministic for the same run name and model", func(t *testing.T) {
+		require.Equal(t, promptCacheKeyFor("GPT-5.6 - latest (high reasoning)", "gpt-5.6"), promptCacheKeyFor("GPT-5.6 - latest (high reasoning)", "gpt-5.6"))
+	})
+
+	t.Run("differs across run names", func(t *testing.T) {
+		require.NotEqual(t, promptCacheKeyFor("run-a", "gpt-5.6"), promptCacheKeyFor("run-b", "gpt-5.6"))
+	})
+
+	t.Run("differs across models with the same run name", func(t *testing.T) {
+		// Guards against collisions between two distinct run configurations
+		// (e.g. in two separate provider blocks) that happen to share a name.
+		require.NotEqual(t, promptCacheKeyFor("latest", "gpt-5.6-sol"), promptCacheKeyFor("latest", "gpt-5.6-luna"))
+	})
+
+	t.Run("stable, non-empty, prefixed value", func(t *testing.T) {
+		key := promptCacheKeyFor("GPT-5.5 - latest (high reasoning)", "gpt-5.5")
+		require.NotEmpty(t, key)
+		require.True(t, strings.HasPrefix(key, "mindtrial-"))
+	})
+
+	t.Run("handles empty run name", func(t *testing.T) {
+		key := promptCacheKeyFor("", "gpt-5.6")
+		require.NotEmpty(t, key)
+		require.True(t, strings.HasPrefix(key, "mindtrial-"))
+		require.Equal(t, key, promptCacheKeyFor("", "gpt-5.6"))
+		require.NotEqual(t, key, promptCacheKeyFor("", "gpt-5.5"))
+	})
+
+	t.Run("handles empty model", func(t *testing.T) {
+		key := promptCacheKeyFor("run", "")
+		require.NotEmpty(t, key)
+		require.True(t, strings.HasPrefix(key, "mindtrial-"))
+		require.Equal(t, key, promptCacheKeyFor("run", ""))
+		require.NotEqual(t, key, promptCacheKeyFor("other-run", ""))
+	})
+
+	t.Run("handles both empty", func(t *testing.T) {
+		key := promptCacheKeyFor("", "")
+		require.NotEmpty(t, key)
+		require.True(t, strings.HasPrefix(key, "mindtrial-"))
+		require.Equal(t, key, promptCacheKeyFor("", ""))
 	})
 }
 

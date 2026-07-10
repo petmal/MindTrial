@@ -97,6 +97,19 @@ type openAIV3ModelParams struct {
 	ReasoningEffort *string
 	Verbosity       *string
 
+	// ReasoningContext controls which prior reasoning items are reused across
+	// conversation turns. Only supported by the Responses API.
+	ReasoningContext *string
+
+	// ReasoningMode selects an alternate reasoning execution mode (e.g. "pro").
+	// Only supported by the Responses API.
+	ReasoningMode *string
+
+	// PromptCacheKey is a stable identifier used to improve prompt cache
+	// hit-rate consistency by influencing request routing. Supported by both
+	// the Responses API and the Chat Completions API.
+	PromptCacheKey *string
+
 	// ResponseFormat controls the API-level response_format setting and prompt instruction behavior.
 	// When nil, the provider uses strict JSON schema mode by default without adding response format instructions.
 	ResponseFormat *ResponseFormat
@@ -209,6 +222,15 @@ func (o *openAICompletionsProvider) Run(ctx context.Context, logger logging.Logg
 
 			if modelParams.ReasoningEffort != nil {
 				request.ReasoningEffort = shared.ReasoningEffort(*modelParams.ReasoningEffort)
+			}
+			if modelParams.ReasoningContext != nil {
+				logger.Message(ctx, logging.LevelWarn, "reasoning-context parameter is not supported by the Chat Completions API and will be ignored")
+			}
+			if modelParams.ReasoningMode != nil {
+				logger.Message(ctx, logging.LevelWarn, "reasoning-mode parameter is not supported by the Chat Completions API and will be ignored")
+			}
+			if modelParams.PromptCacheKey != nil {
+				request.PromptCacheKey = param.NewOpt(*modelParams.PromptCacheKey)
 			}
 			if modelParams.Verbosity != nil {
 				request.Verbosity = openai.ChatCompletionNewParamsVerbosity(*modelParams.Verbosity)

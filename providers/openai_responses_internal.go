@@ -134,9 +134,18 @@ func (o *openAIResponsesProvider) Run(ctx context.Context, logger logging.Logger
 			}
 
 			if modelParams.ReasoningEffort != nil {
-				request.Reasoning = shared.ReasoningParam{
-					Effort: shared.ReasoningEffort(*modelParams.ReasoningEffort),
-				}
+				request.Reasoning.Effort = shared.ReasoningEffort(*modelParams.ReasoningEffort)
+			}
+			if modelParams.ReasoningContext != nil {
+				request.Reasoning.Context = shared.ReasoningContext(*modelParams.ReasoningContext)
+			}
+			if modelParams.ReasoningMode != nil {
+				// Reasoning mode has no typed SDK field yet; set it via the reasoning
+				// object's own (SDK-native, object-scoped) extra-fields mechanism.
+				request.Reasoning.SetExtraFields(map[string]any{"mode": *modelParams.ReasoningMode})
+			}
+			if modelParams.PromptCacheKey != nil {
+				request.PromptCacheKey = param.NewOpt(*modelParams.PromptCacheKey)
 			}
 			if modelParams.Verbosity != nil {
 				request.Text.Verbosity = responses.ResponseTextConfigVerbosity(*modelParams.Verbosity)

@@ -354,8 +354,21 @@ type ModelParams interface{}
 // OpenAIModelParams represents OpenAI model-specific settings.
 type OpenAIModelParams struct {
 	// ReasoningEffort controls effort level on reasoning for reasoning models.
-	// Valid values are: "none", "minimal", "low", "medium", "high", "xhigh".
-	ReasoningEffort *string `yaml:"reasoning-effort" validate:"omitempty,oneof=none minimal low medium high xhigh"`
+	// Valid values are: "none", "minimal", "low", "medium", "high", "xhigh", "max".
+	// The "max" level is supported on GPT-5.6 and later reasoning models.
+	ReasoningEffort *string `yaml:"reasoning-effort" validate:"omitempty,oneof=none minimal low medium high xhigh max"`
+
+	// ReasoningContext controls which prior reasoning items are reused across
+	// conversation turns (persisted reasoning). Valid values are: "auto",
+	// "current_turn", "all_turns". Supported on GPT-5.6 and later reasoning models.
+	ReasoningContext *string `yaml:"reasoning-context" validate:"omitempty,oneof=auto current_turn all_turns"`
+
+	// ReasoningMode selects an alternate reasoning execution mode. Currently the
+	// only supported value is "pro", which performs additional model work before
+	// returning a single final answer. This increases latency and token usage;
+	// use selectively for demanding tasks where the marginal quality gain
+	// matters. Supported on GPT-5.6 and later models.
+	ReasoningMode *string `yaml:"reasoning-mode" validate:"omitempty,oneof=pro"`
 
 	// Verbosity determines how many output tokens are generated.
 	// Valid values are: "low", "medium", "high".

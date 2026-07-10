@@ -67,6 +67,11 @@ config:
           max-requests-per-minute: 20
           model-parameters:
             reasoning-effort: "high"
+        - name: "GPT-5.6 Sol - latest (high reasoning)"
+          model: "gpt-5.6-sol"
+          max-requests-per-minute: 20
+          model-parameters:
+            reasoning-effort: "high"
     - name: openrouter
       retry-policy:
         max-retry-attempts: 5

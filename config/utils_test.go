@@ -173,6 +173,28 @@ func TestLoadConfigFromFile(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "invalid run model reasoning-context",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`config:
+    task-source: "tasks.yaml"
+    output-dir: "."
+    providers:
+        - name: openai
+          client-config:
+              api-key: "93e8f51a-89d6-483a-9268-0ec2d0a4c8a2"
+          runs:
+              - name: "Developer"
+                model: "partnerships"
+                model-parameters:
+                    reasoning-context: "cdfe8a37-bb9a-4564-a593-67df8f3810e5"
+`)),
+			},
+			wantErr: true,
+		},
+		{
 			name: "extra top-level field",
 			args: args{
 				ctx: context.Background(),
@@ -447,7 +469,9 @@ func TestLoadConfigFromFile(t *testing.T) {
                 max-requests-per-minute: 3
                 disable-structured-output: true
                 model-parameters:
-                    reasoning-effort: high
+                    reasoning-effort: max
+                    reasoning-context: all_turns
+                    reasoning-mode: pro
                     text-response-format: true
                     temperature: 0.7
                     top-p: 0.95
@@ -634,7 +658,9 @@ func TestLoadConfigFromFile(t *testing.T) {
 									Disabled:                testutils.Ptr(true),
 									DisableStructuredOutput: true,
 									ModelParams: OpenAIModelParams{
-										ReasoningEffort:     testutils.Ptr("high"),
+										ReasoningEffort:     testutils.Ptr("max"),
+										ReasoningContext:    testutils.Ptr("all_turns"),
+										ReasoningMode:       testutils.Ptr("pro"),
 										TextResponseFormat:  true,
 										Temperature:         testutils.Ptr(float32(0.7)),
 										TopP:                testutils.Ptr(float32(0.95)),

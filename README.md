@@ -181,7 +181,9 @@ This file defines the tool's settings and target model configurations evaluated 
 > Currently supported parameters for **OpenAI** models include:
 >
 > - **text-response-format**: If `true`, use plain-text response format (less reliable) for compatibility with models that do not support `JSON`.
-> - **reasoning-effort**: Controls effort on reasoning for reasoning models. (values: `none`, `minimal`, `low`, `medium`, `high`, `xhigh`). Legacy models may not support all values.
+> - **reasoning-effort**: Controls effort on reasoning for reasoning models. (values: `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`). The `max` level is supported on GPT-5.6 and later reasoning models. Legacy models may not support all values.
+> - **reasoning-context**: Controls which prior reasoning items are reused across conversation turns (persisted reasoning). (values: `auto`, `current_turn`, `all_turns`). Supported on GPT-5.6 and later reasoning models. `auto` uses the model's default; `current_turn` keeps reasoning from the active turn only, without rendering earlier turns' reasoning into the next call; `all_turns` renders compatible reasoning items from earlier turns into the next call as well, which only has an effect when prior response items are available (e.g. via `previous_response_id`, which MindTrial already relies on for its multi-turn tool-calling loop).
+> - **reasoning-mode**: Selects an alternate reasoning execution mode. (values: `pro`). Pro mode performs additional model work before returning a single final answer, increasing latency and token usage; use selectively for demanding tasks. Supported on GPT-5.6 and later models.
 > - **verbosity**: Controls how many output tokens are generated. (values: `low`, `medium`, `high`). May not be supported by legacy models.
 > - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 2.0, default: 1.0). Lower values produce more focused and deterministic outputs.
 > - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0, default: 1.0). Lower values produce more focused outputs.
