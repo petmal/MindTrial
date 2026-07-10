@@ -21,7 +21,9 @@ var _ MappedNullable = &GeneratedImageResponse{}
 // GeneratedImageResponse Image generation response for `/v1/image/generations` endpoint
 type GeneratedImageResponse struct {
 	// A list of generated image objects.
-	Data                 []GeneratedImage `json:"data"`
+	Data []GeneratedImage `json:"data"`
+	// Billing and cost information for this request.
+	Usage                NullableMediaUsage `json:"usage,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -69,6 +71,49 @@ func (o *GeneratedImageResponse) SetData(v []GeneratedImage) {
 	o.Data = v
 }
 
+// GetUsage returns the Usage field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *GeneratedImageResponse) GetUsage() MediaUsage {
+	if o == nil || IsNil(o.Usage.Get()) {
+		var ret MediaUsage
+		return ret
+	}
+	return *o.Usage.Get()
+}
+
+// GetUsageOk returns a tuple with the Usage field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *GeneratedImageResponse) GetUsageOk() (*MediaUsage, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Usage.Get(), o.Usage.IsSet()
+}
+
+// HasUsage returns a boolean if a field has been set.
+func (o *GeneratedImageResponse) HasUsage() bool {
+	if o != nil && o.Usage.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetUsage gets a reference to the given NullableMediaUsage and assigns it to the Usage field.
+func (o *GeneratedImageResponse) SetUsage(v MediaUsage) {
+	o.Usage.Set(&v)
+}
+
+// SetUsageNil sets the value for Usage to be an explicit nil
+func (o *GeneratedImageResponse) SetUsageNil() {
+	o.Usage.Set(nil)
+}
+
+// UnsetUsage ensures that no value is present for Usage, not even an explicit nil
+func (o *GeneratedImageResponse) UnsetUsage() {
+	o.Usage.Unset()
+}
+
 func (o GeneratedImageResponse) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -80,6 +125,9 @@ func (o GeneratedImageResponse) MarshalJSON() ([]byte, error) {
 func (o GeneratedImageResponse) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["data"] = o.Data
+	if o.Usage.IsSet() {
+		toSerialize["usage"] = o.Usage.Get()
+	}
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -124,6 +172,7 @@ func (o *GeneratedImageResponse) UnmarshalJSON(data []byte) (err error) {
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
 		delete(additionalProperties, "data")
+		delete(additionalProperties, "usage")
 		o.AdditionalProperties = additionalProperties
 	}
 

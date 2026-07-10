@@ -58,7 +58,8 @@
         "--additional-properties packageName=xai",
         "--additional-properties isGoSubmodule=true",
         "--additional-properties disallowAdditionalPropertiesIfNotPresent=false",
-        "--additional-properties generateInterfaces=true"
+        "--additional-properties generateInterfaces=true",
+        "--additional-properties enumClassPrefix=true" // workaround: enum constant name collision (ImageAspectRatio vs. VideoAspectRatio)
       ],
       "group": "build",
       "options": {

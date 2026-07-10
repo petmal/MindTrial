@@ -20,6 +20,8 @@ var _ MappedNullable = &MessageContentPartOneOf5{}
 
 // MessageContentPartOneOf5 Thinking of the model.
 type MessageContentPartOneOf5 struct {
+	// Signature of the thinking block (required by Anthropic SDK for round-tripping).
+	Signature NullableString `json:"signature,omitempty"`
 	// Thinking.
 	Thinking             string `json:"thinking"`
 	Type                 string `json:"type"`
@@ -45,6 +47,49 @@ func NewMessageContentPartOneOf5(thinking string, type_ string) *MessageContentP
 func NewMessageContentPartOneOf5WithDefaults() *MessageContentPartOneOf5 {
 	this := MessageContentPartOneOf5{}
 	return &this
+}
+
+// GetSignature returns the Signature field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *MessageContentPartOneOf5) GetSignature() string {
+	if o == nil || IsNil(o.Signature.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Signature.Get()
+}
+
+// GetSignatureOk returns a tuple with the Signature field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *MessageContentPartOneOf5) GetSignatureOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Signature.Get(), o.Signature.IsSet()
+}
+
+// HasSignature returns a boolean if a field has been set.
+func (o *MessageContentPartOneOf5) HasSignature() bool {
+	if o != nil && o.Signature.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetSignature gets a reference to the given NullableString and assigns it to the Signature field.
+func (o *MessageContentPartOneOf5) SetSignature(v string) {
+	o.Signature.Set(&v)
+}
+
+// SetSignatureNil sets the value for Signature to be an explicit nil
+func (o *MessageContentPartOneOf5) SetSignatureNil() {
+	o.Signature.Set(nil)
+}
+
+// UnsetSignature ensures that no value is present for Signature, not even an explicit nil
+func (o *MessageContentPartOneOf5) UnsetSignature() {
+	o.Signature.Unset()
 }
 
 // GetThinking returns the Thinking field value
@@ -105,6 +150,9 @@ func (o MessageContentPartOneOf5) MarshalJSON() ([]byte, error) {
 
 func (o MessageContentPartOneOf5) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if o.Signature.IsSet() {
+		toSerialize["signature"] = o.Signature.Get()
+	}
 	toSerialize["thinking"] = o.Thinking
 	toSerialize["type"] = o.Type
 
@@ -151,6 +199,7 @@ func (o *MessageContentPartOneOf5) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "signature")
 		delete(additionalProperties, "thinking")
 		delete(additionalProperties, "type")
 		o.AdditionalProperties = additionalProperties

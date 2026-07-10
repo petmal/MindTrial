@@ -22,7 +22,7 @@ var _ MappedNullable = &SearchSourceOneOf1{}
 type SearchSourceOneOf1 struct {
 	// List of website to allow in the search results. This parameter act as a whitelist where only those websites can be selected. A maximum of 5 websites can be selected.  Note 1: If no relevant information is found on those websites, the number of results returned might be smaller than `max_search_results`.  Note 2: This parameter cannot be set with `excluded_websites`.
 	AllowedWebsites []string `json:"allowed_websites,omitempty"`
-	// ISO alpha-2 code of the country. If the country is set, only data coming from this country will be considered. See https://en.wikipedia.org/wiki/ISO_3166-2.
+	// ISO alpha-2 code of the country. If the country is set, only data coming from this country will be considered. See <https://en.wikipedia.org/wiki/ISO_3166-2>.
 	Country NullableString `json:"country,omitempty"`
 	// List of website to exclude from the search results without protocol specification or subdomains. A maximum of 5 websites can be excluded.  Note 2: This parameter cannot be set with `allowed_websites`
 	ExcludedWebsites []string `json:"excluded_websites,omitempty"`

@@ -30,6 +30,7 @@ type SearchSourceOneOf struct {
 	PostViewCount NullableInt32 `json:"post_view_count,omitempty"`
 	Type          string        `json:"type"`
 	// DEPRECATED in favor of `included_x_handles`. Use `included_x_handles` instead. X Handles of the users from whom to consider the posts. Only available if mode is `auto`, `on` or `x`.
+	// Deprecated
 	XHandles             []string `json:"x_handles,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
@@ -231,6 +232,7 @@ func (o *SearchSourceOneOf) SetType(v string) {
 }
 
 // GetXHandles returns the XHandles field value if set, zero value otherwise (both if not set or set to explicit null).
+// Deprecated
 func (o *SearchSourceOneOf) GetXHandles() []string {
 	if o == nil {
 		var ret []string
@@ -242,6 +244,7 @@ func (o *SearchSourceOneOf) GetXHandles() []string {
 // GetXHandlesOk returns a tuple with the XHandles field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 // NOTE: If the value is an explicit nil, `nil, true` will be returned
+// Deprecated
 func (o *SearchSourceOneOf) GetXHandlesOk() ([]string, bool) {
 	if o == nil || IsNil(o.XHandles) {
 		return nil, false
@@ -259,6 +262,7 @@ func (o *SearchSourceOneOf) HasXHandles() bool {
 }
 
 // SetXHandles gets a reference to the given []string and assigns it to the XHandles field.
+// Deprecated
 func (o *SearchSourceOneOf) SetXHandles(v []string) {
 	o.XHandles = v
 }

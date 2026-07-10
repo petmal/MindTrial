@@ -18,9 +18,10 @@ import (
 // checks if the ResponseFormatOneOf type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &ResponseFormatOneOf{}
 
-// ResponseFormatOneOf Specify text response format, always `\"text\"`.
+// ResponseFormatOneOf Specify json_schema response format with a given schema. Type is always `\"json_schema\"`.
 type ResponseFormatOneOf struct {
-	Type                 string `json:"type"`
+	JsonSchema           interface{} `json:"json_schema"`
+	Type                 string      `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -30,8 +31,9 @@ type _ResponseFormatOneOf ResponseFormatOneOf
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewResponseFormatOneOf(type_ string) *ResponseFormatOneOf {
+func NewResponseFormatOneOf(jsonSchema interface{}, type_ string) *ResponseFormatOneOf {
 	this := ResponseFormatOneOf{}
+	this.JsonSchema = jsonSchema
 	this.Type = type_
 	return &this
 }
@@ -42,6 +44,32 @@ func NewResponseFormatOneOf(type_ string) *ResponseFormatOneOf {
 func NewResponseFormatOneOfWithDefaults() *ResponseFormatOneOf {
 	this := ResponseFormatOneOf{}
 	return &this
+}
+
+// GetJsonSchema returns the JsonSchema field value
+// If the value is explicit nil, the zero value for interface{} will be returned
+func (o *ResponseFormatOneOf) GetJsonSchema() interface{} {
+	if o == nil {
+		var ret interface{}
+		return ret
+	}
+
+	return o.JsonSchema
+}
+
+// GetJsonSchemaOk returns a tuple with the JsonSchema field value
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ResponseFormatOneOf) GetJsonSchemaOk() (*interface{}, bool) {
+	if o == nil || IsNil(o.JsonSchema) {
+		return nil, false
+	}
+	return &o.JsonSchema, true
+}
+
+// SetJsonSchema sets field value
+func (o *ResponseFormatOneOf) SetJsonSchema(v interface{}) {
+	o.JsonSchema = v
 }
 
 // GetType returns the Type field value
@@ -78,6 +106,9 @@ func (o ResponseFormatOneOf) MarshalJSON() ([]byte, error) {
 
 func (o ResponseFormatOneOf) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if o.JsonSchema != nil {
+		toSerialize["json_schema"] = o.JsonSchema
+	}
 	toSerialize["type"] = o.Type
 
 	for key, value := range o.AdditionalProperties {
@@ -92,6 +123,7 @@ func (o *ResponseFormatOneOf) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
+		"json_schema",
 		"type",
 	}
 
@@ -122,6 +154,7 @@ func (o *ResponseFormatOneOf) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "json_schema")
 		delete(additionalProperties, "type")
 		o.AdditionalProperties = additionalProperties
 	}

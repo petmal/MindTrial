@@ -20,21 +20,24 @@ var _ MappedNullable = &EditImageRequest{}
 
 // EditImageRequest Request for editing image
 type EditImageRequest struct {
-	// Input image to perform edit on.
-	Image ImageUrl         `json:"image"`
-	Mask  NullableImageUrl `json:"mask,omitempty"`
+	// Aspect ratio of the output image for image editing with multiple images. For single image editing, do not set this. It will always auto-detect from the input image.
+	AspectRatio NullableImageAspectRatio `json:"aspect_ratio,omitempty"`
+	// Input image to perform edit on. Mutually exclusive with `images`.
+	Image NullableImageUrl `json:"image,omitempty"`
+	// List of input images for multi-reference editing. Mutually exclusive with `image`. When multiple images are provided, refer to them as \\<IMAGE_0\\>, \\<IMAGE_1\\>, etc. in the prompt.
+	Images []ImageUrl `json:"images,omitempty"`
 	// Model to be used.
 	Model NullableString `json:"model,omitempty"`
 	// Number of image edits to be generated.
 	N NullableInt32 `json:"n,omitempty"`
 	// Prompt for image editing.
 	Prompt string `json:"prompt"`
+	// Resolution of the generated image. Defaults to `1k`. Only supported by grok-imagine models.
+	Resolution NullableImageResolution `json:"resolution,omitempty"`
 	// Response format to return the image in. Can be `url` or `b64_json`. If `b64_json` is specified, the image will be returned as a base64-encoded string instead of a url to the generated image file.
 	ResponseFormat NullableString `json:"response_format,omitempty"`
-	// (Not supported) Size of the image.
-	Size NullableString `json:"size,omitempty"`
-	// (Not supported) Style of the image.
-	Style NullableString `json:"style,omitempty"`
+	// Optional output storage configuration. When present, the generated image(s) are stored in the Files API and a `file_output` reference is returned in the response alongside the ephemeral URL.
+	StorageOptions NullableStorageOptions `json:"storage_options,omitempty"`
 	// A unique identifier representing your end-user, which can help xAI to monitor and detect abuse.
 	User                 NullableString `json:"user,omitempty"`
 	AdditionalProperties map[string]interface{}
@@ -46,9 +49,8 @@ type _EditImageRequest EditImageRequest
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewEditImageRequest(image ImageUrl, prompt string) *EditImageRequest {
+func NewEditImageRequest(prompt string) *EditImageRequest {
 	this := EditImageRequest{}
-	this.Image = image
 	this.Prompt = prompt
 	var responseFormat string = "url"
 	this.ResponseFormat = *NewNullableString(&responseFormat)
@@ -65,71 +67,122 @@ func NewEditImageRequestWithDefaults() *EditImageRequest {
 	return &this
 }
 
-// GetImage returns the Image field value
-func (o *EditImageRequest) GetImage() ImageUrl {
-	if o == nil {
-		var ret ImageUrl
+// GetAspectRatio returns the AspectRatio field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *EditImageRequest) GetAspectRatio() ImageAspectRatio {
+	if o == nil || IsNil(o.AspectRatio.Get()) {
+		var ret ImageAspectRatio
 		return ret
 	}
-
-	return o.Image
+	return *o.AspectRatio.Get()
 }
 
-// GetImageOk returns a tuple with the Image field value
-// and a boolean to check if the value has been set.
-func (o *EditImageRequest) GetImageOk() (*ImageUrl, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Image, true
-}
-
-// SetImage sets field value
-func (o *EditImageRequest) SetImage(v ImageUrl) {
-	o.Image = v
-}
-
-// GetMask returns the Mask field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *EditImageRequest) GetMask() ImageUrl {
-	if o == nil || IsNil(o.Mask.Get()) {
-		var ret ImageUrl
-		return ret
-	}
-	return *o.Mask.Get()
-}
-
-// GetMaskOk returns a tuple with the Mask field value if set, nil otherwise
+// GetAspectRatioOk returns a tuple with the AspectRatio field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 // NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *EditImageRequest) GetMaskOk() (*ImageUrl, bool) {
+func (o *EditImageRequest) GetAspectRatioOk() (*ImageAspectRatio, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return o.Mask.Get(), o.Mask.IsSet()
+	return o.AspectRatio.Get(), o.AspectRatio.IsSet()
 }
 
-// HasMask returns a boolean if a field has been set.
-func (o *EditImageRequest) HasMask() bool {
-	if o != nil && o.Mask.IsSet() {
+// HasAspectRatio returns a boolean if a field has been set.
+func (o *EditImageRequest) HasAspectRatio() bool {
+	if o != nil && o.AspectRatio.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetMask gets a reference to the given NullableImageUrl and assigns it to the Mask field.
-func (o *EditImageRequest) SetMask(v ImageUrl) {
-	o.Mask.Set(&v)
+// SetAspectRatio gets a reference to the given NullableImageAspectRatio and assigns it to the AspectRatio field.
+func (o *EditImageRequest) SetAspectRatio(v ImageAspectRatio) {
+	o.AspectRatio.Set(&v)
 }
 
-// SetMaskNil sets the value for Mask to be an explicit nil
-func (o *EditImageRequest) SetMaskNil() {
-	o.Mask.Set(nil)
+// SetAspectRatioNil sets the value for AspectRatio to be an explicit nil
+func (o *EditImageRequest) SetAspectRatioNil() {
+	o.AspectRatio.Set(nil)
 }
 
-// UnsetMask ensures that no value is present for Mask, not even an explicit nil
-func (o *EditImageRequest) UnsetMask() {
-	o.Mask.Unset()
+// UnsetAspectRatio ensures that no value is present for AspectRatio, not even an explicit nil
+func (o *EditImageRequest) UnsetAspectRatio() {
+	o.AspectRatio.Unset()
+}
+
+// GetImage returns the Image field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *EditImageRequest) GetImage() ImageUrl {
+	if o == nil || IsNil(o.Image.Get()) {
+		var ret ImageUrl
+		return ret
+	}
+	return *o.Image.Get()
+}
+
+// GetImageOk returns a tuple with the Image field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *EditImageRequest) GetImageOk() (*ImageUrl, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Image.Get(), o.Image.IsSet()
+}
+
+// HasImage returns a boolean if a field has been set.
+func (o *EditImageRequest) HasImage() bool {
+	if o != nil && o.Image.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetImage gets a reference to the given NullableImageUrl and assigns it to the Image field.
+func (o *EditImageRequest) SetImage(v ImageUrl) {
+	o.Image.Set(&v)
+}
+
+// SetImageNil sets the value for Image to be an explicit nil
+func (o *EditImageRequest) SetImageNil() {
+	o.Image.Set(nil)
+}
+
+// UnsetImage ensures that no value is present for Image, not even an explicit nil
+func (o *EditImageRequest) UnsetImage() {
+	o.Image.Unset()
+}
+
+// GetImages returns the Images field value if set, zero value otherwise.
+func (o *EditImageRequest) GetImages() []ImageUrl {
+	if o == nil || IsNil(o.Images) {
+		var ret []ImageUrl
+		return ret
+	}
+	return o.Images
+}
+
+// GetImagesOk returns a tuple with the Images field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *EditImageRequest) GetImagesOk() ([]ImageUrl, bool) {
+	if o == nil || IsNil(o.Images) {
+		return nil, false
+	}
+	return o.Images, true
+}
+
+// HasImages returns a boolean if a field has been set.
+func (o *EditImageRequest) HasImages() bool {
+	if o != nil && !IsNil(o.Images) {
+		return true
+	}
+
+	return false
+}
+
+// SetImages gets a reference to the given []ImageUrl and assigns it to the Images field.
+func (o *EditImageRequest) SetImages(v []ImageUrl) {
+	o.Images = v
 }
 
 // GetModel returns the Model field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -242,6 +295,49 @@ func (o *EditImageRequest) SetPrompt(v string) {
 	o.Prompt = v
 }
 
+// GetResolution returns the Resolution field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *EditImageRequest) GetResolution() ImageResolution {
+	if o == nil || IsNil(o.Resolution.Get()) {
+		var ret ImageResolution
+		return ret
+	}
+	return *o.Resolution.Get()
+}
+
+// GetResolutionOk returns a tuple with the Resolution field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *EditImageRequest) GetResolutionOk() (*ImageResolution, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Resolution.Get(), o.Resolution.IsSet()
+}
+
+// HasResolution returns a boolean if a field has been set.
+func (o *EditImageRequest) HasResolution() bool {
+	if o != nil && o.Resolution.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetResolution gets a reference to the given NullableImageResolution and assigns it to the Resolution field.
+func (o *EditImageRequest) SetResolution(v ImageResolution) {
+	o.Resolution.Set(&v)
+}
+
+// SetResolutionNil sets the value for Resolution to be an explicit nil
+func (o *EditImageRequest) SetResolutionNil() {
+	o.Resolution.Set(nil)
+}
+
+// UnsetResolution ensures that no value is present for Resolution, not even an explicit nil
+func (o *EditImageRequest) UnsetResolution() {
+	o.Resolution.Unset()
+}
+
 // GetResponseFormat returns the ResponseFormat field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *EditImageRequest) GetResponseFormat() string {
 	if o == nil || IsNil(o.ResponseFormat.Get()) {
@@ -285,90 +381,47 @@ func (o *EditImageRequest) UnsetResponseFormat() {
 	o.ResponseFormat.Unset()
 }
 
-// GetSize returns the Size field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *EditImageRequest) GetSize() string {
-	if o == nil || IsNil(o.Size.Get()) {
-		var ret string
+// GetStorageOptions returns the StorageOptions field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *EditImageRequest) GetStorageOptions() StorageOptions {
+	if o == nil || IsNil(o.StorageOptions.Get()) {
+		var ret StorageOptions
 		return ret
 	}
-	return *o.Size.Get()
+	return *o.StorageOptions.Get()
 }
 
-// GetSizeOk returns a tuple with the Size field value if set, nil otherwise
+// GetStorageOptionsOk returns a tuple with the StorageOptions field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 // NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *EditImageRequest) GetSizeOk() (*string, bool) {
+func (o *EditImageRequest) GetStorageOptionsOk() (*StorageOptions, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return o.Size.Get(), o.Size.IsSet()
+	return o.StorageOptions.Get(), o.StorageOptions.IsSet()
 }
 
-// HasSize returns a boolean if a field has been set.
-func (o *EditImageRequest) HasSize() bool {
-	if o != nil && o.Size.IsSet() {
+// HasStorageOptions returns a boolean if a field has been set.
+func (o *EditImageRequest) HasStorageOptions() bool {
+	if o != nil && o.StorageOptions.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetSize gets a reference to the given NullableString and assigns it to the Size field.
-func (o *EditImageRequest) SetSize(v string) {
-	o.Size.Set(&v)
+// SetStorageOptions gets a reference to the given NullableStorageOptions and assigns it to the StorageOptions field.
+func (o *EditImageRequest) SetStorageOptions(v StorageOptions) {
+	o.StorageOptions.Set(&v)
 }
 
-// SetSizeNil sets the value for Size to be an explicit nil
-func (o *EditImageRequest) SetSizeNil() {
-	o.Size.Set(nil)
+// SetStorageOptionsNil sets the value for StorageOptions to be an explicit nil
+func (o *EditImageRequest) SetStorageOptionsNil() {
+	o.StorageOptions.Set(nil)
 }
 
-// UnsetSize ensures that no value is present for Size, not even an explicit nil
-func (o *EditImageRequest) UnsetSize() {
-	o.Size.Unset()
-}
-
-// GetStyle returns the Style field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *EditImageRequest) GetStyle() string {
-	if o == nil || IsNil(o.Style.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.Style.Get()
-}
-
-// GetStyleOk returns a tuple with the Style field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *EditImageRequest) GetStyleOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Style.Get(), o.Style.IsSet()
-}
-
-// HasStyle returns a boolean if a field has been set.
-func (o *EditImageRequest) HasStyle() bool {
-	if o != nil && o.Style.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetStyle gets a reference to the given NullableString and assigns it to the Style field.
-func (o *EditImageRequest) SetStyle(v string) {
-	o.Style.Set(&v)
-}
-
-// SetStyleNil sets the value for Style to be an explicit nil
-func (o *EditImageRequest) SetStyleNil() {
-	o.Style.Set(nil)
-}
-
-// UnsetStyle ensures that no value is present for Style, not even an explicit nil
-func (o *EditImageRequest) UnsetStyle() {
-	o.Style.Unset()
+// UnsetStorageOptions ensures that no value is present for StorageOptions, not even an explicit nil
+func (o *EditImageRequest) UnsetStorageOptions() {
+	o.StorageOptions.Unset()
 }
 
 // GetUser returns the User field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -424,9 +477,14 @@ func (o EditImageRequest) MarshalJSON() ([]byte, error) {
 
 func (o EditImageRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["image"] = o.Image
-	if o.Mask.IsSet() {
-		toSerialize["mask"] = o.Mask.Get()
+	if o.AspectRatio.IsSet() {
+		toSerialize["aspect_ratio"] = o.AspectRatio.Get()
+	}
+	if o.Image.IsSet() {
+		toSerialize["image"] = o.Image.Get()
+	}
+	if !IsNil(o.Images) {
+		toSerialize["images"] = o.Images
 	}
 	if o.Model.IsSet() {
 		toSerialize["model"] = o.Model.Get()
@@ -435,14 +493,14 @@ func (o EditImageRequest) ToMap() (map[string]interface{}, error) {
 		toSerialize["n"] = o.N.Get()
 	}
 	toSerialize["prompt"] = o.Prompt
+	if o.Resolution.IsSet() {
+		toSerialize["resolution"] = o.Resolution.Get()
+	}
 	if o.ResponseFormat.IsSet() {
 		toSerialize["response_format"] = o.ResponseFormat.Get()
 	}
-	if o.Size.IsSet() {
-		toSerialize["size"] = o.Size.Get()
-	}
-	if o.Style.IsSet() {
-		toSerialize["style"] = o.Style.Get()
+	if o.StorageOptions.IsSet() {
+		toSerialize["storage_options"] = o.StorageOptions.Get()
 	}
 	if o.User.IsSet() {
 		toSerialize["user"] = o.User.Get()
@@ -460,7 +518,6 @@ func (o *EditImageRequest) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"image",
 		"prompt",
 	}
 
@@ -491,14 +548,15 @@ func (o *EditImageRequest) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "aspect_ratio")
 		delete(additionalProperties, "image")
-		delete(additionalProperties, "mask")
+		delete(additionalProperties, "images")
 		delete(additionalProperties, "model")
 		delete(additionalProperties, "n")
 		delete(additionalProperties, "prompt")
+		delete(additionalProperties, "resolution")
 		delete(additionalProperties, "response_format")
-		delete(additionalProperties, "size")
-		delete(additionalProperties, "style")
+		delete(additionalProperties, "storage_options")
 		delete(additionalProperties, "user")
 		o.AdditionalProperties = additionalProperties
 	}

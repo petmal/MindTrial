@@ -766,8 +766,8 @@ type XAIModelParams struct {
 
 	// ReasoningEffort constrains how much "reasoning" budget to spend for reasoning-capable models.
 	// Notes: Not all reasoning models support this option.
-	// Valid values: "low", "high".
-	ReasoningEffort *string `yaml:"reasoning-effort" validate:"omitempty,oneof=low high"`
+	// Valid values: "low", "medium", "high".
+	ReasoningEffort *string `yaml:"reasoning-effort" validate:"omitempty,oneof=low medium high"`
 
 	// Seed requests deterministic sampling when possible.
 	// No guaranteed determinism — xAI makes a best-effort to return

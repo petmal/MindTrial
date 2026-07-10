@@ -26,7 +26,7 @@ type PromptUsageDetail struct {
 	CachedTokens int32 `json:"cached_tokens"`
 	// Image prompt token used.
 	ImageTokens int32 `json:"image_tokens"`
-	// Text prompt token used.
+	// Total text prompt token used (cached + non-cached text tokens).
 	TextTokens           int32 `json:"text_tokens"`
 	AdditionalProperties map[string]interface{}
 }

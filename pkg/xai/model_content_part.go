@@ -20,15 +20,13 @@ var _ MappedNullable = &ContentPart{}
 
 // ContentPart struct for ContentPart
 type ContentPart struct {
-	// Specifies the detail level of the image.
-	Detail NullableString `json:"detail,omitempty"`
+	// File reference for file attachments (OpenAI-compatible nesting).
+	File NullableFileRef `json:"file,omitempty"`
 	// A public URL of image prompt, only available for vision models.
 	ImageUrl NullableImageUrl `json:"image_url,omitempty"`
 	// Text prompt.
 	Text NullableString `json:"text,omitempty"`
-	// File path to a text file to be used as prompt.
-	TextFile NullableString `json:"text_file,omitempty"`
-	// The type of the content part.
+	// The type of the content part. Can be `text`, `image_url`, `text_file` or `file`.
 	Type                 string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
@@ -53,47 +51,47 @@ func NewContentPartWithDefaults() *ContentPart {
 	return &this
 }
 
-// GetDetail returns the Detail field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ContentPart) GetDetail() string {
-	if o == nil || IsNil(o.Detail.Get()) {
-		var ret string
+// GetFile returns the File field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ContentPart) GetFile() FileRef {
+	if o == nil || IsNil(o.File.Get()) {
+		var ret FileRef
 		return ret
 	}
-	return *o.Detail.Get()
+	return *o.File.Get()
 }
 
-// GetDetailOk returns a tuple with the Detail field value if set, nil otherwise
+// GetFileOk returns a tuple with the File field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 // NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ContentPart) GetDetailOk() (*string, bool) {
+func (o *ContentPart) GetFileOk() (*FileRef, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return o.Detail.Get(), o.Detail.IsSet()
+	return o.File.Get(), o.File.IsSet()
 }
 
-// HasDetail returns a boolean if a field has been set.
-func (o *ContentPart) HasDetail() bool {
-	if o != nil && o.Detail.IsSet() {
+// HasFile returns a boolean if a field has been set.
+func (o *ContentPart) HasFile() bool {
+	if o != nil && o.File.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetDetail gets a reference to the given NullableString and assigns it to the Detail field.
-func (o *ContentPart) SetDetail(v string) {
-	o.Detail.Set(&v)
+// SetFile gets a reference to the given NullableFileRef and assigns it to the File field.
+func (o *ContentPart) SetFile(v FileRef) {
+	o.File.Set(&v)
 }
 
-// SetDetailNil sets the value for Detail to be an explicit nil
-func (o *ContentPart) SetDetailNil() {
-	o.Detail.Set(nil)
+// SetFileNil sets the value for File to be an explicit nil
+func (o *ContentPart) SetFileNil() {
+	o.File.Set(nil)
 }
 
-// UnsetDetail ensures that no value is present for Detail, not even an explicit nil
-func (o *ContentPart) UnsetDetail() {
-	o.Detail.Unset()
+// UnsetFile ensures that no value is present for File, not even an explicit nil
+func (o *ContentPart) UnsetFile() {
+	o.File.Unset()
 }
 
 // GetImageUrl returns the ImageUrl field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -182,49 +180,6 @@ func (o *ContentPart) UnsetText() {
 	o.Text.Unset()
 }
 
-// GetTextFile returns the TextFile field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ContentPart) GetTextFile() string {
-	if o == nil || IsNil(o.TextFile.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.TextFile.Get()
-}
-
-// GetTextFileOk returns a tuple with the TextFile field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ContentPart) GetTextFileOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.TextFile.Get(), o.TextFile.IsSet()
-}
-
-// HasTextFile returns a boolean if a field has been set.
-func (o *ContentPart) HasTextFile() bool {
-	if o != nil && o.TextFile.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetTextFile gets a reference to the given NullableString and assigns it to the TextFile field.
-func (o *ContentPart) SetTextFile(v string) {
-	o.TextFile.Set(&v)
-}
-
-// SetTextFileNil sets the value for TextFile to be an explicit nil
-func (o *ContentPart) SetTextFileNil() {
-	o.TextFile.Set(nil)
-}
-
-// UnsetTextFile ensures that no value is present for TextFile, not even an explicit nil
-func (o *ContentPart) UnsetTextFile() {
-	o.TextFile.Unset()
-}
-
 // GetType returns the Type field value
 func (o *ContentPart) GetType() string {
 	if o == nil {
@@ -259,17 +214,14 @@ func (o ContentPart) MarshalJSON() ([]byte, error) {
 
 func (o ContentPart) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if o.Detail.IsSet() {
-		toSerialize["detail"] = o.Detail.Get()
+	if o.File.IsSet() {
+		toSerialize["file"] = o.File.Get()
 	}
 	if o.ImageUrl.IsSet() {
 		toSerialize["image_url"] = o.ImageUrl.Get()
 	}
 	if o.Text.IsSet() {
 		toSerialize["text"] = o.Text.Get()
-	}
-	if o.TextFile.IsSet() {
-		toSerialize["text_file"] = o.TextFile.Get()
 	}
 	toSerialize["type"] = o.Type
 
@@ -315,10 +267,9 @@ func (o *ContentPart) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "detail")
+		delete(additionalProperties, "file")
 		delete(additionalProperties, "image_url")
 		delete(additionalProperties, "text")
-		delete(additionalProperties, "text_file")
 		delete(additionalProperties, "type")
 		o.AdditionalProperties = additionalProperties
 	}

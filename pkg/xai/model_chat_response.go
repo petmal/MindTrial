@@ -26,14 +26,16 @@ type ChatResponse struct {
 	Citations []string `json:"citations,omitempty"`
 	// The chat completion creation time in Unix timestamp.
 	Created int64 `json:"created"`
-	// Debug output. Only available to trusted testers.
-	DebugOutput NullableDebugOutput `json:"debug_output,omitempty"`
 	// A unique ID for the chat response.
 	Id string `json:"id"`
 	// Model ID used to create chat completion.
 	Model string `json:"model"`
 	// The object type, which is always `\"chat.completion\"`.
 	Object string `json:"object"`
+	// Files generated during the response (e.g., by the code execution tool). Only populated when `code_execution_files_output` is included.
+	OutputFiles []OutputFile `json:"output_files,omitempty"`
+	// The processing tier used for this request.
+	ServiceTier ServiceTier `json:"service_tier"`
 	// System fingerprint, used to indicate xAI system configuration changes.
 	SystemFingerprint NullableString `json:"system_fingerprint,omitempty"`
 	// Token usage information.
@@ -47,13 +49,14 @@ type _ChatResponse ChatResponse
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewChatResponse(choices []Choice, created int64, id string, model string, object string) *ChatResponse {
+func NewChatResponse(choices []Choice, created int64, id string, model string, object string, serviceTier ServiceTier) *ChatResponse {
 	this := ChatResponse{}
 	this.Choices = choices
 	this.Created = created
 	this.Id = id
 	this.Model = model
 	this.Object = object
+	this.ServiceTier = serviceTier
 	return &this
 }
 
@@ -146,49 +149,6 @@ func (o *ChatResponse) SetCreated(v int64) {
 	o.Created = v
 }
 
-// GetDebugOutput returns the DebugOutput field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ChatResponse) GetDebugOutput() DebugOutput {
-	if o == nil || IsNil(o.DebugOutput.Get()) {
-		var ret DebugOutput
-		return ret
-	}
-	return *o.DebugOutput.Get()
-}
-
-// GetDebugOutputOk returns a tuple with the DebugOutput field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ChatResponse) GetDebugOutputOk() (*DebugOutput, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.DebugOutput.Get(), o.DebugOutput.IsSet()
-}
-
-// HasDebugOutput returns a boolean if a field has been set.
-func (o *ChatResponse) HasDebugOutput() bool {
-	if o != nil && o.DebugOutput.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetDebugOutput gets a reference to the given NullableDebugOutput and assigns it to the DebugOutput field.
-func (o *ChatResponse) SetDebugOutput(v DebugOutput) {
-	o.DebugOutput.Set(&v)
-}
-
-// SetDebugOutputNil sets the value for DebugOutput to be an explicit nil
-func (o *ChatResponse) SetDebugOutputNil() {
-	o.DebugOutput.Set(nil)
-}
-
-// UnsetDebugOutput ensures that no value is present for DebugOutput, not even an explicit nil
-func (o *ChatResponse) UnsetDebugOutput() {
-	o.DebugOutput.Unset()
-}
-
 // GetId returns the Id field value
 func (o *ChatResponse) GetId() string {
 	if o == nil {
@@ -259,6 +219,63 @@ func (o *ChatResponse) GetObjectOk() (*string, bool) {
 // SetObject sets field value
 func (o *ChatResponse) SetObject(v string) {
 	o.Object = v
+}
+
+// GetOutputFiles returns the OutputFiles field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ChatResponse) GetOutputFiles() []OutputFile {
+	if o == nil {
+		var ret []OutputFile
+		return ret
+	}
+	return o.OutputFiles
+}
+
+// GetOutputFilesOk returns a tuple with the OutputFiles field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ChatResponse) GetOutputFilesOk() ([]OutputFile, bool) {
+	if o == nil || IsNil(o.OutputFiles) {
+		return nil, false
+	}
+	return o.OutputFiles, true
+}
+
+// HasOutputFiles returns a boolean if a field has been set.
+func (o *ChatResponse) HasOutputFiles() bool {
+	if o != nil && !IsNil(o.OutputFiles) {
+		return true
+	}
+
+	return false
+}
+
+// SetOutputFiles gets a reference to the given []OutputFile and assigns it to the OutputFiles field.
+func (o *ChatResponse) SetOutputFiles(v []OutputFile) {
+	o.OutputFiles = v
+}
+
+// GetServiceTier returns the ServiceTier field value
+func (o *ChatResponse) GetServiceTier() ServiceTier {
+	if o == nil {
+		var ret ServiceTier
+		return ret
+	}
+
+	return o.ServiceTier
+}
+
+// GetServiceTierOk returns a tuple with the ServiceTier field value
+// and a boolean to check if the value has been set.
+func (o *ChatResponse) GetServiceTierOk() (*ServiceTier, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.ServiceTier, true
+}
+
+// SetServiceTier sets field value
+func (o *ChatResponse) SetServiceTier(v ServiceTier) {
+	o.ServiceTier = v
 }
 
 // GetSystemFingerprint returns the SystemFingerprint field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -362,12 +379,13 @@ func (o ChatResponse) ToMap() (map[string]interface{}, error) {
 		toSerialize["citations"] = o.Citations
 	}
 	toSerialize["created"] = o.Created
-	if o.DebugOutput.IsSet() {
-		toSerialize["debug_output"] = o.DebugOutput.Get()
-	}
 	toSerialize["id"] = o.Id
 	toSerialize["model"] = o.Model
 	toSerialize["object"] = o.Object
+	if o.OutputFiles != nil {
+		toSerialize["output_files"] = o.OutputFiles
+	}
+	toSerialize["service_tier"] = o.ServiceTier
 	if o.SystemFingerprint.IsSet() {
 		toSerialize["system_fingerprint"] = o.SystemFingerprint.Get()
 	}
@@ -392,6 +410,7 @@ func (o *ChatResponse) UnmarshalJSON(data []byte) (err error) {
 		"id",
 		"model",
 		"object",
+		"service_tier",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -424,10 +443,11 @@ func (o *ChatResponse) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "choices")
 		delete(additionalProperties, "citations")
 		delete(additionalProperties, "created")
-		delete(additionalProperties, "debug_output")
 		delete(additionalProperties, "id")
 		delete(additionalProperties, "model")
 		delete(additionalProperties, "object")
+		delete(additionalProperties, "output_files")
+		delete(additionalProperties, "service_tier")
 		delete(additionalProperties, "system_fingerprint")
 		delete(additionalProperties, "usage")
 		o.AdditionalProperties = additionalProperties

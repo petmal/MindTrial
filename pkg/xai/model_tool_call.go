@@ -26,7 +26,7 @@ type ToolCall struct {
 	Id string `json:"id"`
 	// Index of the tool call.
 	Index NullableInt32 `json:"index,omitempty"`
-	// Type of tool call, should always be `\"function\"`
+	// Type of tool call, should be `\"function\"` or `\"web_search_call\"` or `\"x_search_call\"` or `\"code_interpreter_call\"` or `\"mcp_call\"`
 	Type                 NullableString `json:"type,omitempty"`
 	AdditionalProperties map[string]interface{}
 }

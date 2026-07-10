@@ -19,6 +19,7 @@ var _ MappedNullable = &WebSearchOptions{}
 
 // WebSearchOptions struct for WebSearchOptions
 type WebSearchOptions struct {
+	Filters interface{} `json:"filters,omitempty"`
 	// This field included for compatibility reason with OpenAI's API. It is mapped to `max_search`.
 	SearchContextSize    NullableString `json:"search_context_size,omitempty"`
 	UserLocation         interface{}    `json:"user_location,omitempty"`
@@ -46,6 +47,39 @@ func NewWebSearchOptionsWithDefaults() *WebSearchOptions {
 	var searchContextSize string = "medium"
 	this.SearchContextSize = *NewNullableString(&searchContextSize)
 	return &this
+}
+
+// GetFilters returns the Filters field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *WebSearchOptions) GetFilters() interface{} {
+	if o == nil {
+		var ret interface{}
+		return ret
+	}
+	return o.Filters
+}
+
+// GetFiltersOk returns a tuple with the Filters field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *WebSearchOptions) GetFiltersOk() (*interface{}, bool) {
+	if o == nil || IsNil(o.Filters) {
+		return nil, false
+	}
+	return &o.Filters, true
+}
+
+// HasFilters returns a boolean if a field has been set.
+func (o *WebSearchOptions) HasFilters() bool {
+	if o != nil && !IsNil(o.Filters) {
+		return true
+	}
+
+	return false
+}
+
+// SetFilters gets a reference to the given interface{} and assigns it to the Filters field.
+func (o *WebSearchOptions) SetFilters(v interface{}) {
+	o.Filters = v
 }
 
 // GetSearchContextSize returns the SearchContextSize field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -134,6 +168,9 @@ func (o WebSearchOptions) MarshalJSON() ([]byte, error) {
 
 func (o WebSearchOptions) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if o.Filters != nil {
+		toSerialize["filters"] = o.Filters
+	}
 	if o.SearchContextSize.IsSet() {
 		toSerialize["search_context_size"] = o.SearchContextSize.Get()
 	}
@@ -162,6 +199,7 @@ func (o *WebSearchOptions) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "filters")
 		delete(additionalProperties, "search_context_size")
 		delete(additionalProperties, "user_location")
 		o.AdditionalProperties = additionalProperties

@@ -15,37 +15,65 @@ import (
 	"fmt"
 )
 
-// checks if the ResponseFormatOneOf1 type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &ResponseFormatOneOf1{}
+// checks if the ReasoningText type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &ReasoningText{}
 
-// ResponseFormatOneOf1 Specify json_object response format, always `json_object`. Used for backward compatibility. Prefer to use `\"json_schema\"` instead of this.
-type ResponseFormatOneOf1 struct {
+// ReasoningText struct for ReasoningText
+type ReasoningText struct {
+	// Reasoning done by the model.
+	Text string `json:"text"`
+	// The type of the object, which is always `reasoning_text`.
 	Type                 string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
-type _ResponseFormatOneOf1 ResponseFormatOneOf1
+type _ReasoningText ReasoningText
 
-// NewResponseFormatOneOf1 instantiates a new ResponseFormatOneOf1 object
+// NewReasoningText instantiates a new ReasoningText object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewResponseFormatOneOf1(type_ string) *ResponseFormatOneOf1 {
-	this := ResponseFormatOneOf1{}
+func NewReasoningText(text string, type_ string) *ReasoningText {
+	this := ReasoningText{}
+	this.Text = text
 	this.Type = type_
 	return &this
 }
 
-// NewResponseFormatOneOf1WithDefaults instantiates a new ResponseFormatOneOf1 object
+// NewReasoningTextWithDefaults instantiates a new ReasoningText object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewResponseFormatOneOf1WithDefaults() *ResponseFormatOneOf1 {
-	this := ResponseFormatOneOf1{}
+func NewReasoningTextWithDefaults() *ReasoningText {
+	this := ReasoningText{}
 	return &this
 }
 
+// GetText returns the Text field value
+func (o *ReasoningText) GetText() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Text
+}
+
+// GetTextOk returns a tuple with the Text field value
+// and a boolean to check if the value has been set.
+func (o *ReasoningText) GetTextOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Text, true
+}
+
+// SetText sets field value
+func (o *ReasoningText) SetText(v string) {
+	o.Text = v
+}
+
 // GetType returns the Type field value
-func (o *ResponseFormatOneOf1) GetType() string {
+func (o *ReasoningText) GetType() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -56,7 +84,7 @@ func (o *ResponseFormatOneOf1) GetType() string {
 
 // GetTypeOk returns a tuple with the Type field value
 // and a boolean to check if the value has been set.
-func (o *ResponseFormatOneOf1) GetTypeOk() (*string, bool) {
+func (o *ReasoningText) GetTypeOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -64,11 +92,11 @@ func (o *ResponseFormatOneOf1) GetTypeOk() (*string, bool) {
 }
 
 // SetType sets field value
-func (o *ResponseFormatOneOf1) SetType(v string) {
+func (o *ReasoningText) SetType(v string) {
 	o.Type = v
 }
 
-func (o ResponseFormatOneOf1) MarshalJSON() ([]byte, error) {
+func (o ReasoningText) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -76,8 +104,9 @@ func (o ResponseFormatOneOf1) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o ResponseFormatOneOf1) ToMap() (map[string]interface{}, error) {
+func (o ReasoningText) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["text"] = o.Text
 	toSerialize["type"] = o.Type
 
 	for key, value := range o.AdditionalProperties {
@@ -87,11 +116,12 @@ func (o ResponseFormatOneOf1) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-func (o *ResponseFormatOneOf1) UnmarshalJSON(data []byte) (err error) {
+func (o *ReasoningText) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
+		"text",
 		"type",
 	}
 
@@ -109,19 +139,20 @@ func (o *ResponseFormatOneOf1) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varResponseFormatOneOf1 := _ResponseFormatOneOf1{}
+	varReasoningText := _ReasoningText{}
 
-	err = json.Unmarshal(data, &varResponseFormatOneOf1)
+	err = json.Unmarshal(data, &varReasoningText)
 
 	if err != nil {
 		return err
 	}
 
-	*o = ResponseFormatOneOf1(varResponseFormatOneOf1)
+	*o = ReasoningText(varReasoningText)
 
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "text")
 		delete(additionalProperties, "type")
 		o.AdditionalProperties = additionalProperties
 	}
@@ -129,38 +160,38 @@ func (o *ResponseFormatOneOf1) UnmarshalJSON(data []byte) (err error) {
 	return err
 }
 
-type NullableResponseFormatOneOf1 struct {
-	value *ResponseFormatOneOf1
+type NullableReasoningText struct {
+	value *ReasoningText
 	isSet bool
 }
 
-func (v NullableResponseFormatOneOf1) Get() *ResponseFormatOneOf1 {
+func (v NullableReasoningText) Get() *ReasoningText {
 	return v.value
 }
 
-func (v *NullableResponseFormatOneOf1) Set(val *ResponseFormatOneOf1) {
+func (v *NullableReasoningText) Set(val *ReasoningText) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableResponseFormatOneOf1) IsSet() bool {
+func (v NullableReasoningText) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableResponseFormatOneOf1) Unset() {
+func (v *NullableReasoningText) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableResponseFormatOneOf1(val *ResponseFormatOneOf1) *NullableResponseFormatOneOf1 {
-	return &NullableResponseFormatOneOf1{value: val, isSet: true}
+func NewNullableReasoningText(val *ReasoningText) *NullableReasoningText {
+	return &NullableReasoningText{value: val, isSet: true}
 }
 
-func (v NullableResponseFormatOneOf1) MarshalJSON() ([]byte, error) {
+func (v NullableReasoningText) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableResponseFormatOneOf1) UnmarshalJSON(src []byte) error {
+func (v *NullableReasoningText) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

@@ -19,7 +19,7 @@ var _ MappedNullable = &SearchParameters{}
 
 // SearchParameters Parameters to control realtime data.
 type SearchParameters struct {
-	// Date from which to consider the results in ISO-8601 YYYY-MM-DD. See https://en.wikipedia.org/wiki/ISO_8601.
+	// Date from which to consider the results in ISO-8601 YYYY-MM-DD. See <https://en.wikipedia.org/wiki/ISO_8601>.
 	FromDate NullableString `json:"from_date,omitempty"`
 	// Maximum number of search results to use.
 	MaxSearchResults NullableInt32 `json:"max_search_results,omitempty"`
@@ -29,7 +29,7 @@ type SearchParameters struct {
 	ReturnCitations NullableBool `json:"return_citations,omitempty"`
 	// List of sources to search in. If no sources specified, the model will look over the web and X by default.
 	Sources []SearchSource `json:"sources,omitempty"`
-	// Date up to which to consider the results in ISO-8601 YYYY-MM-DD. See https://en.wikipedia.org/wiki/ISO_8601.
+	// Date up to which to consider the results in ISO-8601 YYYY-MM-DD. See <https://en.wikipedia.org/wiki/ISO_8601>.
 	ToDate               NullableString `json:"to_date,omitempty"`
 	AdditionalProperties map[string]interface{}
 }

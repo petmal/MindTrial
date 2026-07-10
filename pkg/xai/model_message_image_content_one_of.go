@@ -22,7 +22,7 @@ var _ MappedNullable = &MessageImageContentOneOf{}
 type MessageImageContentOneOf struct {
 	// Base64 encoded image string.
 	Data string `json:"data"`
-	// Media type of the image source. Available options: `image/jpeg`, `image/png`.
+	// Media type of the image source. Available options: `image/jpeg`, `image/png`, `image/webp`.
 	MediaType            string `json:"media_type"`
 	Type                 string `json:"type"`
 	AdditionalProperties map[string]interface{}

@@ -8,8 +8,6 @@ package providers
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"slices"
@@ -58,7 +56,7 @@ func (o *OpenAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunC
 	// require a prompt cache key to use the more reliable cache matching. Name
 	// is a required field so it is always non-empty, and hashing an empty
 	// string would still be a valid, stable key regardless.
-	openAIV3Params.PromptCacheKey = utils.Ptr(promptCacheKeyFor(cfg.Name, cfg.Model))
+	openAIV3Params.PromptCacheKey = utils.Ptr(promptCacheKeyFor(cfg))
 
 	cfg.ModelParams = openAIV3Params
 	if useChatCompletionsAPI(cfg.Model) {
@@ -105,20 +103,6 @@ func (o *OpenAI) copyToOpenAIV3Params(openAIModelParams config.OpenAIModelParams
 		openAIV3Params.FrequencyPenalty = utils.Ptr(float64(*openAIModelParams.FrequencyPenalty))
 	}
 	openAIV3Params.Seed = openAIModelParams.Seed
-}
-
-// promptCacheKeyFor derives a stable, opaque prompt cache key from the run's
-// configured name and model. Combining both (rather than the name alone)
-// avoids collisions between two distinct run configurations that happen to
-// share the same name but target different models (run names are only
-// required to be unique within a single provider block, not globally).
-// Reusing the same key across all requests for a given run configuration
-// helps OpenAI route them to the same backend cache partition, improving
-// prompt cache hit-rate consistency without requiring any user
-// configuration. It has no effect on requests that are not cache-eligible.
-func promptCacheKeyFor(runName string, model string) string {
-	sum := sha256.Sum256([]byte(runName + "|" + model))
-	return "mindtrial-" + hex.EncodeToString(sum[:])[:32]
 }
 
 // chatCompletionModelPrefixes lists model name prefixes that should be routed to

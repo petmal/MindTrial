@@ -18,9 +18,23 @@ import (
 
 // ResponseFormat - Response format parameter for structured outputs.
 type ResponseFormat struct {
-	ResponseFormatOneOf  *ResponseFormatOneOf
-	ResponseFormatOneOf1 *ResponseFormatOneOf1
-	ResponseFormatOneOf2 *ResponseFormatOneOf2
+	ModelResponseFormatOneOf  *ModelResponseFormatOneOf
+	ModelResponseFormatOneOf1 *ModelResponseFormatOneOf1
+	ResponseFormatOneOf       *ResponseFormatOneOf
+}
+
+// ModelResponseFormatOneOfAsResponseFormat is a convenience function that returns ModelResponseFormatOneOf wrapped in ResponseFormat
+func ModelResponseFormatOneOfAsResponseFormat(v *ModelResponseFormatOneOf) ResponseFormat {
+	return ResponseFormat{
+		ModelResponseFormatOneOf: v,
+	}
+}
+
+// ModelResponseFormatOneOf1AsResponseFormat is a convenience function that returns ModelResponseFormatOneOf1 wrapped in ResponseFormat
+func ModelResponseFormatOneOf1AsResponseFormat(v *ModelResponseFormatOneOf1) ResponseFormat {
+	return ResponseFormat{
+		ModelResponseFormatOneOf1: v,
+	}
 }
 
 // ResponseFormatOneOfAsResponseFormat is a convenience function that returns ResponseFormatOneOf wrapped in ResponseFormat
@@ -30,24 +44,44 @@ func ResponseFormatOneOfAsResponseFormat(v *ResponseFormatOneOf) ResponseFormat 
 	}
 }
 
-// ResponseFormatOneOf1AsResponseFormat is a convenience function that returns ResponseFormatOneOf1 wrapped in ResponseFormat
-func ResponseFormatOneOf1AsResponseFormat(v *ResponseFormatOneOf1) ResponseFormat {
-	return ResponseFormat{
-		ResponseFormatOneOf1: v,
-	}
-}
-
-// ResponseFormatOneOf2AsResponseFormat is a convenience function that returns ResponseFormatOneOf2 wrapped in ResponseFormat
-func ResponseFormatOneOf2AsResponseFormat(v *ResponseFormatOneOf2) ResponseFormat {
-	return ResponseFormat{
-		ResponseFormatOneOf2: v,
-	}
-}
-
 // Unmarshal JSON data into one of the pointers in the struct
 func (dst *ResponseFormat) UnmarshalJSON(data []byte) error {
 	var err error
 	match := 0
+	// try to unmarshal data into ModelResponseFormatOneOf
+	err = newStrictDecoder(data).Decode(&dst.ModelResponseFormatOneOf)
+	if err == nil {
+		jsonModelResponseFormatOneOf, _ := json.Marshal(dst.ModelResponseFormatOneOf)
+		if string(jsonModelResponseFormatOneOf) == "{}" { // empty struct
+			dst.ModelResponseFormatOneOf = nil
+		} else {
+			if err = validator.Validate(dst.ModelResponseFormatOneOf); err != nil {
+				dst.ModelResponseFormatOneOf = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.ModelResponseFormatOneOf = nil
+	}
+
+	// try to unmarshal data into ModelResponseFormatOneOf1
+	err = newStrictDecoder(data).Decode(&dst.ModelResponseFormatOneOf1)
+	if err == nil {
+		jsonModelResponseFormatOneOf1, _ := json.Marshal(dst.ModelResponseFormatOneOf1)
+		if string(jsonModelResponseFormatOneOf1) == "{}" { // empty struct
+			dst.ModelResponseFormatOneOf1 = nil
+		} else {
+			if err = validator.Validate(dst.ModelResponseFormatOneOf1); err != nil {
+				dst.ModelResponseFormatOneOf1 = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.ModelResponseFormatOneOf1 = nil
+	}
+
 	// try to unmarshal data into ResponseFormatOneOf
 	err = newStrictDecoder(data).Decode(&dst.ResponseFormatOneOf)
 	if err == nil {
@@ -65,45 +99,11 @@ func (dst *ResponseFormat) UnmarshalJSON(data []byte) error {
 		dst.ResponseFormatOneOf = nil
 	}
 
-	// try to unmarshal data into ResponseFormatOneOf1
-	err = newStrictDecoder(data).Decode(&dst.ResponseFormatOneOf1)
-	if err == nil {
-		jsonResponseFormatOneOf1, _ := json.Marshal(dst.ResponseFormatOneOf1)
-		if string(jsonResponseFormatOneOf1) == "{}" { // empty struct
-			dst.ResponseFormatOneOf1 = nil
-		} else {
-			if err = validator.Validate(dst.ResponseFormatOneOf1); err != nil {
-				dst.ResponseFormatOneOf1 = nil
-			} else {
-				match++
-			}
-		}
-	} else {
-		dst.ResponseFormatOneOf1 = nil
-	}
-
-	// try to unmarshal data into ResponseFormatOneOf2
-	err = newStrictDecoder(data).Decode(&dst.ResponseFormatOneOf2)
-	if err == nil {
-		jsonResponseFormatOneOf2, _ := json.Marshal(dst.ResponseFormatOneOf2)
-		if string(jsonResponseFormatOneOf2) == "{}" { // empty struct
-			dst.ResponseFormatOneOf2 = nil
-		} else {
-			if err = validator.Validate(dst.ResponseFormatOneOf2); err != nil {
-				dst.ResponseFormatOneOf2 = nil
-			} else {
-				match++
-			}
-		}
-	} else {
-		dst.ResponseFormatOneOf2 = nil
-	}
-
 	if match > 1 { // more than 1 match
 		// reset to nil
+		dst.ModelResponseFormatOneOf = nil
+		dst.ModelResponseFormatOneOf1 = nil
 		dst.ResponseFormatOneOf = nil
-		dst.ResponseFormatOneOf1 = nil
-		dst.ResponseFormatOneOf2 = nil
 
 		return fmt.Errorf("data matches more than one schema in oneOf(ResponseFormat)")
 	} else if match == 1 {
@@ -115,16 +115,16 @@ func (dst *ResponseFormat) UnmarshalJSON(data []byte) error {
 
 // Marshal data from the first non-nil pointers in the struct to JSON
 func (src ResponseFormat) MarshalJSON() ([]byte, error) {
+	if src.ModelResponseFormatOneOf != nil {
+		return json.Marshal(&src.ModelResponseFormatOneOf)
+	}
+
+	if src.ModelResponseFormatOneOf1 != nil {
+		return json.Marshal(&src.ModelResponseFormatOneOf1)
+	}
+
 	if src.ResponseFormatOneOf != nil {
 		return json.Marshal(&src.ResponseFormatOneOf)
-	}
-
-	if src.ResponseFormatOneOf1 != nil {
-		return json.Marshal(&src.ResponseFormatOneOf1)
-	}
-
-	if src.ResponseFormatOneOf2 != nil {
-		return json.Marshal(&src.ResponseFormatOneOf2)
 	}
 
 	return nil, nil // no data in oneOf schemas
@@ -135,16 +135,16 @@ func (obj *ResponseFormat) GetActualInstance() interface{} {
 	if obj == nil {
 		return nil
 	}
+	if obj.ModelResponseFormatOneOf != nil {
+		return obj.ModelResponseFormatOneOf
+	}
+
+	if obj.ModelResponseFormatOneOf1 != nil {
+		return obj.ModelResponseFormatOneOf1
+	}
+
 	if obj.ResponseFormatOneOf != nil {
 		return obj.ResponseFormatOneOf
-	}
-
-	if obj.ResponseFormatOneOf1 != nil {
-		return obj.ResponseFormatOneOf1
-	}
-
-	if obj.ResponseFormatOneOf2 != nil {
-		return obj.ResponseFormatOneOf2
 	}
 
 	// all schemas are nil
@@ -153,16 +153,16 @@ func (obj *ResponseFormat) GetActualInstance() interface{} {
 
 // Get the actual instance value
 func (obj ResponseFormat) GetActualInstanceValue() interface{} {
+	if obj.ModelResponseFormatOneOf != nil {
+		return *obj.ModelResponseFormatOneOf
+	}
+
+	if obj.ModelResponseFormatOneOf1 != nil {
+		return *obj.ModelResponseFormatOneOf1
+	}
+
 	if obj.ResponseFormatOneOf != nil {
 		return *obj.ResponseFormatOneOf
-	}
-
-	if obj.ResponseFormatOneOf1 != nil {
-		return *obj.ResponseFormatOneOf1
-	}
-
-	if obj.ResponseFormatOneOf2 != nil {
-		return *obj.ResponseFormatOneOf2
 	}
 
 	// all schemas are nil

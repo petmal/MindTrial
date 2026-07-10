@@ -18,17 +18,39 @@ import (
 // checks if the Model type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &Model{}
 
-// Model Same as `LanguageModel` but fully compliant with the OpenAI API.
+// Model OpenAI-compatible model response returned by `/v1/models`. Includes optional pricing fields populated based on the model type.
 type Model struct {
+	// Alias ID(s) of the model that user can use in a request's model field.
+	Aliases []string `json:"aliases"`
+	// Price of a prompt text token (in USD cents per 100 million tokens) that was cached previously.
+	CachedPromptTextTokenPrice NullableInt64 `json:"cached_prompt_text_token_price,omitempty"`
+	// Price of the cached prompt text token for long context requests (USD cents per 100 million tokens).
+	CachedPromptTextTokenPriceLongContext NullableInt64 `json:"cached_prompt_text_token_price_long_context,omitempty"`
+	// Price of the completion text token in USD cents per 100 million tokens.
+	CompletionTextTokenPrice NullableInt64 `json:"completion_text_token_price,omitempty"`
+	// Price of the completion text token for long context requests (USD cents per 100 million tokens).
+	CompletionTextTokenPriceLongContext NullableInt64 `json:"completion_text_token_price_long_context,omitempty"`
+	// The maximum context length supported by the model, in tokens.
+	ContextLength NullableInt64 `json:"context_length,omitempty"`
 	// Model creation time in Unix timestamp.
 	Created int64 `json:"created"`
-	// Model ID. Obtainable from https://console.x.ai/team/default/models or https://docs.x.ai/docs/models.
+	// Model ID. Obtainable from <https://console.x.ai/team/default/models> or <https://docs.x.ai/docs/models>.
 	Id string `json:"id"`
+	// Price per image in USD cents (image generation models).
+	ImagePrice NullableInt64 `json:"image_price,omitempty"`
+	// Token count at or above which the long context prices apply.
+	LongContextThreshold NullableInt64 `json:"long_context_threshold,omitempty"`
 	// The object type, which is always `\"model\"`.
 	Object string `json:"object"`
 	// Owner of the model.
-	OwnedBy              string `json:"owned_by"`
-	AdditionalProperties map[string]interface{}
+	OwnedBy string `json:"owned_by"`
+	// Price of the prompt image token in USD cents per 100 million tokens.
+	PromptImageTokenPrice NullableInt64 `json:"prompt_image_token_price,omitempty"`
+	// Price of the prompt text token in USD cents per 100 million tokens.
+	PromptTextTokenPrice NullableInt64 `json:"prompt_text_token_price,omitempty"`
+	// Price of the prompt text token for long context requests (USD cents per 100 million tokens).
+	PromptTextTokenPriceLongContext NullableInt64 `json:"prompt_text_token_price_long_context,omitempty"`
+	AdditionalProperties            map[string]interface{}
 }
 
 type _Model Model
@@ -37,8 +59,9 @@ type _Model Model
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewModel(created int64, id string, object string, ownedBy string) *Model {
+func NewModel(aliases []string, created int64, id string, object string, ownedBy string) *Model {
 	this := Model{}
+	this.Aliases = aliases
 	this.Created = created
 	this.Id = id
 	this.Object = object
@@ -52,6 +75,245 @@ func NewModel(created int64, id string, object string, ownedBy string) *Model {
 func NewModelWithDefaults() *Model {
 	this := Model{}
 	return &this
+}
+
+// GetAliases returns the Aliases field value
+func (o *Model) GetAliases() []string {
+	if o == nil {
+		var ret []string
+		return ret
+	}
+
+	return o.Aliases
+}
+
+// GetAliasesOk returns a tuple with the Aliases field value
+// and a boolean to check if the value has been set.
+func (o *Model) GetAliasesOk() ([]string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Aliases, true
+}
+
+// SetAliases sets field value
+func (o *Model) SetAliases(v []string) {
+	o.Aliases = v
+}
+
+// GetCachedPromptTextTokenPrice returns the CachedPromptTextTokenPrice field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Model) GetCachedPromptTextTokenPrice() int64 {
+	if o == nil || IsNil(o.CachedPromptTextTokenPrice.Get()) {
+		var ret int64
+		return ret
+	}
+	return *o.CachedPromptTextTokenPrice.Get()
+}
+
+// GetCachedPromptTextTokenPriceOk returns a tuple with the CachedPromptTextTokenPrice field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Model) GetCachedPromptTextTokenPriceOk() (*int64, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.CachedPromptTextTokenPrice.Get(), o.CachedPromptTextTokenPrice.IsSet()
+}
+
+// HasCachedPromptTextTokenPrice returns a boolean if a field has been set.
+func (o *Model) HasCachedPromptTextTokenPrice() bool {
+	if o != nil && o.CachedPromptTextTokenPrice.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetCachedPromptTextTokenPrice gets a reference to the given NullableInt64 and assigns it to the CachedPromptTextTokenPrice field.
+func (o *Model) SetCachedPromptTextTokenPrice(v int64) {
+	o.CachedPromptTextTokenPrice.Set(&v)
+}
+
+// SetCachedPromptTextTokenPriceNil sets the value for CachedPromptTextTokenPrice to be an explicit nil
+func (o *Model) SetCachedPromptTextTokenPriceNil() {
+	o.CachedPromptTextTokenPrice.Set(nil)
+}
+
+// UnsetCachedPromptTextTokenPrice ensures that no value is present for CachedPromptTextTokenPrice, not even an explicit nil
+func (o *Model) UnsetCachedPromptTextTokenPrice() {
+	o.CachedPromptTextTokenPrice.Unset()
+}
+
+// GetCachedPromptTextTokenPriceLongContext returns the CachedPromptTextTokenPriceLongContext field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Model) GetCachedPromptTextTokenPriceLongContext() int64 {
+	if o == nil || IsNil(o.CachedPromptTextTokenPriceLongContext.Get()) {
+		var ret int64
+		return ret
+	}
+	return *o.CachedPromptTextTokenPriceLongContext.Get()
+}
+
+// GetCachedPromptTextTokenPriceLongContextOk returns a tuple with the CachedPromptTextTokenPriceLongContext field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Model) GetCachedPromptTextTokenPriceLongContextOk() (*int64, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.CachedPromptTextTokenPriceLongContext.Get(), o.CachedPromptTextTokenPriceLongContext.IsSet()
+}
+
+// HasCachedPromptTextTokenPriceLongContext returns a boolean if a field has been set.
+func (o *Model) HasCachedPromptTextTokenPriceLongContext() bool {
+	if o != nil && o.CachedPromptTextTokenPriceLongContext.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetCachedPromptTextTokenPriceLongContext gets a reference to the given NullableInt64 and assigns it to the CachedPromptTextTokenPriceLongContext field.
+func (o *Model) SetCachedPromptTextTokenPriceLongContext(v int64) {
+	o.CachedPromptTextTokenPriceLongContext.Set(&v)
+}
+
+// SetCachedPromptTextTokenPriceLongContextNil sets the value for CachedPromptTextTokenPriceLongContext to be an explicit nil
+func (o *Model) SetCachedPromptTextTokenPriceLongContextNil() {
+	o.CachedPromptTextTokenPriceLongContext.Set(nil)
+}
+
+// UnsetCachedPromptTextTokenPriceLongContext ensures that no value is present for CachedPromptTextTokenPriceLongContext, not even an explicit nil
+func (o *Model) UnsetCachedPromptTextTokenPriceLongContext() {
+	o.CachedPromptTextTokenPriceLongContext.Unset()
+}
+
+// GetCompletionTextTokenPrice returns the CompletionTextTokenPrice field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Model) GetCompletionTextTokenPrice() int64 {
+	if o == nil || IsNil(o.CompletionTextTokenPrice.Get()) {
+		var ret int64
+		return ret
+	}
+	return *o.CompletionTextTokenPrice.Get()
+}
+
+// GetCompletionTextTokenPriceOk returns a tuple with the CompletionTextTokenPrice field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Model) GetCompletionTextTokenPriceOk() (*int64, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.CompletionTextTokenPrice.Get(), o.CompletionTextTokenPrice.IsSet()
+}
+
+// HasCompletionTextTokenPrice returns a boolean if a field has been set.
+func (o *Model) HasCompletionTextTokenPrice() bool {
+	if o != nil && o.CompletionTextTokenPrice.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetCompletionTextTokenPrice gets a reference to the given NullableInt64 and assigns it to the CompletionTextTokenPrice field.
+func (o *Model) SetCompletionTextTokenPrice(v int64) {
+	o.CompletionTextTokenPrice.Set(&v)
+}
+
+// SetCompletionTextTokenPriceNil sets the value for CompletionTextTokenPrice to be an explicit nil
+func (o *Model) SetCompletionTextTokenPriceNil() {
+	o.CompletionTextTokenPrice.Set(nil)
+}
+
+// UnsetCompletionTextTokenPrice ensures that no value is present for CompletionTextTokenPrice, not even an explicit nil
+func (o *Model) UnsetCompletionTextTokenPrice() {
+	o.CompletionTextTokenPrice.Unset()
+}
+
+// GetCompletionTextTokenPriceLongContext returns the CompletionTextTokenPriceLongContext field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Model) GetCompletionTextTokenPriceLongContext() int64 {
+	if o == nil || IsNil(o.CompletionTextTokenPriceLongContext.Get()) {
+		var ret int64
+		return ret
+	}
+	return *o.CompletionTextTokenPriceLongContext.Get()
+}
+
+// GetCompletionTextTokenPriceLongContextOk returns a tuple with the CompletionTextTokenPriceLongContext field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Model) GetCompletionTextTokenPriceLongContextOk() (*int64, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.CompletionTextTokenPriceLongContext.Get(), o.CompletionTextTokenPriceLongContext.IsSet()
+}
+
+// HasCompletionTextTokenPriceLongContext returns a boolean if a field has been set.
+func (o *Model) HasCompletionTextTokenPriceLongContext() bool {
+	if o != nil && o.CompletionTextTokenPriceLongContext.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetCompletionTextTokenPriceLongContext gets a reference to the given NullableInt64 and assigns it to the CompletionTextTokenPriceLongContext field.
+func (o *Model) SetCompletionTextTokenPriceLongContext(v int64) {
+	o.CompletionTextTokenPriceLongContext.Set(&v)
+}
+
+// SetCompletionTextTokenPriceLongContextNil sets the value for CompletionTextTokenPriceLongContext to be an explicit nil
+func (o *Model) SetCompletionTextTokenPriceLongContextNil() {
+	o.CompletionTextTokenPriceLongContext.Set(nil)
+}
+
+// UnsetCompletionTextTokenPriceLongContext ensures that no value is present for CompletionTextTokenPriceLongContext, not even an explicit nil
+func (o *Model) UnsetCompletionTextTokenPriceLongContext() {
+	o.CompletionTextTokenPriceLongContext.Unset()
+}
+
+// GetContextLength returns the ContextLength field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Model) GetContextLength() int64 {
+	if o == nil || IsNil(o.ContextLength.Get()) {
+		var ret int64
+		return ret
+	}
+	return *o.ContextLength.Get()
+}
+
+// GetContextLengthOk returns a tuple with the ContextLength field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Model) GetContextLengthOk() (*int64, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ContextLength.Get(), o.ContextLength.IsSet()
+}
+
+// HasContextLength returns a boolean if a field has been set.
+func (o *Model) HasContextLength() bool {
+	if o != nil && o.ContextLength.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetContextLength gets a reference to the given NullableInt64 and assigns it to the ContextLength field.
+func (o *Model) SetContextLength(v int64) {
+	o.ContextLength.Set(&v)
+}
+
+// SetContextLengthNil sets the value for ContextLength to be an explicit nil
+func (o *Model) SetContextLengthNil() {
+	o.ContextLength.Set(nil)
+}
+
+// UnsetContextLength ensures that no value is present for ContextLength, not even an explicit nil
+func (o *Model) UnsetContextLength() {
+	o.ContextLength.Unset()
 }
 
 // GetCreated returns the Created field value
@@ -102,6 +364,92 @@ func (o *Model) SetId(v string) {
 	o.Id = v
 }
 
+// GetImagePrice returns the ImagePrice field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Model) GetImagePrice() int64 {
+	if o == nil || IsNil(o.ImagePrice.Get()) {
+		var ret int64
+		return ret
+	}
+	return *o.ImagePrice.Get()
+}
+
+// GetImagePriceOk returns a tuple with the ImagePrice field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Model) GetImagePriceOk() (*int64, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ImagePrice.Get(), o.ImagePrice.IsSet()
+}
+
+// HasImagePrice returns a boolean if a field has been set.
+func (o *Model) HasImagePrice() bool {
+	if o != nil && o.ImagePrice.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetImagePrice gets a reference to the given NullableInt64 and assigns it to the ImagePrice field.
+func (o *Model) SetImagePrice(v int64) {
+	o.ImagePrice.Set(&v)
+}
+
+// SetImagePriceNil sets the value for ImagePrice to be an explicit nil
+func (o *Model) SetImagePriceNil() {
+	o.ImagePrice.Set(nil)
+}
+
+// UnsetImagePrice ensures that no value is present for ImagePrice, not even an explicit nil
+func (o *Model) UnsetImagePrice() {
+	o.ImagePrice.Unset()
+}
+
+// GetLongContextThreshold returns the LongContextThreshold field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Model) GetLongContextThreshold() int64 {
+	if o == nil || IsNil(o.LongContextThreshold.Get()) {
+		var ret int64
+		return ret
+	}
+	return *o.LongContextThreshold.Get()
+}
+
+// GetLongContextThresholdOk returns a tuple with the LongContextThreshold field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Model) GetLongContextThresholdOk() (*int64, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.LongContextThreshold.Get(), o.LongContextThreshold.IsSet()
+}
+
+// HasLongContextThreshold returns a boolean if a field has been set.
+func (o *Model) HasLongContextThreshold() bool {
+	if o != nil && o.LongContextThreshold.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetLongContextThreshold gets a reference to the given NullableInt64 and assigns it to the LongContextThreshold field.
+func (o *Model) SetLongContextThreshold(v int64) {
+	o.LongContextThreshold.Set(&v)
+}
+
+// SetLongContextThresholdNil sets the value for LongContextThreshold to be an explicit nil
+func (o *Model) SetLongContextThresholdNil() {
+	o.LongContextThreshold.Set(nil)
+}
+
+// UnsetLongContextThreshold ensures that no value is present for LongContextThreshold, not even an explicit nil
+func (o *Model) UnsetLongContextThreshold() {
+	o.LongContextThreshold.Unset()
+}
+
 // GetObject returns the Object field value
 func (o *Model) GetObject() string {
 	if o == nil {
@@ -150,6 +498,135 @@ func (o *Model) SetOwnedBy(v string) {
 	o.OwnedBy = v
 }
 
+// GetPromptImageTokenPrice returns the PromptImageTokenPrice field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Model) GetPromptImageTokenPrice() int64 {
+	if o == nil || IsNil(o.PromptImageTokenPrice.Get()) {
+		var ret int64
+		return ret
+	}
+	return *o.PromptImageTokenPrice.Get()
+}
+
+// GetPromptImageTokenPriceOk returns a tuple with the PromptImageTokenPrice field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Model) GetPromptImageTokenPriceOk() (*int64, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.PromptImageTokenPrice.Get(), o.PromptImageTokenPrice.IsSet()
+}
+
+// HasPromptImageTokenPrice returns a boolean if a field has been set.
+func (o *Model) HasPromptImageTokenPrice() bool {
+	if o != nil && o.PromptImageTokenPrice.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetPromptImageTokenPrice gets a reference to the given NullableInt64 and assigns it to the PromptImageTokenPrice field.
+func (o *Model) SetPromptImageTokenPrice(v int64) {
+	o.PromptImageTokenPrice.Set(&v)
+}
+
+// SetPromptImageTokenPriceNil sets the value for PromptImageTokenPrice to be an explicit nil
+func (o *Model) SetPromptImageTokenPriceNil() {
+	o.PromptImageTokenPrice.Set(nil)
+}
+
+// UnsetPromptImageTokenPrice ensures that no value is present for PromptImageTokenPrice, not even an explicit nil
+func (o *Model) UnsetPromptImageTokenPrice() {
+	o.PromptImageTokenPrice.Unset()
+}
+
+// GetPromptTextTokenPrice returns the PromptTextTokenPrice field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Model) GetPromptTextTokenPrice() int64 {
+	if o == nil || IsNil(o.PromptTextTokenPrice.Get()) {
+		var ret int64
+		return ret
+	}
+	return *o.PromptTextTokenPrice.Get()
+}
+
+// GetPromptTextTokenPriceOk returns a tuple with the PromptTextTokenPrice field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Model) GetPromptTextTokenPriceOk() (*int64, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.PromptTextTokenPrice.Get(), o.PromptTextTokenPrice.IsSet()
+}
+
+// HasPromptTextTokenPrice returns a boolean if a field has been set.
+func (o *Model) HasPromptTextTokenPrice() bool {
+	if o != nil && o.PromptTextTokenPrice.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetPromptTextTokenPrice gets a reference to the given NullableInt64 and assigns it to the PromptTextTokenPrice field.
+func (o *Model) SetPromptTextTokenPrice(v int64) {
+	o.PromptTextTokenPrice.Set(&v)
+}
+
+// SetPromptTextTokenPriceNil sets the value for PromptTextTokenPrice to be an explicit nil
+func (o *Model) SetPromptTextTokenPriceNil() {
+	o.PromptTextTokenPrice.Set(nil)
+}
+
+// UnsetPromptTextTokenPrice ensures that no value is present for PromptTextTokenPrice, not even an explicit nil
+func (o *Model) UnsetPromptTextTokenPrice() {
+	o.PromptTextTokenPrice.Unset()
+}
+
+// GetPromptTextTokenPriceLongContext returns the PromptTextTokenPriceLongContext field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Model) GetPromptTextTokenPriceLongContext() int64 {
+	if o == nil || IsNil(o.PromptTextTokenPriceLongContext.Get()) {
+		var ret int64
+		return ret
+	}
+	return *o.PromptTextTokenPriceLongContext.Get()
+}
+
+// GetPromptTextTokenPriceLongContextOk returns a tuple with the PromptTextTokenPriceLongContext field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Model) GetPromptTextTokenPriceLongContextOk() (*int64, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.PromptTextTokenPriceLongContext.Get(), o.PromptTextTokenPriceLongContext.IsSet()
+}
+
+// HasPromptTextTokenPriceLongContext returns a boolean if a field has been set.
+func (o *Model) HasPromptTextTokenPriceLongContext() bool {
+	if o != nil && o.PromptTextTokenPriceLongContext.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetPromptTextTokenPriceLongContext gets a reference to the given NullableInt64 and assigns it to the PromptTextTokenPriceLongContext field.
+func (o *Model) SetPromptTextTokenPriceLongContext(v int64) {
+	o.PromptTextTokenPriceLongContext.Set(&v)
+}
+
+// SetPromptTextTokenPriceLongContextNil sets the value for PromptTextTokenPriceLongContext to be an explicit nil
+func (o *Model) SetPromptTextTokenPriceLongContextNil() {
+	o.PromptTextTokenPriceLongContext.Set(nil)
+}
+
+// UnsetPromptTextTokenPriceLongContext ensures that no value is present for PromptTextTokenPriceLongContext, not even an explicit nil
+func (o *Model) UnsetPromptTextTokenPriceLongContext() {
+	o.PromptTextTokenPriceLongContext.Unset()
+}
+
 func (o Model) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -160,10 +637,41 @@ func (o Model) MarshalJSON() ([]byte, error) {
 
 func (o Model) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["aliases"] = o.Aliases
+	if o.CachedPromptTextTokenPrice.IsSet() {
+		toSerialize["cached_prompt_text_token_price"] = o.CachedPromptTextTokenPrice.Get()
+	}
+	if o.CachedPromptTextTokenPriceLongContext.IsSet() {
+		toSerialize["cached_prompt_text_token_price_long_context"] = o.CachedPromptTextTokenPriceLongContext.Get()
+	}
+	if o.CompletionTextTokenPrice.IsSet() {
+		toSerialize["completion_text_token_price"] = o.CompletionTextTokenPrice.Get()
+	}
+	if o.CompletionTextTokenPriceLongContext.IsSet() {
+		toSerialize["completion_text_token_price_long_context"] = o.CompletionTextTokenPriceLongContext.Get()
+	}
+	if o.ContextLength.IsSet() {
+		toSerialize["context_length"] = o.ContextLength.Get()
+	}
 	toSerialize["created"] = o.Created
 	toSerialize["id"] = o.Id
+	if o.ImagePrice.IsSet() {
+		toSerialize["image_price"] = o.ImagePrice.Get()
+	}
+	if o.LongContextThreshold.IsSet() {
+		toSerialize["long_context_threshold"] = o.LongContextThreshold.Get()
+	}
 	toSerialize["object"] = o.Object
 	toSerialize["owned_by"] = o.OwnedBy
+	if o.PromptImageTokenPrice.IsSet() {
+		toSerialize["prompt_image_token_price"] = o.PromptImageTokenPrice.Get()
+	}
+	if o.PromptTextTokenPrice.IsSet() {
+		toSerialize["prompt_text_token_price"] = o.PromptTextTokenPrice.Get()
+	}
+	if o.PromptTextTokenPriceLongContext.IsSet() {
+		toSerialize["prompt_text_token_price_long_context"] = o.PromptTextTokenPriceLongContext.Get()
+	}
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -177,6 +685,7 @@ func (o *Model) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
+		"aliases",
 		"created",
 		"id",
 		"object",
@@ -210,10 +719,21 @@ func (o *Model) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "aliases")
+		delete(additionalProperties, "cached_prompt_text_token_price")
+		delete(additionalProperties, "cached_prompt_text_token_price_long_context")
+		delete(additionalProperties, "completion_text_token_price")
+		delete(additionalProperties, "completion_text_token_price_long_context")
+		delete(additionalProperties, "context_length")
 		delete(additionalProperties, "created")
 		delete(additionalProperties, "id")
+		delete(additionalProperties, "image_price")
+		delete(additionalProperties, "long_context_threshold")
 		delete(additionalProperties, "object")
 		delete(additionalProperties, "owned_by")
+		delete(additionalProperties, "prompt_image_token_price")
+		delete(additionalProperties, "prompt_text_token_price")
+		delete(additionalProperties, "prompt_text_token_price_long_context")
 		o.AdditionalProperties = additionalProperties
 	}
 

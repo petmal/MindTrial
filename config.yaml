@@ -292,6 +292,11 @@ config:
         - name: "Grok 4.1 Fast - latest (reasoning)"
           model: "grok-4-1-fast-reasoning-latest"
           max-requests-per-minute: 30
+        - name: "Grok 4.5 - latest (reasoning)"
+          model: "grok-4.5-latest"
+          max-requests-per-minute: 30
+          model-parameters:
+            reasoning-effort: "high"
     - name: alibaba
       retry-policy:
         max-retry-attempts: 5

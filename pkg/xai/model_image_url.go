@@ -12,18 +12,17 @@ package xai
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 // checks if the ImageUrl type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &ImageUrl{}
 
-// ImageUrl Image URL object of Image prompt
+// ImageUrl Image input for generation and editing requests. Accepts a public URL, a base64-encoded data URL, or a file_id from the xAI Files API.
 type ImageUrl struct {
-	// Specifies the detail level of the image.
-	Detail NullableString `json:"detail,omitempty"`
-	// URL of the image.
-	Url                  string `json:"url"`
+	// File ID from the xAI Files API. Mutually exclusive with `url`. The file must be an image (JPEG, PNG, or WebP) and fully uploaded.
+	FileId NullableString `json:"file_id,omitempty"`
+	// Public URL or base64-encoded data URL of the image (JPEG, PNG, or WebP). Also accepts `image_url` for compatibility. Required when `file_id` is not set.
+	Url                  *string `json:"url,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -33,9 +32,8 @@ type _ImageUrl ImageUrl
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewImageUrl(url string) *ImageUrl {
+func NewImageUrl() *ImageUrl {
 	this := ImageUrl{}
-	this.Url = url
 	return &this
 }
 
@@ -47,71 +45,79 @@ func NewImageUrlWithDefaults() *ImageUrl {
 	return &this
 }
 
-// GetDetail returns the Detail field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ImageUrl) GetDetail() string {
-	if o == nil || IsNil(o.Detail.Get()) {
+// GetFileId returns the FileId field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ImageUrl) GetFileId() string {
+	if o == nil || IsNil(o.FileId.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.Detail.Get()
+	return *o.FileId.Get()
 }
 
-// GetDetailOk returns a tuple with the Detail field value if set, nil otherwise
+// GetFileIdOk returns a tuple with the FileId field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 // NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ImageUrl) GetDetailOk() (*string, bool) {
+func (o *ImageUrl) GetFileIdOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return o.Detail.Get(), o.Detail.IsSet()
+	return o.FileId.Get(), o.FileId.IsSet()
 }
 
-// HasDetail returns a boolean if a field has been set.
-func (o *ImageUrl) HasDetail() bool {
-	if o != nil && o.Detail.IsSet() {
+// HasFileId returns a boolean if a field has been set.
+func (o *ImageUrl) HasFileId() bool {
+	if o != nil && o.FileId.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetDetail gets a reference to the given NullableString and assigns it to the Detail field.
-func (o *ImageUrl) SetDetail(v string) {
-	o.Detail.Set(&v)
+// SetFileId gets a reference to the given NullableString and assigns it to the FileId field.
+func (o *ImageUrl) SetFileId(v string) {
+	o.FileId.Set(&v)
 }
 
-// SetDetailNil sets the value for Detail to be an explicit nil
-func (o *ImageUrl) SetDetailNil() {
-	o.Detail.Set(nil)
+// SetFileIdNil sets the value for FileId to be an explicit nil
+func (o *ImageUrl) SetFileIdNil() {
+	o.FileId.Set(nil)
 }
 
-// UnsetDetail ensures that no value is present for Detail, not even an explicit nil
-func (o *ImageUrl) UnsetDetail() {
-	o.Detail.Unset()
+// UnsetFileId ensures that no value is present for FileId, not even an explicit nil
+func (o *ImageUrl) UnsetFileId() {
+	o.FileId.Unset()
 }
 
-// GetUrl returns the Url field value
+// GetUrl returns the Url field value if set, zero value otherwise.
 func (o *ImageUrl) GetUrl() string {
-	if o == nil {
+	if o == nil || IsNil(o.Url) {
 		var ret string
 		return ret
 	}
-
-	return o.Url
+	return *o.Url
 }
 
-// GetUrlOk returns a tuple with the Url field value
+// GetUrlOk returns a tuple with the Url field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *ImageUrl) GetUrlOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.Url) {
 		return nil, false
 	}
-	return &o.Url, true
+	return o.Url, true
 }
 
-// SetUrl sets field value
+// HasUrl returns a boolean if a field has been set.
+func (o *ImageUrl) HasUrl() bool {
+	if o != nil && !IsNil(o.Url) {
+		return true
+	}
+
+	return false
+}
+
+// SetUrl gets a reference to the given string and assigns it to the Url field.
 func (o *ImageUrl) SetUrl(v string) {
-	o.Url = v
+	o.Url = &v
 }
 
 func (o ImageUrl) MarshalJSON() ([]byte, error) {
@@ -124,10 +130,12 @@ func (o ImageUrl) MarshalJSON() ([]byte, error) {
 
 func (o ImageUrl) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if o.Detail.IsSet() {
-		toSerialize["detail"] = o.Detail.Get()
+	if o.FileId.IsSet() {
+		toSerialize["file_id"] = o.FileId.Get()
 	}
-	toSerialize["url"] = o.Url
+	if !IsNil(o.Url) {
+		toSerialize["url"] = o.Url
+	}
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -137,27 +145,6 @@ func (o ImageUrl) ToMap() (map[string]interface{}, error) {
 }
 
 func (o *ImageUrl) UnmarshalJSON(data []byte) (err error) {
-	// This validates that all required properties are included in the JSON object
-	// by unmarshalling the object into a generic map with string keys and checking
-	// that every required field exists as a key in the generic map.
-	requiredProperties := []string{
-		"url",
-	}
-
-	allProperties := make(map[string]interface{})
-
-	err = json.Unmarshal(data, &allProperties)
-
-	if err != nil {
-		return err
-	}
-
-	for _, requiredProperty := range requiredProperties {
-		if _, exists := allProperties[requiredProperty]; !exists {
-			return fmt.Errorf("no value given for required property %v", requiredProperty)
-		}
-	}
-
 	varImageUrl := _ImageUrl{}
 
 	err = json.Unmarshal(data, &varImageUrl)
@@ -171,7 +158,7 @@ func (o *ImageUrl) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "detail")
+		delete(additionalProperties, "file_id")
 		delete(additionalProperties, "url")
 		o.AdditionalProperties = additionalProperties
 	}

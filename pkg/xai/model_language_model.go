@@ -24,16 +24,22 @@ type LanguageModel struct {
 	Aliases []string `json:"aliases"`
 	// Price of a prompt text token (in USD cents per 100 million tokens) that was cached previously.
 	CachedPromptTextTokenPrice int64 `json:"cached_prompt_text_token_price"`
+	// Price of the cached prompt text token for long context requests (USD cents per 100 million tokens). When 0, falls back to cached_prompt_text_token_price.
+	CachedPromptTextTokenPriceLongContext int64 `json:"cached_prompt_text_token_price_long_context"`
 	// Price of the completion text token in USD cents per 100 million token.
 	CompletionTextTokenPrice int64 `json:"completion_text_token_price"`
+	// Price of the completion text token for long context requests (USD cents per 100 million tokens). When 0, the standard completion_text_token_price applies.
+	CompletionTextTokenPriceLongContext int64 `json:"completion_text_token_price_long_context"`
 	// Creation time of the model in Unix timestamp.
 	Created int64 `json:"created"`
 	// Fingerprint of the xAI system configuration hosting the model.
 	Fingerprint string `json:"fingerprint"`
-	// Model ID. Obtainable from https://console.x.ai/team/default/models or https://docs.x.ai/docs/models.
+	// Model ID. Obtainable from <https://console.x.ai/team/default/models> or <https://docs.x.ai/docs/models>.
 	Id string `json:"id"`
 	// The input modalities supported by the model, e.g. `\"text\"`, `\"image\"`.
 	InputModalities []string `json:"input_modalities"`
+	// Token count at or above which the long context prices apply. When 0, the model has no long context pricing tier.
+	LongContextThreshold int64 `json:"long_context_threshold"`
 	// The object type, which is always `\"model\"`.
 	Object string `json:"object"`
 	// The output modalities supported by the model, e.g. `\"text\"`, `\"image\"`.
@@ -44,6 +50,8 @@ type LanguageModel struct {
 	PromptImageTokenPrice int64 `json:"prompt_image_token_price"`
 	// Price of the prompt text token in USD cents per 100 million token.
 	PromptTextTokenPrice int64 `json:"prompt_text_token_price"`
+	// Price of the prompt text token for long context requests (USD cents per 100 million tokens). When 0, the standard prompt_text_token_price applies at all context lengths.
+	PromptTextTokenPriceLongContext int64 `json:"prompt_text_token_price_long_context"`
 	// Price of the search in USD cents per 100 million searches.
 	SearchPrice int64 `json:"search_price"`
 	// Version of the model.
@@ -57,20 +65,24 @@ type _LanguageModel LanguageModel
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewLanguageModel(aliases []string, cachedPromptTextTokenPrice int64, completionTextTokenPrice int64, created int64, fingerprint string, id string, inputModalities []string, object string, outputModalities []string, ownedBy string, promptImageTokenPrice int64, promptTextTokenPrice int64, searchPrice int64, version string) *LanguageModel {
+func NewLanguageModel(aliases []string, cachedPromptTextTokenPrice int64, cachedPromptTextTokenPriceLongContext int64, completionTextTokenPrice int64, completionTextTokenPriceLongContext int64, created int64, fingerprint string, id string, inputModalities []string, longContextThreshold int64, object string, outputModalities []string, ownedBy string, promptImageTokenPrice int64, promptTextTokenPrice int64, promptTextTokenPriceLongContext int64, searchPrice int64, version string) *LanguageModel {
 	this := LanguageModel{}
 	this.Aliases = aliases
 	this.CachedPromptTextTokenPrice = cachedPromptTextTokenPrice
+	this.CachedPromptTextTokenPriceLongContext = cachedPromptTextTokenPriceLongContext
 	this.CompletionTextTokenPrice = completionTextTokenPrice
+	this.CompletionTextTokenPriceLongContext = completionTextTokenPriceLongContext
 	this.Created = created
 	this.Fingerprint = fingerprint
 	this.Id = id
 	this.InputModalities = inputModalities
+	this.LongContextThreshold = longContextThreshold
 	this.Object = object
 	this.OutputModalities = outputModalities
 	this.OwnedBy = ownedBy
 	this.PromptImageTokenPrice = promptImageTokenPrice
 	this.PromptTextTokenPrice = promptTextTokenPrice
+	this.PromptTextTokenPriceLongContext = promptTextTokenPriceLongContext
 	this.SearchPrice = searchPrice
 	this.Version = version
 	return &this
@@ -132,6 +144,30 @@ func (o *LanguageModel) SetCachedPromptTextTokenPrice(v int64) {
 	o.CachedPromptTextTokenPrice = v
 }
 
+// GetCachedPromptTextTokenPriceLongContext returns the CachedPromptTextTokenPriceLongContext field value
+func (o *LanguageModel) GetCachedPromptTextTokenPriceLongContext() int64 {
+	if o == nil {
+		var ret int64
+		return ret
+	}
+
+	return o.CachedPromptTextTokenPriceLongContext
+}
+
+// GetCachedPromptTextTokenPriceLongContextOk returns a tuple with the CachedPromptTextTokenPriceLongContext field value
+// and a boolean to check if the value has been set.
+func (o *LanguageModel) GetCachedPromptTextTokenPriceLongContextOk() (*int64, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.CachedPromptTextTokenPriceLongContext, true
+}
+
+// SetCachedPromptTextTokenPriceLongContext sets field value
+func (o *LanguageModel) SetCachedPromptTextTokenPriceLongContext(v int64) {
+	o.CachedPromptTextTokenPriceLongContext = v
+}
+
 // GetCompletionTextTokenPrice returns the CompletionTextTokenPrice field value
 func (o *LanguageModel) GetCompletionTextTokenPrice() int64 {
 	if o == nil {
@@ -154,6 +190,30 @@ func (o *LanguageModel) GetCompletionTextTokenPriceOk() (*int64, bool) {
 // SetCompletionTextTokenPrice sets field value
 func (o *LanguageModel) SetCompletionTextTokenPrice(v int64) {
 	o.CompletionTextTokenPrice = v
+}
+
+// GetCompletionTextTokenPriceLongContext returns the CompletionTextTokenPriceLongContext field value
+func (o *LanguageModel) GetCompletionTextTokenPriceLongContext() int64 {
+	if o == nil {
+		var ret int64
+		return ret
+	}
+
+	return o.CompletionTextTokenPriceLongContext
+}
+
+// GetCompletionTextTokenPriceLongContextOk returns a tuple with the CompletionTextTokenPriceLongContext field value
+// and a boolean to check if the value has been set.
+func (o *LanguageModel) GetCompletionTextTokenPriceLongContextOk() (*int64, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.CompletionTextTokenPriceLongContext, true
+}
+
+// SetCompletionTextTokenPriceLongContext sets field value
+func (o *LanguageModel) SetCompletionTextTokenPriceLongContext(v int64) {
+	o.CompletionTextTokenPriceLongContext = v
 }
 
 // GetCreated returns the Created field value
@@ -250,6 +310,30 @@ func (o *LanguageModel) GetInputModalitiesOk() ([]string, bool) {
 // SetInputModalities sets field value
 func (o *LanguageModel) SetInputModalities(v []string) {
 	o.InputModalities = v
+}
+
+// GetLongContextThreshold returns the LongContextThreshold field value
+func (o *LanguageModel) GetLongContextThreshold() int64 {
+	if o == nil {
+		var ret int64
+		return ret
+	}
+
+	return o.LongContextThreshold
+}
+
+// GetLongContextThresholdOk returns a tuple with the LongContextThreshold field value
+// and a boolean to check if the value has been set.
+func (o *LanguageModel) GetLongContextThresholdOk() (*int64, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.LongContextThreshold, true
+}
+
+// SetLongContextThreshold sets field value
+func (o *LanguageModel) SetLongContextThreshold(v int64) {
+	o.LongContextThreshold = v
 }
 
 // GetObject returns the Object field value
@@ -372,6 +456,30 @@ func (o *LanguageModel) SetPromptTextTokenPrice(v int64) {
 	o.PromptTextTokenPrice = v
 }
 
+// GetPromptTextTokenPriceLongContext returns the PromptTextTokenPriceLongContext field value
+func (o *LanguageModel) GetPromptTextTokenPriceLongContext() int64 {
+	if o == nil {
+		var ret int64
+		return ret
+	}
+
+	return o.PromptTextTokenPriceLongContext
+}
+
+// GetPromptTextTokenPriceLongContextOk returns a tuple with the PromptTextTokenPriceLongContext field value
+// and a boolean to check if the value has been set.
+func (o *LanguageModel) GetPromptTextTokenPriceLongContextOk() (*int64, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.PromptTextTokenPriceLongContext, true
+}
+
+// SetPromptTextTokenPriceLongContext sets field value
+func (o *LanguageModel) SetPromptTextTokenPriceLongContext(v int64) {
+	o.PromptTextTokenPriceLongContext = v
+}
+
 // GetSearchPrice returns the SearchPrice field value
 func (o *LanguageModel) GetSearchPrice() int64 {
 	if o == nil {
@@ -432,16 +540,20 @@ func (o LanguageModel) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["aliases"] = o.Aliases
 	toSerialize["cached_prompt_text_token_price"] = o.CachedPromptTextTokenPrice
+	toSerialize["cached_prompt_text_token_price_long_context"] = o.CachedPromptTextTokenPriceLongContext
 	toSerialize["completion_text_token_price"] = o.CompletionTextTokenPrice
+	toSerialize["completion_text_token_price_long_context"] = o.CompletionTextTokenPriceLongContext
 	toSerialize["created"] = o.Created
 	toSerialize["fingerprint"] = o.Fingerprint
 	toSerialize["id"] = o.Id
 	toSerialize["input_modalities"] = o.InputModalities
+	toSerialize["long_context_threshold"] = o.LongContextThreshold
 	toSerialize["object"] = o.Object
 	toSerialize["output_modalities"] = o.OutputModalities
 	toSerialize["owned_by"] = o.OwnedBy
 	toSerialize["prompt_image_token_price"] = o.PromptImageTokenPrice
 	toSerialize["prompt_text_token_price"] = o.PromptTextTokenPrice
+	toSerialize["prompt_text_token_price_long_context"] = o.PromptTextTokenPriceLongContext
 	toSerialize["search_price"] = o.SearchPrice
 	toSerialize["version"] = o.Version
 
@@ -459,16 +571,20 @@ func (o *LanguageModel) UnmarshalJSON(data []byte) (err error) {
 	requiredProperties := []string{
 		"aliases",
 		"cached_prompt_text_token_price",
+		"cached_prompt_text_token_price_long_context",
 		"completion_text_token_price",
+		"completion_text_token_price_long_context",
 		"created",
 		"fingerprint",
 		"id",
 		"input_modalities",
+		"long_context_threshold",
 		"object",
 		"output_modalities",
 		"owned_by",
 		"prompt_image_token_price",
 		"prompt_text_token_price",
+		"prompt_text_token_price_long_context",
 		"search_price",
 		"version",
 	}
@@ -502,16 +618,20 @@ func (o *LanguageModel) UnmarshalJSON(data []byte) (err error) {
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
 		delete(additionalProperties, "aliases")
 		delete(additionalProperties, "cached_prompt_text_token_price")
+		delete(additionalProperties, "cached_prompt_text_token_price_long_context")
 		delete(additionalProperties, "completion_text_token_price")
+		delete(additionalProperties, "completion_text_token_price_long_context")
 		delete(additionalProperties, "created")
 		delete(additionalProperties, "fingerprint")
 		delete(additionalProperties, "id")
 		delete(additionalProperties, "input_modalities")
+		delete(additionalProperties, "long_context_threshold")
 		delete(additionalProperties, "object")
 		delete(additionalProperties, "output_modalities")
 		delete(additionalProperties, "owned_by")
 		delete(additionalProperties, "prompt_image_token_price")
 		delete(additionalProperties, "prompt_text_token_price")
+		delete(additionalProperties, "prompt_text_token_price_long_context")
 		delete(additionalProperties, "search_price")
 		delete(additionalProperties, "version")
 		o.AdditionalProperties = additionalProperties

@@ -15,65 +15,71 @@ import (
 	"fmt"
 )
 
-// checks if the ResponseFormatOneOf2 type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &ResponseFormatOneOf2{}
+// checks if the ModelToolOneOf4 type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &ModelToolOneOf4{}
 
-// ResponseFormatOneOf2 Specify json_schema response format with a given schema. Type is always `\"json_schema\"`.
-type ResponseFormatOneOf2 struct {
-	JsonSchema           interface{} `json:"json_schema"`
+// ModelToolOneOf4 Execute code.
+type ModelToolOneOf4 struct {
+	Container            interface{} `json:"container,omitempty"`
 	Type                 string      `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
-type _ResponseFormatOneOf2 ResponseFormatOneOf2
+type _ModelToolOneOf4 ModelToolOneOf4
 
-// NewResponseFormatOneOf2 instantiates a new ResponseFormatOneOf2 object
+// NewModelToolOneOf4 instantiates a new ModelToolOneOf4 object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewResponseFormatOneOf2(jsonSchema interface{}, type_ string) *ResponseFormatOneOf2 {
-	this := ResponseFormatOneOf2{}
-	this.JsonSchema = jsonSchema
+func NewModelToolOneOf4(type_ string) *ModelToolOneOf4 {
+	this := ModelToolOneOf4{}
 	this.Type = type_
 	return &this
 }
 
-// NewResponseFormatOneOf2WithDefaults instantiates a new ResponseFormatOneOf2 object
+// NewModelToolOneOf4WithDefaults instantiates a new ModelToolOneOf4 object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewResponseFormatOneOf2WithDefaults() *ResponseFormatOneOf2 {
-	this := ResponseFormatOneOf2{}
+func NewModelToolOneOf4WithDefaults() *ModelToolOneOf4 {
+	this := ModelToolOneOf4{}
 	return &this
 }
 
-// GetJsonSchema returns the JsonSchema field value
-// If the value is explicit nil, the zero value for interface{} will be returned
-func (o *ResponseFormatOneOf2) GetJsonSchema() interface{} {
+// GetContainer returns the Container field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ModelToolOneOf4) GetContainer() interface{} {
 	if o == nil {
 		var ret interface{}
 		return ret
 	}
-
-	return o.JsonSchema
+	return o.Container
 }
 
-// GetJsonSchemaOk returns a tuple with the JsonSchema field value
+// GetContainerOk returns a tuple with the Container field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 // NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ResponseFormatOneOf2) GetJsonSchemaOk() (*interface{}, bool) {
-	if o == nil || IsNil(o.JsonSchema) {
+func (o *ModelToolOneOf4) GetContainerOk() (*interface{}, bool) {
+	if o == nil || IsNil(o.Container) {
 		return nil, false
 	}
-	return &o.JsonSchema, true
+	return &o.Container, true
 }
 
-// SetJsonSchema sets field value
-func (o *ResponseFormatOneOf2) SetJsonSchema(v interface{}) {
-	o.JsonSchema = v
+// HasContainer returns a boolean if a field has been set.
+func (o *ModelToolOneOf4) HasContainer() bool {
+	if o != nil && !IsNil(o.Container) {
+		return true
+	}
+
+	return false
+}
+
+// SetContainer gets a reference to the given interface{} and assigns it to the Container field.
+func (o *ModelToolOneOf4) SetContainer(v interface{}) {
+	o.Container = v
 }
 
 // GetType returns the Type field value
-func (o *ResponseFormatOneOf2) GetType() string {
+func (o *ModelToolOneOf4) GetType() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -84,7 +90,7 @@ func (o *ResponseFormatOneOf2) GetType() string {
 
 // GetTypeOk returns a tuple with the Type field value
 // and a boolean to check if the value has been set.
-func (o *ResponseFormatOneOf2) GetTypeOk() (*string, bool) {
+func (o *ModelToolOneOf4) GetTypeOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -92,11 +98,11 @@ func (o *ResponseFormatOneOf2) GetTypeOk() (*string, bool) {
 }
 
 // SetType sets field value
-func (o *ResponseFormatOneOf2) SetType(v string) {
+func (o *ModelToolOneOf4) SetType(v string) {
 	o.Type = v
 }
 
-func (o ResponseFormatOneOf2) MarshalJSON() ([]byte, error) {
+func (o ModelToolOneOf4) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -104,10 +110,10 @@ func (o ResponseFormatOneOf2) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o ResponseFormatOneOf2) ToMap() (map[string]interface{}, error) {
+func (o ModelToolOneOf4) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if o.JsonSchema != nil {
-		toSerialize["json_schema"] = o.JsonSchema
+	if o.Container != nil {
+		toSerialize["container"] = o.Container
 	}
 	toSerialize["type"] = o.Type
 
@@ -118,12 +124,11 @@ func (o ResponseFormatOneOf2) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-func (o *ResponseFormatOneOf2) UnmarshalJSON(data []byte) (err error) {
+func (o *ModelToolOneOf4) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"json_schema",
 		"type",
 	}
 
@@ -141,20 +146,20 @@ func (o *ResponseFormatOneOf2) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varResponseFormatOneOf2 := _ResponseFormatOneOf2{}
+	varModelToolOneOf4 := _ModelToolOneOf4{}
 
-	err = json.Unmarshal(data, &varResponseFormatOneOf2)
+	err = json.Unmarshal(data, &varModelToolOneOf4)
 
 	if err != nil {
 		return err
 	}
 
-	*o = ResponseFormatOneOf2(varResponseFormatOneOf2)
+	*o = ModelToolOneOf4(varModelToolOneOf4)
 
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "json_schema")
+		delete(additionalProperties, "container")
 		delete(additionalProperties, "type")
 		o.AdditionalProperties = additionalProperties
 	}
@@ -162,38 +167,38 @@ func (o *ResponseFormatOneOf2) UnmarshalJSON(data []byte) (err error) {
 	return err
 }
 
-type NullableResponseFormatOneOf2 struct {
-	value *ResponseFormatOneOf2
+type NullableModelToolOneOf4 struct {
+	value *ModelToolOneOf4
 	isSet bool
 }
 
-func (v NullableResponseFormatOneOf2) Get() *ResponseFormatOneOf2 {
+func (v NullableModelToolOneOf4) Get() *ModelToolOneOf4 {
 	return v.value
 }
 
-func (v *NullableResponseFormatOneOf2) Set(val *ResponseFormatOneOf2) {
+func (v *NullableModelToolOneOf4) Set(val *ModelToolOneOf4) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableResponseFormatOneOf2) IsSet() bool {
+func (v NullableModelToolOneOf4) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableResponseFormatOneOf2) Unset() {
+func (v *NullableModelToolOneOf4) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableResponseFormatOneOf2(val *ResponseFormatOneOf2) *NullableResponseFormatOneOf2 {
-	return &NullableResponseFormatOneOf2{value: val, isSet: true}
+func NewNullableModelToolOneOf4(val *ModelToolOneOf4) *NullableModelToolOneOf4 {
+	return &NullableModelToolOneOf4{value: val, isSet: true}
 }
 
-func (v NullableResponseFormatOneOf2) MarshalJSON() ([]byte, error) {
+func (v NullableModelToolOneOf4) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableResponseFormatOneOf2) UnmarshalJSON(src []byte) error {
+func (v *NullableModelToolOneOf4) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

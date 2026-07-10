@@ -26,7 +26,7 @@ type EmbeddingModel struct {
 	Created int64 `json:"created"`
 	// Fingerprint of the xAI system configuration hosting the model.
 	Fingerprint string `json:"fingerprint"`
-	// Model ID. Obtainable from https://console.x.ai/team/default/models or https://docs.x.ai/docs/models.
+	// Model ID. Obtainable from <https://console.x.ai/team/default/models> or <https://docs.x.ai/docs/models>.
 	Id string `json:"id"`
 	// The input modalities supported by the model.
 	InputModalities []string `json:"input_modalities"`

@@ -24,6 +24,8 @@ type Usage struct {
 	CompletionTokens int32 `json:"completion_tokens"`
 	// Breakdown of completion token usage of different types.
 	CompletionTokensDetails CompletionUsageDetail `json:"completion_tokens_details"`
+	// Accurate cost of this request in USD ticks, where \"tick\" is defined as follows: TICKS_IN_USD_CENT: i64 = 100_000_000 which means there is 10'000'000'000 ticks in one *dollar*.
+	CostInUsdTicks int64 `json:"cost_in_usd_ticks"`
 	// Number of individual live search source used.
 	NumSourcesUsed int32 `json:"num_sources_used"`
 	// Total prompt token used.
@@ -41,10 +43,11 @@ type _Usage Usage
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewUsage(completionTokens int32, completionTokensDetails CompletionUsageDetail, numSourcesUsed int32, promptTokens int32, promptTokensDetails PromptUsageDetail, totalTokens int32) *Usage {
+func NewUsage(completionTokens int32, completionTokensDetails CompletionUsageDetail, costInUsdTicks int64, numSourcesUsed int32, promptTokens int32, promptTokensDetails PromptUsageDetail, totalTokens int32) *Usage {
 	this := Usage{}
 	this.CompletionTokens = completionTokens
 	this.CompletionTokensDetails = completionTokensDetails
+	this.CostInUsdTicks = costInUsdTicks
 	this.NumSourcesUsed = numSourcesUsed
 	this.PromptTokens = promptTokens
 	this.PromptTokensDetails = promptTokensDetails
@@ -106,6 +109,30 @@ func (o *Usage) GetCompletionTokensDetailsOk() (*CompletionUsageDetail, bool) {
 // SetCompletionTokensDetails sets field value
 func (o *Usage) SetCompletionTokensDetails(v CompletionUsageDetail) {
 	o.CompletionTokensDetails = v
+}
+
+// GetCostInUsdTicks returns the CostInUsdTicks field value
+func (o *Usage) GetCostInUsdTicks() int64 {
+	if o == nil {
+		var ret int64
+		return ret
+	}
+
+	return o.CostInUsdTicks
+}
+
+// GetCostInUsdTicksOk returns a tuple with the CostInUsdTicks field value
+// and a boolean to check if the value has been set.
+func (o *Usage) GetCostInUsdTicksOk() (*int64, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.CostInUsdTicks, true
+}
+
+// SetCostInUsdTicks sets field value
+func (o *Usage) SetCostInUsdTicks(v int64) {
+	o.CostInUsdTicks = v
 }
 
 // GetNumSourcesUsed returns the NumSourcesUsed field value
@@ -216,6 +243,7 @@ func (o Usage) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["completion_tokens"] = o.CompletionTokens
 	toSerialize["completion_tokens_details"] = o.CompletionTokensDetails
+	toSerialize["cost_in_usd_ticks"] = o.CostInUsdTicks
 	toSerialize["num_sources_used"] = o.NumSourcesUsed
 	toSerialize["prompt_tokens"] = o.PromptTokens
 	toSerialize["prompt_tokens_details"] = o.PromptTokensDetails
@@ -235,6 +263,7 @@ func (o *Usage) UnmarshalJSON(data []byte) (err error) {
 	requiredProperties := []string{
 		"completion_tokens",
 		"completion_tokens_details",
+		"cost_in_usd_ticks",
 		"num_sources_used",
 		"prompt_tokens",
 		"prompt_tokens_details",
@@ -270,6 +299,7 @@ func (o *Usage) UnmarshalJSON(data []byte) (err error) {
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
 		delete(additionalProperties, "completion_tokens")
 		delete(additionalProperties, "completion_tokens_details")
+		delete(additionalProperties, "cost_in_usd_ticks")
 		delete(additionalProperties, "num_sources_used")
 		delete(additionalProperties, "prompt_tokens")
 		delete(additionalProperties, "prompt_tokens_details")

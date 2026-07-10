@@ -18,10 +18,13 @@ import (
 // checks if the MessageResponseContentOneOf2 type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &MessageResponseContentOneOf2{}
 
-// MessageResponseContentOneOf2 Redacted thinking response for the model
+// MessageResponseContentOneOf2 Request by the model to invoke a tool call.
 type MessageResponseContentOneOf2 struct {
-	// Signature of the content
-	Data                 string `json:"data"`
+	// Tool call ID.
+	Id    string      `json:"id"`
+	Input interface{} `json:"input"`
+	// Name of the tool call to be used.
+	Name                 string `json:"name"`
 	Type                 string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
@@ -32,9 +35,11 @@ type _MessageResponseContentOneOf2 MessageResponseContentOneOf2
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMessageResponseContentOneOf2(data string, type_ string) *MessageResponseContentOneOf2 {
+func NewMessageResponseContentOneOf2(id string, input interface{}, name string, type_ string) *MessageResponseContentOneOf2 {
 	this := MessageResponseContentOneOf2{}
-	this.Data = data
+	this.Id = id
+	this.Input = input
+	this.Name = name
 	this.Type = type_
 	return &this
 }
@@ -47,28 +52,78 @@ func NewMessageResponseContentOneOf2WithDefaults() *MessageResponseContentOneOf2
 	return &this
 }
 
-// GetData returns the Data field value
-func (o *MessageResponseContentOneOf2) GetData() string {
+// GetId returns the Id field value
+func (o *MessageResponseContentOneOf2) GetId() string {
 	if o == nil {
 		var ret string
 		return ret
 	}
 
-	return o.Data
+	return o.Id
 }
 
-// GetDataOk returns a tuple with the Data field value
+// GetIdOk returns a tuple with the Id field value
 // and a boolean to check if the value has been set.
-func (o *MessageResponseContentOneOf2) GetDataOk() (*string, bool) {
+func (o *MessageResponseContentOneOf2) GetIdOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Data, true
+	return &o.Id, true
 }
 
-// SetData sets field value
-func (o *MessageResponseContentOneOf2) SetData(v string) {
-	o.Data = v
+// SetId sets field value
+func (o *MessageResponseContentOneOf2) SetId(v string) {
+	o.Id = v
+}
+
+// GetInput returns the Input field value
+// If the value is explicit nil, the zero value for interface{} will be returned
+func (o *MessageResponseContentOneOf2) GetInput() interface{} {
+	if o == nil {
+		var ret interface{}
+		return ret
+	}
+
+	return o.Input
+}
+
+// GetInputOk returns a tuple with the Input field value
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *MessageResponseContentOneOf2) GetInputOk() (*interface{}, bool) {
+	if o == nil || IsNil(o.Input) {
+		return nil, false
+	}
+	return &o.Input, true
+}
+
+// SetInput sets field value
+func (o *MessageResponseContentOneOf2) SetInput(v interface{}) {
+	o.Input = v
+}
+
+// GetName returns the Name field value
+func (o *MessageResponseContentOneOf2) GetName() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value
+// and a boolean to check if the value has been set.
+func (o *MessageResponseContentOneOf2) GetNameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Name, true
+}
+
+// SetName sets field value
+func (o *MessageResponseContentOneOf2) SetName(v string) {
+	o.Name = v
 }
 
 // GetType returns the Type field value
@@ -105,7 +160,11 @@ func (o MessageResponseContentOneOf2) MarshalJSON() ([]byte, error) {
 
 func (o MessageResponseContentOneOf2) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["data"] = o.Data
+	toSerialize["id"] = o.Id
+	if o.Input != nil {
+		toSerialize["input"] = o.Input
+	}
+	toSerialize["name"] = o.Name
 	toSerialize["type"] = o.Type
 
 	for key, value := range o.AdditionalProperties {
@@ -120,7 +179,9 @@ func (o *MessageResponseContentOneOf2) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"data",
+		"id",
+		"input",
+		"name",
 		"type",
 	}
 
@@ -151,7 +212,9 @@ func (o *MessageResponseContentOneOf2) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "data")
+		delete(additionalProperties, "id")
+		delete(additionalProperties, "input")
+		delete(additionalProperties, "name")
 		delete(additionalProperties, "type")
 		o.AdditionalProperties = additionalProperties
 	}

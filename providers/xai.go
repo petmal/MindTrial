@@ -57,6 +57,12 @@ func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConf
 	req.SetModel(cfg.Model)
 	req.SetN(1)
 
+	// Automatically derive a stable prompt cache key from the run configuration.
+	// This requires no user configuration and improves prompt cache hit-rate
+	// consistency whenever request content happens to be cacheable; it is a
+	// routing hint only and has no effect otherwise.
+	req.SetPromptCacheKey(promptCacheKeyFor(cfg))
+
 	// Clear default penalty parameters to avoid model compatibility issues.
 	// Some xAI models don't support these parameters, which would cause request failures.
 	// These can be explicitly set later via cfg.ModelParams if needed.
@@ -65,7 +71,7 @@ func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConf
 
 	// Configure default response format.
 	if cfg.DisableStructuredOutput {
-		req.SetResponseFormat(xai.ResponseFormatOneOfAsResponseFormat(xai.NewResponseFormatOneOf("text")))
+		req.SetResponseFormat(xai.ModelResponseFormatOneOfAsResponseFormat(xai.NewModelResponseFormatOneOf("text")))
 	} else {
 		responseSchema, err := ResultJSONSchemaRaw(task.ResponseResultFormat)
 		if err != nil {
@@ -74,7 +80,7 @@ func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConf
 		schema := map[string]interface{}{
 			"schema": responseSchema,
 		}
-		req.SetResponseFormat(xai.ResponseFormatOneOf2AsResponseFormat(xai.NewResponseFormatOneOf2(schema, "json_schema")))
+		req.SetResponseFormat(xai.ResponseFormatOneOfAsResponseFormat(xai.NewResponseFormatOneOf(schema, "json_schema")))
 	}
 
 	// Apply model-specific parameters.
@@ -325,7 +331,9 @@ func (o *XAI) createPromptMessageParts(ctx context.Context, promptText string, f
 
 		// Add image data part.
 		imgCp := xai.NewContentPart("image_url")
-		imgCp.SetImageUrl(*xai.NewImageUrl(dataURL))
+		imageUrl := xai.NewImageUrl()
+		imageUrl.SetUrl(dataURL)
+		imgCp.SetImageUrl(*imageUrl)
 		parts = append(parts, *imgCp)
 	}
 

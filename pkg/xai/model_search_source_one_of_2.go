@@ -20,7 +20,7 @@ var _ MappedNullable = &SearchSourceOneOf2{}
 
 // SearchSourceOneOf2 struct for SearchSourceOneOf2
 type SearchSourceOneOf2 struct {
-	// ISO alpha-2 code of the country. If the country is set, only data coming from this country will be considered. See https://en.wikipedia.org/wiki/ISO_3166-2.
+	// ISO alpha-2 code of the country. If the country is set, only data coming from this country will be considered. See <https://en.wikipedia.org/wiki/ISO_3166-2>.
 	Country NullableString `json:"country,omitempty"`
 	// List of website to exclude from the search results without protocol specification or subdomains. A maximum of 5 websites can be excluded.
 	ExcludedWebsites []string `json:"excluded_websites,omitempty"`

@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -984,6 +985,56 @@ func TestFindToolByName(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPromptCacheKeyFor(t *testing.T) {
+	t.Run("deterministic for the same run name and model", func(t *testing.T) {
+		cfg := config.RunConfig{Name: "GPT-5.6 - latest (high reasoning)", Model: "gpt-5.6"}
+		require.Equal(t, promptCacheKeyFor(cfg), promptCacheKeyFor(cfg))
+	})
+
+	t.Run("differs across run names", func(t *testing.T) {
+		require.NotEqual(t,
+			promptCacheKeyFor(config.RunConfig{Name: "run-a", Model: "gpt-5.6"}),
+			promptCacheKeyFor(config.RunConfig{Name: "run-b", Model: "gpt-5.6"}))
+	})
+
+	t.Run("differs across models with the same run name", func(t *testing.T) {
+		// Guards against collisions between two distinct run configurations
+		// (e.g. in two separate provider blocks) that happen to share a name.
+		require.NotEqual(t,
+			promptCacheKeyFor(config.RunConfig{Name: "latest", Model: "gpt-5.6-sol"}),
+			promptCacheKeyFor(config.RunConfig{Name: "latest", Model: "gpt-5.6-luna"}))
+	})
+
+	t.Run("stable, non-empty, prefixed value", func(t *testing.T) {
+		key := promptCacheKeyFor(config.RunConfig{Name: "GPT-5.5 - latest (high reasoning)", Model: "gpt-5.5"})
+		require.NotEmpty(t, key)
+		require.True(t, strings.HasPrefix(key, "mindtrial-"))
+	})
+
+	t.Run("handles empty run name", func(t *testing.T) {
+		key := promptCacheKeyFor(config.RunConfig{Name: "", Model: "gpt-5.6"})
+		require.NotEmpty(t, key)
+		require.True(t, strings.HasPrefix(key, "mindtrial-"))
+		require.Equal(t, key, promptCacheKeyFor(config.RunConfig{Name: "", Model: "gpt-5.6"}))
+		require.NotEqual(t, key, promptCacheKeyFor(config.RunConfig{Name: "", Model: "gpt-5.5"}))
+	})
+
+	t.Run("handles empty model", func(t *testing.T) {
+		key := promptCacheKeyFor(config.RunConfig{Name: "run", Model: ""})
+		require.NotEmpty(t, key)
+		require.True(t, strings.HasPrefix(key, "mindtrial-"))
+		require.Equal(t, key, promptCacheKeyFor(config.RunConfig{Name: "run", Model: ""}))
+		require.NotEqual(t, key, promptCacheKeyFor(config.RunConfig{Name: "other-run", Model: ""}))
+	})
+
+	t.Run("handles both empty", func(t *testing.T) {
+		key := promptCacheKeyFor(config.RunConfig{})
+		require.NotEmpty(t, key)
+		require.True(t, strings.HasPrefix(key, "mindtrial-"))
+		require.Equal(t, key, promptCacheKeyFor(config.RunConfig{}))
+	})
 }
 
 func TestTaskFilesToDataMap(t *testing.T) {

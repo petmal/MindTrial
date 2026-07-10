@@ -17,22 +17,22 @@ import (
 // checks if the GenerateImageRequest type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &GenerateImageRequest{}
 
-// GenerateImageRequest Request to generate image for `/v1/image/generations` endpoint
+// GenerateImageRequest struct for GenerateImageRequest
 type GenerateImageRequest struct {
+	// Aspect ratio of the generated image. Can be `1:1`, `3:4`, `4:3`, `9:16`, `16:9`, `2:3`, `3:2`, `9:19.5`, `19.5:9`, `9:20`, `20:9`, `1:2`, `2:1`, or `auto`. Defaults to `auto` for automatically selecting the best ratio for the prompt. Only supported by grok-imagine models.
+	AspectRatio NullableImageAspectRatio `json:"aspect_ratio,omitempty"`
 	// Model to be used.
 	Model NullableString `json:"model,omitempty"`
 	// Number of images to be generated
 	N NullableInt32 `json:"n,omitempty"`
 	// Prompt for image generation.
 	Prompt *string `json:"prompt,omitempty"`
-	// (Not supported) Quality of the image.
-	Quality NullableString `json:"quality,omitempty"`
+	// Resolution of the generated image. Defaults to `1k`. Only supported by grok-imagine models.
+	Resolution NullableImageResolution `json:"resolution,omitempty"`
 	// Response format to return the image in. Can be url or b64_json. If b64_json is specified, the image will be returned as a base64-encoded string instead of a url to the generated image file.
 	ResponseFormat NullableString `json:"response_format,omitempty"`
-	// (Not supported) Size of the image.
-	Size NullableString `json:"size,omitempty"`
-	// (Not supported) Style of the image.
-	Style NullableString `json:"style,omitempty"`
+	// Optional output storage configuration. When present, the generated image(s) are stored in the Files API and a `file_output` reference is returned in the response alongside the ephemeral URL.
+	StorageOptions NullableStorageOptions `json:"storage_options,omitempty"`
 	// A unique identifier representing your end-user, which can help xAI to monitor and detect abuse.
 	User                 NullableString `json:"user,omitempty"`
 	AdditionalProperties map[string]interface{}
@@ -63,6 +63,49 @@ func NewGenerateImageRequestWithDefaults() *GenerateImageRequest {
 	var responseFormat string = "url"
 	this.ResponseFormat = *NewNullableString(&responseFormat)
 	return &this
+}
+
+// GetAspectRatio returns the AspectRatio field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *GenerateImageRequest) GetAspectRatio() ImageAspectRatio {
+	if o == nil || IsNil(o.AspectRatio.Get()) {
+		var ret ImageAspectRatio
+		return ret
+	}
+	return *o.AspectRatio.Get()
+}
+
+// GetAspectRatioOk returns a tuple with the AspectRatio field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *GenerateImageRequest) GetAspectRatioOk() (*ImageAspectRatio, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.AspectRatio.Get(), o.AspectRatio.IsSet()
+}
+
+// HasAspectRatio returns a boolean if a field has been set.
+func (o *GenerateImageRequest) HasAspectRatio() bool {
+	if o != nil && o.AspectRatio.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetAspectRatio gets a reference to the given NullableImageAspectRatio and assigns it to the AspectRatio field.
+func (o *GenerateImageRequest) SetAspectRatio(v ImageAspectRatio) {
+	o.AspectRatio.Set(&v)
+}
+
+// SetAspectRatioNil sets the value for AspectRatio to be an explicit nil
+func (o *GenerateImageRequest) SetAspectRatioNil() {
+	o.AspectRatio.Set(nil)
+}
+
+// UnsetAspectRatio ensures that no value is present for AspectRatio, not even an explicit nil
+func (o *GenerateImageRequest) UnsetAspectRatio() {
+	o.AspectRatio.Unset()
 }
 
 // GetModel returns the Model field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -183,47 +226,47 @@ func (o *GenerateImageRequest) SetPrompt(v string) {
 	o.Prompt = &v
 }
 
-// GetQuality returns the Quality field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *GenerateImageRequest) GetQuality() string {
-	if o == nil || IsNil(o.Quality.Get()) {
-		var ret string
+// GetResolution returns the Resolution field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *GenerateImageRequest) GetResolution() ImageResolution {
+	if o == nil || IsNil(o.Resolution.Get()) {
+		var ret ImageResolution
 		return ret
 	}
-	return *o.Quality.Get()
+	return *o.Resolution.Get()
 }
 
-// GetQualityOk returns a tuple with the Quality field value if set, nil otherwise
+// GetResolutionOk returns a tuple with the Resolution field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 // NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *GenerateImageRequest) GetQualityOk() (*string, bool) {
+func (o *GenerateImageRequest) GetResolutionOk() (*ImageResolution, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return o.Quality.Get(), o.Quality.IsSet()
+	return o.Resolution.Get(), o.Resolution.IsSet()
 }
 
-// HasQuality returns a boolean if a field has been set.
-func (o *GenerateImageRequest) HasQuality() bool {
-	if o != nil && o.Quality.IsSet() {
+// HasResolution returns a boolean if a field has been set.
+func (o *GenerateImageRequest) HasResolution() bool {
+	if o != nil && o.Resolution.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetQuality gets a reference to the given NullableString and assigns it to the Quality field.
-func (o *GenerateImageRequest) SetQuality(v string) {
-	o.Quality.Set(&v)
+// SetResolution gets a reference to the given NullableImageResolution and assigns it to the Resolution field.
+func (o *GenerateImageRequest) SetResolution(v ImageResolution) {
+	o.Resolution.Set(&v)
 }
 
-// SetQualityNil sets the value for Quality to be an explicit nil
-func (o *GenerateImageRequest) SetQualityNil() {
-	o.Quality.Set(nil)
+// SetResolutionNil sets the value for Resolution to be an explicit nil
+func (o *GenerateImageRequest) SetResolutionNil() {
+	o.Resolution.Set(nil)
 }
 
-// UnsetQuality ensures that no value is present for Quality, not even an explicit nil
-func (o *GenerateImageRequest) UnsetQuality() {
-	o.Quality.Unset()
+// UnsetResolution ensures that no value is present for Resolution, not even an explicit nil
+func (o *GenerateImageRequest) UnsetResolution() {
+	o.Resolution.Unset()
 }
 
 // GetResponseFormat returns the ResponseFormat field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -269,90 +312,47 @@ func (o *GenerateImageRequest) UnsetResponseFormat() {
 	o.ResponseFormat.Unset()
 }
 
-// GetSize returns the Size field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *GenerateImageRequest) GetSize() string {
-	if o == nil || IsNil(o.Size.Get()) {
-		var ret string
+// GetStorageOptions returns the StorageOptions field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *GenerateImageRequest) GetStorageOptions() StorageOptions {
+	if o == nil || IsNil(o.StorageOptions.Get()) {
+		var ret StorageOptions
 		return ret
 	}
-	return *o.Size.Get()
+	return *o.StorageOptions.Get()
 }
 
-// GetSizeOk returns a tuple with the Size field value if set, nil otherwise
+// GetStorageOptionsOk returns a tuple with the StorageOptions field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 // NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *GenerateImageRequest) GetSizeOk() (*string, bool) {
+func (o *GenerateImageRequest) GetStorageOptionsOk() (*StorageOptions, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return o.Size.Get(), o.Size.IsSet()
+	return o.StorageOptions.Get(), o.StorageOptions.IsSet()
 }
 
-// HasSize returns a boolean if a field has been set.
-func (o *GenerateImageRequest) HasSize() bool {
-	if o != nil && o.Size.IsSet() {
+// HasStorageOptions returns a boolean if a field has been set.
+func (o *GenerateImageRequest) HasStorageOptions() bool {
+	if o != nil && o.StorageOptions.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetSize gets a reference to the given NullableString and assigns it to the Size field.
-func (o *GenerateImageRequest) SetSize(v string) {
-	o.Size.Set(&v)
+// SetStorageOptions gets a reference to the given NullableStorageOptions and assigns it to the StorageOptions field.
+func (o *GenerateImageRequest) SetStorageOptions(v StorageOptions) {
+	o.StorageOptions.Set(&v)
 }
 
-// SetSizeNil sets the value for Size to be an explicit nil
-func (o *GenerateImageRequest) SetSizeNil() {
-	o.Size.Set(nil)
+// SetStorageOptionsNil sets the value for StorageOptions to be an explicit nil
+func (o *GenerateImageRequest) SetStorageOptionsNil() {
+	o.StorageOptions.Set(nil)
 }
 
-// UnsetSize ensures that no value is present for Size, not even an explicit nil
-func (o *GenerateImageRequest) UnsetSize() {
-	o.Size.Unset()
-}
-
-// GetStyle returns the Style field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *GenerateImageRequest) GetStyle() string {
-	if o == nil || IsNil(o.Style.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.Style.Get()
-}
-
-// GetStyleOk returns a tuple with the Style field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *GenerateImageRequest) GetStyleOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Style.Get(), o.Style.IsSet()
-}
-
-// HasStyle returns a boolean if a field has been set.
-func (o *GenerateImageRequest) HasStyle() bool {
-	if o != nil && o.Style.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetStyle gets a reference to the given NullableString and assigns it to the Style field.
-func (o *GenerateImageRequest) SetStyle(v string) {
-	o.Style.Set(&v)
-}
-
-// SetStyleNil sets the value for Style to be an explicit nil
-func (o *GenerateImageRequest) SetStyleNil() {
-	o.Style.Set(nil)
-}
-
-// UnsetStyle ensures that no value is present for Style, not even an explicit nil
-func (o *GenerateImageRequest) UnsetStyle() {
-	o.Style.Unset()
+// UnsetStorageOptions ensures that no value is present for StorageOptions, not even an explicit nil
+func (o *GenerateImageRequest) UnsetStorageOptions() {
+	o.StorageOptions.Unset()
 }
 
 // GetUser returns the User field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -408,6 +408,9 @@ func (o GenerateImageRequest) MarshalJSON() ([]byte, error) {
 
 func (o GenerateImageRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if o.AspectRatio.IsSet() {
+		toSerialize["aspect_ratio"] = o.AspectRatio.Get()
+	}
 	if o.Model.IsSet() {
 		toSerialize["model"] = o.Model.Get()
 	}
@@ -417,17 +420,14 @@ func (o GenerateImageRequest) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Prompt) {
 		toSerialize["prompt"] = o.Prompt
 	}
-	if o.Quality.IsSet() {
-		toSerialize["quality"] = o.Quality.Get()
+	if o.Resolution.IsSet() {
+		toSerialize["resolution"] = o.Resolution.Get()
 	}
 	if o.ResponseFormat.IsSet() {
 		toSerialize["response_format"] = o.ResponseFormat.Get()
 	}
-	if o.Size.IsSet() {
-		toSerialize["size"] = o.Size.Get()
-	}
-	if o.Style.IsSet() {
-		toSerialize["style"] = o.Style.Get()
+	if o.StorageOptions.IsSet() {
+		toSerialize["storage_options"] = o.StorageOptions.Get()
 	}
 	if o.User.IsSet() {
 		toSerialize["user"] = o.User.Get()
@@ -454,13 +454,13 @@ func (o *GenerateImageRequest) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "aspect_ratio")
 		delete(additionalProperties, "model")
 		delete(additionalProperties, "n")
 		delete(additionalProperties, "prompt")
-		delete(additionalProperties, "quality")
+		delete(additionalProperties, "resolution")
 		delete(additionalProperties, "response_format")
-		delete(additionalProperties, "size")
-		delete(additionalProperties, "style")
+		delete(additionalProperties, "storage_options")
 		delete(additionalProperties, "user")
 		o.AdditionalProperties = additionalProperties
 	}

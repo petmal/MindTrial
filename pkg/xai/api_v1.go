@@ -16,10 +16,150 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 )
 
 type V1API interface {
+
+	/*
+		HandleCompactRequest Compacts a full Responses API input window into a shorter canonical window.
+
+		The client sends its current input (the same items that would be passed
+	to `POST /v1/responses`) and receives a compacted output window.
+	The output should be used **verbatim** as the `input` of the next
+	`/v1/responses` call (appending only the new user turn).
+
+	This generalizes the compaction approach used by the coding-agent
+	harness (`generate_session_compact` in xai-grok-shell):
+
+	1. Strip tool-result noise from the history.
+	2. Ask the model to produce a structured `<summary>` of the conversation.
+	3. Rebuild a compact window:  system message → summary → last user query.
+	4. Return that window to the client.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiHandleCompactRequestRequest
+	*/
+	HandleCompactRequest(ctx context.Context) ApiHandleCompactRequestRequest
+
+	// HandleCompactRequestExecute executes the request
+	//  @return CompactResponse
+	HandleCompactRequestExecute(r ApiHandleCompactRequestRequest) (*CompactResponse, *http.Response, error)
+
+	/*
+		HandleCreatePublicUrlRequest Create a permanent, unauthenticated public URL for an existing file. The underlying file is unaffected and can still be fetched through the authenticated content endpoint. Use this when you want to share a stored asset (image, video, PDF) outside your API-keyed environment. Public URLs can be revoked at any time via `POST /v1/files/{file_id}/public-url/revoke`.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param fileId The file's `id`.
+		@return ApiHandleCreatePublicUrlRequestRequest
+	*/
+	HandleCreatePublicUrlRequest(ctx context.Context, fileId string) ApiHandleCreatePublicUrlRequestRequest
+
+	// HandleCreatePublicUrlRequestExecute executes the request
+	//  @return CreatePublicUrlResponse
+	HandleCreatePublicUrlRequestExecute(r ApiHandleCreatePublicUrlRequestRequest) (*CreatePublicUrlResponse, *http.Response, error)
+
+	/*
+		HandleDeleteFileRequest Delete a file by ID. After this returns, the file no longer appears in `GET /v1/files`, content download returns 404, and the ID can no longer be referenced in chat attachments.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param fileId The file's `id` to delete.
+		@return ApiHandleDeleteFileRequestRequest
+	*/
+	HandleDeleteFileRequest(ctx context.Context, fileId string) ApiHandleDeleteFileRequestRequest
+
+	// HandleDeleteFileRequestExecute executes the request
+	//  @return DeleteFileResponse
+	HandleDeleteFileRequestExecute(r ApiHandleDeleteFileRequestRequest) (*DeleteFileResponse, *http.Response, error)
+
+	/*
+		HandleDeleteSkillRequest Method for HandleDeleteSkillRequest
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param skillId The skill ID.
+		@return ApiHandleDeleteSkillRequestRequest
+	*/
+	HandleDeleteSkillRequest(ctx context.Context, skillId string) ApiHandleDeleteSkillRequestRequest
+
+	// HandleDeleteSkillRequestExecute executes the request
+	//  @return DeletedSkill
+	HandleDeleteSkillRequestExecute(r ApiHandleDeleteSkillRequestRequest) (*DeletedSkill, *http.Response, error)
+
+	/*
+		HandleDeleteStoredCompletionRequest Delete a previously generated response.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param responseId The response id returned by a previous create response request.
+		@return ApiHandleDeleteStoredCompletionRequestRequest
+	*/
+	HandleDeleteStoredCompletionRequest(ctx context.Context, responseId string) ApiHandleDeleteStoredCompletionRequestRequest
+
+	// HandleDeleteStoredCompletionRequestExecute executes the request
+	//  @return DeleteStoredCompletionResponse
+	HandleDeleteStoredCompletionRequestExecute(r ApiHandleDeleteStoredCompletionRequestRequest) (*DeleteStoredCompletionResponse, *http.Response, error)
+
+	/*
+		HandleDocumentSearchRequestV2 Search for content related to the query within the given collections.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiHandleDocumentSearchRequestV2Request
+	*/
+	HandleDocumentSearchRequestV2(ctx context.Context) ApiHandleDocumentSearchRequestV2Request
+
+	// HandleDocumentSearchRequestV2Execute executes the request
+	//  @return SearchResponse
+	HandleDocumentSearchRequestV2Execute(r ApiHandleDocumentSearchRequestV2Request) (*SearchResponse, *http.Response, error)
+
+	/*
+		HandleDownloadFileContentRequest Download the contents of a file as a stream of raw bytes. The response `Content-Type` is `application/octet-stream`. Use this for the binary payload; use `GET /v1/files/{file_id}` for metadata only.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param fileId The file's `id` to download.
+		@return ApiHandleDownloadFileContentRequestRequest
+	*/
+	HandleDownloadFileContentRequest(ctx context.Context, fileId string) ApiHandleDownloadFileContentRequestRequest
+
+	// HandleDownloadFileContentRequestExecute executes the request
+	//  @return string
+	HandleDownloadFileContentRequestExecute(r ApiHandleDownloadFileContentRequestRequest) (string, *http.Response, error)
+
+	/*
+		HandleDownloadSkillContentRequest Method for HandleDownloadSkillContentRequest
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param skillId The skill ID.
+		@return ApiHandleDownloadSkillContentRequestRequest
+	*/
+	HandleDownloadSkillContentRequest(ctx context.Context, skillId string) ApiHandleDownloadSkillContentRequestRequest
+
+	// HandleDownloadSkillContentRequestExecute executes the request
+	//  @return string
+	HandleDownloadSkillContentRequestExecute(r ApiHandleDownloadSkillContentRequestRequest) (string, *http.Response, error)
+
+	/*
+		HandleEditImageRequest Edit an image based on a prompt. This is the endpoint for making edit requests to image generation models.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiHandleEditImageRequestRequest
+	*/
+	HandleEditImageRequest(ctx context.Context) ApiHandleEditImageRequestRequest
+
+	// HandleEditImageRequestExecute executes the request
+	//  @return GeneratedImageResponse
+	HandleEditImageRequestExecute(r ApiHandleEditImageRequestRequest) (*GeneratedImageResponse, *http.Response, error)
+
+	/*
+		HandleEditVideoRequest Edit a video based on a prompt. This is an asynchronous operation that returns a request_id for polling.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiHandleEditVideoRequestRequest
+	*/
+	HandleEditVideoRequest(ctx context.Context) ApiHandleEditVideoRequestRequest
+
+	// HandleEditVideoRequestExecute executes the request
+	//  @return StartDeferredResponse
+	HandleEditVideoRequestExecute(r ApiHandleEditVideoRequestRequest) (*StartDeferredResponse, *http.Response, error)
 
 	/*
 		HandleEmbeddingModelGetRequest Get full information about an embedding model with its model_id.
@@ -35,7 +175,7 @@ type V1API interface {
 	HandleEmbeddingModelGetRequestExecute(r ApiHandleEmbeddingModelGetRequestRequest) (*EmbeddingModel, *http.Response, error)
 
 	/*
-		HandleEmbeddingModelsListRequest List all embedding models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, pricing, fingerprint and alias(es).
+		HandleEmbeddingModelsListRequest List all embedding models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, fingerprint and alias(es).
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 		@return ApiHandleEmbeddingModelsListRequestRequest
@@ -59,6 +199,18 @@ type V1API interface {
 	HandleEmbeddingRequestExecute(r ApiHandleEmbeddingRequestRequest) (*EmbeddingResponse, *http.Response, error)
 
 	/*
+		HandleExtendVideoRequest Extend a video by generating continuation content. This is an asynchronous operation that returns a request_id for polling.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiHandleExtendVideoRequestRequest
+	*/
+	HandleExtendVideoRequest(ctx context.Context) ApiHandleExtendVideoRequestRequest
+
+	// HandleExtendVideoRequestExecute executes the request
+	//  @return StartDeferredResponse
+	HandleExtendVideoRequestExecute(r ApiHandleExtendVideoRequestRequest) (*StartDeferredResponse, *http.Response, error)
+
+	/*
 		HandleGenerateImageRequest Generate an image based on a prompt. This is the endpoint for making generation requests to image generation models.
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
@@ -69,6 +221,18 @@ type V1API interface {
 	// HandleGenerateImageRequestExecute executes the request
 	//  @return GeneratedImageResponse
 	HandleGenerateImageRequestExecute(r ApiHandleGenerateImageRequestRequest) (*GeneratedImageResponse, *http.Response, error)
+
+	/*
+		HandleGenerateVideoRequest Generate a video from a text prompt and optionally an image. This is an asynchronous operation that returns a request_id for polling.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiHandleGenerateVideoRequestRequest
+	*/
+	HandleGenerateVideoRequest(ctx context.Context) ApiHandleGenerateVideoRequestRequest
+
+	// HandleGenerateVideoRequestExecute executes the request
+	//  @return StartDeferredResponse
+	HandleGenerateVideoRequestExecute(r ApiHandleGenerateVideoRequestRequest) (*StartDeferredResponse, *http.Response, error)
 
 	/*
 		HandleGenericCompleteRequest (Legacy - Not supported by reasoning models) Create a text completion response. This endpoint is compatible with the Anthropic API.
@@ -107,6 +271,18 @@ type V1API interface {
 	HandleGenericMessagesRequestExecute(r ApiHandleGenericMessagesRequestRequest) (*MessageResponse, *http.Response, error)
 
 	/*
+		HandleGenericModelRequest Generates a response based on text or image prompts. The response ID can be used to retrieve the response later or to continue the conversation without repeating prior context. New responses will be stored for 30 days and then permanently deleted.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiHandleGenericModelRequestRequest
+	*/
+	HandleGenericModelRequest(ctx context.Context) ApiHandleGenericModelRequestRequest
+
+	// HandleGenericModelRequestExecute executes the request
+	//  @return ModelResponse
+	HandleGenericModelRequestExecute(r ApiHandleGenericModelRequestRequest) (*ModelResponse, *http.Response, error)
+
+	/*
 		HandleGetApiKeyInfoRequest Get information about an API key, including name, status, permissions and users who created or modified this key.
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
@@ -132,6 +308,52 @@ type V1API interface {
 	HandleGetDeferredCompletionRequestExecute(r ApiHandleGetDeferredCompletionRequestRequest) (*ChatResponse, *http.Response, error)
 
 	/*
+		HandleGetDeferredVideoRequest Get the result of a deferred video generation request.
+
+		Returns the current status of a video generation job. When the job completes
+	successfully the response contains the generated video URL. When the job fails
+	the response contains a structured `error` object with a machine-readable
+	`code` and a human-readable `message`.
+
+	Both successful and failed completions return HTTP 200 — use the `status`
+	field (`"done"` or `"failed"`) to distinguish between the two.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param requestId The deferred request id returned by a previous video generation request.
+		@return ApiHandleGetDeferredVideoRequestRequest
+	*/
+	HandleGetDeferredVideoRequest(ctx context.Context, requestId string) ApiHandleGetDeferredVideoRequestRequest
+
+	// HandleGetDeferredVideoRequestExecute executes the request
+	//  @return VideoResponse
+	HandleGetDeferredVideoRequestExecute(r ApiHandleGetDeferredVideoRequestRequest) (*VideoResponse, *http.Response, error)
+
+	/*
+		HandleGetMeRequest Get information about the currently authenticated caller. Works with both API keys and OAuth tokens. Returns identity, team, and ZDR status.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiHandleGetMeRequestRequest
+	*/
+	HandleGetMeRequest(ctx context.Context) ApiHandleGetMeRequestRequest
+
+	// HandleGetMeRequestExecute executes the request
+	//  @return GetMeResponse
+	HandleGetMeRequestExecute(r ApiHandleGetMeRequestRequest) (*GetMeResponse, *http.Response, error)
+
+	/*
+		HandleGetStoredCompletionRequest Retrieve a previously generated response.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param responseId The response id returned by a previous create response request.
+		@return ApiHandleGetStoredCompletionRequestRequest
+	*/
+	HandleGetStoredCompletionRequest(ctx context.Context, responseId string) ApiHandleGetStoredCompletionRequestRequest
+
+	// HandleGetStoredCompletionRequestExecute executes the request
+	//  @return ModelResponse
+	HandleGetStoredCompletionRequestExecute(r ApiHandleGetStoredCompletionRequestRequest) (*ModelResponse, *http.Response, error)
+
+	/*
 		HandleImageGenerationModelGetRequest Get full information about an image generation model with its model_id.
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
@@ -145,7 +367,7 @@ type V1API interface {
 	HandleImageGenerationModelGetRequestExecute(r ApiHandleImageGenerationModelGetRequestRequest) (*ImageGenerationModel, *http.Response, error)
 
 	/*
-		HandleImageGenerationModelsListRequest List all image generation models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, pricing, fingerprint and alias(es).
+		HandleImageGenerationModelsListRequest List all image generation models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, fingerprint and alias(es).
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 		@return ApiHandleImageGenerationModelsListRequestRequest
@@ -170,7 +392,7 @@ type V1API interface {
 	HandleLanguageModelGetRequestExecute(r ApiHandleLanguageModelGetRequestRequest) (*LanguageModel, *http.Response, error)
 
 	/*
-		HandleLanguageModelsListRequest List all chat and image understanding models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, pricing, fingerprint and alias(es).
+		HandleLanguageModelsListRequest List all chat and image understanding models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, fingerprint and alias(es).
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 		@return ApiHandleLanguageModelsListRequestRequest
@@ -182,7 +404,47 @@ type V1API interface {
 	HandleLanguageModelsListRequestExecute(r ApiHandleLanguageModelsListRequestRequest) (*ListLanguageModelsResponse, *http.Response, error)
 
 	/*
-		HandleModelGetRequest Get minimalized information about a model with its model_id.
+		HandleListFilesRequest List files owned by the authenticated team, paginated. The response always returns a `pagination_token`; pass it back as a query parameter to fetch the next page. The end of the list is reached when the returned `data` array is shorter than `limit`.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiHandleListFilesRequestRequest
+	*/
+	HandleListFilesRequest(ctx context.Context) ApiHandleListFilesRequestRequest
+
+	// HandleListFilesRequestExecute executes the request
+	//  @return ListFilesResponse
+	HandleListFilesRequestExecute(r ApiHandleListFilesRequestRequest) (*ListFilesResponse, *http.Response, error)
+
+	/*
+		HandleListInputItems List input items for a previously generated response.
+
+		Returns a paginated list of the input items that were part of the
+	conversation context for the given response.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param responseId The response id returned by a previous create response request.
+		@return ApiHandleListInputItemsRequest
+	*/
+	HandleListInputItems(ctx context.Context, responseId string) ApiHandleListInputItemsRequest
+
+	// HandleListInputItemsExecute executes the request
+	//  @return ListInputItemsResponse
+	HandleListInputItemsExecute(r ApiHandleListInputItemsRequest) (*ListInputItemsResponse, *http.Response, error)
+
+	/*
+		HandleListSkillsRequest Method for HandleListSkillsRequest
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiHandleListSkillsRequestRequest
+	*/
+	HandleListSkillsRequest(ctx context.Context) ApiHandleListSkillsRequestRequest
+
+	// HandleListSkillsRequestExecute executes the request
+	//  @return SkillList
+	HandleListSkillsRequestExecute(r ApiHandleListSkillsRequestRequest) (*SkillList, *http.Response, error)
+
+	/*
+		HandleModelGetRequest Get information about a model with its model_id, including pricing.
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 		@param modelId ID of the model to get.
@@ -195,7 +457,7 @@ type V1API interface {
 	HandleModelGetRequestExecute(r ApiHandleModelGetRequestRequest) (*Model, *http.Response, error)
 
 	/*
-		HandleModelsListRequest List all models available to the authenticating API key with minimalized information, including model names (ID), creation times, etc.
+		HandleModelsListRequest List all models available to the authenticating API key, including model names (ID), creation times, and pricing.
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 		@return ApiHandleModelsListRequestRequest
@@ -205,6 +467,45 @@ type V1API interface {
 	// HandleModelsListRequestExecute executes the request
 	//  @return ListModelsResponse
 	HandleModelsListRequestExecute(r ApiHandleModelsListRequestRequest) (*ListModelsResponse, *http.Response, error)
+
+	/*
+		HandleRetrieveFileRequest Retrieve metadata for a single file by ID. Errors with 404 if the file doesn't exist, has been deleted, or has passed its `expires_at`.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param fileId The file's `id` returned by upload or list.
+		@return ApiHandleRetrieveFileRequestRequest
+	*/
+	HandleRetrieveFileRequest(ctx context.Context, fileId string) ApiHandleRetrieveFileRequestRequest
+
+	// HandleRetrieveFileRequestExecute executes the request
+	//  @return File
+	HandleRetrieveFileRequestExecute(r ApiHandleRetrieveFileRequestRequest) (*File, *http.Response, error)
+
+	/*
+		HandleRetrieveSkillRequest Method for HandleRetrieveSkillRequest
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param skillId The skill ID.
+		@return ApiHandleRetrieveSkillRequestRequest
+	*/
+	HandleRetrieveSkillRequest(ctx context.Context, skillId string) ApiHandleRetrieveSkillRequestRequest
+
+	// HandleRetrieveSkillRequestExecute executes the request
+	//  @return Skill
+	HandleRetrieveSkillRequestExecute(r ApiHandleRetrieveSkillRequestRequest) (*Skill, *http.Response, error)
+
+	/*
+		HandleRevokePublicUrlRequest Revoke the active public URL for a file. The underlying file remains available through the authenticated content endpoint. Revoke is idempotent — calling it on a file without an active public URL returns `revoked: false` without an error.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param fileId The file's `id`.
+		@return ApiHandleRevokePublicUrlRequestRequest
+	*/
+	HandleRevokePublicUrlRequest(ctx context.Context, fileId string) ApiHandleRevokePublicUrlRequestRequest
+
+	// HandleRevokePublicUrlRequestExecute executes the request
+	//  @return RevokePublicUrlResponse
+	HandleRevokePublicUrlRequestExecute(r ApiHandleRevokePublicUrlRequestRequest) (*RevokePublicUrlResponse, *http.Response, error)
 
 	/*
 		HandleSampleRequest (Legacy - Not supported by reasoning models) Create a text completion response for a given prompt. Replaced by /v1/chat/completions.
@@ -229,10 +530,1141 @@ type V1API interface {
 	// HandleTokenizeTextRequestExecute executes the request
 	//  @return TokenizeResponse
 	HandleTokenizeTextRequestExecute(r ApiHandleTokenizeTextRequestRequest) (*TokenizeResponse, *http.Response, error)
+
+	/*
+		HandleUploadFileRequest Upload a file to xAI's storage. Returns the file's metadata. Files can be referenced by ID anywhere a `file_id` is accepted (e.g. chat attachments). Maximum file size: 50 MB. Files are kept until you delete them, or until `expires_after` elapses if set at upload time.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiHandleUploadFileRequestRequest
+	*/
+	HandleUploadFileRequest(ctx context.Context) ApiHandleUploadFileRequestRequest
+
+	// HandleUploadFileRequestExecute executes the request
+	//  @return File
+	HandleUploadFileRequestExecute(r ApiHandleUploadFileRequestRequest) (*File, *http.Response, error)
+
+	/*
+		HandleUploadSkillRequest Method for HandleUploadSkillRequest
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiHandleUploadSkillRequestRequest
+	*/
+	HandleUploadSkillRequest(ctx context.Context) ApiHandleUploadSkillRequestRequest
+
+	// HandleUploadSkillRequestExecute executes the request
+	//  @return Skill
+	HandleUploadSkillRequestExecute(r ApiHandleUploadSkillRequestRequest) (*Skill, *http.Response, error)
+
+	/*
+		HandleVideoGenerationModelGetRequest Get full information about a video generation model with its model_id.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param modelId ID of the model to get.
+		@return ApiHandleVideoGenerationModelGetRequestRequest
+	*/
+	HandleVideoGenerationModelGetRequest(ctx context.Context, modelId string) ApiHandleVideoGenerationModelGetRequestRequest
+
+	// HandleVideoGenerationModelGetRequestExecute executes the request
+	//  @return VideoGenerationModel
+	HandleVideoGenerationModelGetRequestExecute(r ApiHandleVideoGenerationModelGetRequestRequest) (*VideoGenerationModel, *http.Response, error)
+
+	/*
+		HandleVideoGenerationModelsListRequest List all video generation models available to the authenticating API key with full information.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return ApiHandleVideoGenerationModelsListRequestRequest
+	*/
+	HandleVideoGenerationModelsListRequest(ctx context.Context) ApiHandleVideoGenerationModelsListRequestRequest
+
+	// HandleVideoGenerationModelsListRequestExecute executes the request
+	//  @return ListVideoGenerationModelsResponse
+	HandleVideoGenerationModelsListRequestExecute(r ApiHandleVideoGenerationModelsListRequestRequest) (*ListVideoGenerationModelsResponse, *http.Response, error)
 }
 
 // V1APIService V1API service
 type V1APIService service
+
+type ApiHandleCompactRequestRequest struct {
+	ctx            context.Context
+	ApiService     V1API
+	compactRequest *CompactRequest
+}
+
+func (r ApiHandleCompactRequestRequest) CompactRequest(compactRequest CompactRequest) ApiHandleCompactRequestRequest {
+	r.compactRequest = &compactRequest
+	return r
+}
+
+func (r ApiHandleCompactRequestRequest) Execute() (*CompactResponse, *http.Response, error) {
+	return r.ApiService.HandleCompactRequestExecute(r)
+}
+
+/*
+HandleCompactRequest Compacts a full Responses API input window into a shorter canonical window.
+
+The client sends its current input (the same items that would be passed
+to `POST /v1/responses`) and receives a compacted output window.
+The output should be used **verbatim** as the `input` of the next
+`/v1/responses` call (appending only the new user turn).
+
+This generalizes the compaction approach used by the coding-agent
+harness (`generate_session_compact` in xai-grok-shell):
+
+1. Strip tool-result noise from the history.
+2. Ask the model to produce a structured `<summary>` of the conversation.
+3. Rebuild a compact window:  system message → summary → last user query.
+4. Return that window to the client.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleCompactRequestRequest
+*/
+func (a *V1APIService) HandleCompactRequest(ctx context.Context) ApiHandleCompactRequestRequest {
+	return ApiHandleCompactRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+	}
+}
+
+// Execute executes the request
+//
+//	@return CompactResponse
+func (a *V1APIService) HandleCompactRequestExecute(r ApiHandleCompactRequestRequest) (*CompactResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *CompactResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleCompactRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/responses/compact"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.compactRequest == nil {
+		return localVarReturnValue, nil, reportError("compactRequest is required and must be specified")
+	}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = r.compactRequest
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleCreatePublicUrlRequestRequest struct {
+	ctx                    context.Context
+	ApiService             V1API
+	fileId                 string
+	createPublicUrlRequest *CreatePublicUrlRequest
+}
+
+func (r ApiHandleCreatePublicUrlRequestRequest) CreatePublicUrlRequest(createPublicUrlRequest CreatePublicUrlRequest) ApiHandleCreatePublicUrlRequestRequest {
+	r.createPublicUrlRequest = &createPublicUrlRequest
+	return r
+}
+
+func (r ApiHandleCreatePublicUrlRequestRequest) Execute() (*CreatePublicUrlResponse, *http.Response, error) {
+	return r.ApiService.HandleCreatePublicUrlRequestExecute(r)
+}
+
+/*
+HandleCreatePublicUrlRequest Create a permanent, unauthenticated public URL for an existing file. The underlying file is unaffected and can still be fetched through the authenticated content endpoint. Use this when you want to share a stored asset (image, video, PDF) outside your API-keyed environment. Public URLs can be revoked at any time via `POST /v1/files/{file_id}/public-url/revoke`.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param fileId The file's `id`.
+	@return ApiHandleCreatePublicUrlRequestRequest
+*/
+func (a *V1APIService) HandleCreatePublicUrlRequest(ctx context.Context, fileId string) ApiHandleCreatePublicUrlRequestRequest {
+	return ApiHandleCreatePublicUrlRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+		fileId:     fileId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return CreatePublicUrlResponse
+func (a *V1APIService) HandleCreatePublicUrlRequestExecute(r ApiHandleCreatePublicUrlRequestRequest) (*CreatePublicUrlResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *CreatePublicUrlResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleCreatePublicUrlRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/files/{file_id}/public-url"
+	localVarPath = strings.Replace(localVarPath, "{"+"file_id"+"}", url.PathEscape(parameterValueToString(r.fileId, "fileId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.createPublicUrlRequest == nil {
+		return localVarReturnValue, nil, reportError("createPublicUrlRequest is required and must be specified")
+	}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = r.createPublicUrlRequest
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleDeleteFileRequestRequest struct {
+	ctx        context.Context
+	ApiService V1API
+	fileId     string
+}
+
+func (r ApiHandleDeleteFileRequestRequest) Execute() (*DeleteFileResponse, *http.Response, error) {
+	return r.ApiService.HandleDeleteFileRequestExecute(r)
+}
+
+/*
+HandleDeleteFileRequest Delete a file by ID. After this returns, the file no longer appears in `GET /v1/files`, content download returns 404, and the ID can no longer be referenced in chat attachments.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param fileId The file's `id` to delete.
+	@return ApiHandleDeleteFileRequestRequest
+*/
+func (a *V1APIService) HandleDeleteFileRequest(ctx context.Context, fileId string) ApiHandleDeleteFileRequestRequest {
+	return ApiHandleDeleteFileRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+		fileId:     fileId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return DeleteFileResponse
+func (a *V1APIService) HandleDeleteFileRequestExecute(r ApiHandleDeleteFileRequestRequest) (*DeleteFileResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodDelete
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *DeleteFileResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleDeleteFileRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/files/{file_id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"file_id"+"}", url.PathEscape(parameterValueToString(r.fileId, "fileId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleDeleteSkillRequestRequest struct {
+	ctx        context.Context
+	ApiService V1API
+	skillId    string
+}
+
+func (r ApiHandleDeleteSkillRequestRequest) Execute() (*DeletedSkill, *http.Response, error) {
+	return r.ApiService.HandleDeleteSkillRequestExecute(r)
+}
+
+/*
+HandleDeleteSkillRequest Method for HandleDeleteSkillRequest
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param skillId The skill ID.
+	@return ApiHandleDeleteSkillRequestRequest
+*/
+func (a *V1APIService) HandleDeleteSkillRequest(ctx context.Context, skillId string) ApiHandleDeleteSkillRequestRequest {
+	return ApiHandleDeleteSkillRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+		skillId:    skillId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return DeletedSkill
+func (a *V1APIService) HandleDeleteSkillRequestExecute(r ApiHandleDeleteSkillRequestRequest) (*DeletedSkill, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodDelete
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *DeletedSkill
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleDeleteSkillRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/skills/{skill_id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"skill_id"+"}", url.PathEscape(parameterValueToString(r.skillId, "skillId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleDeleteStoredCompletionRequestRequest struct {
+	ctx        context.Context
+	ApiService V1API
+	responseId string
+}
+
+func (r ApiHandleDeleteStoredCompletionRequestRequest) Execute() (*DeleteStoredCompletionResponse, *http.Response, error) {
+	return r.ApiService.HandleDeleteStoredCompletionRequestExecute(r)
+}
+
+/*
+HandleDeleteStoredCompletionRequest Delete a previously generated response.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param responseId The response id returned by a previous create response request.
+	@return ApiHandleDeleteStoredCompletionRequestRequest
+*/
+func (a *V1APIService) HandleDeleteStoredCompletionRequest(ctx context.Context, responseId string) ApiHandleDeleteStoredCompletionRequestRequest {
+	return ApiHandleDeleteStoredCompletionRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+		responseId: responseId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return DeleteStoredCompletionResponse
+func (a *V1APIService) HandleDeleteStoredCompletionRequestExecute(r ApiHandleDeleteStoredCompletionRequestRequest) (*DeleteStoredCompletionResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodDelete
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *DeleteStoredCompletionResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleDeleteStoredCompletionRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/responses/{response_id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"response_id"+"}", url.PathEscape(parameterValueToString(r.responseId, "responseId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleDocumentSearchRequestV2Request struct {
+	ctx           context.Context
+	ApiService    V1API
+	searchRequest *SearchRequest
+}
+
+func (r ApiHandleDocumentSearchRequestV2Request) SearchRequest(searchRequest SearchRequest) ApiHandleDocumentSearchRequestV2Request {
+	r.searchRequest = &searchRequest
+	return r
+}
+
+func (r ApiHandleDocumentSearchRequestV2Request) Execute() (*SearchResponse, *http.Response, error) {
+	return r.ApiService.HandleDocumentSearchRequestV2Execute(r)
+}
+
+/*
+HandleDocumentSearchRequestV2 Search for content related to the query within the given collections.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleDocumentSearchRequestV2Request
+*/
+func (a *V1APIService) HandleDocumentSearchRequestV2(ctx context.Context) ApiHandleDocumentSearchRequestV2Request {
+	return ApiHandleDocumentSearchRequestV2Request{
+		ApiService: a,
+		ctx:        ctx,
+	}
+}
+
+// Execute executes the request
+//
+//	@return SearchResponse
+func (a *V1APIService) HandleDocumentSearchRequestV2Execute(r ApiHandleDocumentSearchRequestV2Request) (*SearchResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *SearchResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleDocumentSearchRequestV2")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/documents/search"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.searchRequest == nil {
+		return localVarReturnValue, nil, reportError("searchRequest is required and must be specified")
+	}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = r.searchRequest
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleDownloadFileContentRequestRequest struct {
+	ctx        context.Context
+	ApiService V1API
+	fileId     string
+	format     *ContentFormat
+}
+
+// Format of the downloaded content.
+func (r ApiHandleDownloadFileContentRequestRequest) Format(format ContentFormat) ApiHandleDownloadFileContentRequestRequest {
+	r.format = &format
+	return r
+}
+
+func (r ApiHandleDownloadFileContentRequestRequest) Execute() (string, *http.Response, error) {
+	return r.ApiService.HandleDownloadFileContentRequestExecute(r)
+}
+
+/*
+HandleDownloadFileContentRequest Download the contents of a file as a stream of raw bytes. The response `Content-Type` is `application/octet-stream`. Use this for the binary payload; use `GET /v1/files/{file_id}` for metadata only.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param fileId The file's `id` to download.
+	@return ApiHandleDownloadFileContentRequestRequest
+*/
+func (a *V1APIService) HandleDownloadFileContentRequest(ctx context.Context, fileId string) ApiHandleDownloadFileContentRequestRequest {
+	return ApiHandleDownloadFileContentRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+		fileId:     fileId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return string
+func (a *V1APIService) HandleDownloadFileContentRequestExecute(r ApiHandleDownloadFileContentRequestRequest) (string, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue string
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleDownloadFileContentRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/files/{file_id}/content"
+	localVarPath = strings.Replace(localVarPath, "{"+"file_id"+"}", url.PathEscape(parameterValueToString(r.fileId, "fileId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.format != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "format", r.format, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/octet-stream"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleDownloadSkillContentRequestRequest struct {
+	ctx        context.Context
+	ApiService V1API
+	skillId    string
+}
+
+func (r ApiHandleDownloadSkillContentRequestRequest) Execute() (string, *http.Response, error) {
+	return r.ApiService.HandleDownloadSkillContentRequestExecute(r)
+}
+
+/*
+HandleDownloadSkillContentRequest Method for HandleDownloadSkillContentRequest
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param skillId The skill ID.
+	@return ApiHandleDownloadSkillContentRequestRequest
+*/
+func (a *V1APIService) HandleDownloadSkillContentRequest(ctx context.Context, skillId string) ApiHandleDownloadSkillContentRequestRequest {
+	return ApiHandleDownloadSkillContentRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+		skillId:    skillId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return string
+func (a *V1APIService) HandleDownloadSkillContentRequestExecute(r ApiHandleDownloadSkillContentRequestRequest) (string, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue string
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleDownloadSkillContentRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/skills/{skill_id}/content"
+	localVarPath = strings.Replace(localVarPath, "{"+"skill_id"+"}", url.PathEscape(parameterValueToString(r.skillId, "skillId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/zip"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleEditImageRequestRequest struct {
+	ctx              context.Context
+	ApiService       V1API
+	editImageRequest *EditImageRequest
+}
+
+func (r ApiHandleEditImageRequestRequest) EditImageRequest(editImageRequest EditImageRequest) ApiHandleEditImageRequestRequest {
+	r.editImageRequest = &editImageRequest
+	return r
+}
+
+func (r ApiHandleEditImageRequestRequest) Execute() (*GeneratedImageResponse, *http.Response, error) {
+	return r.ApiService.HandleEditImageRequestExecute(r)
+}
+
+/*
+HandleEditImageRequest Edit an image based on a prompt. This is the endpoint for making edit requests to image generation models.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleEditImageRequestRequest
+*/
+func (a *V1APIService) HandleEditImageRequest(ctx context.Context) ApiHandleEditImageRequestRequest {
+	return ApiHandleEditImageRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+	}
+}
+
+// Execute executes the request
+//
+//	@return GeneratedImageResponse
+func (a *V1APIService) HandleEditImageRequestExecute(r ApiHandleEditImageRequestRequest) (*GeneratedImageResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *GeneratedImageResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleEditImageRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/images/edits"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.editImageRequest == nil {
+		return localVarReturnValue, nil, reportError("editImageRequest is required and must be specified")
+	}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = r.editImageRequest
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleEditVideoRequestRequest struct {
+	ctx              context.Context
+	ApiService       V1API
+	editVideoRequest *EditVideoRequest
+}
+
+func (r ApiHandleEditVideoRequestRequest) EditVideoRequest(editVideoRequest EditVideoRequest) ApiHandleEditVideoRequestRequest {
+	r.editVideoRequest = &editVideoRequest
+	return r
+}
+
+func (r ApiHandleEditVideoRequestRequest) Execute() (*StartDeferredResponse, *http.Response, error) {
+	return r.ApiService.HandleEditVideoRequestExecute(r)
+}
+
+/*
+HandleEditVideoRequest Edit a video based on a prompt. This is an asynchronous operation that returns a request_id for polling.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleEditVideoRequestRequest
+*/
+func (a *V1APIService) HandleEditVideoRequest(ctx context.Context) ApiHandleEditVideoRequestRequest {
+	return ApiHandleEditVideoRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+	}
+}
+
+// Execute executes the request
+//
+//	@return StartDeferredResponse
+func (a *V1APIService) HandleEditVideoRequestExecute(r ApiHandleEditVideoRequestRequest) (*StartDeferredResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *StartDeferredResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleEditVideoRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/videos/edits"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.editVideoRequest == nil {
+		return localVarReturnValue, nil, reportError("editVideoRequest is required and must be specified")
+	}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = r.editVideoRequest
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
 
 type ApiHandleEmbeddingModelGetRequestRequest struct {
 	ctx        context.Context
@@ -346,7 +1778,7 @@ func (r ApiHandleEmbeddingModelsListRequestRequest) Execute() (*ListEmbeddingMod
 }
 
 /*
-HandleEmbeddingModelsListRequest List all embedding models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, pricing, fingerprint and alias(es).
+HandleEmbeddingModelsListRequest List all embedding models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, fingerprint and alias(es).
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@return ApiHandleEmbeddingModelsListRequestRequest
@@ -543,6 +1975,115 @@ func (a *V1APIService) HandleEmbeddingRequestExecute(r ApiHandleEmbeddingRequest
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
+type ApiHandleExtendVideoRequestRequest struct {
+	ctx                context.Context
+	ApiService         V1API
+	extendVideoRequest *ExtendVideoRequest
+}
+
+func (r ApiHandleExtendVideoRequestRequest) ExtendVideoRequest(extendVideoRequest ExtendVideoRequest) ApiHandleExtendVideoRequestRequest {
+	r.extendVideoRequest = &extendVideoRequest
+	return r
+}
+
+func (r ApiHandleExtendVideoRequestRequest) Execute() (*StartDeferredResponse, *http.Response, error) {
+	return r.ApiService.HandleExtendVideoRequestExecute(r)
+}
+
+/*
+HandleExtendVideoRequest Extend a video by generating continuation content. This is an asynchronous operation that returns a request_id for polling.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleExtendVideoRequestRequest
+*/
+func (a *V1APIService) HandleExtendVideoRequest(ctx context.Context) ApiHandleExtendVideoRequestRequest {
+	return ApiHandleExtendVideoRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+	}
+}
+
+// Execute executes the request
+//
+//	@return StartDeferredResponse
+func (a *V1APIService) HandleExtendVideoRequestExecute(r ApiHandleExtendVideoRequestRequest) (*StartDeferredResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *StartDeferredResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleExtendVideoRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/videos/extensions"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.extendVideoRequest == nil {
+		return localVarReturnValue, nil, reportError("extendVideoRequest is required and must be specified")
+	}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = r.extendVideoRequest
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
 type ApiHandleGenerateImageRequestRequest struct {
 	ctx                  context.Context
 	ApiService           V1API
@@ -615,6 +2156,115 @@ func (a *V1APIService) HandleGenerateImageRequestExecute(r ApiHandleGenerateImag
 	}
 	// body params
 	localVarPostBody = r.generateImageRequest
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleGenerateVideoRequestRequest struct {
+	ctx                  context.Context
+	ApiService           V1API
+	generateVideoRequest *GenerateVideoRequest
+}
+
+func (r ApiHandleGenerateVideoRequestRequest) GenerateVideoRequest(generateVideoRequest GenerateVideoRequest) ApiHandleGenerateVideoRequestRequest {
+	r.generateVideoRequest = &generateVideoRequest
+	return r
+}
+
+func (r ApiHandleGenerateVideoRequestRequest) Execute() (*StartDeferredResponse, *http.Response, error) {
+	return r.ApiService.HandleGenerateVideoRequestExecute(r)
+}
+
+/*
+HandleGenerateVideoRequest Generate a video from a text prompt and optionally an image. This is an asynchronous operation that returns a request_id for polling.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleGenerateVideoRequestRequest
+*/
+func (a *V1APIService) HandleGenerateVideoRequest(ctx context.Context) ApiHandleGenerateVideoRequestRequest {
+	return ApiHandleGenerateVideoRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+	}
+}
+
+// Execute executes the request
+//
+//	@return StartDeferredResponse
+func (a *V1APIService) HandleGenerateVideoRequestExecute(r ApiHandleGenerateVideoRequestRequest) (*StartDeferredResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *StartDeferredResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleGenerateVideoRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/videos/generations"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.generateVideoRequest == nil {
+		return localVarReturnValue, nil, reportError("generateVideoRequest is required and must be specified")
+	}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = r.generateVideoRequest
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -979,6 +2629,115 @@ func (a *V1APIService) HandleGenericMessagesRequestExecute(r ApiHandleGenericMes
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
+type ApiHandleGenericModelRequestRequest struct {
+	ctx          context.Context
+	ApiService   V1API
+	modelRequest *ModelRequest
+}
+
+func (r ApiHandleGenericModelRequestRequest) ModelRequest(modelRequest ModelRequest) ApiHandleGenericModelRequestRequest {
+	r.modelRequest = &modelRequest
+	return r
+}
+
+func (r ApiHandleGenericModelRequestRequest) Execute() (*ModelResponse, *http.Response, error) {
+	return r.ApiService.HandleGenericModelRequestExecute(r)
+}
+
+/*
+HandleGenericModelRequest Generates a response based on text or image prompts. The response ID can be used to retrieve the response later or to continue the conversation without repeating prior context. New responses will be stored for 30 days and then permanently deleted.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleGenericModelRequestRequest
+*/
+func (a *V1APIService) HandleGenericModelRequest(ctx context.Context) ApiHandleGenericModelRequestRequest {
+	return ApiHandleGenericModelRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+	}
+}
+
+// Execute executes the request
+//
+//	@return ModelResponse
+func (a *V1APIService) HandleGenericModelRequestExecute(r ApiHandleGenericModelRequestRequest) (*ModelResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *ModelResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleGenericModelRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/responses"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.modelRequest == nil {
+		return localVarReturnValue, nil, reportError("modelRequest is required and must be specified")
+	}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = r.modelRequest
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
 type ApiHandleGetApiKeyInfoRequestRequest struct {
 	ctx        context.Context
 	ApiService V1API
@@ -1179,6 +2938,316 @@ func (a *V1APIService) HandleGetDeferredCompletionRequestExecute(r ApiHandleGetD
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
+type ApiHandleGetDeferredVideoRequestRequest struct {
+	ctx        context.Context
+	ApiService V1API
+	requestId  string
+}
+
+func (r ApiHandleGetDeferredVideoRequestRequest) Execute() (*VideoResponse, *http.Response, error) {
+	return r.ApiService.HandleGetDeferredVideoRequestExecute(r)
+}
+
+/*
+HandleGetDeferredVideoRequest Get the result of a deferred video generation request.
+
+Returns the current status of a video generation job. When the job completes
+successfully the response contains the generated video URL. When the job fails
+the response contains a structured `error` object with a machine-readable
+`code` and a human-readable `message`.
+
+Both successful and failed completions return HTTP 200 — use the `status`
+field (`"done"` or `"failed"`) to distinguish between the two.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param requestId The deferred request id returned by a previous video generation request.
+	@return ApiHandleGetDeferredVideoRequestRequest
+*/
+func (a *V1APIService) HandleGetDeferredVideoRequest(ctx context.Context, requestId string) ApiHandleGetDeferredVideoRequestRequest {
+	return ApiHandleGetDeferredVideoRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+		requestId:  requestId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return VideoResponse
+func (a *V1APIService) HandleGetDeferredVideoRequestExecute(r ApiHandleGetDeferredVideoRequestRequest) (*VideoResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *VideoResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleGetDeferredVideoRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/videos/{request_id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"request_id"+"}", url.PathEscape(parameterValueToString(r.requestId, "requestId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleGetMeRequestRequest struct {
+	ctx        context.Context
+	ApiService V1API
+}
+
+func (r ApiHandleGetMeRequestRequest) Execute() (*GetMeResponse, *http.Response, error) {
+	return r.ApiService.HandleGetMeRequestExecute(r)
+}
+
+/*
+HandleGetMeRequest Get information about the currently authenticated caller. Works with both API keys and OAuth tokens. Returns identity, team, and ZDR status.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleGetMeRequestRequest
+*/
+func (a *V1APIService) HandleGetMeRequest(ctx context.Context) ApiHandleGetMeRequestRequest {
+	return ApiHandleGetMeRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+	}
+}
+
+// Execute executes the request
+//
+//	@return GetMeResponse
+func (a *V1APIService) HandleGetMeRequestExecute(r ApiHandleGetMeRequestRequest) (*GetMeResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *GetMeResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleGetMeRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/me"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleGetStoredCompletionRequestRequest struct {
+	ctx        context.Context
+	ApiService V1API
+	responseId string
+}
+
+func (r ApiHandleGetStoredCompletionRequestRequest) Execute() (*ModelResponse, *http.Response, error) {
+	return r.ApiService.HandleGetStoredCompletionRequestExecute(r)
+}
+
+/*
+HandleGetStoredCompletionRequest Retrieve a previously generated response.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param responseId The response id returned by a previous create response request.
+	@return ApiHandleGetStoredCompletionRequestRequest
+*/
+func (a *V1APIService) HandleGetStoredCompletionRequest(ctx context.Context, responseId string) ApiHandleGetStoredCompletionRequestRequest {
+	return ApiHandleGetStoredCompletionRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+		responseId: responseId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return ModelResponse
+func (a *V1APIService) HandleGetStoredCompletionRequestExecute(r ApiHandleGetStoredCompletionRequestRequest) (*ModelResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *ModelResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleGetStoredCompletionRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/responses/{response_id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"response_id"+"}", url.PathEscape(parameterValueToString(r.responseId, "responseId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
 type ApiHandleImageGenerationModelGetRequestRequest struct {
 	ctx        context.Context
 	ApiService V1API
@@ -1291,7 +3360,7 @@ func (r ApiHandleImageGenerationModelsListRequestRequest) Execute() (*ListImageG
 }
 
 /*
-HandleImageGenerationModelsListRequest List all image generation models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, pricing, fingerprint and alias(es).
+HandleImageGenerationModelsListRequest List all image generation models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, fingerprint and alias(es).
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@return ApiHandleImageGenerationModelsListRequestRequest
@@ -1491,7 +3560,7 @@ func (r ApiHandleLanguageModelsListRequestRequest) Execute() (*ListLanguageModel
 }
 
 /*
-HandleLanguageModelsListRequest List all chat and image understanding models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, pricing, fingerprint and alias(es).
+HandleLanguageModelsListRequest List all chat and image understanding models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, fingerprint and alias(es).
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@return ApiHandleLanguageModelsListRequestRequest
@@ -1579,6 +3648,427 @@ func (a *V1APIService) HandleLanguageModelsListRequestExecute(r ApiHandleLanguag
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
+type ApiHandleListFilesRequestRequest struct {
+	ctx             context.Context
+	ApiService      V1API
+	limit           *int32
+	order           *string
+	sortBy          *string
+	paginationToken *string
+	after           *string
+	filter          *string
+}
+
+// The maximum number of objects to be returned in a single response.
+func (r ApiHandleListFilesRequestRequest) Limit(limit int32) ApiHandleListFilesRequestRequest {
+	r.limit = &limit
+	return r
+}
+
+// The ordering to sort the returned files. Use &#x60;asc&#x60; for ascending and &#x60;desc&#x60; for descending order.
+func (r ApiHandleListFilesRequestRequest) Order(order string) ApiHandleListFilesRequestRequest {
+	r.order = &order
+	return r
+}
+
+// The field to sort by. Valid options: &#x60;created_at&#x60;, &#x60;filename&#x60;, &#x60;size&#x60;. Defaults to &#x60;created_at&#x60;.
+func (r ApiHandleListFilesRequestRequest) SortBy(sortBy string) ApiHandleListFilesRequestRequest {
+	r.sortBy = &sortBy
+	return r
+}
+
+// The pagination token returned by the previous list files request.
+func (r ApiHandleListFilesRequestRequest) PaginationToken(paginationToken string) ApiHandleListFilesRequestRequest {
+	r.paginationToken = &paginationToken
+	return r
+}
+
+// Only included for compatibility. Use &#x60;pagination_token&#x60; instead.
+func (r ApiHandleListFilesRequestRequest) After(after string) ApiHandleListFilesRequestRequest {
+	r.after = &after
+	return r
+}
+
+// AIP-160 filter expression to narrow down results.  **Filterable fields:**  | Field | Type | Description | |-------|------|-------------| | &#x60;name&#x60; (or &#x60;file_name&#x60;) | string | Fuzzy match on filename | | &#x60;file_id&#x60; | string | Exact match on file ID | | &#x60;size_bytes&#x60; | integer | File size in bytes | | &#x60;content_type&#x60; | string | Partial match on MIME type (e.g. &#x60;\&quot;pdf\&quot;&#x60; matches &#x60;\&quot;application/pdf\&quot;&#x60;) | | &#x60;created_at&#x60; | timestamp | RFC 3339 timestamp (e.g. &#x60;\&quot;2024-01-01T00:00:00Z\&quot;&#x60;) | | &#x60;expires_at&#x60; | timestamp | RFC 3339 timestamp | | &#x60;upload_status&#x60; | string | Upload status (&#x60;\&quot;Complete\&quot;&#x60;) | | &#x60;user_defined_id&#x60; | string | Exact match on user-defined ID |  **Operators:** &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&gt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x60;, &#x60;&lt;&#x3D;&#x60;  **Logical:** &#x60;AND&#x60;, &#x60;OR&#x60;, &#x60;NOT&#x60;  **Examples:** - &#x60;name:\&quot;quarterly report\&quot;&#x60; — fuzzy match on filename - &#x60;content_type &#x3D; \&quot;pdf\&quot;&#x60; — files with PDF content type - &#x60;size_bytes &gt; 1000000 AND created_at &gt; \&quot;2024-01-01T00:00:00Z\&quot;&#x60; — files larger than 1 MB created after Jan 1, 2024 - &#x60;file_id &#x3D; \&quot;file_abc123\&quot;&#x60; — exact file ID match
+func (r ApiHandleListFilesRequestRequest) Filter(filter string) ApiHandleListFilesRequestRequest {
+	r.filter = &filter
+	return r
+}
+
+func (r ApiHandleListFilesRequestRequest) Execute() (*ListFilesResponse, *http.Response, error) {
+	return r.ApiService.HandleListFilesRequestExecute(r)
+}
+
+/*
+HandleListFilesRequest List files owned by the authenticated team, paginated. The response always returns a `pagination_token`; pass it back as a query parameter to fetch the next page. The end of the list is reached when the returned `data` array is shorter than `limit`.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleListFilesRequestRequest
+*/
+func (a *V1APIService) HandleListFilesRequest(ctx context.Context) ApiHandleListFilesRequestRequest {
+	return ApiHandleListFilesRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+	}
+}
+
+// Execute executes the request
+//
+//	@return ListFilesResponse
+func (a *V1APIService) HandleListFilesRequestExecute(r ApiHandleListFilesRequestRequest) (*ListFilesResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *ListFilesResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleListFilesRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/files"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.limit != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "limit", r.limit, "form", "")
+	}
+	if r.order != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "order", r.order, "form", "")
+	}
+	if r.sortBy != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sort_by", r.sortBy, "form", "")
+	}
+	if r.paginationToken != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pagination_token", r.paginationToken, "form", "")
+	}
+	if r.after != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "after", r.after, "form", "")
+	}
+	if r.filter != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filter", r.filter, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleListInputItemsRequest struct {
+	ctx        context.Context
+	ApiService V1API
+	responseId string
+	limit      *int32
+	order      *SortOrder
+	after      *string
+}
+
+// Maximum number of items to return (1-100, default 20).
+func (r ApiHandleListInputItemsRequest) Limit(limit int32) ApiHandleListInputItemsRequest {
+	r.limit = &limit
+	return r
+}
+
+// Sort order: asc or desc. Default asc.
+func (r ApiHandleListInputItemsRequest) Order(order SortOrder) ApiHandleListInputItemsRequest {
+	r.order = &order
+	return r
+}
+
+// Cursor for pagination. Returns items after this item ID.
+func (r ApiHandleListInputItemsRequest) After(after string) ApiHandleListInputItemsRequest {
+	r.after = &after
+	return r
+}
+
+func (r ApiHandleListInputItemsRequest) Execute() (*ListInputItemsResponse, *http.Response, error) {
+	return r.ApiService.HandleListInputItemsExecute(r)
+}
+
+/*
+HandleListInputItems List input items for a previously generated response.
+
+Returns a paginated list of the input items that were part of the
+conversation context for the given response.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param responseId The response id returned by a previous create response request.
+	@return ApiHandleListInputItemsRequest
+*/
+func (a *V1APIService) HandleListInputItems(ctx context.Context, responseId string) ApiHandleListInputItemsRequest {
+	return ApiHandleListInputItemsRequest{
+		ApiService: a,
+		ctx:        ctx,
+		responseId: responseId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return ListInputItemsResponse
+func (a *V1APIService) HandleListInputItemsExecute(r ApiHandleListInputItemsRequest) (*ListInputItemsResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *ListInputItemsResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleListInputItems")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/responses/{response_id}/input_items"
+	localVarPath = strings.Replace(localVarPath, "{"+"response_id"+"}", url.PathEscape(parameterValueToString(r.responseId, "responseId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.limit != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "limit", r.limit, "form", "")
+	}
+	if r.order != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "order", r.order, "form", "")
+	}
+	if r.after != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "after", r.after, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleListSkillsRequestRequest struct {
+	ctx        context.Context
+	ApiService V1API
+	limit      *int32
+	after      *string
+	order      *string
+}
+
+// The maximum number of objects to be returned in a single response.
+func (r ApiHandleListSkillsRequestRequest) Limit(limit int32) ApiHandleListSkillsRequestRequest {
+	r.limit = &limit
+	return r
+}
+
+// Identifier for the last item from the previous pagination request.
+func (r ApiHandleListSkillsRequestRequest) After(after string) ApiHandleListSkillsRequestRequest {
+	r.after = &after
+	return r
+}
+
+// Sort order. Use &#x60;asc&#x60; for ascending and &#x60;desc&#x60; for descending order.
+func (r ApiHandleListSkillsRequestRequest) Order(order string) ApiHandleListSkillsRequestRequest {
+	r.order = &order
+	return r
+}
+
+func (r ApiHandleListSkillsRequestRequest) Execute() (*SkillList, *http.Response, error) {
+	return r.ApiService.HandleListSkillsRequestExecute(r)
+}
+
+/*
+HandleListSkillsRequest Method for HandleListSkillsRequest
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleListSkillsRequestRequest
+*/
+func (a *V1APIService) HandleListSkillsRequest(ctx context.Context) ApiHandleListSkillsRequestRequest {
+	return ApiHandleListSkillsRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+	}
+}
+
+// Execute executes the request
+//
+//	@return SkillList
+func (a *V1APIService) HandleListSkillsRequestExecute(r ApiHandleListSkillsRequestRequest) (*SkillList, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *SkillList
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleListSkillsRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/skills"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.limit != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "limit", r.limit, "form", "")
+	}
+	if r.after != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "after", r.after, "form", "")
+	}
+	if r.order != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "order", r.order, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
 type ApiHandleModelGetRequestRequest struct {
 	ctx        context.Context
 	ApiService V1API
@@ -1590,7 +4080,7 @@ func (r ApiHandleModelGetRequestRequest) Execute() (*Model, *http.Response, erro
 }
 
 /*
-HandleModelGetRequest Get minimalized information about a model with its model_id.
+HandleModelGetRequest Get information about a model with its model_id, including pricing.
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@param modelId ID of the model to get.
@@ -1691,7 +4181,7 @@ func (r ApiHandleModelsListRequestRequest) Execute() (*ListModelsResponse, *http
 }
 
 /*
-HandleModelsListRequest List all models available to the authenticating API key with minimalized information, including model names (ID), creation times, etc.
+HandleModelsListRequest List all models available to the authenticating API key, including model names (ID), creation times, and pricing.
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@return ApiHandleModelsListRequestRequest
@@ -1720,6 +4210,312 @@ func (a *V1APIService) HandleModelsListRequestExecute(r ApiHandleModelsListReque
 	}
 
 	localVarPath := localBasePath + "/v1/models"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleRetrieveFileRequestRequest struct {
+	ctx        context.Context
+	ApiService V1API
+	fileId     string
+}
+
+func (r ApiHandleRetrieveFileRequestRequest) Execute() (*File, *http.Response, error) {
+	return r.ApiService.HandleRetrieveFileRequestExecute(r)
+}
+
+/*
+HandleRetrieveFileRequest Retrieve metadata for a single file by ID. Errors with 404 if the file doesn't exist, has been deleted, or has passed its `expires_at`.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param fileId The file's `id` returned by upload or list.
+	@return ApiHandleRetrieveFileRequestRequest
+*/
+func (a *V1APIService) HandleRetrieveFileRequest(ctx context.Context, fileId string) ApiHandleRetrieveFileRequestRequest {
+	return ApiHandleRetrieveFileRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+		fileId:     fileId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return File
+func (a *V1APIService) HandleRetrieveFileRequestExecute(r ApiHandleRetrieveFileRequestRequest) (*File, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *File
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleRetrieveFileRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/files/{file_id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"file_id"+"}", url.PathEscape(parameterValueToString(r.fileId, "fileId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleRetrieveSkillRequestRequest struct {
+	ctx        context.Context
+	ApiService V1API
+	skillId    string
+}
+
+func (r ApiHandleRetrieveSkillRequestRequest) Execute() (*Skill, *http.Response, error) {
+	return r.ApiService.HandleRetrieveSkillRequestExecute(r)
+}
+
+/*
+HandleRetrieveSkillRequest Method for HandleRetrieveSkillRequest
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param skillId The skill ID.
+	@return ApiHandleRetrieveSkillRequestRequest
+*/
+func (a *V1APIService) HandleRetrieveSkillRequest(ctx context.Context, skillId string) ApiHandleRetrieveSkillRequestRequest {
+	return ApiHandleRetrieveSkillRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+		skillId:    skillId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return Skill
+func (a *V1APIService) HandleRetrieveSkillRequestExecute(r ApiHandleRetrieveSkillRequestRequest) (*Skill, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *Skill
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleRetrieveSkillRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/skills/{skill_id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"skill_id"+"}", url.PathEscape(parameterValueToString(r.skillId, "skillId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleRevokePublicUrlRequestRequest struct {
+	ctx        context.Context
+	ApiService V1API
+	fileId     string
+}
+
+func (r ApiHandleRevokePublicUrlRequestRequest) Execute() (*RevokePublicUrlResponse, *http.Response, error) {
+	return r.ApiService.HandleRevokePublicUrlRequestExecute(r)
+}
+
+/*
+HandleRevokePublicUrlRequest Revoke the active public URL for a file. The underlying file remains available through the authenticated content endpoint. Revoke is idempotent — calling it on a file without an active public URL returns `revoked: false` without an error.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param fileId The file's `id`.
+	@return ApiHandleRevokePublicUrlRequestRequest
+*/
+func (a *V1APIService) HandleRevokePublicUrlRequest(ctx context.Context, fileId string) ApiHandleRevokePublicUrlRequestRequest {
+	return ApiHandleRevokePublicUrlRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+		fileId:     fileId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return RevokePublicUrlResponse
+func (a *V1APIService) HandleRevokePublicUrlRequestExecute(r ApiHandleRevokePublicUrlRequestRequest) (*RevokePublicUrlResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *RevokePublicUrlResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleRevokePublicUrlRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/files/{file_id}/public-url/revoke"
+	localVarPath = strings.Replace(localVarPath, "{"+"file_id"+"}", url.PathEscape(parameterValueToString(r.fileId, "fileId")), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -1960,6 +4756,475 @@ func (a *V1APIService) HandleTokenizeTextRequestExecute(r ApiHandleTokenizeTextR
 	}
 	// body params
 	localVarPostBody = r.tokenizeRequest
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleUploadFileRequestRequest struct {
+	ctx          context.Context
+	ApiService   V1API
+	file         *os.File
+	expiresAfter *int64
+	purpose      *string
+}
+
+// The file to upload. The filename from the multipart &#x60;Content-Disposition: filename&#x3D;&#x60; header is recorded as the file&#39;s &#x60;filename&#x60;.
+func (r ApiHandleUploadFileRequestRequest) File(file *os.File) ApiHandleUploadFileRequestRequest {
+	r.file = file
+	return r
+}
+
+// Optional TTL in seconds (measured from upload time). Must be between 3600 (1 hour) and 2592000 (30 days). If unset the file does not expire.  Accepts either a plain integer or the OpenAI SDK deepObject form (&#x60;expires_after[anchor]&#x3D;created_at&#x60; + &#x60;expires_after[seconds]&#x3D;N&#x60;) as separate multipart fields. The anchor+seconds form must arrive before the &#x60;file&#x60; part.
+func (r ApiHandleUploadFileRequestRequest) ExpiresAfter(expiresAfter int64) ApiHandleUploadFileRequestRequest {
+	r.expiresAfter = &expiresAfter
+	return r
+}
+
+// Optional purpose label, accepted for OpenAI SDK compatibility. xAI does not enforce or interpret this field. Setting &#x60;\\\&quot;assistants\\\&quot;&#x60; is the conventional choice.
+func (r ApiHandleUploadFileRequestRequest) Purpose(purpose string) ApiHandleUploadFileRequestRequest {
+	r.purpose = &purpose
+	return r
+}
+
+func (r ApiHandleUploadFileRequestRequest) Execute() (*File, *http.Response, error) {
+	return r.ApiService.HandleUploadFileRequestExecute(r)
+}
+
+/*
+HandleUploadFileRequest Upload a file to xAI's storage. Returns the file's metadata. Files can be referenced by ID anywhere a `file_id` is accepted (e.g. chat attachments). Maximum file size: 50 MB. Files are kept until you delete them, or until `expires_after` elapses if set at upload time.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleUploadFileRequestRequest
+*/
+func (a *V1APIService) HandleUploadFileRequest(ctx context.Context) ApiHandleUploadFileRequestRequest {
+	return ApiHandleUploadFileRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+	}
+}
+
+// Execute executes the request
+//
+//	@return File
+func (a *V1APIService) HandleUploadFileRequestExecute(r ApiHandleUploadFileRequestRequest) (*File, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *File
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleUploadFileRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/files"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.file == nil {
+		return localVarReturnValue, nil, reportError("file is required and must be specified")
+	}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"multipart/form-data"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.expiresAfter != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "expires_after", r.expiresAfter, "", "")
+	}
+	var fileLocalVarFormFileName string
+	var fileLocalVarFileName string
+	var fileLocalVarFileBytes []byte
+
+	fileLocalVarFormFileName = "file"
+	fileLocalVarFile := r.file
+
+	if fileLocalVarFile != nil {
+		fbs, _ := io.ReadAll(fileLocalVarFile)
+
+		fileLocalVarFileBytes = fbs
+		fileLocalVarFileName = fileLocalVarFile.Name()
+		fileLocalVarFile.Close()
+		formFiles = append(formFiles, formFile{fileBytes: fileLocalVarFileBytes, fileName: fileLocalVarFileName, formFileName: fileLocalVarFormFileName})
+	}
+	if r.purpose != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "purpose", r.purpose, "", "")
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleUploadSkillRequestRequest struct {
+	ctx        context.Context
+	ApiService V1API
+	files      []*os.File
+}
+
+// Skill zip file or one file from a directory upload. Clients may send this field once with a zip file, or repeatedly with directory files.
+func (r ApiHandleUploadSkillRequestRequest) Files(files []*os.File) ApiHandleUploadSkillRequestRequest {
+	r.files = files
+	return r
+}
+
+func (r ApiHandleUploadSkillRequestRequest) Execute() (*Skill, *http.Response, error) {
+	return r.ApiService.HandleUploadSkillRequestExecute(r)
+}
+
+/*
+HandleUploadSkillRequest Method for HandleUploadSkillRequest
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleUploadSkillRequestRequest
+*/
+func (a *V1APIService) HandleUploadSkillRequest(ctx context.Context) ApiHandleUploadSkillRequestRequest {
+	return ApiHandleUploadSkillRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+	}
+}
+
+// Execute executes the request
+//
+//	@return Skill
+func (a *V1APIService) HandleUploadSkillRequestExecute(r ApiHandleUploadSkillRequestRequest) (*Skill, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *Skill
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleUploadSkillRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/skills"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.files == nil {
+		return localVarReturnValue, nil, reportError("files is required and must be specified")
+	}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"multipart/form-data"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	var filesLocalVarFormFileName string
+	var filesLocalVarFileName string
+	var filesLocalVarFileBytes []byte
+
+	filesLocalVarFormFileName = "files"
+	filesLocalVarFile := r.files
+
+	if filesLocalVarFile != nil {
+		// loop through the array to prepare multiple files upload
+		for _, filesLocalVarFileValue := range filesLocalVarFile {
+			fbs, _ := io.ReadAll(filesLocalVarFileValue)
+
+			filesLocalVarFileBytes = fbs
+			filesLocalVarFileName = filesLocalVarFileValue.Name()
+			filesLocalVarFileValue.Close()
+			formFiles = append(formFiles, formFile{fileBytes: filesLocalVarFileBytes, fileName: filesLocalVarFileName, formFileName: filesLocalVarFormFileName})
+		}
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleVideoGenerationModelGetRequestRequest struct {
+	ctx        context.Context
+	ApiService V1API
+	modelId    string
+}
+
+func (r ApiHandleVideoGenerationModelGetRequestRequest) Execute() (*VideoGenerationModel, *http.Response, error) {
+	return r.ApiService.HandleVideoGenerationModelGetRequestExecute(r)
+}
+
+/*
+HandleVideoGenerationModelGetRequest Get full information about a video generation model with its model_id.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param modelId ID of the model to get.
+	@return ApiHandleVideoGenerationModelGetRequestRequest
+*/
+func (a *V1APIService) HandleVideoGenerationModelGetRequest(ctx context.Context, modelId string) ApiHandleVideoGenerationModelGetRequestRequest {
+	return ApiHandleVideoGenerationModelGetRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+		modelId:    modelId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return VideoGenerationModel
+func (a *V1APIService) HandleVideoGenerationModelGetRequestExecute(r ApiHandleVideoGenerationModelGetRequestRequest) (*VideoGenerationModel, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *VideoGenerationModel
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleVideoGenerationModelGetRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/video-generation-models/{model_id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"model_id"+"}", url.PathEscape(parameterValueToString(r.modelId, "modelId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleVideoGenerationModelsListRequestRequest struct {
+	ctx        context.Context
+	ApiService V1API
+}
+
+func (r ApiHandleVideoGenerationModelsListRequestRequest) Execute() (*ListVideoGenerationModelsResponse, *http.Response, error) {
+	return r.ApiService.HandleVideoGenerationModelsListRequestExecute(r)
+}
+
+/*
+HandleVideoGenerationModelsListRequest List all video generation models available to the authenticating API key with full information.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleVideoGenerationModelsListRequestRequest
+*/
+func (a *V1APIService) HandleVideoGenerationModelsListRequest(ctx context.Context) ApiHandleVideoGenerationModelsListRequestRequest {
+	return ApiHandleVideoGenerationModelsListRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+	}
+}
+
+// Execute executes the request
+//
+//	@return ListVideoGenerationModelsResponse
+func (a *V1APIService) HandleVideoGenerationModelsListRequestExecute(r ApiHandleVideoGenerationModelsListRequestRequest) (*ListVideoGenerationModelsResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *ListVideoGenerationModelsResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleVideoGenerationModelsListRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/video-generation-models"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err

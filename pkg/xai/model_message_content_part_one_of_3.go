@@ -21,8 +21,8 @@ var _ MappedNullable = &MessageContentPartOneOf3{}
 // MessageContentPartOneOf3 Tool call result.
 type MessageContentPartOneOf3 struct {
 	CacheControl interface{} `json:"cache_control,omitempty"`
-	// Result content of the tool call.
-	Content string `json:"content"`
+	// Result content of the tool call. Can be a string or an array of content blocks.
+	Content ToolResultContent `json:"content"`
 	// Whether the tool call returns an error.
 	IsError NullableBool `json:"is_error,omitempty"`
 	// ID of the tool call given by the model.
@@ -37,7 +37,7 @@ type _MessageContentPartOneOf3 MessageContentPartOneOf3
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMessageContentPartOneOf3(content string, toolUseId string, type_ string) *MessageContentPartOneOf3 {
+func NewMessageContentPartOneOf3(content ToolResultContent, toolUseId string, type_ string) *MessageContentPartOneOf3 {
 	this := MessageContentPartOneOf3{}
 	this.Content = content
 	this.ToolUseId = toolUseId
@@ -87,9 +87,9 @@ func (o *MessageContentPartOneOf3) SetCacheControl(v interface{}) {
 }
 
 // GetContent returns the Content field value
-func (o *MessageContentPartOneOf3) GetContent() string {
+func (o *MessageContentPartOneOf3) GetContent() ToolResultContent {
 	if o == nil {
-		var ret string
+		var ret ToolResultContent
 		return ret
 	}
 
@@ -98,7 +98,7 @@ func (o *MessageContentPartOneOf3) GetContent() string {
 
 // GetContentOk returns a tuple with the Content field value
 // and a boolean to check if the value has been set.
-func (o *MessageContentPartOneOf3) GetContentOk() (*string, bool) {
+func (o *MessageContentPartOneOf3) GetContentOk() (*ToolResultContent, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -106,7 +106,7 @@ func (o *MessageContentPartOneOf3) GetContentOk() (*string, bool) {
 }
 
 // SetContent sets field value
-func (o *MessageContentPartOneOf3) SetContent(v string) {
+func (o *MessageContentPartOneOf3) SetContent(v ToolResultContent) {
 	o.Content = v
 }
 

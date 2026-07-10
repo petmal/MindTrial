@@ -9,6 +9,8 @@ package providers
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -525,6 +527,20 @@ func findToolByName(availableTools []config.ToolConfig, name string) (*config.To
 // error reporting across all providers.
 func formatToolExecutionError(err error) string {
 	return fmt.Sprintf("Tool execution failed: %v", err)
+}
+
+// promptCacheKeyFor derives a stable, opaque prompt cache key from the run
+// configuration's name and model. Combining both (rather than the name alone)
+// avoids collisions between two distinct run configurations that happen to
+// share the same name but target different models (run names are only
+// required to be unique within a single provider block, not globally).
+// Reusing the same key across all requests for a given run configuration
+// helps providers route them to the same backend cache partition, improving
+// prompt cache hit-rate consistency without requiring any user
+// configuration. It has no effect on requests that are not cache-eligible.
+func promptCacheKeyFor(cfg config.RunConfig) string {
+	sum := sha256.Sum256([]byte(cfg.Name + "|" + cfg.Model))
+	return "mindtrial-" + hex.EncodeToString(sum[:])[:32]
 }
 
 // taskFilesToDataMap converts a slice of TaskFile to a map of filename to binary content data.
