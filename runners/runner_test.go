@@ -287,6 +287,7 @@ func TestRunnerRun(t *testing.T) {
 								Message:   "feature not supported by provider: mock not supported",
 								Usage:     expectedUsage,
 								ToolUsage: map[string]ToolUsage{},
+								Transient: testutils.Ptr(false),
 							},
 						},
 						Duration: 7211609999927884 * time.Nanosecond,
@@ -995,8 +996,9 @@ func TestRunnerRun(t *testing.T) {
 							Answer:     AnswerDetails{},
 							Validation: ValidationDetails{},
 							Error: ErrorDetails{
-								Title:   "Incompatible Response Format",
-								Message: "task requires schema response format but disable-structured-output is enabled for this configuration",
+								Title:     "Incompatible Response Format",
+								Message:   "task requires schema response format but disable-structured-output is enabled for this configuration",
+								Transient: testutils.Ptr(false),
 							},
 						},
 						Duration: 0,
@@ -1152,8 +1154,9 @@ func TestRunnerRun(t *testing.T) {
 							Answer:     AnswerDetails{},
 							Validation: ValidationDetails{},
 							Error: ErrorDetails{
-								Title:   "Feature Disabled",
-								Message: "task requires file attachments but text-only mode is enabled for this configuration",
+								Title:     "Feature Disabled",
+								Message:   "task requires file attachments but text-only mode is enabled for this configuration",
+								Transient: testutils.Ptr(false),
 							},
 						},
 						Duration: 0,
@@ -1512,6 +1515,7 @@ func TestRunnerRunParallel(t *testing.T) {
 				Message:   "feature not supported by provider: mock not supported",
 				Usage:     expectedUsage,
 				ToolUsage: expectedToolUsage,
+				Transient: testutils.Ptr(false),
 			},
 		},
 		{run: "mock", task: "judge_success"}: {
@@ -1680,6 +1684,69 @@ func TestRunTaskCopiesTaskMetadata(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestRunTaskClassifiesTransientErrors(t *testing.T) {
+	// Configure a retry policy that is guaranteed to be exhausted before the mock
+	// provider's simulated transient error stops recurring, so the final result is
+	// still an error, but one that went through the retryable-error code path.
+	cfg := []config.ProviderConfig{
+		{
+			Name: "mock provider 1",
+			Runs: []config.RunConfig{
+				{
+					Name:        "mock",
+					Model:       "microchip",
+					RetryPolicy: &config.RetryPolicy{MaxRetryAttempts: 1, InitialDelaySeconds: 1},
+				},
+			},
+		},
+	}
+	r := createMockRunnerFromConfig(t, cfg, nil, nil, zerolog.New(zerolog.NewTestWriter(t)))
+
+	results, err := r.Run(context.Background(), []config.Task{
+		{
+			Name:           "retry_5: pending",
+			ExpectedResult: utils.NewValueSet("irrelevant"),
+		},
+		{
+			Name:           "error",
+			ExpectedResult: utils.NewValueSet("irrelevant"),
+		},
+		{
+			Name:           "not_supported",
+			ExpectedResult: utils.NewValueSet("irrelevant"),
+		},
+	})
+	require.NoError(t, err)
+
+	resultByTask := make(map[string]RunResult)
+	for _, r := range results.GetResults()["mock provider 1"] {
+		resultByTask[r.Task] = r
+	}
+
+	t.Run("retryable error is marked transient", func(t *testing.T) {
+		result, ok := resultByTask["retry_5: pending"]
+		require.True(t, ok)
+		require.Equal(t, Error, result.Kind)
+		require.NotNil(t, result.Details.Error.Transient)
+		assert.True(t, *result.Details.Error.Transient)
+	})
+
+	t.Run("generic error transience is unknown", func(t *testing.T) {
+		result, ok := resultByTask["error"]
+		require.True(t, ok)
+		require.Equal(t, Error, result.Kind)
+		assert.Nil(t, result.Details.Error.Transient)
+	})
+
+	t.Run("unsupported feature is marked permanent", func(t *testing.T) {
+		result, ok := resultByTask["not_supported"]
+		require.True(t, ok)
+		require.Equal(t, NotSupported, result.Kind)
+		require.NotNil(t, result.Details.Error.Transient)
+		assert.False(t, *result.Details.Error.Transient)
+	})
 }
 
 func createMockRunner(t *testing.T) Runner {

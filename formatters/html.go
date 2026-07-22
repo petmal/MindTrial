@@ -68,6 +68,7 @@ func NewHTMLFormatter() Formatter {
 		"UniqueDifficulties": UniqueDifficulties,
 		"UniqueTags":         UniqueTags,
 		"GroupParagraphs":    GroupParagraphs,
+		"ErrorCategory":      ToErrorCategory,
 	}).ParseFS(templatesFS, templateFile))
 	return &htmlFormatter{
 		templ: templ,

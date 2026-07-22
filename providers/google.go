@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"slices"
 	"strings"
 
@@ -215,7 +216,11 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 
 		// Execute the completion request.
 		resp, err := timed(func() (*genai.GenerateContentResponse, error) {
-			return o.client.Models.GenerateContent(ctx, cfg.Model, contents, generateConfig)
+			response, err := o.client.Models.GenerateContent(ctx, cfg.Model, contents, generateConfig)
+			if err != nil && o.isTransientResponse(err) {
+				return response, WrapErrRetryable(err)
+			}
+			return response, err
 		}, &result.duration)
 		result.recordToolUsage(executor.GetUsageStats())
 		result.recordToolCalls(executor.GetCallSummaries())
@@ -306,6 +311,20 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 			}
 		}
 	} // move to the next conversation turn
+}
+
+// isTransientResponse checks whether the error represents a transient condition
+// that the retry policy should attempt again.
+func (o *GoogleAI) isTransientResponse(err error) bool {
+	var apiErr genai.APIError
+	if errors.As(err, &apiErr) {
+		return slices.Contains([]int{
+			http.StatusTooManyRequests,
+			http.StatusInternalServerError,
+			http.StatusServiceUnavailable,
+		}, apiErr.Code)
+	}
+	return false
 }
 
 func removeFunctionCallFromRequestConfig(config *genai.GenerateContentConfig, toolName string) {

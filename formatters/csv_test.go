@@ -273,6 +273,7 @@ var mockResults = runners.Results{
 							// Only call count
 						},
 					},
+					Transient: testutils.Ptr(true),
 				},
 			},
 		},
@@ -303,6 +304,7 @@ var mockResults = runners.Results{
 						InputTokens:  testutils.Ptr(int64(10)),
 						OutputTokens: testutils.Ptr(int64(0)),
 					},
+					Transient: testutils.Ptr(false),
 				},
 			},
 		},

@@ -211,6 +211,10 @@ type ErrorDetails struct {
 	// error, including attempts that never actually ran. Tracked separately from ToolUsage,
 	// which only reflects invocations that actually ran.
 	ToolCalls []ToolCallSummary `json:"ToolCalls,omitempty"`
+	// Transient indicates whether the error appears temporary/external (true), appears
+	// permanent/hard (false), or is unknown (nil). This is a best-effort classification,
+	// not a complete error taxonomy.
+	Transient *bool `json:"Transient,omitempty"`
 }
 
 // TokenUsage represents token usage consumed by an LLM request.

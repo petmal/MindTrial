@@ -86,6 +86,7 @@ type errorDetailsView struct {
 	Usage     *runners.TokenUsage      `json:"Usage,omitempty"`
 	ToolUsage map[string]toolUsageView `json:"ToolUsage,omitempty"`
 	ToolCalls []toolCallSummaryView    `json:"ToolCalls,omitempty"`
+	Transient *bool                    `json:"Transient,omitempty"`
 }
 
 // toolUsageView is the view model for runners.ToolUsage.
@@ -207,8 +208,9 @@ func newErrorDetailsView(e runners.ErrorDetails) *errorDetailsView {
 		Usage:     tokenUsageToPtr(e.Usage),
 		ToolUsage: newToolUsageMapView(e.ToolUsage),
 		ToolCalls: newToolCallSummaryViews(e.ToolCalls),
+		Transient: e.Transient,
 	}
-	if v.Title == "" && v.Message == "" && len(v.Details) == 0 && v.Usage == nil && len(v.ToolUsage) == 0 && len(v.ToolCalls) == 0 {
+	if v.Title == "" && v.Message == "" && len(v.Details) == 0 && v.Usage == nil && len(v.ToolUsage) == 0 && len(v.ToolCalls) == 0 && v.Transient == nil {
 		return nil
 	}
 	return &v
@@ -378,6 +380,7 @@ func fromDetailsView(d detailsView) runners.Details {
 			Usage:     tokenUsageFromPtr(d.Error.Usage),
 			ToolUsage: fromToolUsageMapView(d.Error.ToolUsage),
 			ToolCalls: fromToolCallSummaryViews(d.Error.ToolCalls),
+			Transient: d.Error.Transient,
 		}
 	}
 	return result

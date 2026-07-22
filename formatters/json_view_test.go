@@ -209,3 +209,36 @@ func TestToolCallSummaryViewsRoundTrip(t *testing.T) {
 		assert.Equal(t, calls, fromToolCallSummaryViews(view))
 	})
 }
+
+func TestErrorDetailsViewTransientRoundTrip(t *testing.T) {
+	tests := []struct {
+		name      string
+		transient *bool
+	}{
+		{name: "transient true", transient: testutils.Ptr(true)},
+		{name: "transient false", transient: testutils.Ptr(false)},
+		{name: "transient unknown (nil)", transient: nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			details := runners.Details{
+				Error: runners.ErrorDetails{
+					Title:     "Execution Error",
+					Message:   "boom",
+					Transient: tt.transient,
+				},
+			}
+			view := newDetailsView(details)
+			require.NotNil(t, view.Error)
+			assert.Equal(t, tt.transient, view.Error.Transient)
+			assert.Equal(t, details, fromDetailsView(view))
+		})
+	}
+
+	t.Run("transient alone is not treated as an empty error", func(t *testing.T) {
+		details := runners.Details{Error: runners.ErrorDetails{Transient: testutils.Ptr(true)}}
+		view := newDetailsView(details)
+		require.NotNil(t, view.Error)
+		assert.Equal(t, details, fromDetailsView(view))
+	})
+}

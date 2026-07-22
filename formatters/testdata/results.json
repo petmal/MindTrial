@@ -284,7 +284,8 @@
                 "CallCount": 3456,
                 "TotalDurationNS": 1512100000000
               }
-            }
+            },
+            "Transient": true
           }
         },
         "DurationNS": 0
@@ -316,7 +317,8 @@
             "Usage": {
               "InputTokens": 10,
               "OutputTokens": 0
-            }
+            },
+            "Transient": false
           }
         },
         "DurationNS": 500000000

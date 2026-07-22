@@ -805,3 +805,20 @@ func TestToJSONStringArray(t *testing.T) {
 		})
 	}
 }
+
+func TestToErrorCategory(t *testing.T) {
+	tests := []struct {
+		name      string
+		transient *bool
+		want      string
+	}{
+		{name: "unknown (nil)", transient: nil, want: ""},
+		{name: "transient true", transient: utils.Ptr(true), want: Transient},
+		{name: "transient false", transient: utils.Ptr(false), want: Permanent},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, ToErrorCategory(runners.ErrorDetails{Transient: tt.transient}))
+		})
+	}
+}

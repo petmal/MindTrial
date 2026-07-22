@@ -345,8 +345,9 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 			runResult.Kind = NotSupported
 			runResult.Got = "task requires schema response format but disable-structured-output is enabled for this configuration"
 			runResult.Details.Error = ErrorDetails{
-				Title:   "Incompatible Response Format",
-				Message: "task requires schema response format but disable-structured-output is enabled for this configuration",
+				Title:     "Incompatible Response Format",
+				Message:   "task requires schema response format but disable-structured-output is enabled for this configuration",
+				Transient: utils.Ptr(false),
 			}
 			return
 		}
@@ -357,8 +358,9 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 		runResult.Kind = NotSupported
 		runResult.Got = "task requires file attachments but text-only mode is enabled for this configuration"
 		runResult.Details.Error = ErrorDetails{
-			Title:   "Feature Disabled",
-			Message: "task requires file attachments but text-only mode is enabled for this configuration",
+			Title:     "Feature Disabled",
+			Message:   "task requires file attachments but text-only mode is enabled for this configuration",
+			Transient: utils.Ptr(false),
 		}
 		return
 	}
@@ -372,8 +374,9 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 		runResult.Kind = Error
 		runResult.Got = err.Error()
 		runResult.Details.Error = ErrorDetails{
-			Title:   "Configuration Error",
-			Message: err.Error(),
+			Title:     "Configuration Error",
+			Message:   err.Error(),
+			Transient: utils.Ptr(false),
 		}
 		return
 	}
@@ -412,6 +415,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 				Usage:     toTokenUsage(usage),
 				ToolUsage: toToolUsage(usage),
 				ToolCalls: toToolCallSummaries(toolCalls),
+				Transient: utils.Ptr(false),
 			}
 		default:
 			var unmarshalErr *providers.ErrUnmarshalResponse
@@ -422,6 +426,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 					Usage:     toTokenUsage(usage),
 					ToolUsage: toToolUsage(usage),
 					ToolCalls: toToolCallSummaries(toolCalls),
+					Transient: transientFlagFor(err),
 				}
 			} else {
 				runResult.Details.Error = ErrorDetails{
@@ -430,6 +435,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 					Usage:     toTokenUsage(usage),
 					ToolUsage: toToolUsage(usage),
 					ToolCalls: toToolCallSummaries(toolCalls),
+					Transient: transientFlagFor(err),
 				}
 			}
 			populateErrorDetails(&runResult.Details.Error, err)
@@ -448,6 +454,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 				Usage:     toTokenUsage(validationResult.Usage),
 				ToolUsage: toToolUsage(validationResult.Usage),
 				ToolCalls: toToolCallSummaries(validationResult.ToolCalls),
+				Transient: transientFlagFor(err),
 			}
 			populateErrorDetails(&runResult.Details.Error, err)
 		} else {
@@ -522,6 +529,16 @@ func populateErrorDetails(errorDetails *ErrorDetails, err error) {
 			"HTTP Response": utils.SplitLines(string(apiErr.Body)),
 		}
 	}
+}
+
+// transientFlagFor returns a pointer to true when err is known to be a transient/retryable
+// error, or nil when transience is unknown. This is a best-effort classification based on
+// the existing retry signal, not a complete error taxonomy.
+func transientFlagFor(err error) *bool {
+	if errors.Is(err, providers.ErrRetryable) {
+		return utils.Ptr(true)
+	}
+	return nil
 }
 
 type countable int

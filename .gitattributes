@@ -2,3 +2,4 @@
 formatters/testdata/*.csv -text
 formatters/testdata/*.json -text
 formatters/testdata/*.log -text
+formatters/testdata/*.html -text

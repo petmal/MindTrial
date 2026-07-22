@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"slices"
 
 	deepseek "github.com/cohesion-org/deepseek-go"
@@ -166,7 +167,11 @@ func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 		}
 
 		resp, err := timed(func() (*deepseek.ChatCompletionResponse, error) {
-			return o.createChatCompletion(ctx, request)
+			response, err := o.createChatCompletion(ctx, request)
+			if err != nil && o.isTransientResponse(err) {
+				return response, WrapErrRetryable(err)
+			}
+			return response, err
 		}, &result.duration)
 		result.recordToolUsage(executor.GetUsageStats())
 		result.recordToolCalls(executor.GetCallSummaries())
@@ -308,6 +313,20 @@ func (o *Deepseek) createChatCompletion(ctx context.Context, request any) (respo
 		panic(fmt.Sprintf("unsupported request type: %T", request))
 	}
 	return
+}
+
+// isTransientResponse checks whether the error represents a transient condition
+// that the retry policy should attempt again.
+func (o *Deepseek) isTransientResponse(err error) bool {
+	var apiErr *deepseek.APIError
+	if errors.As(err, &apiErr) {
+		return slices.Contains([]int{
+			http.StatusTooManyRequests,
+			http.StatusInternalServerError,
+			http.StatusServiceUnavailable,
+		}, apiErr.StatusCode)
+	}
+	return false
 }
 
 func (o *Deepseek) addToolToRequest(request any, toolCfg config.ToolConfig) error {

@@ -231,7 +231,8 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details,Suite,Category,Diffic
         ""CallCount"": 3456,
         ""TotalDurationNS"": 1512100000000
       }
-    }
+    },
+    ""Transient"": true
   }
 }",,,,
 01JEDE7Z8X0000000000000006,provider-name,run-not-supported,task-name,Skipped,500,Sequi molestiae iusto sit sit dolorum aut.,"{
@@ -253,7 +254,8 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details,Suite,Category,Diffic
     ""Usage"": {
       ""InputTokens"": 10,
       ""OutputTokens"": 0
-    }
+    },
+    ""Transient"": false
   }
 }",,,,
 01JEDE7Z8X0000000000000007,provider-name,run-validation-error,task-name,Error,2000,Adipiscing elit sed do eiusmod tempor.,"{
