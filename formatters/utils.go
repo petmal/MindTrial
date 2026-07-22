@@ -8,6 +8,7 @@ package formatters
 
 import (
 	"cmp"
+	"encoding/json"
 	"fmt"
 	"math"
 	"strings"
@@ -208,13 +209,62 @@ func GroupParagraphs(lines []string) [][]string {
 
 // UniqueRuns returns a sorted slice of unique run names from the results.
 func UniqueRuns(results runners.Results) []string {
-	runSet := make(map[string]struct{})
+	return sortedSet(results, func(r runners.RunResult) []string { return []string{r.Run} })
+}
+
+// UniqueSuites returns a sorted slice of unique, non-empty task suite labels from the results.
+func UniqueSuites(results runners.Results) []string {
+	return sortedSet(results, func(r runners.RunResult) []string { return []string{r.TaskMetadata.Suite} })
+}
+
+// UniqueCategories returns a sorted slice of unique, non-empty task category labels from the results.
+func UniqueCategories(results runners.Results) []string {
+	return sortedSet(results, func(r runners.RunResult) []string { return []string{r.TaskMetadata.Category} })
+}
+
+// UniqueDifficulties returns a sorted slice of unique, non-empty task difficulty labels from the results.
+func UniqueDifficulties(results runners.Results) []string {
+	return sortedSet(results, func(r runners.RunResult) []string { return []string{r.TaskMetadata.Difficulty} })
+}
+
+// UniqueTags returns a sorted slice of unique, non-empty task tags from the results.
+// A task's Tags is a slice, so all tags across all results are flattened before deduplication.
+func UniqueTags(results runners.Results) []string {
+	return sortedSet(results, func(r runners.RunResult) []string { return r.TaskMetadata.Tags })
+}
+
+// ToJSONStringArray renders values as a JSON array string, defaulting to "[]" for a nil or
+// empty slice, or if marshaling fails. Used to safely embed free-form strings (e.g. a
+// task's tags, which may themselves contain any character, including a comma or space)
+// into contexts - such as an HTML attribute - where a plain delimiter-joined string could
+// collide with the content itself.
+func ToJSONStringArray(values []string) string {
+	if len(values) == 0 {
+		return "[]"
+	}
+	data, err := json.Marshal(values)
+	if err != nil {
+		return "[]"
+	}
+	return string(data)
+}
+
+// sortedSet collects the sorted set of unique, non-empty values returned by extract for each
+// result in results. extract may return any number of values per result (e.g. zero or one for
+// a single scalar field, or many for a slice-valued field like tags), all of which are flattened
+// into the same set before deduplication and sorting.
+func sortedSet(results runners.Results, extract func(runners.RunResult) []string) []string {
+	valueSet := make(map[string]struct{})
 	for _, providerResults := range results {
 		for _, result := range providerResults {
-			runSet[result.Run] = struct{}{}
+			for _, value := range extract(result) {
+				if value != "" {
+					valueSet[value] = struct{}{}
+				}
+			}
 		}
 	}
-	return utils.SortedKeys(runSet)
+	return utils.SortedKeys(valueSet)
 }
 
 // Timestamp returns the current time in RFC1123Z format.

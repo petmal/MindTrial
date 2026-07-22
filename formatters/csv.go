@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 
 	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/petmal/mindtrial/runners"
@@ -31,14 +32,14 @@ func (f csvFormatter) Write(results runners.Results, out io.Writer) error {
 	writer := csv.NewWriter(out)
 	defer writer.Flush()
 
-	headers := []string{"TraceID", "Provider", "Run", "Task", "Status", "DurationMS", "Answer", "Details"}
+	headers := []string{"TraceID", "Provider", "Run", "Task", "Status", "DurationMS", "Answer", "Details", "Suite", "Category", "Difficulty", "Tags"}
 	if err := writer.Write(headers); err != nil {
 		return fmt.Errorf("%w: %v", ErrPrintResults, err)
 	}
 
 	return ForEachOrdered(results, func(_ string, runResults []runners.RunResult) error {
 		for _, result := range runResults {
-			row := []string{result.TraceID, result.Provider, result.Run, result.Task, ToStatus(result.Kind), strconv.FormatInt(RoundToMS(result.Duration).Milliseconds(), 10), formatAnswerText(result), utils.ToString(newDetailsView(result.Details))}
+			row := []string{result.TraceID, result.Provider, result.Run, result.Task, ToStatus(result.Kind), strconv.FormatInt(RoundToMS(result.Duration).Milliseconds(), 10), formatAnswerText(result), utils.ToString(newDetailsView(result.Details)), result.TaskMetadata.Suite, result.TaskMetadata.Category, result.TaskMetadata.Difficulty, strings.Join(result.TaskMetadata.Tags, ",")}
 			if err := writer.Write(row); err != nil {
 				return fmt.Errorf("%w: %v", ErrPrintResults, err)
 			}

@@ -664,6 +664,18 @@ type Task struct {
 	// Value of 0 means no limit is enforced.
 	MaxTurns *int `yaml:"max-turns" validate:"omitempty,min=0"`
 
+	// Suite is an optional grouping label for organizing related tasks (e.g. a benchmark suite name).
+	Suite string `yaml:"suite,omitempty" validate:"omitempty"`
+
+	// Category is an optional classification label for the task (e.g. "math", "coding").
+	Category string `yaml:"category,omitempty" validate:"omitempty"`
+
+	// Difficulty is an optional free-form difficulty label for the task (e.g. "easy", "hard").
+	Difficulty string `yaml:"difficulty,omitempty" validate:"omitempty"`
+
+	// Tags is an optional set of free-form labels for filtering and grouping tasks.
+	Tags []string `yaml:"tags,omitempty" validate:"omitempty"`
+
 	// resolvedSystemPrompt is the resolved system prompt template for this task.
 	resolvedSystemPrompt string
 

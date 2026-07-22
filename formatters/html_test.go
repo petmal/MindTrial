@@ -7,11 +7,16 @@
 package formatters
 
 import (
+	"bytes"
+	"encoding/json"
+	"html"
+	"regexp"
 	"sync"
 	"testing"
 
 	"github.com/petmal/mindtrial/runners"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var timestampLock sync.Mutex
@@ -54,4 +59,36 @@ func TestHTMLFormatterWrite(t *testing.T) {
 func TestHTMLFormatterFileExt(t *testing.T) {
 	formatter := NewHTMLFormatter()
 	assert.Equal(t, "html", formatter.FileExt())
+}
+
+// TestHTMLFormatterTagsSurviveDelimiterCharacters guards against a regression of a
+// delimiter-collision bug: tags used to be embedded as a comma-joined string and split
+// back on ',' by the page's JavaScript, which corrupted any tag that itself contained a
+// comma (or otherwise broke matching). Tags are now JSON-encoded, so they must round-trip
+// exactly regardless of their content, including tags containing commas or quotes.
+func TestHTMLFormatterTagsSurviveDelimiterCharacters(t *testing.T) {
+	wantTags := []string{"needs,fix", `quoted"tag`, "plain"}
+	results := runners.Results{
+		"provider-name": []runners.RunResult{
+			{
+				Provider: "provider-name",
+				Task:     "task-name",
+				Run:      "run-name",
+				Kind:     runners.Success,
+				TaskMetadata: runners.TaskMetadata{
+					Tags: wantTags,
+				},
+			},
+		},
+	}
+
+	var buf bytes.Buffer
+	require.NoError(t, NewHTMLFormatter().Write(results, &buf))
+
+	matches := regexp.MustCompile(`data-tags="([^"]*)"`).FindStringSubmatch(buf.String())
+	require.Len(t, matches, 2, "expected exactly one data-tags attribute in output")
+
+	var gotTags []string
+	require.NoError(t, json.Unmarshal([]byte(html.UnescapeString(matches[1])), &gotTags))
+	assert.Equal(t, wantTags, gotTags)
 }

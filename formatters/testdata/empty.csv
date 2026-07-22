@@ -1,1 +1,1 @@
-TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details
+TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details,Suite,Category,Difficulty,Tags

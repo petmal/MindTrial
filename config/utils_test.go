@@ -1408,6 +1408,10 @@ func TestLoadTasksFromFile(t *testing.T) {
         - name: "Books neural Automotive"
           disabled: false
           max-turns: 150
+          suite: "core-suite"
+          category: "reasoning"
+          difficulty: "hard"
+          tags: ["nightly", "regression"]
           prompt: |-
               Commodi enim magni.
               Eos modi id omnis exercitationem debitis doloremque.
@@ -1445,6 +1449,10 @@ func TestLoadTasksFromFile(t *testing.T) {
 							Prompt:               "Commodi enim magni.\nEos modi id omnis exercitationem debitis doloremque.\n\nEt atque eius ut.",
 							ResponseResultFormat: NewResponseFormat("Sed unde non.\nVoluptatem quia voluptate id ipsum est rerum quisquam modi pariatur."),
 							ExpectedResult:       utils.NewValueSet("Ut quibusdam inventore dolorum velit.\nUllam et dolor laudantium placeat totam dolorem quia.\nEx voluptates et ipsam sunt nulla eos alias sint ad.\n\nDeleniti ducimus natus et omnis expedita."),
+							Suite:                "core-suite",
+							Category:             "reasoning",
+							Difficulty:           "hard",
+							Tags:                 []string{"nightly", "regression"},
 							Files: []TaskFile{
 								mockTaskFileWithOptions(t, "local-file", "path/to/file.txt", "text", &FileOptions{ImageDetail: testutils.Ptr(ImageDetailOriginal)}, FileOptions{ImageDetail: testutils.Ptr(ImageDetailHigh)}),
 								mockTaskFileWithOptions(t, "remote-file", "http://example.com/file.txt", "text", nil, FileOptions{ImageDetail: testutils.Ptr(ImageDetailHigh)}),

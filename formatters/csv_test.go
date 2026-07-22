@@ -54,6 +54,12 @@ var mockResults = runners.Results{
 			Duration: 95 * time.Second,
 			Want:     utils.NewValueSet("Quos aut rerum quaerat qui ad culpa."),
 			Got:      "Quos aut rerum quaerat qui ad culpa.",
+			TaskMetadata: runners.TaskMetadata{
+				Suite:      "core-suite",
+				Category:   "reasoning",
+				Difficulty: "hard",
+				Tags:       []string{"nightly", "regression"},
+			},
 			Details: runners.Details{
 				Answer: runners.AnswerDetails{
 					Title:          "Responsio Bona",

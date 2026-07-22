@@ -31,15 +31,24 @@ type resultsView map[string][]resultView
 
 // resultView is the view model for runners.RunResult.
 type resultView struct {
-	TraceID    string         `json:"TraceID"`
-	Kind       string         `json:"Kind"`
-	Task       string         `json:"Task"`
-	Provider   string         `json:"Provider"`
-	Run        string         `json:"Run"`
-	Got        interface{}    `json:"Got"`
-	Want       utils.ValueSet `json:"Want"`
-	Details    detailsView    `json:"Details"`
-	DurationNS int64          `json:"DurationNS"`
+	TraceID      string            `json:"TraceID"`
+	Kind         string            `json:"Kind"`
+	Task         string            `json:"Task"`
+	Provider     string            `json:"Provider"`
+	Run          string            `json:"Run"`
+	Got          interface{}       `json:"Got"`
+	Want         utils.ValueSet    `json:"Want"`
+	TaskMetadata *taskMetadataView `json:"TaskMetadata,omitempty"`
+	Details      detailsView       `json:"Details"`
+	DurationNS   int64             `json:"DurationNS"`
+}
+
+// taskMetadataView is the view model for runners.TaskMetadata.
+type taskMetadataView struct {
+	Suite      string   `json:"Suite,omitempty"`
+	Category   string   `json:"Category,omitempty"`
+	Difficulty string   `json:"Difficulty,omitempty"`
+	Tags       []string `json:"Tags,omitempty"`
 }
 
 // detailsView is the view model for runners.Details.
@@ -96,15 +105,31 @@ func toResultsView(results runners.Results) resultsView {
 
 func newResultView(r runners.RunResult) resultView {
 	return resultView{
-		TraceID:    r.TraceID,
-		Kind:       ToStatus(r.Kind),
-		Task:       r.Task,
-		Provider:   r.Provider,
-		Run:        r.Run,
-		Got:        r.Got,
-		Want:       r.Want,
-		Details:    newDetailsView(r.Details),
-		DurationNS: r.Duration.Nanoseconds(),
+		TraceID:      r.TraceID,
+		Kind:         ToStatus(r.Kind),
+		Task:         r.Task,
+		Provider:     r.Provider,
+		Run:          r.Run,
+		Got:          r.Got,
+		Want:         r.Want,
+		TaskMetadata: newTaskMetadataView(r.TaskMetadata),
+		Details:      newDetailsView(r.Details),
+		DurationNS:   r.Duration.Nanoseconds(),
+	}
+}
+
+// newTaskMetadataView converts runners.TaskMetadata to its view model.
+// Returns nil when there is no metadata to report, matching the nil-when-empty
+// convention used by the other optional detail views in this file.
+func newTaskMetadataView(m runners.TaskMetadata) *taskMetadataView {
+	if m.Suite == "" && m.Category == "" && m.Difficulty == "" && len(m.Tags) == 0 {
+		return nil
+	}
+	return &taskMetadataView{
+		Suite:      m.Suite,
+		Category:   m.Category,
+		Difficulty: m.Difficulty,
+		Tags:       m.Tags,
 	}
 }
 
@@ -225,16 +250,31 @@ func fromResultView(v resultView) (runners.RunResult, error) {
 		return runners.RunResult{}, fmt.Errorf("%w: %q", errUnknownResultKind, v.Kind)
 	}
 	return runners.RunResult{
-		TraceID:  v.TraceID,
-		Kind:     kind,
-		Task:     v.Task,
-		Provider: v.Provider,
-		Run:      v.Run,
-		Got:      v.Got,
-		Want:     v.Want,
-		Details:  fromDetailsView(v.Details),
-		Duration: time.Duration(v.DurationNS),
+		TraceID:      v.TraceID,
+		Kind:         kind,
+		Task:         v.Task,
+		Provider:     v.Provider,
+		Run:          v.Run,
+		Got:          v.Got,
+		Want:         v.Want,
+		TaskMetadata: fromTaskMetadataView(v.TaskMetadata),
+		Details:      fromDetailsView(v.Details),
+		Duration:     time.Duration(v.DurationNS),
 	}, nil
+}
+
+// fromTaskMetadataView converts a taskMetadataView back to runners.TaskMetadata.
+// A nil view produces a zero-value TaskMetadata.
+func fromTaskMetadataView(v *taskMetadataView) runners.TaskMetadata {
+	if v == nil {
+		return runners.TaskMetadata{}
+	}
+	return runners.TaskMetadata{
+		Suite:      v.Suite,
+		Category:   v.Category,
+		Difficulty: v.Difficulty,
+		Tags:       v.Tags,
+	}
 }
 
 func fromDetailsView(d detailsView) runners.Details {

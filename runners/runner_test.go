@@ -1644,6 +1644,44 @@ func TestRunnerRunParallel(t *testing.T) {
 	}
 }
 
+func TestRunTaskCopiesTaskMetadata(t *testing.T) {
+	r := createMockRunner(t)
+
+	results, err := r.Run(context.Background(), []config.Task{
+		{
+			Name:           "success",
+			ExpectedResult: utils.NewValueSet("Provident quas tenetur repellat deserunt ut neque culpa."),
+			Suite:          "core-suite",
+			Category:       "reasoning",
+			Difficulty:     "hard",
+			Tags:           []string{"nightly", "regression"},
+		},
+		{
+			Name:           "failure",
+			ExpectedResult: utils.NewValueSet("Aperiam assumenda id provident ratione eos molestiae."),
+		},
+	})
+	require.NoError(t, err)
+
+	wantWithMetadata := TaskMetadata{
+		Suite:      "core-suite",
+		Category:   "reasoning",
+		Difficulty: "hard",
+		Tags:       []string{"nightly", "regression"},
+	}
+
+	for _, providerResults := range results.GetResults() {
+		for _, result := range providerResults {
+			switch result.Task {
+			case "success":
+				assert.Equal(t, wantWithMetadata, result.TaskMetadata, "task with metadata")
+			case "failure":
+				assert.Equal(t, TaskMetadata{}, result.TaskMetadata, "task without metadata")
+			}
+		}
+	}
+}
+
 func createMockRunner(t *testing.T) Runner {
 	return createMockRunnerFromConfig(t, []config.ProviderConfig{
 		{

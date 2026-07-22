@@ -114,10 +114,24 @@ type RunResult struct {
 	// For plain text response format: contains string values that should follow the format instruction precisely.
 	// For structured schema-based response format: contains object values that conform to the schema.
 	Want utils.ValueSet
+	// TaskMetadata carries optional descriptive labels copied from the originating task.
+	TaskMetadata TaskMetadata
 	// Details contains comprehensive information about the generated response and validation assessment.
 	Details Details
 	// Duration represents the time taken to generate the response.
 	Duration time.Duration
+}
+
+// TaskMetadata carries optional descriptive labels from the originating task into the result.
+type TaskMetadata struct {
+	// Suite is an optional grouping label for organizing related tasks (e.g. a benchmark suite name).
+	Suite string
+	// Category is an optional classification label for the task (e.g. "math", "coding").
+	Category string
+	// Difficulty is an optional free-form difficulty label for the task (e.g. "easy", "hard").
+	Difficulty string
+	// Tags is an optional set of free-form labels for filtering and grouping tasks.
+	Tags []string
 }
 
 // GetID generates a unique, sanitized identifier for the RunResult.

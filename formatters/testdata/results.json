@@ -13,6 +13,15 @@
         "Run": "run-success",
         "Got": "Quos aut rerum quaerat qui ad culpa.",
         "Want": "Quos aut rerum quaerat qui ad culpa.",
+        "TaskMetadata": {
+          "Suite": "core-suite",
+          "Category": "reasoning",
+          "Difficulty": "hard",
+          "Tags": [
+            "nightly",
+            "regression"
+          ]
+        },
         "Details": {
           "Answer": {
             "Title": "Responsio Bona",

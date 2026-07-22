@@ -84,6 +84,8 @@ task-config:
         max-memory-mb: 512
         cpu-percent: 25
   # Each task represents a specific challenge or test case for language model evaluation.
+  # Optional metadata (suite, category, difficulty, tags) can be attached to any task to
+  # enable filtering/grouping in the HTML report and the interactive task picker.
   tasks:
     - name: "reasoning - section, color and number - v1"
       prompt: |-

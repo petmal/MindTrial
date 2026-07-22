@@ -132,6 +132,20 @@
         .filter-sort-controls { display: flex; flex-direction: column; gap: 5px; }
         .filter-sort-controls .header-with-sort { display: flex; align-items: center; gap: 5px; }
         .filter-sort-controls input, .filter-sort-controls select { width: 100%; box-sizing: border-box; }
+        .filter-container > input[type="text"],
+        .filter-container > select {
+            font-size: 1em;
+            padding: 4px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .tag-filter { position: relative; }
+        .tag-filter summary { cursor: pointer; list-style: none; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 4px; white-space: nowrap; font-weight: normal; }
+        .tag-filter summary::-webkit-details-marker { display: none; }
+        .tag-filter summary::after { content: " \25BE"; }
+        .tag-filter-checkboxes { position: absolute; z-index: 10; top: 100%; left: 0; display: flex; flex-direction: column; gap: 4px; margin-top: 4px; padding: 8px 12px; background: #fff; border: 1px solid var(--border-color); border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); max-height: 240px; overflow-y: auto; min-width: 180px; }
+        .tag-filter-checkboxes label { white-space: nowrap; cursor: pointer; font-weight: normal; }
         .sort-btn { cursor: pointer; margin-left: 5px; }
         .clickable { cursor: pointer; }
     footer { text-align: center; font-size: 0.85em; color: #777; margin-top: 2em; border-top: 1px solid var(--border-color); padding-top: 1em; }
@@ -437,8 +451,8 @@
         margin-bottom: 1em;
         font-size: 0.85em;
     }
-    .ds-filters label,
-    .ds-filters .ds-filter-group {
+    .ds-filters > label,
+    .ds-filters > .ds-filter-group {
         display: flex;
         flex-direction: column;
         gap: 3px;
@@ -525,8 +539,12 @@
                 run: document.getElementById('run-filter').value.toLowerCase(),
                 task: document.getElementById('task-filter').value,
                 status: document.getElementById('status-filter').value.toLowerCase(),
+                suite: document.getElementById('suite-filter').value,
+                category: document.getElementById('category-filter').value,
+                difficulty: document.getElementById('difficulty-filter').value,
                 search: document.getElementById('search-filter').value
             };
+            const selectedTags = Array.from(document.querySelectorAll('.tag-filter-checkbox:checked')).map(cb => cb.value);
             let taskRegex = null, searchRegex = null;
             if (filters.task) {
                 try { taskRegex = new RegExp(filters.task, 'i'); } catch (e) { taskRegex = null; }
@@ -539,13 +557,22 @@
                 const run = row.dataset.run.toLowerCase();
                 const task = row.dataset.task;
                 const status = row.dataset.status.toLowerCase();
+                const suite = row.dataset.suite || '';
+                const category = row.dataset.category || '';
+                const difficulty = row.dataset.difficulty || '';
+                const tags = row.dataset.tags ? JSON.parse(row.dataset.tags) : [];
 
                 const searchMatch = searchRegex ? (searchRegex.test(provider) || searchRegex.test(run) || searchRegex.test(task)) : (!filters.search || provider.includes(filters.search.toLowerCase()) || run.includes(filters.search.toLowerCase()) || task.toLowerCase().includes(filters.search.toLowerCase()));
+                const tagMatch = selectedTags.every(t => tags.includes(t));
 
                 const show = (filters.provider === '' || provider === filters.provider) &&
                              (filters.run === '' || run === filters.run) &&
                              (!taskRegex || taskRegex.test(task)) &&
                              (filters.status === '' || status === filters.status) &&
+                             (filters.suite === '' || suite === filters.suite) &&
+                             (filters.category === '' || category === filters.category) &&
+                             (filters.difficulty === '' || difficulty === filters.difficulty) &&
+                             tagMatch &&
                              (filters.search === '' || searchMatch);
                 
                 row.style.display = show ? '' : 'none';
@@ -613,6 +640,11 @@
             document.getElementById('run-filter').value = '';
             document.getElementById('task-filter').value = '';
             document.getElementById('status-filter').value = '';
+            document.getElementById('suite-filter').value = '';
+            document.getElementById('category-filter').value = '';
+            document.getElementById('difficulty-filter').value = '';
+            document.querySelectorAll('.tag-filter-checkbox:checked').forEach(cb => { cb.checked = false; });
+            document.getElementById('tag-filter').open = false;
             document.getElementById('search-filter').value = '';
             filterAndSortTable();
         }
@@ -916,6 +948,10 @@
             const taskSelectorValue = document.getElementById('ds-task-selector').value.trim();
             const taskSelectorMode = document.getElementById('ds-task-selector-mode').value;
             const statusFilter = document.getElementById('ds-status-filter').value.toLowerCase();
+            const suiteFilter = document.getElementById('ds-suite-filter').value;
+            const categoryFilter = document.getElementById('ds-category-filter').value;
+            const difficultyFilter = document.getElementById('ds-difficulty-filter').value;
+            const tagFilter = Array.from(document.querySelectorAll('.ds-tag-filter-checkbox:checked')).map(cb => cb.value);
             let taskMatcher = null;
             let taskMatcherError = null;
             if (taskSelectorValue) {
@@ -955,6 +991,13 @@
                 const status = row.dataset.status;
 
                 if (statusFilter && status !== statusFilter) return;
+                if (suiteFilter && row.dataset.suite !== suiteFilter) return;
+                if (categoryFilter && row.dataset.category !== categoryFilter) return;
+                if (difficultyFilter && row.dataset.difficulty !== difficultyFilter) return;
+                if (tagFilter.length > 0) {
+                    const rowTags = row.dataset.tags ? JSON.parse(row.dataset.tags) : [];
+                    if (!tagFilter.every(t => rowTags.includes(t))) return;
+                }
 
                 const durationRaw = parseFloat(row.dataset.duration);
                 const duration = isNaN(durationRaw) ? null : durationRaw;
@@ -993,10 +1036,16 @@
                 return arr;
             }
 
-            const statusDesc = statusFilter ? `; status: <code>${escapeHtml(statusFilter)}</code>` : '';
+            const narrowingParts = [];
+            if (statusFilter) narrowingParts.push(`status: <code>${escapeHtml(statusFilter)}</code>`);
+            if (suiteFilter) narrowingParts.push(`suite: <code>${escapeHtml(suiteFilter)}</code>`);
+            if (categoryFilter) narrowingParts.push(`category: <code>${escapeHtml(categoryFilter)}</code>`);
+            if (difficultyFilter) narrowingParts.push(`difficulty: <code>${escapeHtml(difficultyFilter)}</code>`);
+            if (tagFilter.length > 0) narrowingParts.push(`tags: <code>${escapeHtml(tagFilter.join(', '))}</code>`);
+            const narrowingDesc = narrowingParts.length > 0 ? `; ${narrowingParts.join('; ')}` : '';
             const modeLabel = taskSelectorMode === 'regexp' ? 'regexp' : 'wildcard';
             const filteredTitle = taskMatcher ? 'Selected Tasks' : 'Results';
-            const filteredDesc = taskMatcher ? `Tasks matching ${modeLabel}: <code>${escapeHtml(taskSelectorValue)}</code>${statusDesc}` : (statusFilter ? `Status: <code>${escapeHtml(statusFilter)}</code>` : '');
+            const filteredDesc = taskMatcher ? `Tasks matching ${modeLabel}: <code>${escapeHtml(taskSelectorValue)}</code>${narrowingDesc}` : (narrowingParts.length > 0 ? `Tasks matching ${narrowingParts.join('; ')}` : '');
             dsTableData['dynamic-summary-filtered'] = { title: filteredTitle, description: filteredDesc, data: buildStatsArray(filteredByRun) };
             renderDsTable('dynamic-summary-filtered');
 
@@ -1004,7 +1053,7 @@
             const complementCheckbox = document.getElementById('ds-show-complement');
             if (taskMatcher) {
                 complementCheckbox.disabled = false;
-                const complementDesc = `Tasks NOT matching ${modeLabel}: <code>${escapeHtml(taskSelectorValue)}</code>${statusDesc}`;
+                const complementDesc = `Tasks NOT matching ${modeLabel}: <code>${escapeHtml(taskSelectorValue)}</code>${narrowingDesc}`;
                 dsTableData['dynamic-summary-complement'] = { title: 'Remaining Tasks', description: complementDesc, data: buildStatsArray(complementByRun) };
                 if (dsShowComplement) {
                     renderDsTable('dynamic-summary-complement');
@@ -1471,11 +1520,26 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.filter-sort-controls input, .filter-sort-controls select, #search-filter').forEach(input => {
+            // Note: suite/category/difficulty filters carry the filter-sort-controls class
+            // directly on themselves (rather than on a wrapping element like the table header
+            // filters do), so they must also be matched explicitly by ID here - the same reason
+            // #search-filter is already listed explicitly below.
+            document.querySelectorAll('.filter-sort-controls input, .filter-sort-controls select, #search-filter, #suite-filter, #category-filter, #difficulty-filter').forEach(input => {
                 input.addEventListener('input', filterAndSortTable);
             });
-             document.querySelectorAll('.filter-sort-controls select').forEach(select => {
+             document.querySelectorAll('.filter-sort-controls select, #suite-filter, #category-filter, #difficulty-filter').forEach(select => {
                 select.addEventListener('change', filterAndSortTable);
+            });
+            document.querySelectorAll('.tag-filter-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', filterAndSortTable);
+            });
+            // Close a tag filter dropdown when clicking outside of it.
+            document.addEventListener('click', (event) => {
+                document.querySelectorAll('details.tag-filter').forEach(tagFilter => {
+                    if (tagFilter.open && !tagFilter.contains(event.target)) {
+                        tagFilter.open = false;
+                    }
+                });
             });
             setupSortButtons();
             setupClickableFilters();
@@ -1515,6 +1579,12 @@
             document.getElementById('ds-task-selector').addEventListener('input', updateDynamicSummary);
             document.getElementById('ds-task-selector-mode').addEventListener('change', updateDynamicSummary);
             document.getElementById('ds-status-filter').addEventListener('change', updateDynamicSummary);
+            document.getElementById('ds-suite-filter').addEventListener('change', updateDynamicSummary);
+            document.getElementById('ds-category-filter').addEventListener('change', updateDynamicSummary);
+            document.getElementById('ds-difficulty-filter').addEventListener('change', updateDynamicSummary);
+            document.querySelectorAll('.ds-tag-filter-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', updateDynamicSummary);
+            });
             document.getElementById('ds-show-complement').addEventListener('change', function() {
                 dsShowComplement = this.checked;
                 updateDynamicSummary();
@@ -1636,7 +1706,7 @@
                 <span id="selected-count" class="selected-count"></span>
             </div>
             <div id="dynamic-summary-section" class="dynamic-summary-container">
-                <p class="subset-description">Statistics for selected runs. Skipped tasks are excluded from all aggregations. The task selector splits results into selected and remaining subsets. The status filter narrows both subsets to matching statuses.</p>
+                <p class="subset-description">Statistics for selected runs. Skipped tasks are excluded from all aggregations. The task selector splits results into selected and remaining subsets. The status, suite, category, difficulty and tag filters narrow both subsets to matching tasks.</p>
                 <div class="ds-filters">
                     <div class="ds-filter-group" title="Select tasks by name pattern or regular expression. Wildcard mode supports comma-separated values with * (any characters) and ? (single character) wildcards. Splits results into selected and remaining subsets.">
                         Task Selector
@@ -1657,6 +1727,44 @@
                             <option value="error">Error</option>
                         </select>
                     </label>
+                    <label title="Filter by task suite. Narrows both the selected and remaining subsets.">
+                        Suite Filter
+                        <select id="ds-suite-filter">
+                            <option value="">All Suites</option>
+                            {{- range UniqueSuites .ResultsData }}
+                            <option value="{{.}}">{{.}}</option>
+                            {{- end }}
+                        </select>
+                    </label>
+                    <label title="Filter by task category. Narrows both the selected and remaining subsets.">
+                        Category Filter
+                        <select id="ds-category-filter">
+                            <option value="">All Categories</option>
+                            {{- range UniqueCategories .ResultsData }}
+                            <option value="{{.}}">{{.}}</option>
+                            {{- end }}
+                        </select>
+                    </label>
+                    <label title="Filter by task difficulty. Narrows both the selected and remaining subsets.">
+                        Difficulty Filter
+                        <select id="ds-difficulty-filter">
+                            <option value="">All Difficulties</option>
+                            {{- range UniqueDifficulties .ResultsData }}
+                            <option value="{{.}}">{{.}}</option>
+                            {{- end }}
+                        </select>
+                    </label>
+                    <div class="ds-filter-group" title="Filter by task tag. Matches a task only if ALL checked tags are present (AND). Narrows both the selected and remaining subsets.">
+                        Tag Filter
+                        <details id="ds-tag-filter" class="tag-filter">
+                            <summary>Tags</summary>
+                            <div class="tag-filter-checkboxes">
+                                {{- range UniqueTags .ResultsData }}
+                                <label><input type="checkbox" value="{{.}}" class="ds-tag-filter-checkbox"> {{.}}</label>
+                                {{- end }}
+                            </div>
+                        </details>
+                    </div>
                 </div>
                 <div id="ds-column-selector-container"></div>
                 <div id="dynamic-summary-filtered" class="dynamic-summary-subset"></div>
@@ -1670,6 +1778,32 @@
             <meta itemprop="description" content="Detailed results for each task, including provider, run configuration, task name, status, duration, answer, and details.">
             <div class="filter-container">
                 <input id="search-filter" type="text" placeholder="Search (regexp)..." title="Supports regular expressions, e.g. hello|world, ^start, end$, ^(?!visual\s*-\s*).*" class="filter-sort-controls">
+                <select id="suite-filter" class="filter-sort-controls" title="Filter by task suite">
+                    <option value="">All Suites</option>
+                    {{- range UniqueSuites .ResultsData }}
+                    <option value="{{.}}">{{.}}</option>
+                    {{- end }}
+                </select>
+                <select id="category-filter" class="filter-sort-controls" title="Filter by task category">
+                    <option value="">All Categories</option>
+                    {{- range UniqueCategories .ResultsData }}
+                    <option value="{{.}}">{{.}}</option>
+                    {{- end }}
+                </select>
+                <select id="difficulty-filter" class="filter-sort-controls" title="Filter by task difficulty">
+                    <option value="">All Difficulties</option>
+                    {{- range UniqueDifficulties .ResultsData }}
+                    <option value="{{.}}">{{.}}</option>
+                    {{- end }}
+                </select>
+                <details id="tag-filter" class="tag-filter" title="Filter by task tag. Matches a task only if ALL checked tags are present (AND).">
+                    <summary>Tags</summary>
+                    <div class="tag-filter-checkboxes">
+                        {{- range UniqueTags .ResultsData }}
+                        <label><input type="checkbox" value="{{.}}" class="tag-filter-checkbox"> {{.}}</label>
+                        {{- end }}
+                    </div>
+                </details>
                 <button onclick="clearFilters()">Clear Filters</button>
                 <div><span id="visible-count" aria-live="polite"></span> visible</div>
             </div>
@@ -1745,10 +1879,10 @@
                     {{- $results := .ResultsData -}}
                     {{- range $provider := SortResultsByProvider $results -}}
                     {{- range $index, $result := index $results $provider }}
-                    <tr id="{{$result.GetID}}" itemscope itemtype="https://schema.org/Question" data-provider="{{$provider}}" data-run="{{$result.Run}}" data-task="{{$result.Task}}" data-status="{{ToStatus $result.Kind | ToLower}}" data-duration="{{(RoundToMS $result.Duration).Milliseconds}}">
+                    <tr id="{{$result.GetID}}" itemscope itemtype="https://schema.org/Question" data-provider="{{$provider}}" data-run="{{$result.Run}}" data-task="{{$result.Task}}" data-status="{{ToStatus $result.Kind | ToLower}}" data-duration="{{(RoundToMS $result.Duration).Milliseconds}}" data-suite="{{$result.TaskMetadata.Suite}}" data-category="{{$result.TaskMetadata.Category}}" data-difficulty="{{$result.TaskMetadata.Difficulty}}" data-tags="{{ToJSON $result.TaskMetadata.Tags}}">
                         <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="{{$provider}}" title="Filter by provider: {{$provider}}"><span itemprop="name">{{$provider}}</span></td>
                         <td class="clickable-filter clickable" data-filter-type="run" data-filter-value="{{$result.Run}}" title="Filter by run: {{$result.Run}}"><span itemprop="identifier">{{$result.Run}}</span></td>
-                        <td class="clickable-filter clickable" data-filter-type="task" data-filter-value="{{$result.Task}}" title="Filter by task: {{$result.Task}}"><span itemprop="name">{{$result.Task}}</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="task" data-filter-value="{{$result.Task}}" title="Filter by task: {{$result.Task}}"><span itemprop="name">{{$result.Task}}</span>{{with $result.TaskMetadata.Category}}<meta itemprop="assesses" content="{{.}}">{{end}}{{with $result.TaskMetadata.Difficulty}}<meta itemprop="educationalLevel" content="{{.}}">{{end}}</td>
                         <td class="status-{{ToStatus $result.Kind | ToLower}} clickable-filter clickable" data-filter-type="status" data-filter-value="{{ToStatus $result.Kind | ToLower}}" title="Filter by status: {{ToStatus $result.Kind}}">
                             <span itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty">
                                 <meta itemprop="name" content="status">

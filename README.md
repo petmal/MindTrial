@@ -549,6 +549,26 @@ Optionally, a task can include a list of `files` to be sent along with the promp
 > To disable all tasks by default, set `disabled: true` in the `task-config` section.
 > An individual task can override this by setting `disabled: false` (e.g. to enable just that one task).
 
+Optionally, a task can also carry descriptive metadata used for filtering and grouping:
+
+- **suite**: A grouping label for organizing related tasks (e.g. a benchmark suite name).
+- **category**: A classification label for the task (e.g. `"math"`, `"coding"`).
+- **difficulty**: A free-form difficulty label for the task (e.g. `"easy"`, `"hard"`).
+- **tags**: A list of free-form labels for filtering and grouping tasks.
+
+These fields are optional and have no effect on task execution or validation. When present, they are included in the JSON results (`TaskMetadata`), can be filtered on in the HTML report alongside the existing status/task filters, and are used for the suite/category/difficulty cycling hotkeys (`s`/`c`/`d`) and tag search (`/`) in the interactive task picker's checklist.
+
+```yaml
+- name: "math problem"
+  suite: "arithmetic-basics"
+  category: "math"
+  difficulty: "easy"
+  tags: ["smoke", "regression"]
+  prompt: "What is 2 + 2?"
+  response-result-format: "single number"
+  expected-result: "4"
+```
+
 #### Structured Response Formats
 
 MindTrial supports two types of response formats for tasks:

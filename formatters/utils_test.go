@@ -720,3 +720,88 @@ func TestUniqueRuns(t *testing.T) {
 		})
 	}
 }
+
+func TestUniqueSuitesCategoriesDifficulties(t *testing.T) {
+	input := runners.Results{
+		"provA": {
+			{TaskMetadata: runners.TaskMetadata{Suite: "core", Category: "math", Difficulty: "easy"}},
+			{TaskMetadata: runners.TaskMetadata{Suite: "extended", Category: "coding", Difficulty: "hard"}},
+			{TaskMetadata: runners.TaskMetadata{}}, // no metadata; must not contribute empty values
+		},
+		"provB": {
+			{TaskMetadata: runners.TaskMetadata{Suite: "core", Category: "coding", Difficulty: "medium"}},
+		},
+	}
+
+	assert.Equal(t, []string{"core", "extended"}, UniqueSuites(input))
+	assert.Equal(t, []string{"coding", "math"}, UniqueCategories(input))
+	assert.Equal(t, []string{"easy", "hard", "medium"}, UniqueDifficulties(input))
+
+	t.Run("empty results", func(t *testing.T) {
+		assert.Equal(t, []string{}, UniqueSuites(runners.Results{}))
+		assert.Equal(t, []string{}, UniqueCategories(runners.Results{}))
+		assert.Equal(t, []string{}, UniqueDifficulties(runners.Results{}))
+	})
+}
+
+func TestUniqueTags(t *testing.T) {
+	tests := []struct {
+		name  string
+		input runners.Results
+		want  []string
+	}{
+		{
+			name:  "empty results",
+			input: runners.Results{},
+			want:  []string{},
+		},
+		{
+			name: "no tags",
+			input: runners.Results{
+				"provA": {{TaskMetadata: runners.TaskMetadata{}}},
+			},
+			want: []string{},
+		},
+		{
+			name: "flattens and dedupes tags across tasks and providers",
+			input: runners.Results{
+				"provA": {
+					{TaskMetadata: runners.TaskMetadata{Tags: []string{"nightly", "regression"}}},
+				},
+				"provB": {
+					{TaskMetadata: runners.TaskMetadata{Tags: []string{"regression", "smoke"}}},
+					{TaskMetadata: runners.TaskMetadata{Tags: nil}},
+				},
+			},
+			want: []string{"nightly", "regression", "smoke"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, UniqueTags(tt.input))
+		})
+	}
+}
+
+func TestToJSONStringArray(t *testing.T) {
+	tests := []struct {
+		name  string
+		input []string
+		want  string
+	}{
+		{name: "nil slice", input: nil, want: "[]"},
+		{name: "empty slice", input: []string{}, want: "[]"},
+		{name: "single value", input: []string{"nightly"}, want: `["nightly"]`},
+		{name: "multiple values", input: []string{"nightly", "regression"}, want: `["nightly","regression"]`},
+		{
+			name:  "values containing the delimiter characters a naive join/split would use",
+			input: []string{"needs,fix", "quoted\"tag", "semi;colon"},
+			want:  `["needs,fix","quoted\"tag","semi;colon"]`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, ToJSONStringArray(tt.input))
+		})
+	}
+}

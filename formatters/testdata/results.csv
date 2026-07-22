@@ -1,4 +1,4 @@
-TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details
+TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details,Suite,Category,Difficulty,Tags
 01JEDE7Z8X0000000000000001,provider-name,run-success,task-name,Passed,95000,Quos aut rerum quaerat qui ad culpa.,"{
   ""Answer"": {
     ""Title"": ""Responsio Bona"",
@@ -54,7 +54,7 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details
       }
     }
   }
-}"
+}",core-suite,reasoning,hard,"nightly,regression"
 01JEDE7Z8X0000000000000002,provider-name,run-failure,task-name,Failed,10000,"@@ -1,67 +1,36 @@
 -Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui
 +Ipsam ea et optio explicabo eius et
@@ -91,7 +91,7 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details
       ""At vero eos et accusamus et iusto odio dignissimos ducimus qui.""
     ]
   }
-}"
+}",,,,
 01JEDE7Z8X0000000000000003,provider-name,run-success-multiple-answers,task-name,Passed,17000,Quos aut rerum quaerat qui ad culpa.,"{
   ""Answer"": {
     ""Title"": ""Multiplex Responsio"",
@@ -119,7 +119,7 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details
       ""Similique sunt in culpa qui officia deserunt mollitia animi.""
     ]
   }
-}"
+}",,,,
 01JEDE7Z8X0000000000000004,provider-name,run-failure-multiple-answers,task-name,Failed,180800,"[
     @@ -1,48 +1,36 @@
     -Dolores saepe ad sed rerum autem iure minima
@@ -172,7 +172,7 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details
       }
     }
   }
-}"
+}",,,,
 01JEDE7Z8X0000000000000005,provider-name,run-error,task-name,Error,0,error message,"{
   ""Error"": {
     ""Title"": ""Errorem Executionis"",
@@ -191,7 +191,7 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details
       }
     }
   }
-}"
+}",,,,
 01JEDE7Z8X0000000000000006,provider-name,run-not-supported,task-name,Skipped,500,Sequi molestiae iusto sit sit dolorum aut.,"{
   ""Error"": {
     ""Title"": ""Functio Non Supporta"",
@@ -213,7 +213,7 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details
       ""OutputTokens"": 0
     }
   }
-}"
+}",,,,
 01JEDE7Z8X0000000000000007,provider-name,run-validation-error,task-name,Error,2000,Adipiscing elit sed do eiusmod tempor.,"{
   ""Error"": {
     ""Title"": ""Validatio Deficiens"",
@@ -239,7 +239,7 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details
       ""OutputTokens"": 5678
     }
   }
-}"
+}",,,,
 01JEDE7Z8X0000000000000008,provider-name,run-parsing-error,task-name,Error,314159,Invalid JSON: {broken,"{
   ""Error"": {
     ""Title"": ""Parsing Errorem Responsi"",
@@ -267,7 +267,7 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details
       ""OutputTokens"": 333
     }
   }
-}"
+}",,,,
 01JEDE7Z8X0000000000000009,provider-name,run-structured-success,task-name,Passed,42000,"[
   {
     ""level"": ""INFO"",
@@ -352,7 +352,7 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details
       }
     }
   }
-}"
+}",,,,
 01JEDE7Z8X0000000000000010,provider-name,run-structured-failure,task-name,Failed,38000,"[
     @@ -11,12 +11,13 @@
      %22: %22
@@ -457,4 +457,4 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details
       ""OutputTokens"": 15
     }
   }
-}"
+}",,,,

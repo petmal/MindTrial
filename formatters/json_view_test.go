@@ -106,3 +106,30 @@ func TestEmptyNonNilContainerSuppression(t *testing.T) {
 		assert.Nil(t, view.Answer.ToolUsage)
 	})
 }
+
+func TestTaskMetadataViewRoundTrip(t *testing.T) {
+	t.Run("empty metadata maps to nil view", func(t *testing.T) {
+		view := newTaskMetadataView(runners.TaskMetadata{})
+		assert.Nil(t, view)
+		assert.Equal(t, runners.TaskMetadata{}, fromTaskMetadataView(view))
+	})
+
+	t.Run("non-empty metadata round-trips", func(t *testing.T) {
+		metadata := runners.TaskMetadata{
+			Suite:      "core-suite",
+			Category:   "reasoning",
+			Difficulty: "hard",
+			Tags:       []string{"nightly", "regression"},
+		}
+		view := newTaskMetadataView(metadata)
+		require.NotNil(t, view)
+		assert.Equal(t, metadata, fromTaskMetadataView(view))
+	})
+
+	t.Run("partial metadata is not treated as empty", func(t *testing.T) {
+		metadata := runners.TaskMetadata{Tags: []string{"smoke"}}
+		view := newTaskMetadataView(metadata)
+		require.NotNil(t, view)
+		assert.Equal(t, metadata, fromTaskMetadataView(view))
+	})
+}
