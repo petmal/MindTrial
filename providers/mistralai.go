@@ -152,6 +152,7 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 			return response, err
 		}, &result.duration)
 		result.recordToolUsage(executor.GetUsageStats())
+		result.recordToolCalls(executor.GetCallSummaries())
 		if err != nil {
 			return result, WrapErrGenerateResponse(err)
 		} else if resp == nil {
@@ -186,7 +187,7 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 					if err != nil {
 						return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
 					}
-					toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, args, data)
+					toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, args, data, &tools.ToolCallContext{CallID: toolCall.GetId(), ConversationTurn: turn})
 					content := string(toolResult)
 					if err != nil {
 						content = formatToolExecutionError(err)

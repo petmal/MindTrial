@@ -358,6 +358,7 @@ func (o *openAICompletionsProvider) Run(ctx context.Context, logger logging.Logg
 			return response, err
 		}, &result.duration)
 		result.recordToolUsage(executor.GetUsageStats())
+		result.recordToolCalls(executor.GetCallSummaries())
 		if err != nil {
 			return result, WrapErrGenerateResponse(err)
 		} else if resp == nil {
@@ -384,7 +385,7 @@ func (o *openAICompletionsProvider) Run(ctx context.Context, logger logging.Logg
 					if err != nil {
 						return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
 					}
-					toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, json.RawMessage(toolCall.Function.Arguments), data)
+					toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, json.RawMessage(toolCall.Function.Arguments), data, &tools.ToolCallContext{CallID: toolCall.ID, ConversationTurn: turn})
 					toolContent := string(toolResult)
 					if err != nil {
 						toolContent = formatToolExecutionError(err)

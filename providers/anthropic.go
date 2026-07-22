@@ -210,6 +210,7 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 			return response, err
 		}, &result.duration)
 		result.recordToolUsage(executor.GetUsageStats())
+		result.recordToolCalls(executor.GetCallSummaries())
 		if err != nil {
 			return result, WrapErrGenerateResponse(err)
 		} else if resp == nil {
@@ -253,7 +254,7 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 					if err != nil {
 						return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
 					}
-					toolResult, err := executor.ExecuteTool(ctx, logger, block.Name, json.RawMessage(block.Input), data)
+					toolResult, err := executor.ExecuteTool(ctx, logger, block.Name, json.RawMessage(block.Input), data, &tools.ToolCallContext{CallID: block.ID, ConversationTurn: turn})
 					isError := err != nil
 					content := string(toolResult)
 					if isError {

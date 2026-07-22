@@ -68,6 +68,7 @@ func (v *judgeValidator) IsCorrect(ctx context.Context, logger logging.Logger, r
 			Title:       "Invalid Response Type",
 			Explanation: fmt.Sprintf("Semantic validation requires plain text responses but received %T:\n%v", actual.GetFinalAnswerContent(), utils.ToString(actual.GetFinalAnswerContent())),
 			Usage:       actual.GetUsage(),
+			ToolCalls:   actual.GetToolCalls(),
 		}, nil
 	}
 	// Create prefixed logger for judge evaluation, extending the existing prefix.
@@ -90,9 +91,10 @@ func (v *judgeValidator) IsCorrect(ctx context.Context, logger logging.Logger, r
 	// Execute the judge task and evaluate the response.
 	judgeTaskResult, err := v.executor.Execute(ctx, judgeLogger, judgeTask)
 	usage := judgeTaskResult.GetUsage()
+	toolCalls := judgeTaskResult.GetToolCalls()
 	if err != nil {
 		judgeLogger.Error(ctx, logging.LevelError, err, "finished with error")
-		return ValidationResult{Usage: usage}, fmt.Errorf("judge evaluation failed: %w", err)
+		return ValidationResult{Usage: usage, ToolCalls: toolCalls}, fmt.Errorf("judge evaluation failed: %w", err)
 	}
 
 	judgeLogger.Message(ctx, logging.LevelTrace, "verdict: %s", utils.ToString(judgeTaskResult.GetFinalAnswerContent()))
@@ -104,7 +106,7 @@ func (v *judgeValidator) IsCorrect(ctx context.Context, logger logging.Logger, r
 
 	validationResult, err := NewValueMatchValidator().IsCorrect(ctx, judgeLogger, config.ValidationRules{}, judgeTask.ExpectedResult, judgeTaskResult, judgeTask.Prompt, judgeTask.ResponseResultFormat)
 	if err != nil {
-		return ValidationResult{Usage: usage}, fmt.Errorf("failed to evaluate judge response: %w", err)
+		return ValidationResult{Usage: usage, ToolCalls: toolCalls}, fmt.Errorf("failed to evaluate judge response: %w", err)
 	}
 
 	var explanation string
@@ -119,6 +121,7 @@ func (v *judgeValidator) IsCorrect(ctx context.Context, logger logging.Logger, r
 		Title:       "Semantic Assessment",
 		Explanation: explanation,
 		Usage:       usage,
+		ToolCalls:   toolCalls,
 	}, nil
 }
 

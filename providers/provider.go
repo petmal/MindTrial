@@ -362,7 +362,8 @@ type Usage struct {
 	InputTokens *int64 `json:"-"`
 	// OutputTokens used by the output if available.
 	OutputTokens *int64 `json:"-"`
-	// ToolUsage contains per-tool execution metrics collected during the run if available.
+	// ToolUsage contains per-tool aggregate execution statistics collected during
+	// the run if available.
 	ToolUsage map[string]tools.ToolUsage `json:"-"`
 }
 
@@ -447,10 +448,11 @@ type Result struct {
 	// Explanation is a detailed explanation of the answer.
 	Explanation string `json:"explanation" jsonschema:"title=Response Explanation" jsonschema_description:"A comprehensive explanation of the reasoning process, methodology, and context behind the final answer. This should provide clear rationale for how the answer was derived, including any relevant analysis, steps taken, or considerations made." validate:"required"`
 	// FinalAnswer contains the final answer to the task's query.
-	FinalAnswer Answer        `json:"final_answer" jsonschema:"title=Final Answer" validate:"required"`
-	duration    time.Duration `json:"-"` // Time to generate the response.
-	prompts     []string      `json:"-"` // Prompts used to generate the response.
-	usage       Usage         `json:"-"` // Usage statistics.
+	FinalAnswer Answer                  `json:"final_answer" jsonschema:"title=Final Answer" validate:"required"`
+	duration    time.Duration           `json:"-"` // Time to generate the response.
+	prompts     []string                `json:"-"` // Prompts used to generate the response.
+	usage       Usage                   `json:"-"` // Usage statistics.
+	toolCalls   []tools.ToolCallSummary `json:"-"` // Per-invocation tool call log.
 }
 
 // GetDuration returns the time duration it took to generate this result.
@@ -466,6 +468,11 @@ func (r Result) GetPrompts() []string {
 // GetUsage returns the aggregated usage statistics for this result.
 func (r Result) GetUsage() Usage {
 	return r.usage
+}
+
+// GetToolCalls returns the per-invocation tool call log for this result.
+func (r Result) GetToolCalls() []tools.ToolCallSummary {
+	return r.toolCalls
 }
 
 // GetFinalAnswerContent returns the actual final answer content wrapped in the `FinalAnswer` field.
@@ -491,6 +498,10 @@ func (r *Result) recordPrompt(prompt string) string {
 
 func (r *Result) recordToolUsage(usage map[string]tools.ToolUsage) {
 	r.usage.ToolUsage = usage
+}
+
+func (r *Result) recordToolCalls(calls []tools.ToolCallSummary) {
+	r.toolCalls = calls
 }
 
 func recordUsage[T constraints.Signed](inputTokens *T, outputTokens *T, out *Usage) {

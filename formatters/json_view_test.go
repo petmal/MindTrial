@@ -8,7 +8,9 @@ package formatters
 
 import (
 	"testing"
+	"time"
 
+	"github.com/petmal/mindtrial/pkg/testutils"
 	"github.com/petmal/mindtrial/runners"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -131,5 +133,79 @@ func TestTaskMetadataViewRoundTrip(t *testing.T) {
 		view := newTaskMetadataView(metadata)
 		require.NotNil(t, view)
 		assert.Equal(t, metadata, fromTaskMetadataView(view))
+	})
+}
+
+func TestToolUsageViewRoundTrip(t *testing.T) {
+	t.Run("round-trips CallCount and TotalDuration", func(t *testing.T) {
+		duration := 45 * time.Second
+		usage := runners.ToolUsage{
+			CallCount:     testutils.Ptr(int64(1)),
+			TotalDuration: &duration,
+		}
+		view := newToolUsageView(usage)
+		assert.Equal(t, usage, fromToolUsageView(view))
+	})
+
+	t.Run("zero-value round-trips", func(t *testing.T) {
+		usage := runners.ToolUsage{}
+		view := newToolUsageView(usage)
+		assert.Equal(t, usage, fromToolUsageView(view))
+	})
+}
+
+func TestToolCallSummaryViewsRoundTrip(t *testing.T) {
+	t.Run("empty input maps to nil view", func(t *testing.T) {
+		view := newToolCallSummaryViews([]runners.ToolCallSummary{})
+		assert.Nil(t, view)
+		assert.Nil(t, fromToolCallSummaryViews(view))
+	})
+
+	t.Run("calls round-trip including nil and populated previews", func(t *testing.T) {
+		preview := "some output"
+		exitCode := int64(1)
+		startedAt := time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
+		completedAt := startedAt.Add(1500 * time.Nanosecond)
+		calls := []runners.ToolCallSummary{
+			{
+				Tool:             "calculator",
+				CallID:           "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+				ConversationTurn: 2,
+				StartedAt:        startedAt,
+				CompletedAt:      completedAt,
+				Duration:         testutils.Ptr(1500 * time.Nanosecond),
+				Status:           "success",
+				Stdout:           &runners.ToolCallOutput{Bytes: 42},
+			},
+			{
+				Tool:         "calculator",
+				Duration:     testutils.Ptr(2500 * time.Nanosecond),
+				ExitCode:     &exitCode,
+				TimedOut:     false,
+				Status:       "nonzero_exit",
+				Stdout:       nil,
+				Stderr:       &runners.ToolCallOutput{Bytes: int64(len(preview)), Preview: &preview, Truncated: true},
+				ErrorMessage: "tool container exited with code 1",
+			},
+			{
+				Tool:         "web_search",
+				Duration:     nil,
+				WallTime:     60 * time.Second,
+				TimedOut:     true,
+				Status:       "timeout",
+				ErrorMessage: "tool execution timeout: execution timed out after 1m0s",
+			},
+		}
+		view := newToolCallSummaryViews(calls)
+		require.Len(t, view, 3)
+		assert.Equal(t, "01ARZ3NDEKTSV4RRFFQ69G5FAV", view[0].CallID)
+		assert.Equal(t, 2, view[0].ConversationTurn)
+		assert.Equal(t, startedAt, view[0].StartedAt)
+		assert.Equal(t, completedAt, view[0].CompletedAt)
+		assert.Zero(t, view[2].ConversationTurn, "omitted when the caller did not provide one")
+		assert.Nil(t, view[0].Stderr, "no stderr was ever captured for this call")
+		require.NotNil(t, view[1].Stderr)
+		assert.Nil(t, view[2].DurationNS, "the process never ran, so DurationNS is omitted rather than zero")
+		assert.Equal(t, calls, fromToolCallSummaryViews(view))
 	})
 }

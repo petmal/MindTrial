@@ -88,8 +88,8 @@ func (m *MockProvider) createBaseResult(taskName string) Result {
 		// Add usage for each tool.
 		for _, tool := range m.tools {
 			result.usage.ToolUsage[tool.Name] = tools.ToolUsage{
-				CallCount:   2,
-				TotalTimeNs: 150000000, // 150ms
+				CallCount:       2,
+				TotalDurationNs: 150000000, // 150ms
 			}
 		}
 	}

@@ -166,8 +166,13 @@ type AnswerDetails struct {
 	ExpectedAnswer [][]string
 	// Usage contains token usage statistics for generating the answer.
 	Usage TokenUsage
-	// ToolUsage contains aggregated statistics for any tools invoked while producing the answer.
+	// ToolUsage contains aggregated execution statistics for any tools invoked while
+	// producing the answer.
 	ToolUsage map[string]ToolUsage `json:"ToolUsage,omitempty"`
+	// ToolCalls contains a log of every individual invocation attempt made while producing
+	// the answer, including attempts that never actually ran. Tracked separately from
+	// ToolUsage, which only reflects invocations that actually ran.
+	ToolCalls []ToolCallSummary `json:"ToolCalls,omitempty"`
 }
 
 // ValidationDetails defines structured information about answer verification and correctness assessment.
@@ -179,8 +184,13 @@ type ValidationDetails struct {
 	// Usage contains token usage statistics for the response validation step.
 	// This is typically populated when using an LLM judge validator.
 	Usage TokenUsage
-	// ToolUsage contains aggregated statistics for any tools invoked during validation.
+	// ToolUsage contains aggregated execution statistics for any tools invoked during
+	// validation.
 	ToolUsage map[string]ToolUsage `json:"ToolUsage,omitempty"`
+	// ToolCalls contains a log of every individual invocation attempt made during
+	// validation, including attempts that never actually ran. Tracked separately from
+	// ToolUsage, which only reflects invocations that actually ran.
+	ToolCalls []ToolCallSummary `json:"ToolCalls,omitempty"`
 }
 
 // ErrorDetails defines structured information about errors that occurred during execution.
@@ -194,8 +204,13 @@ type ErrorDetails struct {
 	// Usage contains token usage statistics if available even in error scenarios.
 	// This is typically populated if the error occurs when parsing the generated response.
 	Usage TokenUsage
-	// ToolUsage contains aggregated statistics for any tools invoked prior to the error.
+	// ToolUsage contains aggregated execution statistics for any tools invoked prior to
+	// the error.
 	ToolUsage map[string]ToolUsage `json:"ToolUsage,omitempty"`
+	// ToolCalls contains a log of every individual invocation attempt made prior to the
+	// error, including attempts that never actually ran. Tracked separately from ToolUsage,
+	// which only reflects invocations that actually ran.
+	ToolCalls []ToolCallSummary `json:"ToolCalls,omitempty"`
 }
 
 // TokenUsage represents token usage consumed by an LLM request.
@@ -207,12 +222,69 @@ type TokenUsage struct {
 	OutputTokens *int64 `json:"OutputTokens,omitempty"`
 }
 
-// ToolUsage represents aggregated tool invocation statistics captured during execution.
+// ToolUsage represents aggregated execution statistics captured for a tool during
+// execution. It only reflects invocations whose underlying process actually ran
+// (regardless of exit code); invocation attempts that failed before that point (e.g.
+// invalid arguments, or an infrastructure error during setup) do not affect these
+// aggregates. See ToolCallSummary/ToolCalls for a complete per-invocation log that does
+// include such attempts.
 type ToolUsage struct {
-	// CallCount is the number of times the tool was invoked.
+	// CallCount is the number of times the tool's underlying process actually ran.
 	CallCount *int64 `json:"CallCount,omitempty"`
-	// TotalDuration is the cumulative execution time for the tool.
+	// TotalDuration is the cumulative execution time for the tool's underlying process.
 	TotalDuration *time.Duration `json:"TotalDuration,omitempty"`
+}
+
+// ToolCallSummary records the outcome of a single tool invocation.
+type ToolCallSummary struct {
+	// Tool is the name of the tool this call invoked.
+	Tool string
+	// CallID identifies this call, letting a specific invocation be correlated between this
+	// summary, the corresponding tool-call log lines (which include the same ID in their
+	// prefix), and - when the calling provider's API assigns its own tool-call ID and that
+	// ID was reused here - the provider's own API error messages. Falls back to a
+	// generated ID when the calling provider does not supply one, so this is never empty,
+	// but its shape/format is not guaranteed to be consistent across providers.
+	CallID string
+	// ConversationTurn is the 1-based conversation turn this call was made during, or 0 if
+	// unknown.
+	ConversationTurn int
+	// StartedAt is when this call began (start of setup, before the underlying process runs).
+	StartedAt time.Time
+	// CompletedAt is when this call finished, successfully or not.
+	CompletedAt time.Time
+	// Duration is the wall-clock duration of the underlying process's runtime, not including
+	// setup/teardown overhead. It is nil when no process ever ran (e.g. an infrastructure_error).
+	Duration *time.Duration
+	// WallTime is the wall-clock duration of the entire call attempt, from setup through
+	// output retrieval - i.e. Duration plus setup/teardown overhead. Unlike Duration, this is
+	// always set, even for calls whose underlying process never ran.
+	WallTime time.Duration
+	// ExitCode is the underlying process's exit code, or nil if no exit code is known.
+	ExitCode *int64
+	// TimedOut indicates the call was aborted due to exceeding its configured timeout.
+	TimedOut bool
+	// Status is one of: "success", "nonzero_exit", "empty_output", "timeout",
+	// "invalid_arguments", "infrastructure_error".
+	Status string
+	// Stdout is a size-limited capture of the call's standard output, or nil if no output was
+	// ever captured.
+	Stdout *ToolCallOutput
+	// Stderr is a size-limited capture of the call's standard error, or nil if no output was
+	// ever captured.
+	Stderr *ToolCallOutput
+	// ErrorMessage is a short explanation of the failure when Status is not "success".
+	ErrorMessage string
+}
+
+// ToolCallOutput holds a size-limited preview of a tool call's output stream.
+type ToolCallOutput struct {
+	// Bytes is the total size of the output stream, regardless of Truncated.
+	Bytes int64
+	// Preview is a truncated prefix of the output stream, or nil if not captured or empty.
+	Preview *string
+	// Truncated indicates whether Preview was cut short of the full output.
+	Truncated bool
 }
 
 // toLines converts an ExpectedResultSet to [][]string where each value is converted to string and split into lines.

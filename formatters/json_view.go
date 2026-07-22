@@ -66,6 +66,7 @@ type answerDetailsView struct {
 	ExpectedAnswer [][]string               `json:"ExpectedAnswer,omitempty"`
 	Usage          *runners.TokenUsage      `json:"Usage,omitempty"`
 	ToolUsage      map[string]toolUsageView `json:"ToolUsage,omitempty"`
+	ToolCalls      []toolCallSummaryView    `json:"ToolCalls,omitempty"`
 }
 
 // validationDetailsView is the view model for runners.ValidationDetails.
@@ -74,6 +75,7 @@ type validationDetailsView struct {
 	Explanation []string                 `json:"Explanation,omitempty"`
 	Usage       *runners.TokenUsage      `json:"Usage,omitempty"`
 	ToolUsage   map[string]toolUsageView `json:"ToolUsage,omitempty"`
+	ToolCalls   []toolCallSummaryView    `json:"ToolCalls,omitempty"`
 }
 
 // errorDetailsView is the view model for runners.ErrorDetails.
@@ -83,12 +85,37 @@ type errorDetailsView struct {
 	Details   map[string][]string      `json:"Details,omitempty"`
 	Usage     *runners.TokenUsage      `json:"Usage,omitempty"`
 	ToolUsage map[string]toolUsageView `json:"ToolUsage,omitempty"`
+	ToolCalls []toolCallSummaryView    `json:"ToolCalls,omitempty"`
 }
 
 // toolUsageView is the view model for runners.ToolUsage.
 type toolUsageView struct {
 	CallCount       *int64 `json:"CallCount,omitempty"`
 	TotalDurationNS *int64 `json:"TotalDurationNS,omitempty"`
+}
+
+// toolCallSummaryView is the view model for runners.ToolCallSummary.
+type toolCallSummaryView struct {
+	Tool             string              `json:"Tool"`
+	CallID           string              `json:"CallID"`
+	ConversationTurn int                 `json:"ConversationTurn,omitempty"`
+	StartedAt        time.Time           `json:"StartedAt"`
+	CompletedAt      time.Time           `json:"CompletedAt"`
+	DurationNS       *int64              `json:"DurationNS,omitempty"`
+	WallTimeNS       int64               `json:"WallTimeNS"`
+	ExitCode         *int64              `json:"ExitCode,omitempty"`
+	TimedOut         bool                `json:"TimedOut,omitempty"`
+	Status           string              `json:"Status,omitempty"`
+	Stdout           *toolCallOutputView `json:"Stdout,omitempty"`
+	Stderr           *toolCallOutputView `json:"Stderr,omitempty"`
+	ErrorMessage     string              `json:"ErrorMessage,omitempty"`
+}
+
+// toolCallOutputView is the view model for runners.ToolCallOutput.
+type toolCallOutputView struct {
+	Bytes     int64   `json:"Bytes"`
+	Preview   *string `json:"Preview,omitempty"`
+	Truncated bool    `json:"Truncated,omitempty"`
 }
 
 func toResultsView(results runners.Results) resultsView {
@@ -149,9 +176,10 @@ func newAnswerDetailsView(a runners.AnswerDetails) *answerDetailsView {
 		ExpectedAnswer: a.ExpectedAnswer,
 		Usage:          tokenUsageToPtr(a.Usage),
 		ToolUsage:      newToolUsageMapView(a.ToolUsage),
+		ToolCalls:      newToolCallSummaryViews(a.ToolCalls),
 	}
 	if v.Title == "" && len(v.Explanation) == 0 && len(v.ActualAnswer) == 0 &&
-		len(v.ExpectedAnswer) == 0 && v.Usage == nil && len(v.ToolUsage) == 0 {
+		len(v.ExpectedAnswer) == 0 && v.Usage == nil && len(v.ToolUsage) == 0 && len(v.ToolCalls) == 0 {
 		return nil
 	}
 	return &v
@@ -163,8 +191,9 @@ func newValidationDetailsView(v runners.ValidationDetails) *validationDetailsVie
 		Explanation: v.Explanation,
 		Usage:       tokenUsageToPtr(v.Usage),
 		ToolUsage:   newToolUsageMapView(v.ToolUsage),
+		ToolCalls:   newToolCallSummaryViews(v.ToolCalls),
 	}
-	if rv.Title == "" && len(rv.Explanation) == 0 && rv.Usage == nil && len(rv.ToolUsage) == 0 {
+	if rv.Title == "" && len(rv.Explanation) == 0 && rv.Usage == nil && len(rv.ToolUsage) == 0 && len(rv.ToolCalls) == 0 {
 		return nil
 	}
 	return &rv
@@ -177,8 +206,9 @@ func newErrorDetailsView(e runners.ErrorDetails) *errorDetailsView {
 		Details:   e.Details,
 		Usage:     tokenUsageToPtr(e.Usage),
 		ToolUsage: newToolUsageMapView(e.ToolUsage),
+		ToolCalls: newToolCallSummaryViews(e.ToolCalls),
 	}
-	if v.Title == "" && v.Message == "" && len(v.Details) == 0 && v.Usage == nil && len(v.ToolUsage) == 0 {
+	if v.Title == "" && v.Message == "" && len(v.Details) == 0 && v.Usage == nil && len(v.ToolUsage) == 0 && len(v.ToolCalls) == 0 {
 		return nil
 	}
 	return &v
@@ -199,6 +229,47 @@ func newToolUsageView(u runners.ToolUsage) toolUsageView {
 	return toolUsageView{
 		CallCount:       u.CallCount,
 		TotalDurationNS: durationToNsPtr(u.TotalDuration),
+	}
+}
+
+// newToolCallSummaryViews converts runners.ToolCallSummary values to their view model.
+// Returns nil for an empty input so the field is omitted entirely, consistent with the
+// other optional-field conventions in this file.
+func newToolCallSummaryViews(calls []runners.ToolCallSummary) []toolCallSummaryView {
+	if len(calls) == 0 {
+		return nil
+	}
+	views := make([]toolCallSummaryView, len(calls))
+	for i, c := range calls {
+		views[i] = toolCallSummaryView{
+			Tool:             c.Tool,
+			CallID:           c.CallID,
+			ConversationTurn: c.ConversationTurn,
+			StartedAt:        c.StartedAt,
+			CompletedAt:      c.CompletedAt,
+			DurationNS:       durationToNsPtr(c.Duration),
+			WallTimeNS:       c.WallTime.Nanoseconds(),
+			ExitCode:         c.ExitCode,
+			TimedOut:         c.TimedOut,
+			Status:           c.Status,
+			Stdout:           newToolCallOutputView(c.Stdout),
+			Stderr:           newToolCallOutputView(c.Stderr),
+			ErrorMessage:     c.ErrorMessage,
+		}
+	}
+	return views
+}
+
+// newToolCallOutputView converts a runners.ToolCallOutput to its view model.
+// Returns nil when o is nil (the stream was never captured for this call).
+func newToolCallOutputView(o *runners.ToolCallOutput) *toolCallOutputView {
+	if o == nil {
+		return nil
+	}
+	return &toolCallOutputView{
+		Bytes:     o.Bytes,
+		Preview:   o.Preview,
+		Truncated: o.Truncated,
 	}
 }
 
@@ -287,6 +358,7 @@ func fromDetailsView(d detailsView) runners.Details {
 			ExpectedAnswer: d.Answer.ExpectedAnswer,
 			Usage:          tokenUsageFromPtr(d.Answer.Usage),
 			ToolUsage:      fromToolUsageMapView(d.Answer.ToolUsage),
+			ToolCalls:      fromToolCallSummaryViews(d.Answer.ToolCalls),
 		}
 	}
 	if d.Validation != nil {
@@ -295,6 +367,7 @@ func fromDetailsView(d detailsView) runners.Details {
 			Explanation: d.Validation.Explanation,
 			Usage:       tokenUsageFromPtr(d.Validation.Usage),
 			ToolUsage:   fromToolUsageMapView(d.Validation.ToolUsage),
+			ToolCalls:   fromToolCallSummaryViews(d.Validation.ToolCalls),
 		}
 	}
 	if d.Error != nil {
@@ -304,6 +377,7 @@ func fromDetailsView(d detailsView) runners.Details {
 			Details:   d.Error.Details,
 			Usage:     tokenUsageFromPtr(d.Error.Usage),
 			ToolUsage: fromToolUsageMapView(d.Error.ToolUsage),
+			ToolCalls: fromToolCallSummaryViews(d.Error.ToolCalls),
 		}
 	}
 	return result
@@ -324,6 +398,47 @@ func fromToolUsageView(v toolUsageView) runners.ToolUsage {
 	return runners.ToolUsage{
 		CallCount:     v.CallCount,
 		TotalDuration: nsToDurationPtr(v.TotalDurationNS),
+	}
+}
+
+// fromToolCallSummaryViews converts view models back to runners.ToolCallSummary.
+// Returns nil for an empty input, matching newToolCallSummaryViews's nil-when-empty
+// convention.
+func fromToolCallSummaryViews(views []toolCallSummaryView) []runners.ToolCallSummary {
+	if len(views) == 0 {
+		return nil
+	}
+	calls := make([]runners.ToolCallSummary, len(views))
+	for i, v := range views {
+		calls[i] = runners.ToolCallSummary{
+			Tool:             v.Tool,
+			CallID:           v.CallID,
+			ConversationTurn: v.ConversationTurn,
+			StartedAt:        v.StartedAt,
+			CompletedAt:      v.CompletedAt,
+			Duration:         nsToDurationPtr(v.DurationNS),
+			WallTime:         time.Duration(v.WallTimeNS),
+			ExitCode:         v.ExitCode,
+			TimedOut:         v.TimedOut,
+			Status:           v.Status,
+			Stdout:           fromToolCallOutputView(v.Stdout),
+			Stderr:           fromToolCallOutputView(v.Stderr),
+			ErrorMessage:     v.ErrorMessage,
+		}
+	}
+	return calls
+}
+
+// fromToolCallOutputView converts a toolCallOutputView back to runners.ToolCallOutput.
+// Returns nil when v is nil (the stream was never captured for this call).
+func fromToolCallOutputView(v *toolCallOutputView) *runners.ToolCallOutput {
+	if v == nil {
+		return nil
+	}
+	return &runners.ToolCallOutput{
+		Bytes:     v.Bytes,
+		Preview:   v.Preview,
+		Truncated: v.Truncated,
 	}
 }
 

@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/docker/docker/client"
+	"github.com/oklog/ulid/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -247,6 +248,26 @@ func newTestContext() (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), 5*time.Second)
 }
 
+// onlyCall returns the single recorded ToolCallSummary for toolName, failing the test if
+// there isn't exactly one.
+func onlyCall(t *testing.T, executor *DockerToolExecutor, toolName string) ToolCallSummary {
+	t.Helper()
+	toolCalls := callsFor(executor, toolName)
+	require.Len(t, toolCalls, 1)
+	return toolCalls[0]
+}
+
+// callsFor returns the recorded ToolCallSummary values for toolName, in completion order.
+func callsFor(executor *DockerToolExecutor, toolName string) []ToolCallSummary {
+	var toolCalls []ToolCallSummary
+	for _, call := range executor.GetCallSummaries() {
+		if call.Tool == toolName {
+			toolCalls = append(toolCalls, call)
+		}
+	}
+	return toolCalls
+}
+
 func configureSuccessfulExecution(t *testing.T, mock *dockerAPIMock, tool *DockerTool, expectedFileContent, logOutput string, expectedAuxiliaryFiles map[string][]byte) func() string {
 	var mountedFile string
 
@@ -417,7 +438,9 @@ func TestDockerToolExecutorExecuteTool_Success(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	result, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(payload), nil)
+	before := time.Now()
+	result, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(payload), nil, nil)
+	after := time.Now()
 	require.NoError(t, err)
 	assert.JSONEq(t, `{"status":"ok"}`, string(result))
 
@@ -425,13 +448,179 @@ func TestDockerToolExecutorExecuteTool_Success(t *testing.T) {
 	usage, ok := stats[tool.name]
 	require.True(t, ok)
 	assert.Equal(t, int64(1), usage.CallCount)
-	assert.GreaterOrEqual(t, usage.TotalTimeNs, int64(0))
+	assert.GreaterOrEqual(t, usage.TotalDurationNs, int64(0))
+
+	call := onlyCall(t, executor, tool.name)
+	assert.Equal(t, toolCallStatusSuccess, call.Status)
+	require.NotNil(t, call.ExitCode)
+	assert.Equal(t, int64(0), *call.ExitCode)
+	assert.False(t, call.TimedOut)
+	require.NotNil(t, call.DurationNs)
+	assert.GreaterOrEqual(t, *call.DurationNs, int64(0))
+	assert.Empty(t, call.ErrorMessage)
+	require.NotNil(t, call.Stdout)
+	assert.Equal(t, int64(len(`{"status":"ok"}`)), call.Stdout.Bytes)
+	assert.Nil(t, call.Stdout.Preview, "stdout preview is omitted on success to save space")
+	assert.False(t, call.Stdout.Truncated)
+	require.NotNil(t, call.Stderr)
+	assert.Zero(t, call.Stderr.Bytes)
+	assert.Nil(t, call.Stderr.Preview)
+	_, ulidErr := ulid.Parse(call.CallID)
+	require.NoError(t, ulidErr, "CallID must be a valid ULID")
+	assert.Zero(t, call.ConversationTurn, "omitted when no ToolCallContext was provided")
+	assert.False(t, call.StartedAt.Before(before), "StartedAt must be within the call's wall-clock window")
+	assert.False(t, call.CompletedAt.After(after), "CompletedAt must be within the call's wall-clock window")
+	assert.False(t, call.CompletedAt.Before(call.StartedAt), "CompletedAt must not precede StartedAt")
 
 	mountedFile := mountedFileFn()
 	require.NotEmpty(t, mountedFile)
 	_, statErr := os.Stat(mountedFile)
 	require.Error(t, statErr)
 	assert.ErrorIs(t, statErr, os.ErrNotExist)
+}
+
+func TestDockerToolExecutorExecuteTool_CallContext(t *testing.T) {
+	mock := newDockerAPIMock(t)
+	executor := newTestExecutor(t, mock)
+
+	tool := newTestTool("call-context-tool")
+	executor.RegisterTool(tool)
+	configureSuccessfulExecution(t, mock, tool, "payload", `{"status":"ok"}`, nil)
+
+	logger := testutils.NewTestLogger(t)
+	ctx, cancel := newTestContext()
+	defer cancel()
+
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil, &ToolCallContext{CallID: "provider-native-id-123", ConversationTurn: 3})
+	require.NoError(t, err)
+
+	call := onlyCall(t, executor, tool.name)
+	assert.Equal(t, 3, call.ConversationTurn)
+	assert.Equal(t, "provider-native-id-123", call.CallID, "the caller-supplied CallID must be used as-is instead of generating one")
+}
+
+func TestDockerToolExecutorExecuteTool_CallContext_CallIDFallback(t *testing.T) {
+	mock := newDockerAPIMock(t)
+	executor := newTestExecutor(t, mock)
+
+	tool := newTestTool("call-context-fallback-tool")
+	executor.RegisterTool(tool)
+	configureSuccessfulExecution(t, mock, tool, "payload", `{"status":"ok"}`, nil)
+
+	logger := testutils.NewTestLogger(t)
+	ctx, cancel := newTestContext()
+	defer cancel()
+
+	// A ToolCallContext with an empty CallID (e.g. the calling provider does not assign
+	// its own tool-call IDs) must still fall back to a generated one.
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil, &ToolCallContext{ConversationTurn: 1})
+	require.NoError(t, err)
+
+	call := onlyCall(t, executor, tool.name)
+	_, ulidErr := ulid.Parse(call.CallID)
+	require.NoError(t, ulidErr, "CallID must fall back to a generated ULID when the context does not supply one")
+}
+
+func TestDockerToolExecutorExecuteTool_CallIDUniquePerCall(t *testing.T) {
+	mock := newDockerAPIMock(t)
+	executor := newTestExecutor(t, mock)
+
+	tool := newTestTool("unique-call-id-tool")
+	executor.RegisterTool(tool)
+	configureSuccessfulExecution(t, mock, tool, "payload", `{"status":"ok"}`, nil)
+
+	logger := testutils.NewTestLogger(t)
+	ctx, cancel := newTestContext()
+	defer cancel()
+
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil, nil)
+	require.NoError(t, err)
+	_, err = executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil, nil)
+	require.NoError(t, err)
+
+	calls := callsFor(executor, tool.name)
+	require.Len(t, calls, 2)
+	assert.NotEmpty(t, calls[0].CallID)
+	assert.NotEmpty(t, calls[1].CallID)
+	assert.NotEqual(t, calls[0].CallID, calls[1].CallID, "each call must get its own unique ID")
+}
+
+func TestDockerToolExecutorExecuteTool_StderrCapturedOnSuccess(t *testing.T) {
+	mock := newDockerAPIMock(t)
+	executor := newTestExecutor(t, mock)
+
+	tool := newTestTool("stderr-on-success")
+	executor.RegisterTool(tool)
+
+	configureSuccessfulExecution(t, mock, tool, "payload", `{"status":"ok"}`, nil)
+	mock.onLogs = func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/vnd.docker.raw-stream")
+		payload := encodeDockerFrames(
+			dockerLogFrame{Stream: 1, Data: `{"status":"ok"}`},
+			dockerLogFrame{Stream: 2, Data: "a stray warning\n"},
+		)
+		if _, err := w.Write(payload); err != nil {
+			t.Fatalf("failed to write log payload: %v", err)
+		}
+	}
+
+	logger := testutils.NewTestLogger(t)
+	ctx, cancel := newTestContext()
+	defer cancel()
+
+	result, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil, nil)
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"status":"ok"}`, string(result))
+
+	call := onlyCall(t, executor, tool.name)
+	assert.Equal(t, toolCallStatusSuccess, call.Status)
+	require.NotNil(t, call.Stdout)
+	assert.Nil(t, call.Stdout.Preview, "stdout preview is still omitted on success even alongside stderr output")
+	require.NotNil(t, call.Stderr)
+	require.NotNil(t, call.Stderr.Preview, "stray stderr output should be captured even on an otherwise successful call")
+	assert.Equal(t, "a stray warning\n", *call.Stderr.Preview)
+}
+
+func TestDockerToolExecutorExecuteTool_OutputPreviewTruncated(t *testing.T) {
+	mock := newDockerAPIMock(t)
+	executor := newTestExecutor(t, mock)
+
+	tool := newTestTool("large-output")
+	executor.RegisterTool(tool)
+
+	configureSuccessfulExecution(t, mock, tool, "payload", "ignored", nil)
+
+	mock.onWait = func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		if _, err := w.Write([]byte(`{"StatusCode":1}`)); err != nil {
+			t.Fatalf("failed to write wait response: %v", err)
+		}
+	}
+
+	largeOutput := strings.Repeat("e", maxCallOutputPreviewBytes+100)
+	mock.onLogs = func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/vnd.docker.raw-stream")
+		payload := encodeDockerFrames(dockerLogFrame{Stream: 2, Data: largeOutput})
+		if _, err := w.Write(payload); err != nil {
+			t.Fatalf("failed to write log payload: %v", err)
+		}
+	}
+
+	logger := testutils.NewTestLogger(t)
+	ctx, cancel := newTestContext()
+	defer cancel()
+
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil, nil)
+	require.Error(t, err)
+
+	call := onlyCall(t, executor, tool.name)
+	assert.Equal(t, toolCallStatusNonZeroExit, call.Status)
+	require.NotNil(t, call.Stderr)
+	assert.Equal(t, int64(len(largeOutput)), call.Stderr.Bytes)
+	assert.True(t, call.Stderr.Truncated)
+	require.NotNil(t, call.Stderr.Preview)
+	assert.Len(t, *call.Stderr.Preview, maxCallOutputPreviewBytes)
+	assert.Equal(t, largeOutput[:maxCallOutputPreviewBytes], *call.Stderr.Preview)
 }
 
 func TestDockerToolExecutorExecuteTool_ResourceLimits(t *testing.T) {
@@ -451,7 +640,7 @@ func TestDockerToolExecutorExecuteTool_ResourceLimits(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil, nil)
 	require.NoError(t, err)
 }
 
@@ -465,7 +654,7 @@ func TestDockerToolExecutorExecuteTool_ToolNotRegistered(t *testing.T) {
 
 	executor := &DockerToolExecutor{client: nil}
 
-	_, err := executor.ExecuteTool(ctx, logger, "missing", json.RawMessage(`{}`), nil)
+	_, err := executor.ExecuteTool(ctx, logger, "missing", json.RawMessage(`{}`), nil, nil)
 	require.Error(t, err)
 	assert.Equal(t, "tool not available: missing", err.Error())
 }
@@ -478,7 +667,7 @@ func TestDockerToolExecutorExecuteTool_UnsupportedToolType(t *testing.T) {
 	executor := &DockerToolExecutor{}
 	executor.tools.Store("bad", 123)
 
-	_, err := executor.ExecuteTool(ctx, logger, "bad", json.RawMessage(`{}`), nil)
+	_, err := executor.ExecuteTool(ctx, logger, "bad", json.RawMessage(`{}`), nil, nil)
 	require.Error(t, err)
 	assert.Equal(t, "tool \"bad\" encountered an error: tool internal error: unsupported tool type: int", err.Error())
 }
@@ -498,11 +687,11 @@ func TestDockerToolExecutorExecuteTool_MaxCallsExceeded(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil, nil)
 	require.NoError(t, err)
 	assert.False(t, executor.IsToolExhausted(tool.name), "tool should not be exhausted after successful call within limit")
 
-	_, err = executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
+	_, err = executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil, nil)
 	require.Error(t, err)
 	expected := "tool max calls exceeded: tool \"limited-tool\" has exceeded its maximum call limit of 1 for this session. Do not call this tool again during the current conversation"
 	assert.Equal(t, expected, err.Error())
@@ -573,10 +762,24 @@ func TestDockerToolExecutorExecuteTool_InvalidArguments(t *testing.T) {
 	tool := newTestTool("invalid-args")
 	executor.RegisterTool(tool)
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`[]`), nil)
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`[]`), nil, nil)
 	require.Error(t, err)
 	expected := "tool \"invalid-args\" encountered an error: invalid tool arguments: failed to parse input arguments as JSON object (expected format: {\"argName\": \"value\", ...}): json: cannot unmarshal array into Go value of type map[string]interface {}"
 	assert.Equal(t, expected, err.Error())
+	call := onlyCall(t, executor, tool.name)
+	assert.Equal(t, toolCallStatusInvalidArguments, call.Status)
+	assert.Nil(t, call.ExitCode, "no process ever ran for an invalid-arguments error during setup")
+	assert.Nil(t, call.DurationNs, "no container ever ran, so duration is never recorded")
+	assert.GreaterOrEqual(t, call.WallTimeNs, int64(0), "the call attempt's wall time is still recorded")
+	assert.True(t, strings.HasSuffix(err.Error(), call.ErrorMessage))
+
+	stats := executor.GetUsageStats()
+	_, ok := stats[tool.name]
+	assert.False(t, ok, "no usage stats are recorded when the container never ran")
+
+	calls := executor.GetCallSummaries()
+	assert.Len(t, calls, 1, "the failed attempt is still recorded in the per-call log")
+	assert.Equal(t, tool.name, calls[0].Tool)
 }
 
 func TestDockerToolExecutorExecuteTool_CreateContainerError(t *testing.T) {
@@ -597,10 +800,17 @@ func TestDockerToolExecutorExecuteTool_CreateContainerError(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil, nil)
 	require.Error(t, err)
 	expected := "tool \"create-error\" encountered an error: tool internal error: failed to create tool container (image: \"alpine:latest\"): Error response from daemon: {\"message\":\"create error\"}"
 	assert.Equal(t, expected, err.Error())
+
+	call := onlyCall(t, executor, tool.name)
+	assert.Equal(t, toolCallStatusInfrastructureError, call.Status)
+	assert.Nil(t, call.ExitCode, "no process ever ran when container creation itself failed")
+	assert.Nil(t, call.DurationNs)
+	assert.Nil(t, call.Stdout)
+	assert.Nil(t, call.Stderr)
 }
 
 func TestDockerToolExecutorExecuteTool_NonZeroExit(t *testing.T) {
@@ -631,10 +841,21 @@ func TestDockerToolExecutorExecuteTool_NonZeroExit(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil, nil)
 	require.Error(t, err)
 	expected := "tool \"exit-failure\" encountered an error: tool execution failed: tool container exited with code 2: fatal error"
 	assert.Equal(t, expected, err.Error())
+
+	call := onlyCall(t, executor, tool.name)
+	assert.Equal(t, toolCallStatusNonZeroExit, call.Status)
+	require.NotNil(t, call.ExitCode)
+	assert.Equal(t, int64(2), *call.ExitCode)
+	require.NotNil(t, call.Stdout)
+	assert.Zero(t, call.Stdout.Bytes)
+	require.NotNil(t, call.Stderr)
+	require.NotNil(t, call.Stderr.Preview)
+	assert.Equal(t, "fatal error\n", *call.Stderr.Preview)
+	assert.False(t, call.Stderr.Truncated)
 }
 
 func TestDockerToolExecutorExecuteTool_LogRetrievalError(t *testing.T) {
@@ -657,10 +878,17 @@ func TestDockerToolExecutorExecuteTool_LogRetrievalError(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil, nil)
 	require.Error(t, err)
 	expected := "tool \"log-error\" encountered an error: tool internal error: failed to retrieve tool output from tool container: failed to get tool container logs: Error response from daemon: {\"message\":\"log failure\"}"
 	assert.Equal(t, expected, err.Error())
+
+	call := onlyCall(t, executor, tool.name)
+	assert.Equal(t, toolCallStatusInfrastructureError, call.Status)
+	require.NotNil(t, call.ExitCode, "the container did start and exit 0 before the log read failed")
+	assert.Equal(t, int64(0), *call.ExitCode)
+	assert.Nil(t, call.Stdout, "no output was captured since the log read itself failed")
+	assert.Nil(t, call.Stderr)
 }
 
 func TestDockerToolExecutorExecuteTool_LogFetchFailureFallback(t *testing.T) {
@@ -701,11 +929,18 @@ func TestDockerToolExecutorExecuteTool_LogFetchFailureFallback(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil, nil)
 	require.Error(t, err)
 	expected := "tool \"log-fallback\" encountered an error: tool execution failed: tool container exited with code 3"
 	assert.Equal(t, expected, err.Error())
 	assert.Equal(t, 1, logCallCount)
+
+	call := onlyCall(t, executor, tool.name)
+	assert.Equal(t, toolCallStatusNonZeroExit, call.Status)
+	require.NotNil(t, call.ExitCode)
+	assert.Equal(t, int64(3), *call.ExitCode)
+	assert.Nil(t, call.Stdout, "no output was captured since the log fetch itself failed")
+	assert.Nil(t, call.Stderr)
 }
 
 func TestDockerToolExecutorExecuteTool_EmptyOutput(t *testing.T) {
@@ -729,10 +964,16 @@ func TestDockerToolExecutorExecuteTool_EmptyOutput(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil, nil)
 	require.Error(t, err)
 	expected := "tool \"empty-output\" encountered an error: tool execution failed: tool returned no output"
 	assert.Equal(t, expected, err.Error())
+
+	call := onlyCall(t, executor, tool.name)
+	assert.Equal(t, toolCallStatusEmptyOutput, call.Status)
+	require.NotNil(t, call.ExitCode, "the container exited 0 despite producing no usable output")
+	assert.Equal(t, int64(0), *call.ExitCode)
+	require.NotNil(t, call.Stdout, "the empty output was still read successfully")
 }
 
 func TestDockerToolExecutorExecuteTool_Timeout(t *testing.T) {
@@ -754,10 +995,17 @@ func TestDockerToolExecutorExecuteTool_Timeout(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil, nil)
 	require.Error(t, err)
 	expected := "tool \"timeout\" encountered an error: tool execution timeout: execution timed out after 50ms"
 	assert.Equal(t, expected, err.Error())
+
+	call := onlyCall(t, executor, tool.name)
+	assert.Equal(t, toolCallStatusTimeout, call.Status)
+	assert.True(t, call.TimedOut)
+	assert.Nil(t, call.ExitCode)
+	assert.Nil(t, call.Stdout)
+	assert.Nil(t, call.Stderr)
 }
 
 func TestDockerToolExecutorExecuteTool_ContextCanceled(t *testing.T) {
@@ -786,10 +1034,16 @@ func TestDockerToolExecutorExecuteTool_ContextCanceled(t *testing.T) {
 		cancel()
 	}()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil, nil)
 	require.Error(t, err)
 	expected := "tool \"canceled\" encountered an error: tool internal error: execution was cancelled"
 	assert.Equal(t, expected, err.Error())
+
+	call := onlyCall(t, executor, tool.name)
+	assert.Equal(t, toolCallStatusInfrastructureError, call.Status)
+	assert.Nil(t, call.ExitCode, "cancellation does not yield a confirmed exit code")
+	assert.Nil(t, call.Stdout)
+	assert.Nil(t, call.Stderr)
 }
 
 func TestDockerToolExecutorExecuteTool_ContainerStartError(t *testing.T) {
@@ -812,7 +1066,7 @@ func TestDockerToolExecutorExecuteTool_ContainerStartError(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil, nil)
 	require.Error(t, err)
 	expected := "tool \"start-error\" encountered an error: tool internal error: failed to start tool container: Error response from daemon: {\"message\":\"start failed\"}"
 	assert.Equal(t, expected, err.Error())
@@ -838,7 +1092,7 @@ func TestDockerToolExecutorExecuteTool_ContainerWaitError(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil)
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":"payload"}`), nil, nil)
 	require.Error(t, err)
 	expected := "tool \"wait-error\" encountered an error: tool internal error: failed waiting for tool to finish execution: Error response from daemon: {\"message\":\"wait failed\"}"
 	assert.Equal(t, expected, err.Error())
@@ -858,7 +1112,7 @@ func TestDockerToolExecutorExecuteTool_FileMappingJSONValue(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":{"key":"value"}}`), nil)
+	_, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(`{"input":{"key":"value"}}`), nil, nil)
 	require.NoError(t, err)
 }
 
@@ -886,7 +1140,7 @@ func TestDockerToolExecutorExecuteTool_WithAuxiliaryFiles(t *testing.T) {
 	ctx, cancel := newTestContext()
 	defer cancel()
 
-	result, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(payload), auxiliaryFiles)
+	result, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(payload), auxiliaryFiles, nil)
 	require.NoError(t, err)
 	assert.JSONEq(t, `{"status":"processed"}`, string(result))
 
@@ -894,7 +1148,7 @@ func TestDockerToolExecutorExecuteTool_WithAuxiliaryFiles(t *testing.T) {
 	usage, ok := stats[tool.name]
 	require.True(t, ok)
 	assert.Equal(t, int64(1), usage.CallCount)
-	assert.GreaterOrEqual(t, usage.TotalTimeNs, int64(0))
+	assert.GreaterOrEqual(t, usage.TotalDurationNs, int64(0))
 }
 
 func TestDockerToolExecutorExecuteTool_WithSharedDirectory(t *testing.T) {
@@ -916,7 +1170,7 @@ func TestDockerToolExecutorExecuteTool_WithSharedDirectory(t *testing.T) {
 	defer cancel()
 
 	// First call - shared directory should be created.
-	result, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(payload), nil)
+	result, err := executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(payload), nil, nil)
 	require.NoError(t, err)
 	assert.JSONEq(t, `{"status":"first"}`, string(result))
 
@@ -925,7 +1179,7 @@ func TestDockerToolExecutorExecuteTool_WithSharedDirectory(t *testing.T) {
 	configureSuccessfulExecution(t, mock, tool, "second call", `{"status":"second"}`, nil)
 
 	// Second call - shared directory should be reused.
-	result, err = executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(payload2), nil)
+	result, err = executor.ExecuteTool(ctx, logger, tool.name, json.RawMessage(payload2), nil, nil)
 	require.NoError(t, err)
 	assert.JSONEq(t, `{"status":"second"}`, string(result))
 

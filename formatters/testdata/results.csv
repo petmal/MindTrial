@@ -33,7 +33,49 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details,Suite,Category,Diffic
         ""CallCount"": 1,
         ""TotalDurationNS"": 135000000000
       }
-    }
+    },
+    ""ToolCalls"": [
+      {
+        ""Tool"": ""calculator"",
+        ""CallID"": ""call_9f8c2e1a4b3d"",
+        ""ConversationTurn"": 1,
+        ""StartedAt"": ""2025-06-01T12:00:00Z"",
+        ""CompletedAt"": ""2025-06-01T12:00:00.145Z"",
+        ""DurationNS"": 120000000,
+        ""WallTimeNS"": 145000000,
+        ""ExitCode"": 0,
+        ""Status"": ""success"",
+        ""Stdout"": {
+          ""Bytes"": 12
+        }
+      },
+      {
+        ""Tool"": ""calculator"",
+        ""CallID"": ""call_1a2b3c4d5e6f"",
+        ""ConversationTurn"": 2,
+        ""StartedAt"": ""2025-06-01T12:00:01Z"",
+        ""CompletedAt"": ""2025-06-01T12:00:01.11Z"",
+        ""DurationNS"": 85000000,
+        ""WallTimeNS"": 110000000,
+        ""ExitCode"": 1,
+        ""Status"": ""nonzero_exit"",
+        ""Stderr"": {
+          ""Bytes"": 22,
+          ""Preview"": ""division by zero""
+        },
+        ""ErrorMessage"": ""tool container exited with code 1: division by zero""
+      },
+      {
+        ""Tool"": ""web_search"",
+        ""CallID"": ""01JEDE7Z8X0000000000000ABC"",
+        ""StartedAt"": ""2025-06-01T12:00:02Z"",
+        ""CompletedAt"": ""2025-06-01T12:01:02Z"",
+        ""WallTimeNS"": 60000000000,
+        ""TimedOut"": true,
+        ""Status"": ""timeout"",
+        ""ErrorMessage"": ""tool execution timeout: execution timed out after 1m0s""
+      }
+    ]
   },
   ""Validation"": {
     ""Title"": ""Validatio Perfecta"",

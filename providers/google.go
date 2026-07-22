@@ -218,6 +218,7 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 			return o.client.Models.GenerateContent(ctx, cfg.Model, contents, generateConfig)
 		}, &result.duration)
 		result.recordToolUsage(executor.GetUsageStats())
+		result.recordToolCalls(executor.GetCallSummaries())
 		if err != nil {
 			return result, WrapErrGenerateResponse(err)
 		} else if resp == nil {
@@ -262,7 +263,7 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 							// allow one final call of the tool (should short-circuit) and
 							// remove it from the available tools to prevent further errors.
 							wasExhausted := executor.IsToolExhausted(part.FunctionCall.Name)
-							if toolResult, err := executor.ExecuteTool(ctx, logger, part.FunctionCall.Name, json.RawMessage(argsBytes), data); err != nil {
+							if toolResult, err := executor.ExecuteTool(ctx, logger, part.FunctionCall.Name, json.RawMessage(argsBytes), data, &tools.ToolCallContext{CallID: part.FunctionCall.ID, ConversationTurn: turn}); err != nil {
 								response["error"] = formatToolExecutionError(err)
 							} else {
 								response["result"] = string(toolResult)

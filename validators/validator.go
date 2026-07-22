@@ -17,6 +17,7 @@ import (
 	"github.com/petmal/mindtrial/pkg/logging"
 	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/petmal/mindtrial/providers"
+	"github.com/petmal/mindtrial/providers/tools"
 )
 
 // ErrUnsupportedResponseFormatValidation is returned when a validator cannot handle the response format.
@@ -32,6 +33,8 @@ type ValidationResult struct {
 	Explanation string
 	// Usage contains token usage statistics for the validation step when available.
 	Usage providers.Usage
+	// ToolCalls contains the per-invocation tool call log for the validation step when available.
+	ToolCalls []tools.ToolCallSummary
 }
 
 // Validator verifies AI model responses.

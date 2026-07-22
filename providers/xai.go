@@ -184,6 +184,7 @@ func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConf
 			return response, err
 		}, &result.duration)
 		result.recordToolUsage(executor.GetUsageStats())
+		result.recordToolCalls(executor.GetCallSummaries())
 		if err != nil {
 			return result, WrapErrGenerateResponse(err)
 		} else if resp == nil {
@@ -222,7 +223,7 @@ func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConf
 					if err != nil {
 						return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
 					}
-					toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, args, data)
+					toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, args, data, &tools.ToolCallContext{CallID: toolCall.Id, ConversationTurn: turn})
 					content := string(toolResult)
 					if err != nil {
 						content = formatToolExecutionError(err)

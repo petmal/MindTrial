@@ -16,6 +16,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -35,17 +36,120 @@ import (
 // DockerToolExecutor executes tools within Docker containers.
 type DockerToolExecutor struct {
 	client        *client.Client
-	tools         sync.Map // map[string]*DockerTool
-	usage         sync.Map // map[string]*ToolUsage
+	tools         sync.Map         // map[string]*DockerTool
+	usage         sync.Map         // map[string]*ToolUsage
+	calls         callSummaryState // shared log of every invocation attempt across all tools, in completion order
 	getSharedDir  func(context.Context, *DockerToolExecutor) (string, error)
 	sharedDirPath atomic.Pointer[string] // stores the actual shared directory path if created
 }
 
-// ToolUsage tracks usage statistics for a tool.
+// ToolUsage tracks aggregate execution statistics for a tool: CallCount and
+// TotalDurationNs only reflect invocations whose container actually started running
+// (regardless of exit code) - i.e. actual compute time spent, not every invocation
+// attempt. An invocation that fails before the container ever starts (e.g. invalid
+// arguments, or an infrastructure error during setup) does not affect these aggregates.
+// See ToolCallSummary/GetCallSummaries for a complete per-invocation log that does
+// include such attempts.
 type ToolUsage struct {
-	CallCount   int64
-	TotalTimeNs int64
-	Exhausted   int32
+	CallCount       int64
+	TotalDurationNs int64
+	Exhausted       int32
+}
+
+// callSummaryState holds the shared log of per-call summaries across all tools. A single
+// shared log preserves the true chronological order calls completed in, across all tools.
+type callSummaryState struct {
+	sync.Mutex
+	calls []ToolCallSummary
+}
+
+// record appends a per-call summary, synchronized internally.
+func (s *callSummaryState) record(summary ToolCallSummary) {
+	s.Lock()
+	defer s.Unlock()
+	s.calls = append(s.calls, summary)
+}
+
+// snapshot returns a deep copy of the recorded per-call summaries, synchronized internally,
+// so callers never share the backing array.
+func (s *callSummaryState) snapshot() []ToolCallSummary {
+	s.Lock()
+	defer s.Unlock()
+	return slices.Clone(s.calls)
+}
+
+// maxCallOutputPreviewBytes caps the size of the Stdout/Stderr preview captured per tool call.
+// Chosen from an empirical distribution of tool call output sizes across exit-status categories:
+// the combined Q3 + 1.5*IQR outlier fence was ~1835 bytes, rounded up to the next power of two
+// to leave headroom while still keeping previews small enough for diagnostic/report display.
+const maxCallOutputPreviewBytes = 2048
+
+// Tool call summary status values. See ToolCallSummary.Status.
+const (
+	toolCallStatusSuccess             = "success"
+	toolCallStatusNonZeroExit         = "nonzero_exit"
+	toolCallStatusEmptyOutput         = "empty_output"
+	toolCallStatusTimeout             = "timeout"
+	toolCallStatusInvalidArguments    = "invalid_arguments"
+	toolCallStatusInfrastructureError = "infrastructure_error"
+)
+
+// OutputCapture holds a size-limited preview of a tool call's output stream.
+type OutputCapture struct {
+	// Bytes is the total size of the output stream, regardless of Truncated.
+	Bytes int64
+	// Preview is a truncated prefix of the output stream, or nil if not captured
+	// (e.g. stdout on a successful call) or empty.
+	Preview *string
+	// Truncated indicates whether Preview was cut short of the full output.
+	Truncated bool
+}
+
+// ToolCallSummary records the outcome of a single tool invocation.
+type ToolCallSummary struct {
+	// Tool is the name of the tool this call invoked.
+	Tool string
+	// CallID is a unique identifier (ULID) for this call. It is also included in the
+	// prefix of every log line emitted while this call was in progress, so a specific
+	// invocation can be correlated between this summary and the corresponding log lines.
+	CallID string
+	// ConversationTurn is the 1-based conversation turn this call was made during, or 0 if
+	// unknown/not provided by the caller.
+	ConversationTurn int
+	// StartedAt is when this call began (start of setup, before the container ever runs).
+	StartedAt time.Time
+	// CompletedAt is when this call finished, successfully or not.
+	CompletedAt time.Time
+	// DurationNs is the wall-clock duration of the container's runtime (start through exit),
+	// the same measurement window as the aggregate ToolUsage.TotalDurationNs. It does not
+	// include setup (argument parsing, mounts, container creation) or teardown overhead, and
+	// stays nil when no container process ever ran (e.g. an infrastructure_error during setup).
+	DurationNs *int64
+	// WallTimeNs is the wall-clock duration of the entire call attempt, from setup
+	// through output retrieval - i.e. DurationNs plus setup/teardown overhead. Unlike
+	// DurationNs, this is always set, even for calls whose container never ran.
+	WallTimeNs int64
+	// ExitCode is the container's exit code, or nil if no exit code is known (e.g. setup never
+	// reached container start, or the run was aborted/cancelled before it could be observed).
+	ExitCode *int64
+	// TimedOut indicates the call was aborted due to exceeding its configured timeout.
+	TimedOut bool
+	// Status is one of: "success", "nonzero_exit", "empty_output", "timeout",
+	// "invalid_arguments", "infrastructure_error". Statuses are chosen to be meaningful for
+	// result analysis: "nonzero_exit", "empty_output", and "invalid_arguments" reflect the
+	// tool being used incorrectly (a plausible model/tool-usage issue), while
+	// "infrastructure_error" covers environment/tooling failures (container/filesystem setup,
+	// Docker runtime errors including cancellation, and log retrieval failures) that the
+	// model has no influence over and are not informative about the model or tool under test.
+	Status string
+	// Stdout is a size-limited capture of the call's standard output, or nil if no output was
+	// ever captured (e.g. an infrastructure_error before or during log retrieval).
+	Stdout *OutputCapture
+	// Stderr is a size-limited capture of the call's standard error, or nil if no output was
+	// ever captured (e.g. an infrastructure_error before or during log retrieval).
+	Stderr *OutputCapture
+	// ErrorMessage is a short explanation of the failure when Status is not "success".
+	ErrorMessage string
 }
 
 // newSharedDirFactory creates a factory function that lazily creates a shared temporary directory.
@@ -98,8 +202,29 @@ func (d *DockerToolExecutor) ValidateTool(ctx context.Context, cfg config.ToolCo
 	return nil
 }
 
+// ToolCallContext carries optional caller-supplied metadata to attach to the
+// ToolCallSummary recorded for a single ExecuteTool call. All fields are optional; a nil
+// ToolCallContext (or a zero-value one) simply leaves the corresponding ToolCallSummary
+// fields unset. New fields can be added here in the future without changing ExecuteTool's
+// signature again.
+type ToolCallContext struct {
+	// CallID is the provider's own identifier for this tool call, if the provider's API
+	// assigns one (e.g. OpenAI/Anthropic/DeepSeek/Mistral AI/xAI's tool_call/tool_use ID).
+	// Reusing the provider's own ID - rather than minting an unrelated one - means this same
+	// ID can also be found in any API error message that references the call. If empty,
+	// ExecuteTool generates one internally (a ULID) instead, so ToolCallSummary.CallID is
+	// never empty; note this means CallID's shape/format varies depending on whether - and
+	// how - the calling provider assigns its own IDs.
+	CallID string
+	// ConversationTurn is the 1-based conversation turn this call is being made during, or 0
+	// if unknown/not applicable.
+	ConversationTurn int
+}
+
 // ExecuteTool executes a tool by name with the given arguments and auxiliary data files.
-func (d *DockerToolExecutor) ExecuteTool(ctx context.Context, logger logging.Logger, toolName string, args json.RawMessage, data map[string][]byte) (json.RawMessage, error) {
+// callCtx carries optional caller-supplied metadata (see ToolCallContext) to attach to the
+// resulting ToolCallSummary; pass nil if there is none to provide.
+func (d *DockerToolExecutor) ExecuteTool(ctx context.Context, logger logging.Logger, toolName string, args json.RawMessage, data map[string][]byte, callCtx *ToolCallContext) (json.RawMessage, error) {
 	toolValue, exists := d.tools.Load(toolName)
 	if !exists {
 		return nil, fmt.Errorf("%w: %s", ErrToolNotAvailable, toolName)
@@ -125,11 +250,22 @@ func (d *DockerToolExecutor) ExecuteTool(ctx context.Context, logger logging.Log
 		}
 	}
 
-	// Create a logger with tool name prefix.
-	toolLogger := logger.WithContext(fmt.Sprintf("%s: ", toolName))
+	// Assign an ID to this call so it can be correlated between the log and the recorded
+	// ToolCallSummary - preferring the caller-supplied ID (see ToolCallContext.CallID) so
+	// the same ID can also be matched against the provider's own API error messages, and
+	// falling back to a freshly generated ULID when the caller did not supply one. Create a
+	// logger that includes it alongside the tool name.
+	callID := ""
+	if callCtx != nil {
+		callID = callCtx.CallID
+	}
+	if callID == "" {
+		callID = ulid.Make().String()
+	}
+	toolLogger := logger.WithContext(fmt.Sprintf("%s[%s]: ", toolName, callID))
 
 	// Execute the tool.
-	result, err := d.executeDockerTool(ctx, toolLogger, tool, args, data)
+	result, err := d.executeDockerTool(ctx, toolLogger, tool, args, data, callID, callCtx)
 	if err != nil {
 		return nil, fmt.Errorf("tool %q encountered an error: %w", toolName, err)
 	}
@@ -149,39 +285,78 @@ func (d *DockerToolExecutor) Close() error {
 	return nil
 }
 
-// readContainerLogs reads logs from a container with the given options.
-func (d *DockerToolExecutor) readContainerLogs(ctx context.Context, containerID string, options container.LogsOptions) (string, error) {
-	logs, err := d.client.ContainerLogs(ctx, containerID, options)
+// readContainerLogs reads and demultiplexes a container's stdout and stderr logs.
+func (d *DockerToolExecutor) readContainerLogs(ctx context.Context, containerID string) (stdout string, stderr string, err error) {
+	logs, err := d.client.ContainerLogs(ctx, containerID, container.LogsOptions{ShowStdout: true, ShowStderr: true})
 	if err != nil {
-		return "", fmt.Errorf("failed to get tool container logs: %w", err)
+		return "", "", fmt.Errorf("failed to get tool container logs: %w", err)
 	}
 	defer logs.Close()
 
-	var buffer bytes.Buffer
-	_, err = stdcopy.StdCopy(&buffer, &buffer, logs) // combine stdout and stderr
-	if err != nil {
-		return "", fmt.Errorf("failed to read tool container output: %w", err)
+	var stdoutBuf, stderrBuf bytes.Buffer
+	if _, err := stdcopy.StdCopy(&stdoutBuf, &stderrBuf, logs); err != nil {
+		return "", "", fmt.Errorf("failed to read tool container output: %w", err)
 	}
 
-	return buffer.String(), nil
+	return stdoutBuf.String(), stderrBuf.String(), nil
 }
 
-// executeDockerTool executes a Docker tool with the given arguments and auxiliary data files.
-func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger logging.Logger, tool *DockerTool, args json.RawMessage, data map[string][]byte) (json.RawMessage, error) {
+// newOutputCapture builds an OutputCapture for a tool call output stream, truncating the
+// preview at maxCallOutputPreviewBytes. Truncation is a plain byte-length cut and may split
+// a multi-byte UTF-8 sequence; this is an acceptable trade-off for a diagnostic preview.
+// If includePreview is false, Preview stays nil (used for stdout on a successful call, to
+// save space) while Bytes/Truncated are still reported. Callers should only invoke this when
+// the stream was actually read; leave the corresponding ToolCallSummary field nil otherwise.
+func newOutputCapture(content string, includePreview bool) *OutputCapture {
+	capture := OutputCapture{Bytes: int64(len(content)), Truncated: len(content) > maxCallOutputPreviewBytes}
+	if includePreview && content != "" {
+		preview := content
+		if capture.Truncated {
+			preview = content[:maxCallOutputPreviewBytes]
+		}
+		capture.Preview = &preview
+	}
+	return &capture
+}
+
+// executeDockerTool executes a Docker tool with the given arguments and auxiliary data
+// files. callID uniquely identifies this call (see ExecuteTool) and callCtx carries
+// optional caller-supplied metadata (see ToolCallContext); callCtx may be nil.
+func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger logging.Logger, tool *DockerTool, args json.RawMessage, data map[string][]byte, callID string, callCtx *ToolCallContext) (json.RawMessage, error) {
+	startTime := time.Now()
+	summary := ToolCallSummary{CallID: callID, StartedAt: startTime}
+	if callCtx != nil {
+		summary.ConversationTurn = callCtx.ConversationTurn
+	}
+	// Guarantees exactly one summary is recorded, and its outcome logged, per call
+	// regardless of the return path. WallTimeNs covers the entire call attempt; DurationNs
+	// is set separately, only once the container actually runs, to cover just its runtime
+	// (see field docs).
+	defer func() {
+		summary.CompletedAt = time.Now()
+		summary.WallTimeNs = summary.CompletedAt.Sub(startTime).Nanoseconds()
+		d.recordCallSummary(tool.name, summary)
+		logCallOutcome(ctx, logger, summary)
+	}()
+
 	logger.Message(ctx, logging.LevelInfo, "starting setup")
 
 	// Parse the arguments.
 	var argMap map[string]interface{}
 	if err := json.Unmarshal(args, &argMap); err != nil {
 		logger.Error(ctx, logging.LevelError, err, "failed to parse input arguments: %s", string(args))
-		return nil, fmt.Errorf("%w: failed to parse input arguments as JSON object (expected format: {\"argName\": \"value\", ...}): %v", ErrInvalidToolArguments, err)
+		wrapErr := fmt.Errorf("%w: failed to parse input arguments as JSON object (expected format: {\"argName\": \"value\", ...}): %v", ErrInvalidToolArguments, err)
+		summary.Status, summary.ErrorMessage = toolCallStatusInvalidArguments, wrapErr.Error()
+		return nil, wrapErr
 	}
 	logger.Message(ctx, logging.LevelTrace, "parsed input arguments: %v", argMap)
 
 	// Create a temporary directory for file mappings.
 	tempDir, err := os.MkdirTemp("", "mindtrial-tool-*")
 	if err != nil {
-		return nil, fmt.Errorf("%w: failed to create temporary workspace directory: %v", ErrToolInternal, err)
+		wrapErr := fmt.Errorf("%w: failed to create temporary workspace directory: %v", ErrToolInternal, err)
+		summary.Status, summary.ErrorMessage = toolCallStatusInfrastructureError, wrapErr.Error()
+		return nil, wrapErr
 	}
 	defer os.RemoveAll(tempDir) // clean up temp directory after execution
 	logger.Message(ctx, logging.LevelDebug, "created temporary workspace directory: %s", tempDir)
@@ -200,7 +375,9 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 				contentBytes, err := json.Marshal(v)
 				if err != nil {
 					logger.Error(ctx, logging.LevelError, err, "failed to marshal argument %q to JSON: %v", argName, argValue)
-					return nil, fmt.Errorf("%w: failed to serialize argument %q to JSON (argument values must be JSON-serializable): %v", ErrInvalidToolArguments, argName, err)
+					wrapErr := fmt.Errorf("%w: failed to serialize argument %q to JSON (argument values must be JSON-serializable): %v", ErrInvalidToolArguments, argName, err)
+					summary.Status, summary.ErrorMessage = toolCallStatusInvalidArguments, wrapErr.Error()
+					return nil, wrapErr
 				}
 				content = string(contentBytes)
 			}
@@ -208,7 +385,9 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 			// Create a unique temporary file for this mapping.
 			tempFilePath, err := writeTempFile(tempDir, argName, content)
 			if err != nil {
-				return nil, fmt.Errorf("%w: failed to write argument %q to temporary file: %v", ErrToolInternal, argName, err)
+				wrapErr := fmt.Errorf("%w: failed to write argument %q to temporary file: %v", ErrToolInternal, argName, err)
+				summary.Status, summary.ErrorMessage = toolCallStatusInfrastructureError, wrapErr.Error()
+				return nil, wrapErr
 			}
 
 			// Create a bind mount for this file.
@@ -229,7 +408,9 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 			// Create temporary file for the data file.
 			tempFilePath, err := writeTempFile(tempDir, fileName, fileContent)
 			if err != nil {
-				return nil, fmt.Errorf("%w: failed to create temporary file for auxiliary data file %q: %v", ErrToolInternal, fileName, err)
+				wrapErr := fmt.Errorf("%w: failed to create temporary file for auxiliary data file %q: %v", ErrToolInternal, fileName, err)
+				summary.Status, summary.ErrorMessage = toolCallStatusInfrastructureError, wrapErr.Error()
+				return nil, wrapErr
 			}
 
 			// Create container path for the data file.
@@ -250,7 +431,9 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 	if tool.sharedDir != "" {
 		sharedTempDir, err := d.getSharedDir(ctx, d)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %v", ErrToolInternal, err)
+			wrapErr := fmt.Errorf("%w: %v", ErrToolInternal, err)
+			summary.Status, summary.ErrorMessage = toolCallStatusInfrastructureError, wrapErr.Error()
+			return nil, wrapErr
 		}
 
 		mounts = append(mounts, mount.Mount{
@@ -311,7 +494,9 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 	// Create the container.
 	createResp, err := d.client.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, containerName)
 	if err != nil {
-		return nil, fmt.Errorf("%w: failed to create tool container (image: %q): %v", ErrToolInternal, tool.image, err)
+		wrapErr := fmt.Errorf("%w: failed to create tool container (image: %q): %v", ErrToolInternal, tool.image, err)
+		summary.Status, summary.ErrorMessage = toolCallStatusInfrastructureError, wrapErr.Error()
+		return nil, wrapErr
 	}
 	logger.Message(ctx, logging.LevelDebug, "created tool container %q (ID: %s)", containerName, createResp.ID)
 
@@ -335,57 +520,95 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 	}
 
 	// Start the container and wait for completion.
-	startTime := time.Now()
+	runStart := time.Now()
 	logger.Message(ctx, logging.LevelInfo, "starting execution")
 	status, err := d.runContainer(execCtx, createResp.ID)
-	duration := time.Since(startTime)
-	d.recordUsage(tool.name, duration)
+	runDuration := time.Since(runStart)
+	d.recordUsage(tool.name, runDuration)
+	durationNs := runDuration.Nanoseconds()
+	summary.DurationNs = &durationNs
 
 	// Handle execution errors.
 	switch {
 	case errors.Is(err, context.DeadlineExceeded):
-		return nil, fmt.Errorf("%w: execution timed out after %s", ErrToolTimeout, tool.getTimeoutValue())
+		wrapErr := fmt.Errorf("%w: execution timed out after %s", ErrToolTimeout, tool.getTimeoutValue())
+		summary.Status, summary.TimedOut, summary.ErrorMessage = toolCallStatusTimeout, true, wrapErr.Error()
+		return nil, wrapErr
 	case errors.Is(err, context.Canceled):
-		return nil, fmt.Errorf("%w: execution was cancelled", ErrToolInternal)
+		wrapErr := fmt.Errorf("%w: execution was cancelled", ErrToolInternal)
+		summary.Status, summary.ErrorMessage = toolCallStatusInfrastructureError, wrapErr.Error()
+		return nil, wrapErr
 	case err != nil:
-		return nil, fmt.Errorf("%w: %v", ErrToolInternal, err)
+		wrapErr := fmt.Errorf("%w: %v", ErrToolInternal, err)
+		summary.Status, summary.ErrorMessage = toolCallStatusInfrastructureError, wrapErr.Error()
+		return nil, wrapErr
 	}
 
-	logger.Message(ctx, logging.LevelDebug, "tool container %q exited with code %d in %v", createResp.ID, status.StatusCode, duration)
+	logger.Message(ctx, logging.LevelDebug, "tool container %q exited with code %d in %v", createResp.ID, status.StatusCode, runDuration)
+	summary.ExitCode = &status.StatusCode
 
 	if status.StatusCode != 0 {
+		summary.Status = toolCallStatusNonZeroExit
+
 		// Get output to see what went wrong.
-		if output, logErr := d.readContainerLogs(ctx, createResp.ID, container.LogsOptions{
-			ShowStderr: true,
-			ShowStdout: true,
-		}); logErr == nil {
-			logger.Message(ctx, logging.LevelTrace, "tool container %q logs:\n%s", createResp.ID, output)
-			return nil, fmt.Errorf("%w: tool container exited with code %d: %s", ErrToolExecutionFailed, status.StatusCode, strings.TrimSpace(output))
+		if stdout, stderr, logErr := d.readContainerLogs(ctx, createResp.ID); logErr == nil {
+			logger.Message(ctx, logging.LevelTrace, "tool container %q stdout:\n%s\nstderr:\n%s", createResp.ID, stdout, stderr)
+			summary.Stdout = newOutputCapture(stdout, true)
+			summary.Stderr = newOutputCapture(stderr, true)
+			combinedOutput := strings.TrimSpace(stdout + stderr)
+			wrapErr := fmt.Errorf("%w: tool container exited with code %d: %s", ErrToolExecutionFailed, status.StatusCode, combinedOutput)
+			summary.ErrorMessage = wrapErr.Error()
+			return nil, wrapErr
 		} else {
 			logger.Error(ctx, logging.LevelWarn, logErr, "failed to retrieve tool container logs")
 		}
-		return nil, fmt.Errorf("%w: tool container exited with code %d", ErrToolExecutionFailed, status.StatusCode)
+		wrapErr := fmt.Errorf("%w: tool container exited with code %d", ErrToolExecutionFailed, status.StatusCode)
+		summary.ErrorMessage = wrapErr.Error()
+		return nil, wrapErr
 	}
 	logger.Message(ctx, logging.LevelInfo, "tool container %q finished successfully", createResp.ID)
 
-	// Get the container logs (stdout).
-	stdout, err := d.readContainerLogs(ctx, createResp.ID, container.LogsOptions{
-		ShowStdout: true,
-		ShowStderr: false,
-	})
+	// Get the container logs.
+	stdout, stderr, err := d.readContainerLogs(ctx, createResp.ID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: failed to retrieve tool output from tool container: %v", ErrToolInternal, err)
+		wrapErr := fmt.Errorf("%w: failed to retrieve tool output from tool container: %v", ErrToolInternal, err)
+		summary.Status, summary.ErrorMessage = toolCallStatusInfrastructureError, wrapErr.Error()
+		return nil, wrapErr
 	}
-	logger.Message(ctx, logging.LevelTrace, "tool container %q stdout:\n%s", createResp.ID, stdout)
+	logger.Message(ctx, logging.LevelTrace, "tool container %q stdout:\n%s\nstderr:\n%s", createResp.ID, stdout, stderr)
+	summary.Stdout = newOutputCapture(stdout, false) // omit preview on success to save space
+	summary.Stderr = newOutputCapture(stderr, true)  // report stray stderr output even on success
 
 	// Parse the JSON result.
 	result := strings.TrimSpace(stdout)
 	if result == "" {
-		return nil, fmt.Errorf("%w: tool returned no output", ErrToolExecutionFailed)
+		wrapErr := fmt.Errorf("%w: tool returned no output", ErrToolExecutionFailed)
+		summary.Status, summary.ErrorMessage = toolCallStatusEmptyOutput, wrapErr.Error()
+		return nil, wrapErr
 	}
 
-	logger.Message(ctx, logging.LevelInfo, "successfully finished")
+	summary.Status = toolCallStatusSuccess
 	return json.RawMessage(result), nil
+}
+
+// logCallOutcome emits a single terminal log line summarizing a completed tool call's
+// outcome, so every return path (success or failure) is guaranteed exactly one entry: at
+// LevelError for infrastructure failures and timeouts (environment/tooling problems, not
+// attributable to the model or tool), LevelWarn for statuses reflecting apparent tool
+// misuse (nonzero_exit, empty_output, invalid_arguments), and LevelInfo for success.
+func logCallOutcome(ctx context.Context, logger logging.Logger, summary ToolCallSummary) {
+	level := logging.LevelInfo
+	switch summary.Status {
+	case toolCallStatusInfrastructureError, toolCallStatusTimeout:
+		level = logging.LevelError
+	case toolCallStatusNonZeroExit, toolCallStatusEmptyOutput, toolCallStatusInvalidArguments:
+		level = logging.LevelWarn
+	}
+	if summary.ErrorMessage != "" {
+		logger.Message(ctx, level, "call finished: status=%s wall_time=%s error=%q", summary.Status, time.Duration(summary.WallTimeNs), summary.ErrorMessage)
+		return
+	}
+	logger.Message(ctx, level, "call finished: status=%s wall_time=%s", summary.Status, time.Duration(summary.WallTimeNs))
 }
 
 // TextOrData is a constraint for types that can be written to files.
@@ -438,13 +661,20 @@ func (d *DockerToolExecutor) runContainer(ctx context.Context, containerID strin
 	return status, nil
 }
 
-// recordUsage records the usage statistics for a tool.
+// recordUsage records the aggregate execution statistics for a tool.
 func (d *DockerToolExecutor) recordUsage(toolName string, duration time.Duration) {
 	usageValue, _ := d.usage.LoadOrStore(toolName, &ToolUsage{})
 	toolUsage := usageValue.(*ToolUsage)
 
 	atomic.AddInt64(&toolUsage.CallCount, 1)
-	atomic.AddInt64(&toolUsage.TotalTimeNs, duration.Nanoseconds())
+	atomic.AddInt64(&toolUsage.TotalDurationNs, duration.Nanoseconds())
+}
+
+// recordCallSummary appends a per-call summary to the shared call log, tagging it with
+// the tool name.
+func (d *DockerToolExecutor) recordCallSummary(toolName string, summary ToolCallSummary) {
+	summary.Tool = toolName
+	d.calls.record(summary)
 }
 
 // IsToolExhausted reports whether the named tool has exceeded its maximum call limit.
@@ -460,7 +690,7 @@ func (d *DockerToolExecutor) IsToolExhausted(toolName string) bool {
 	return atomic.LoadInt32(&usageValue.(*ToolUsage).Exhausted) != 0
 }
 
-// GetUsageStats returns usage statistics for all tools.
+// GetUsageStats returns aggregate execution statistics for all tools.
 func (d *DockerToolExecutor) GetUsageStats() map[string]ToolUsage {
 	if d == nil {
 		return nil
@@ -470,13 +700,25 @@ func (d *DockerToolExecutor) GetUsageStats() map[string]ToolUsage {
 		toolName := key.(string)
 		usage := value.(*ToolUsage)
 		stats[toolName] = ToolUsage{
-			CallCount:   atomic.LoadInt64(&usage.CallCount),
-			TotalTimeNs: atomic.LoadInt64(&usage.TotalTimeNs),
-			Exhausted:   atomic.LoadInt32(&usage.Exhausted),
+			CallCount:       atomic.LoadInt64(&usage.CallCount),
+			TotalDurationNs: atomic.LoadInt64(&usage.TotalDurationNs),
+			Exhausted:       atomic.LoadInt32(&usage.Exhausted),
 		}
 		return true
 	})
 	return stats
+}
+
+// GetCallSummaries returns a log of every recorded invocation attempt across all tools, in
+// the order calls completed, including attempts that never actually ran (e.g. due to
+// invalid arguments or an infrastructure error during setup). This is tracked
+// independently of GetUsageStats; a tool with no entry in GetUsageStats (because its
+// container never once ran) can still appear here. Returns nil if the executor is nil.
+func (d *DockerToolExecutor) GetCallSummaries() []ToolCallSummary {
+	if d == nil {
+		return nil
+	}
+	return d.calls.snapshot()
 }
 
 type DockerTool struct {

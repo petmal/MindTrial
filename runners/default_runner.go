@@ -396,6 +396,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 
 	result, err := executor.Execute(ctx, logger, task)
 	usage := result.GetUsage()
+	toolCalls := result.GetToolCalls()
 	logger.Message(ctx, logging.LevelDebug, "token usage: [in:%s, out:%s]", logging.FormatLogInt64(usage.InputTokens), logging.FormatLogInt64(usage.OutputTokens))
 	logger.Message(ctx, logging.LevelTrace, "prompts:\n%s", logging.FormatLogText(result.GetPrompts()))
 	if err != nil { //nolint:gocritic
@@ -410,6 +411,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 				Message:   err.Error(),
 				Usage:     toTokenUsage(usage),
 				ToolUsage: toToolUsage(usage),
+				ToolCalls: toToolCallSummaries(toolCalls),
 			}
 		default:
 			var unmarshalErr *providers.ErrUnmarshalResponse
@@ -419,6 +421,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 					Message:   unmarshalErr.Cause.Error(),
 					Usage:     toTokenUsage(usage),
 					ToolUsage: toToolUsage(usage),
+					ToolCalls: toToolCallSummaries(toolCalls),
 				}
 			} else {
 				runResult.Details.Error = ErrorDetails{
@@ -426,6 +429,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 					Message:   err.Error(),
 					Usage:     toTokenUsage(usage),
 					ToolUsage: toToolUsage(usage),
+					ToolCalls: toToolCallSummaries(toolCalls),
 				}
 			}
 			populateErrorDetails(&runResult.Details.Error, err)
@@ -443,6 +447,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 				Message:   err.Error(),
 				Usage:     toTokenUsage(validationResult.Usage),
 				ToolUsage: toToolUsage(validationResult.Usage),
+				ToolCalls: toToolCallSummaries(validationResult.ToolCalls),
 			}
 			populateErrorDetails(&runResult.Details.Error, err)
 		} else {
@@ -458,6 +463,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 				Explanation: utils.SplitLines(validationResult.Explanation),
 				Usage:       toTokenUsage(validationResult.Usage),
 				ToolUsage:   toToolUsage(validationResult.Usage),
+				ToolCalls:   toToolCallSummaries(validationResult.ToolCalls),
 			}
 		}
 
@@ -468,6 +474,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 			ExpectedAnswer: toLines(task.ExpectedResult),
 			Usage:          toTokenUsage(usage),
 			ToolUsage:      toToolUsage(usage),
+			ToolCalls:      toToolCallSummaries(toolCalls),
 		}
 	}
 	runResult.Duration = result.GetDuration()
@@ -544,11 +551,64 @@ func toToolUsage(u providers.Usage) (toolUsage map[string]ToolUsage) {
 	toolUsage = make(map[string]ToolUsage, len(u.ToolUsage))
 	for name, usage := range u.ToolUsage {
 		callCount := usage.CallCount
-		duration := time.Duration(usage.TotalTimeNs) // nanosecond is the natural unit of time.Duration
+		duration := time.Duration(usage.TotalDurationNs) // nanosecond is the natural unit of time.Duration
 		toolUsage[name] = ToolUsage{
 			CallCount:     &callCount,
 			TotalDuration: &duration,
 		}
 	}
 	return toolUsage
+}
+
+// toToolCallSummaries converts tool-package call summaries into the runners package's own,
+// executor-agnostic ToolCallSummary shape (e.g. converting raw nanosecond counts to
+// time.Duration), decoupling runners/formatters from any specific tool executor
+// implementation. Returns nil for an empty input so a result with no recorded calls omits
+// the field entirely, consistent with the rest of this package's optional-field conventions.
+func toToolCallSummaries(calls []providertools.ToolCallSummary) []ToolCallSummary {
+	if len(calls) == 0 {
+		return nil
+	}
+	result := make([]ToolCallSummary, len(calls))
+	for i, c := range calls {
+		result[i] = ToolCallSummary{
+			Tool:             c.Tool,
+			CallID:           c.CallID,
+			ConversationTurn: c.ConversationTurn,
+			StartedAt:        c.StartedAt,
+			CompletedAt:      c.CompletedAt,
+			Duration:         nsPtrToDurationPtr(c.DurationNs),
+			WallTime:         time.Duration(c.WallTimeNs),
+			ExitCode:         c.ExitCode,
+			TimedOut:         c.TimedOut,
+			Status:           c.Status,
+			Stdout:           toToolCallOutput(c.Stdout),
+			Stderr:           toToolCallOutput(c.Stderr),
+			ErrorMessage:     c.ErrorMessage,
+		}
+	}
+	return result
+}
+
+// nsPtrToDurationPtr converts a nilable nanosecond count into a nilable time.Duration,
+// preserving the nil (process never ran) vs zero distinction.
+func nsPtrToDurationPtr(ns *int64) *time.Duration {
+	if ns == nil {
+		return nil
+	}
+	d := time.Duration(*ns)
+	return &d
+}
+
+// toToolCallOutput converts a tool-package output capture into the public
+// runners.ToolCallOutput shape. Returns nil when o is nil (the stream was never captured).
+func toToolCallOutput(o *providertools.OutputCapture) *ToolCallOutput {
+	if o == nil {
+		return nil
+	}
+	return &ToolCallOutput{
+		Bytes:     o.Bytes,
+		Preview:   o.Preview,
+		Truncated: o.Truncated,
+	}
 }

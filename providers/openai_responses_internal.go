@@ -279,6 +279,7 @@ func (o *openAIResponsesProvider) Run(ctx context.Context, logger logging.Logger
 			return response, err
 		}, &result.duration)
 		result.recordToolUsage(executor.GetUsageStats())
+		result.recordToolCalls(executor.GetCallSummaries())
 		if err != nil {
 			return result, WrapErrGenerateResponse(err)
 		} else if resp == nil {
@@ -319,7 +320,7 @@ func (o *openAIResponsesProvider) Run(ctx context.Context, logger logging.Logger
 					if err != nil {
 						return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
 					}
-					toolResult, err := executor.ExecuteTool(ctx, logger, fc.Name, json.RawMessage(fc.Arguments), data)
+					toolResult, err := executor.ExecuteTool(ctx, logger, fc.Name, json.RawMessage(fc.Arguments), data, &tools.ToolCallContext{CallID: fc.CallID, ConversationTurn: turn})
 					toolContent := string(toolResult)
 					if err != nil {
 						toolContent = formatToolExecutionError(err)
