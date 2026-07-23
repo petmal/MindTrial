@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/invopop/jsonschema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
@@ -370,4 +371,22 @@ func TestValueSet_JSONRoundTrip(t *testing.T) {
 	restoredData, err := json.Marshal(restored)
 	require.NoError(t, err)
 	assert.JSONEq(t, string(data), string(restoredData))
+}
+
+func TestValueSet_JSONSchema(t *testing.T) {
+	schema := ValueSet{}.JSONSchema()
+	require.NotNil(t, schema)
+	// ValueSet can marshal to any JSON value (scalar or array), so its schema must not
+	// restrict the type; a field-level jsonschema tag is expected to supply title/description.
+	assert.Empty(t, schema.Type)
+
+	type withValueSet struct {
+		Want ValueSet `json:"Want" jsonschema:"title=Expected Value"`
+	}
+	reflector := jsonschema.Reflector{DoNotReference: true}
+	reflected := reflector.Reflect(withValueSet{})
+	wantSchema, ok := reflected.Properties.Get("Want")
+	require.True(t, ok)
+	assert.Empty(t, wantSchema.Type, "reflecting a struct with a ValueSet field must not force a type constraint on it")
+	assert.Equal(t, "Expected Value", wantSchema.Title, "the field-level jsonschema tag must still apply alongside ValueSet's own schema")
 }

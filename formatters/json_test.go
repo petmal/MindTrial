@@ -98,6 +98,15 @@ func TestJSONCodecRead(t *testing.T) {
 		assert.Contains(t, err.Error(), "unsupported format version 999")
 	})
 
+	t.Run("missing $schema field (backward compatibility)", func(t *testing.T) {
+		// Documents written before the "$schema" field was introduced must still read
+		// successfully; the field is purely informational and never validated on read.
+		data := []byte(`{"FormatVersion": 1, "Results": {}}`)
+		got, err := codec.Read(bytes.NewReader(data))
+		require.NoError(t, err)
+		assert.Empty(t, got)
+	})
+
 	t.Run("malformed JSON", func(t *testing.T) {
 		data := []byte(`{invalid json}`)
 		_, err := codec.Read(bytes.NewReader(data))

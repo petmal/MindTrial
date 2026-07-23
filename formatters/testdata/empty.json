@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/petmal/mindtrial/main/schema/results-v1.schema.json",
   "FormatVersion": 1,
   "AppName": "MindTrial",
   "AppVersion": "(testing)",

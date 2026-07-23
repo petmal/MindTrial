@@ -1,0 +1,749 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/petmal/mindtrial/main/schema/results-v1.schema.json",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "title": "Schema",
+      "description": "The URL of the JSON schema describing this document's structure."
+    },
+    "FormatVersion": {
+      "type": "integer",
+      "enum": [
+        1
+      ],
+      "title": "Format Version",
+      "description": "The version of this JSON document's structure. Readers should reject documents with an unrecognized version rather than guessing at compatibility."
+    },
+    "AppName": {
+      "type": "string",
+      "title": "Application Name",
+      "description": "The name of the application that produced this document."
+    },
+    "AppVersion": {
+      "type": "string",
+      "title": "Application Version",
+      "description": "The version of the application that produced this document."
+    },
+    "CreatedAt": {
+      "type": "string",
+      "title": "Created At",
+      "description": "The timestamp at which this document was generated."
+    },
+    "Results": {
+      "additionalProperties": {
+        "items": {
+          "properties": {
+            "TraceID": {
+              "type": "string",
+              "title": "Trace ID",
+              "description": "A globally unique identifier for this specific task result, used for tracing and correlation."
+            },
+            "Kind": {
+              "type": "string",
+              "title": "Result Kind",
+              "description": "The result status: Passed (answer accepted), Failed (answer rejected), Error (task execution failed), or Skipped (task not supported/attempted). An \"Unknown (n)\" fallback is possible but not expected in practice."
+            },
+            "Task": {
+              "type": "string",
+              "title": "Task Name",
+              "description": "The name of the executed task."
+            },
+            "Provider": {
+              "type": "string",
+              "title": "Provider Name",
+              "description": "The name of the AI provider that executed the task."
+            },
+            "Run": {
+              "type": "string",
+              "title": "Run Name",
+              "description": "The name of the provider's run configuration used."
+            },
+            "Got": {
+              "title": "Actual Answer",
+              "description": "The actual answer received from the AI model. For plain text response format, a string that follows the format instruction precisely. For structured schema-based response format, any object that conforms to the task's response schema."
+            },
+            "Want": {
+              "title": "Expected Answer(s)",
+              "description": "The accepted valid answer(s) for the task, as a single value or an array of values. For plain text response format: string values that should follow the format instruction precisely. For structured schema-based response format: object values that conform to the task's response schema."
+            },
+            "TaskMetadata": {
+              "properties": {
+                "Suite": {
+                  "type": "string",
+                  "title": "Suite",
+                  "description": "An optional grouping label for organizing related tasks (e.g. a benchmark suite name)."
+                },
+                "Category": {
+                  "type": "string",
+                  "title": "Category",
+                  "description": "An optional classification label for the task (e.g. \"math\", \"coding\")."
+                },
+                "Difficulty": {
+                  "type": "string",
+                  "title": "Difficulty",
+                  "description": "An optional free-form difficulty label for the task (e.g. \"easy\", \"hard\")."
+                },
+                "Tags": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array",
+                  "title": "Tags",
+                  "description": "An optional set of free-form labels for filtering and grouping tasks."
+                }
+              },
+              "additionalProperties": false,
+              "type": "object",
+              "title": "Task Metadata",
+              "description": "Optional descriptive labels copied from the originating task."
+            },
+            "Details": {
+              "properties": {
+                "Answer": {
+                  "properties": {
+                    "Title": {
+                      "type": "string",
+                      "title": "Title",
+                      "description": "A descriptive header for the response produced by the target AI model."
+                    },
+                    "Explanation": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array",
+                      "title": "Explanation",
+                      "description": "Explanation of the answer produced by the target AI model, split into lines."
+                    },
+                    "ActualAnswer": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array",
+                      "title": "Actual Answer Lines",
+                      "description": "The raw answer from the target AI model split into lines."
+                    },
+                    "ExpectedAnswer": {
+                      "items": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "type": "array",
+                      "title": "Expected Answer Lines",
+                      "description": "A set of all acceptable correct answers, each being an array of lines."
+                    },
+                    "Usage": {
+                      "properties": {
+                        "InputTokens": {
+                          "type": "integer"
+                        },
+                        "OutputTokens": {
+                          "type": "integer"
+                        }
+                      },
+                      "additionalProperties": false,
+                      "type": "object",
+                      "title": "Token Usage",
+                      "description": "Token usage statistics for generating the answer."
+                    },
+                    "ToolUsage": {
+                      "additionalProperties": {
+                        "properties": {
+                          "CallCount": {
+                            "type": "integer",
+                            "title": "Call Count",
+                            "description": "The number of times the tool's underlying process actually ran."
+                          },
+                          "TotalDurationNS": {
+                            "type": "integer",
+                            "title": "Total Duration (ns)",
+                            "description": "The cumulative execution time for the tool's underlying process, in nanoseconds."
+                          }
+                        },
+                        "additionalProperties": false,
+                        "type": "object"
+                      },
+                      "type": "object",
+                      "title": "Tool Usage",
+                      "description": "Aggregated execution statistics, keyed by tool name, for any tools invoked while producing the answer."
+                    },
+                    "ToolCalls": {
+                      "items": {
+                        "properties": {
+                          "Tool": {
+                            "type": "string",
+                            "title": "Tool Name",
+                            "description": "The name of the tool this call invoked."
+                          },
+                          "CallID": {
+                            "type": "string",
+                            "title": "Call ID",
+                            "description": "Identifies this call, letting a specific invocation be correlated between this summary, the corresponding tool-call log lines, and - when the calling provider's API assigns its own tool-call ID and that ID was reused here - the provider's own API error messages. Never empty, but its shape/format is not guaranteed to be consistent across providers."
+                          },
+                          "ConversationTurn": {
+                            "type": "integer",
+                            "title": "Conversation Turn",
+                            "description": "The 1-based conversation turn this call was made during, or absent/0 if unknown."
+                          },
+                          "StartedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "title": "Started At",
+                            "description": "When this call began (start of setup, before the underlying process runs)."
+                          },
+                          "CompletedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "title": "Completed At",
+                            "description": "When this call finished, successfully or not."
+                          },
+                          "DurationNS": {
+                            "type": "integer",
+                            "title": "Duration (ns)",
+                            "description": "The wall-clock duration of the underlying process's runtime, in nanoseconds, not including setup/teardown overhead. Absent when no process ever ran (e.g. an infrastructure_error)."
+                          },
+                          "WallTimeNS": {
+                            "type": "integer",
+                            "title": "Wall Time (ns)",
+                            "description": "The wall-clock duration of the entire call attempt, in nanoseconds, from setup through output retrieval - i.e. DurationNS plus setup/teardown overhead. Unlike DurationNS, this is always set, even for calls whose underlying process never ran."
+                          },
+                          "ExitCode": {
+                            "type": "integer",
+                            "title": "Exit Code",
+                            "description": "The underlying process's exit code, or absent if no exit code is known."
+                          },
+                          "TimedOut": {
+                            "type": "boolean",
+                            "title": "Timed Out",
+                            "description": "Whether the call was aborted due to exceeding its configured timeout."
+                          },
+                          "Status": {
+                            "type": "string",
+                            "enum": [
+                              "success",
+                              "nonzero_exit",
+                              "empty_output",
+                              "timeout",
+                              "invalid_arguments",
+                              "infrastructure_error"
+                            ],
+                            "title": "Status",
+                            "description": "The outcome of this call."
+                          },
+                          "Stdout": {
+                            "properties": {
+                              "Bytes": {
+                                "type": "integer",
+                                "title": "Bytes",
+                                "description": "The total size of the output stream, in bytes, regardless of Truncated."
+                              },
+                              "Preview": {
+                                "type": "string",
+                                "title": "Preview",
+                                "description": "A truncated prefix of the output stream, or absent if not captured or empty."
+                              },
+                              "Truncated": {
+                                "type": "boolean",
+                                "title": "Truncated",
+                                "description": "Whether Preview was cut short of the full output."
+                              }
+                            },
+                            "additionalProperties": false,
+                            "type": "object",
+                            "required": [
+                              "Bytes"
+                            ],
+                            "title": "Standard Output",
+                            "description": "A size-limited capture of the call's standard output, or absent if no output was ever captured."
+                          },
+                          "Stderr": {
+                            "properties": {
+                              "Bytes": {
+                                "type": "integer",
+                                "title": "Bytes",
+                                "description": "The total size of the output stream, in bytes, regardless of Truncated."
+                              },
+                              "Preview": {
+                                "type": "string",
+                                "title": "Preview",
+                                "description": "A truncated prefix of the output stream, or absent if not captured or empty."
+                              },
+                              "Truncated": {
+                                "type": "boolean",
+                                "title": "Truncated",
+                                "description": "Whether Preview was cut short of the full output."
+                              }
+                            },
+                            "additionalProperties": false,
+                            "type": "object",
+                            "required": [
+                              "Bytes"
+                            ],
+                            "title": "Standard Error",
+                            "description": "A size-limited capture of the call's standard error, or absent if no output was ever captured."
+                          },
+                          "ErrorMessage": {
+                            "type": "string",
+                            "title": "Error Message",
+                            "description": "A short explanation of the failure when Status is not \"success\"."
+                          }
+                        },
+                        "additionalProperties": false,
+                        "type": "object",
+                        "required": [
+                          "Tool",
+                          "CallID",
+                          "StartedAt",
+                          "CompletedAt",
+                          "WallTimeNS"
+                        ]
+                      },
+                      "type": "array",
+                      "title": "Tool Calls",
+                      "description": "A log of every individual invocation attempt made while producing the answer, including attempts that never actually ran. Tracked separately from ToolUsage, which only reflects invocations that actually ran."
+                    }
+                  },
+                  "additionalProperties": false,
+                  "type": "object",
+                  "title": "Answer Details",
+                  "description": "Details about the AI model's response and reasoning process."
+                },
+                "Validation": {
+                  "properties": {
+                    "Title": {
+                      "type": "string",
+                      "title": "Title",
+                      "description": "Identifies the type of validation assessment performed."
+                    },
+                    "Explanation": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array",
+                      "title": "Explanation",
+                      "description": "Detailed analysis of why the validation succeeded or failed, split into lines."
+                    },
+                    "Usage": {
+                      "properties": {
+                        "InputTokens": {
+                          "type": "integer"
+                        },
+                        "OutputTokens": {
+                          "type": "integer"
+                        }
+                      },
+                      "additionalProperties": false,
+                      "type": "object",
+                      "title": "Token Usage",
+                      "description": "Token usage statistics for the response validation step. Typically populated when using an LLM judge validator."
+                    },
+                    "ToolUsage": {
+                      "additionalProperties": {
+                        "properties": {
+                          "CallCount": {
+                            "type": "integer",
+                            "title": "Call Count",
+                            "description": "The number of times the tool's underlying process actually ran."
+                          },
+                          "TotalDurationNS": {
+                            "type": "integer",
+                            "title": "Total Duration (ns)",
+                            "description": "The cumulative execution time for the tool's underlying process, in nanoseconds."
+                          }
+                        },
+                        "additionalProperties": false,
+                        "type": "object"
+                      },
+                      "type": "object",
+                      "title": "Tool Usage",
+                      "description": "Aggregated execution statistics, keyed by tool name, for any tools invoked during validation."
+                    },
+                    "ToolCalls": {
+                      "items": {
+                        "properties": {
+                          "Tool": {
+                            "type": "string",
+                            "title": "Tool Name",
+                            "description": "The name of the tool this call invoked."
+                          },
+                          "CallID": {
+                            "type": "string",
+                            "title": "Call ID",
+                            "description": "Identifies this call, letting a specific invocation be correlated between this summary, the corresponding tool-call log lines, and - when the calling provider's API assigns its own tool-call ID and that ID was reused here - the provider's own API error messages. Never empty, but its shape/format is not guaranteed to be consistent across providers."
+                          },
+                          "ConversationTurn": {
+                            "type": "integer",
+                            "title": "Conversation Turn",
+                            "description": "The 1-based conversation turn this call was made during, or absent/0 if unknown."
+                          },
+                          "StartedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "title": "Started At",
+                            "description": "When this call began (start of setup, before the underlying process runs)."
+                          },
+                          "CompletedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "title": "Completed At",
+                            "description": "When this call finished, successfully or not."
+                          },
+                          "DurationNS": {
+                            "type": "integer",
+                            "title": "Duration (ns)",
+                            "description": "The wall-clock duration of the underlying process's runtime, in nanoseconds, not including setup/teardown overhead. Absent when no process ever ran (e.g. an infrastructure_error)."
+                          },
+                          "WallTimeNS": {
+                            "type": "integer",
+                            "title": "Wall Time (ns)",
+                            "description": "The wall-clock duration of the entire call attempt, in nanoseconds, from setup through output retrieval - i.e. DurationNS plus setup/teardown overhead. Unlike DurationNS, this is always set, even for calls whose underlying process never ran."
+                          },
+                          "ExitCode": {
+                            "type": "integer",
+                            "title": "Exit Code",
+                            "description": "The underlying process's exit code, or absent if no exit code is known."
+                          },
+                          "TimedOut": {
+                            "type": "boolean",
+                            "title": "Timed Out",
+                            "description": "Whether the call was aborted due to exceeding its configured timeout."
+                          },
+                          "Status": {
+                            "type": "string",
+                            "enum": [
+                              "success",
+                              "nonzero_exit",
+                              "empty_output",
+                              "timeout",
+                              "invalid_arguments",
+                              "infrastructure_error"
+                            ],
+                            "title": "Status",
+                            "description": "The outcome of this call."
+                          },
+                          "Stdout": {
+                            "properties": {
+                              "Bytes": {
+                                "type": "integer",
+                                "title": "Bytes",
+                                "description": "The total size of the output stream, in bytes, regardless of Truncated."
+                              },
+                              "Preview": {
+                                "type": "string",
+                                "title": "Preview",
+                                "description": "A truncated prefix of the output stream, or absent if not captured or empty."
+                              },
+                              "Truncated": {
+                                "type": "boolean",
+                                "title": "Truncated",
+                                "description": "Whether Preview was cut short of the full output."
+                              }
+                            },
+                            "additionalProperties": false,
+                            "type": "object",
+                            "required": [
+                              "Bytes"
+                            ],
+                            "title": "Standard Output",
+                            "description": "A size-limited capture of the call's standard output, or absent if no output was ever captured."
+                          },
+                          "Stderr": {
+                            "properties": {
+                              "Bytes": {
+                                "type": "integer",
+                                "title": "Bytes",
+                                "description": "The total size of the output stream, in bytes, regardless of Truncated."
+                              },
+                              "Preview": {
+                                "type": "string",
+                                "title": "Preview",
+                                "description": "A truncated prefix of the output stream, or absent if not captured or empty."
+                              },
+                              "Truncated": {
+                                "type": "boolean",
+                                "title": "Truncated",
+                                "description": "Whether Preview was cut short of the full output."
+                              }
+                            },
+                            "additionalProperties": false,
+                            "type": "object",
+                            "required": [
+                              "Bytes"
+                            ],
+                            "title": "Standard Error",
+                            "description": "A size-limited capture of the call's standard error, or absent if no output was ever captured."
+                          },
+                          "ErrorMessage": {
+                            "type": "string",
+                            "title": "Error Message",
+                            "description": "A short explanation of the failure when Status is not \"success\"."
+                          }
+                        },
+                        "additionalProperties": false,
+                        "type": "object",
+                        "required": [
+                          "Tool",
+                          "CallID",
+                          "StartedAt",
+                          "CompletedAt",
+                          "WallTimeNS"
+                        ]
+                      },
+                      "type": "array",
+                      "title": "Tool Calls",
+                      "description": "A log of every individual invocation attempt made during validation, including attempts that never actually ran. Tracked separately from ToolUsage, which only reflects invocations that actually ran."
+                    }
+                  },
+                  "additionalProperties": false,
+                  "type": "object",
+                  "title": "Validation Details",
+                  "description": "Details about the answer verification and assessment."
+                },
+                "Error": {
+                  "properties": {
+                    "Title": {
+                      "type": "string",
+                      "title": "Title",
+                      "description": "A summary description of the error."
+                    },
+                    "Message": {
+                      "type": "string",
+                      "title": "Message",
+                      "description": "The primary error message."
+                    },
+                    "Details": {
+                      "additionalProperties": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "type": "object",
+                      "title": "Details",
+                      "description": "Any additional error information in a generic structure."
+                    },
+                    "Usage": {
+                      "properties": {
+                        "InputTokens": {
+                          "type": "integer"
+                        },
+                        "OutputTokens": {
+                          "type": "integer"
+                        }
+                      },
+                      "additionalProperties": false,
+                      "type": "object",
+                      "title": "Token Usage",
+                      "description": "Token usage statistics if available even in error scenarios. Typically populated if the error occurs when parsing the generated response."
+                    },
+                    "ToolUsage": {
+                      "additionalProperties": {
+                        "properties": {
+                          "CallCount": {
+                            "type": "integer",
+                            "title": "Call Count",
+                            "description": "The number of times the tool's underlying process actually ran."
+                          },
+                          "TotalDurationNS": {
+                            "type": "integer",
+                            "title": "Total Duration (ns)",
+                            "description": "The cumulative execution time for the tool's underlying process, in nanoseconds."
+                          }
+                        },
+                        "additionalProperties": false,
+                        "type": "object"
+                      },
+                      "type": "object",
+                      "title": "Tool Usage",
+                      "description": "Aggregated execution statistics, keyed by tool name, for any tools invoked prior to the error."
+                    },
+                    "ToolCalls": {
+                      "items": {
+                        "properties": {
+                          "Tool": {
+                            "type": "string",
+                            "title": "Tool Name",
+                            "description": "The name of the tool this call invoked."
+                          },
+                          "CallID": {
+                            "type": "string",
+                            "title": "Call ID",
+                            "description": "Identifies this call, letting a specific invocation be correlated between this summary, the corresponding tool-call log lines, and - when the calling provider's API assigns its own tool-call ID and that ID was reused here - the provider's own API error messages. Never empty, but its shape/format is not guaranteed to be consistent across providers."
+                          },
+                          "ConversationTurn": {
+                            "type": "integer",
+                            "title": "Conversation Turn",
+                            "description": "The 1-based conversation turn this call was made during, or absent/0 if unknown."
+                          },
+                          "StartedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "title": "Started At",
+                            "description": "When this call began (start of setup, before the underlying process runs)."
+                          },
+                          "CompletedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "title": "Completed At",
+                            "description": "When this call finished, successfully or not."
+                          },
+                          "DurationNS": {
+                            "type": "integer",
+                            "title": "Duration (ns)",
+                            "description": "The wall-clock duration of the underlying process's runtime, in nanoseconds, not including setup/teardown overhead. Absent when no process ever ran (e.g. an infrastructure_error)."
+                          },
+                          "WallTimeNS": {
+                            "type": "integer",
+                            "title": "Wall Time (ns)",
+                            "description": "The wall-clock duration of the entire call attempt, in nanoseconds, from setup through output retrieval - i.e. DurationNS plus setup/teardown overhead. Unlike DurationNS, this is always set, even for calls whose underlying process never ran."
+                          },
+                          "ExitCode": {
+                            "type": "integer",
+                            "title": "Exit Code",
+                            "description": "The underlying process's exit code, or absent if no exit code is known."
+                          },
+                          "TimedOut": {
+                            "type": "boolean",
+                            "title": "Timed Out",
+                            "description": "Whether the call was aborted due to exceeding its configured timeout."
+                          },
+                          "Status": {
+                            "type": "string",
+                            "enum": [
+                              "success",
+                              "nonzero_exit",
+                              "empty_output",
+                              "timeout",
+                              "invalid_arguments",
+                              "infrastructure_error"
+                            ],
+                            "title": "Status",
+                            "description": "The outcome of this call."
+                          },
+                          "Stdout": {
+                            "properties": {
+                              "Bytes": {
+                                "type": "integer",
+                                "title": "Bytes",
+                                "description": "The total size of the output stream, in bytes, regardless of Truncated."
+                              },
+                              "Preview": {
+                                "type": "string",
+                                "title": "Preview",
+                                "description": "A truncated prefix of the output stream, or absent if not captured or empty."
+                              },
+                              "Truncated": {
+                                "type": "boolean",
+                                "title": "Truncated",
+                                "description": "Whether Preview was cut short of the full output."
+                              }
+                            },
+                            "additionalProperties": false,
+                            "type": "object",
+                            "required": [
+                              "Bytes"
+                            ],
+                            "title": "Standard Output",
+                            "description": "A size-limited capture of the call's standard output, or absent if no output was ever captured."
+                          },
+                          "Stderr": {
+                            "properties": {
+                              "Bytes": {
+                                "type": "integer",
+                                "title": "Bytes",
+                                "description": "The total size of the output stream, in bytes, regardless of Truncated."
+                              },
+                              "Preview": {
+                                "type": "string",
+                                "title": "Preview",
+                                "description": "A truncated prefix of the output stream, or absent if not captured or empty."
+                              },
+                              "Truncated": {
+                                "type": "boolean",
+                                "title": "Truncated",
+                                "description": "Whether Preview was cut short of the full output."
+                              }
+                            },
+                            "additionalProperties": false,
+                            "type": "object",
+                            "required": [
+                              "Bytes"
+                            ],
+                            "title": "Standard Error",
+                            "description": "A size-limited capture of the call's standard error, or absent if no output was ever captured."
+                          },
+                          "ErrorMessage": {
+                            "type": "string",
+                            "title": "Error Message",
+                            "description": "A short explanation of the failure when Status is not \"success\"."
+                          }
+                        },
+                        "additionalProperties": false,
+                        "type": "object",
+                        "required": [
+                          "Tool",
+                          "CallID",
+                          "StartedAt",
+                          "CompletedAt",
+                          "WallTimeNS"
+                        ]
+                      },
+                      "type": "array",
+                      "title": "Tool Calls",
+                      "description": "A log of every individual invocation attempt made prior to the error, including attempts that never actually ran. Tracked separately from ToolUsage, which only reflects invocations that actually ran."
+                    },
+                    "Transient": {
+                      "type": "boolean",
+                      "title": "Transient",
+                      "description": "Whether the error appears temporary/external (true), appears permanent/hard (false), or is unknown (field absent). A best-effort classification, not a complete error taxonomy."
+                    }
+                  },
+                  "additionalProperties": false,
+                  "type": "object",
+                  "title": "Error Details",
+                  "description": "Details about any errors that occurred during task execution."
+                }
+              },
+              "additionalProperties": false,
+              "type": "object",
+              "title": "Details",
+              "description": "Comprehensive information about the generated response and validation assessment."
+            },
+            "DurationNS": {
+              "type": "integer",
+              "title": "Duration (ns)",
+              "description": "The cumulative time the AI model itself spent generating a response, in nanoseconds, summed across every conversation turn's model request (network + inference). Excludes local tool execution time (see ToolCalls/ToolUsage) and any subsequent validation time, so this is not the total wall-clock time spent processing the task."
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "TraceID",
+            "Kind",
+            "Task",
+            "Provider",
+            "Run",
+            "Got",
+            "Want",
+            "Details",
+            "DurationNS"
+          ]
+        },
+        "type": "array"
+      },
+      "type": "object",
+      "title": "Results",
+      "description": "Task results, keyed by provider name."
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "FormatVersion",
+    "Results"
+  ],
+  "title": "MindTrial Results",
+  "description": "The structure of a MindTrial JSON results output document."
+}

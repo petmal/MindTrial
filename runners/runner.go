@@ -118,7 +118,10 @@ type RunResult struct {
 	TaskMetadata TaskMetadata
 	// Details contains comprehensive information about the generated response and validation assessment.
 	Details Details
-	// Duration represents the time taken to generate the response.
+	// Duration is the cumulative time the AI model itself spent generating a response,
+	// summed across every conversation turn's model request (network + inference).
+	// It excludes local tool execution time (see ToolCalls/ToolUsage) and any subsequent
+	// validation time, so it is not the total wall-clock time spent processing the task.
 	Duration time.Duration
 }
 

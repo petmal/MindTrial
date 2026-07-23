@@ -16,6 +16,12 @@ import (
 
 const currentFormatVersion = 1
 
+// resultsSchemaURL is the public URL of the JSON schema describing this format version's
+// document structure (see resultsJSONSchema in json_schema.go and the checked-in
+// schema/results-v1.schema.json). Every generated document includes it via the "$schema"
+// field so tooling/LLM consumers can locate the schema without guessing.
+const resultsSchemaURL = "https://raw.githubusercontent.com/petmal/mindtrial/main/schema/results-v1.schema.json"
+
 // NewJSONCodec creates a new codec that reads and writes results in JSON format.
 func NewJSONCodec() Codec {
 	return &jsonCodec{}
@@ -24,11 +30,12 @@ func NewJSONCodec() Codec {
 type jsonCodec struct{}
 
 type jsonDocument struct {
-	FormatVersion int         `json:"FormatVersion"`
-	AppName       string      `json:"AppName,omitempty"`
-	AppVersion    string      `json:"AppVersion,omitempty"`
-	CreatedAt     string      `json:"CreatedAt,omitempty"`
-	Results       resultsView `json:"Results"`
+	Schema        string      `json:"$schema,omitempty" jsonschema:"title=Schema" jsonschema_description:"The URL of the JSON schema describing this document's structure."`
+	FormatVersion int         `json:"FormatVersion" jsonschema:"title=Format Version,enum=1" jsonschema_description:"The version of this JSON document's structure. Readers should reject documents with an unrecognized version rather than guessing at compatibility."`
+	AppName       string      `json:"AppName,omitempty" jsonschema:"title=Application Name" jsonschema_description:"The name of the application that produced this document."`
+	AppVersion    string      `json:"AppVersion,omitempty" jsonschema:"title=Application Version" jsonschema_description:"The version of the application that produced this document."`
+	CreatedAt     string      `json:"CreatedAt,omitempty" jsonschema:"title=Created At" jsonschema_description:"The timestamp at which this document was generated."`
+	Results       resultsView `json:"Results" jsonschema:"title=Results" jsonschema_description:"Task results, keyed by provider name."`
 }
 
 func (c jsonCodec) FileExt() string {
@@ -37,6 +44,7 @@ func (c jsonCodec) FileExt() string {
 
 func (c jsonCodec) Write(results runners.Results, out io.Writer) error {
 	doc := jsonDocument{
+		Schema:        resultsSchemaURL,
 		FormatVersion: currentFormatVersion,
 		AppName:       currentVersionData.Name,
 		AppVersion:    currentVersionData.Version,

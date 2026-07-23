@@ -14,6 +14,7 @@ import (
 	"reflect"
 	"slices"
 
+	"github.com/invopop/jsonschema"
 	"gopkg.in/yaml.v3"
 )
 
@@ -24,6 +25,14 @@ var ErrInvalidValueSetValue = errors.New("invalid set value")
 // The type is generic and can handle both string values and object values.
 type ValueSet struct {
 	values []interface{}
+}
+
+// JSONSchema implements the invopop/jsonschema custom schema interface.
+// ValueSet marshals to either a single value or an array of values (see MarshalJSON), so
+// its schema places no type constraint of its own; callers can still attach a title and
+// description via a `jsonschema` struct tag on the field, which is merged with this schema.
+func (ValueSet) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{}
 }
 
 // NewValueSet creates a new ValueSet from the given items, discarding duplicates.
