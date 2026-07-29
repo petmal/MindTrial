@@ -287,7 +287,8 @@ func tokenUsageToPtr(u runners.TokenUsage) *runners.TokenUsage {
 	if u.InputTokens == nil &&
 		u.OutputTokens == nil &&
 		u.InputCacheWriteTokens == nil &&
-		u.InputCacheReadTokens == nil {
+		u.InputCacheReadTokens == nil &&
+		u.InputTokenAccounting == "" {
 		return nil
 	}
 	return &u

@@ -223,8 +223,8 @@ type ErrorDetails struct {
 // TokenUsage represents token usage consumed by an LLM request.
 // Values are optional and may be nil if not available.
 type TokenUsage struct {
-	// InputTokens is the number of ordinary input tokens reported.
-	InputTokens *int64 `json:"InputTokens,omitempty" jsonschema:"title=Input Tokens" jsonschema_description:"The number of ordinary input tokens reported."`
+	// InputTokens is the input token count reported by the provider.
+	InputTokens *int64 `json:"InputTokens,omitempty" jsonschema:"title=Input Tokens" jsonschema_description:"The input token count reported by the provider. Interpret cache token counters according to InputTokenAccounting."`
 
 	// OutputTokens is the number of generated output tokens.
 	OutputTokens *int64 `json:"OutputTokens,omitempty" jsonschema:"title=Output Tokens" jsonschema_description:"The number of generated output tokens."`
@@ -236,7 +236,23 @@ type TokenUsage struct {
 	// InputCacheReadTokens is the number of input tokens read from a
 	// provider prompt cache.
 	InputCacheReadTokens *int64 `json:"InputCacheReadTokens,omitempty" jsonschema:"title=Input Cache Read Tokens" jsonschema_description:"The number of input tokens read from a provider prompt cache."`
+
+	// InputTokenAccounting defines how the cache token counts relate to InputTokens.
+	InputTokenAccounting InputTokenAccounting `json:"InputTokenAccounting,omitempty" jsonschema:"title=Input Token Accounting,enum=cache_tokens_separate,enum=cache_tokens_included" jsonschema_description:"Defines how cached input-token counters relate to InputTokens. For cache_tokens_separate, InputTokens excludes InputCacheReadTokens and InputCacheWriteTokens, so total input usage is their sum. For cache_tokens_included, cached token counters are subsets already included in InputTokens, so total input usage is InputTokens. When absent, consumers should use cache_tokens_separate for backward compatibility."`
 }
+
+// InputTokenAccounting describes how cached input token counts relate to InputTokens.
+type InputTokenAccounting string
+
+const (
+	// InputTokenAccountingCacheTokensSeparate indicates that cache read and write
+	// tokens are separate from InputTokens and must be added to obtain total input usage.
+	InputTokenAccountingCacheTokensSeparate InputTokenAccounting = "cache_tokens_separate"
+
+	// InputTokenAccountingCacheTokensIncluded indicates that cache read and write
+	// tokens are informational subsets already included in InputTokens.
+	InputTokenAccountingCacheTokensIncluded InputTokenAccounting = "cache_tokens_included"
+)
 
 // ToolUsage represents aggregated execution statistics captured for a tool during
 // execution. It only reflects invocations whose underlying process actually ran

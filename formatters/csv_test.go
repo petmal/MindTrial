@@ -70,6 +70,7 @@ var mockResults = runners.Results{
 						InputTokens:           testutils.Ptr(int64(9876543210)),
 						InputCacheWriteTokens: testutils.Ptr(int64(9757309999902428)),
 						InputCacheReadTokens:  testutils.Ptr(int64(91835)),
+						InputTokenAccounting:  runners.InputTokenAccountingCacheTokensSeparate,
 						OutputTokens:          testutils.Ptr(int64(1234567890)),
 					},
 					ToolUsage: map[string]runners.ToolUsage{
@@ -135,6 +136,7 @@ var mockResults = runners.Results{
 						InputTokens:           testutils.Ptr(int64(11)),
 						InputCacheWriteTokens: testutils.Ptr(int64(55)),
 						InputCacheReadTokens:  testutils.Ptr(int64(99)),
+						InputTokenAccounting:  runners.InputTokenAccountingCacheTokensIncluded,
 						OutputTokens:          testutils.Ptr(int64(5)),
 					},
 					ToolUsage: map[string]runners.ToolUsage{
@@ -268,6 +270,7 @@ var mockResults = runners.Results{
 						InputTokens:           testutils.Ptr(int64(0)),
 						InputCacheWriteTokens: testutils.Ptr(int64(0)),
 						InputCacheReadTokens:  testutils.Ptr(int64(0)),
+						InputTokenAccounting:  runners.InputTokenAccountingCacheTokensSeparate,
 						OutputTokens:          testutils.Ptr(int64(0)),
 					},
 					ToolUsage: map[string]runners.ToolUsage{

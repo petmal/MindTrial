@@ -569,6 +569,7 @@ func toTokenUsage(u providers.Usage) TokenUsage {
 		OutputTokens:          u.OutputTokens,
 		InputCacheWriteTokens: u.InputCacheWriteTokens,
 		InputCacheReadTokens:  u.InputCacheReadTokens,
+		InputTokenAccounting:  InputTokenAccounting(u.InputTokenAccounting),
 	}
 }
 

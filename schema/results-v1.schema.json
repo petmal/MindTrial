@@ -139,7 +139,7 @@
                         "InputTokens": {
                           "type": "integer",
                           "title": "Input Tokens",
-                          "description": "The number of ordinary input tokens reported."
+                          "description": "The input token count reported by the provider. Interpret cache token counters according to InputTokenAccounting."
                         },
                         "OutputTokens": {
                           "type": "integer",
@@ -155,6 +155,15 @@
                           "type": "integer",
                           "title": "Input Cache Read Tokens",
                           "description": "The number of input tokens read from a provider prompt cache."
+                        },
+                        "InputTokenAccounting": {
+                          "type": "string",
+                          "enum": [
+                            "cache_tokens_separate",
+                            "cache_tokens_included"
+                          ],
+                          "title": "Input Token Accounting",
+                          "description": "Defines how cached input-token counters relate to InputTokens. For cache_tokens_separate, InputTokens excludes InputCacheReadTokens and InputCacheWriteTokens, so total input usage is their sum. For cache_tokens_included, cached token counters are subsets already included in InputTokens, so total input usage is InputTokens. When absent, consumers should use cache_tokens_separate for backward compatibility."
                         }
                       },
                       "additionalProperties": false,
@@ -344,7 +353,7 @@
                         "InputTokens": {
                           "type": "integer",
                           "title": "Input Tokens",
-                          "description": "The number of ordinary input tokens reported."
+                          "description": "The input token count reported by the provider. Interpret cache token counters according to InputTokenAccounting."
                         },
                         "OutputTokens": {
                           "type": "integer",
@@ -360,6 +369,15 @@
                           "type": "integer",
                           "title": "Input Cache Read Tokens",
                           "description": "The number of input tokens read from a provider prompt cache."
+                        },
+                        "InputTokenAccounting": {
+                          "type": "string",
+                          "enum": [
+                            "cache_tokens_separate",
+                            "cache_tokens_included"
+                          ],
+                          "title": "Input Token Accounting",
+                          "description": "Defines how cached input-token counters relate to InputTokens. For cache_tokens_separate, InputTokens excludes InputCacheReadTokens and InputCacheWriteTokens, so total input usage is their sum. For cache_tokens_included, cached token counters are subsets already included in InputTokens, so total input usage is InputTokens. When absent, consumers should use cache_tokens_separate for backward compatibility."
                         }
                       },
                       "additionalProperties": false,
@@ -557,7 +575,7 @@
                         "InputTokens": {
                           "type": "integer",
                           "title": "Input Tokens",
-                          "description": "The number of ordinary input tokens reported."
+                          "description": "The input token count reported by the provider. Interpret cache token counters according to InputTokenAccounting."
                         },
                         "OutputTokens": {
                           "type": "integer",
@@ -573,6 +591,15 @@
                           "type": "integer",
                           "title": "Input Cache Read Tokens",
                           "description": "The number of input tokens read from a provider prompt cache."
+                        },
+                        "InputTokenAccounting": {
+                          "type": "string",
+                          "enum": [
+                            "cache_tokens_separate",
+                            "cache_tokens_included"
+                          ],
+                          "title": "Input Token Accounting",
+                          "description": "Defines how cached input-token counters relate to InputTokens. For cache_tokens_separate, InputTokens excludes InputCacheReadTokens and InputCacheWriteTokens, so total input usage is their sum. For cache_tokens_included, cached token counters are subsets already included in InputTokens, so total input usage is InputTokens. When absent, consumers should use cache_tokens_separate for backward compatibility."
                         }
                       },
                       "additionalProperties": false,

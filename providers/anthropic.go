@@ -236,6 +236,7 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 			return result, nil // return current result state
 		}
 
+		result.usage.InputTokenAccounting = InputTokenAccountingCacheTokensSeparate
 		recordUsage(&resp.Usage.InputTokens, &resp.Usage.OutputTokens, &resp.Usage.CacheCreationInputTokens, &resp.Usage.CacheReadInputTokens, &result.usage)
 		isTerminal := o.isTerminalStopReason(resp.StopReason)
 		logFinishReason(ctx, logger, string(resp.StopReason), isTerminal)

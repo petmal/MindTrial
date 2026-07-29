@@ -358,7 +358,7 @@ func UnmarshalUnstructuredResponse(ctx context.Context, logger logging.Logger, c
 // Usage represents aggregated usage statistics for a response, including both token
 // consumption and tool execution metrics when available.
 type Usage struct {
-	// InputTokens used by the input if available.
+	// InputTokens is the input token count reported by the provider if available.
 	InputTokens *int64 `json:"-"`
 
 	// OutputTokens used by the output if available.
@@ -372,10 +372,26 @@ type Usage struct {
 	// provider prompt cache if reported.
 	InputCacheReadTokens *int64 `json:"-"`
 
+	// InputTokenAccounting describes how the cache token counts relate to InputTokens.
+	InputTokenAccounting InputTokenAccounting `json:"-"`
+
 	// ToolUsage contains per-tool aggregate execution statistics collected during
 	// the run if available.
 	ToolUsage map[string]tools.ToolUsage `json:"-"`
 }
+
+// InputTokenAccounting describes how cached input token counts relate to InputTokens.
+type InputTokenAccounting string
+
+const (
+	// InputTokenAccountingCacheTokensSeparate indicates that cache read and write
+	// tokens are separate from InputTokens and must be added to obtain total input usage.
+	InputTokenAccountingCacheTokensSeparate InputTokenAccounting = "cache_tokens_separate"
+
+	// InputTokenAccountingCacheTokensIncluded indicates that cache read and write
+	// tokens are informational subsets already included in InputTokens.
+	InputTokenAccountingCacheTokensIncluded InputTokenAccounting = "cache_tokens_included"
+)
 
 // Answer wraps the final answer content to separate it from response metadata.
 type Answer struct {

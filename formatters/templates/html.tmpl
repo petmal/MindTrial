@@ -130,6 +130,7 @@
         .answer-list li { margin-bottom: 1em; }
         .answer-list.single { list-style-type: none; padding-left: 0; }
         .answer-list.single li { margin-bottom: 0; }
+        #results-table td.details-cell { overflow-wrap: anywhere; }
         .details-cell pre { font-family: inherit; margin: 0; line-height: inherit; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; overflow-x: auto; }
         .filter-container { display: flex; gap: 10px; margin-bottom: 10px; max-width: 800px; align-items: center; }
         .filter-sort-controls { display: flex; flex-direction: column; gap: 5px; }
@@ -707,14 +708,46 @@
                 if (!summary || summary.textContent.trim() !== 'Token Usage') return;
                 const dl = det.querySelector('dl');
                 if (!dl) return;
+
+                let input = 0, cacheWrite = 0, cacheRead = 0, output = 0;
+                let hasInput = false, hasCacheInput = false, hasOutput = false;
                 dl.querySelectorAll('dt').forEach(dt => {
                     const dd = dt.nextElementSibling;
                     if (!dd || dd.tagName !== 'DD') return;
                     const label = dt.textContent.trim();
                     const val = parseInt(dd.textContent.trim(), 10) || 0;
-                    if (label === 'Input') inputTokens = (inputTokens ?? 0) + val;
-                    else if (label === 'Output') outputTokens = (outputTokens ?? 0) + val;
+                    switch (label) {
+                        case 'Input':
+                            input += val;
+                            hasInput = true;
+                            break;
+                        case 'Input Cache Write':
+                            cacheWrite += val;
+                            hasCacheInput = true;
+                            break;
+                        case 'Input Cache Read':
+                            cacheRead += val;
+                            hasCacheInput = true;
+                            break;
+                        case 'Output':
+                            output += val;
+                            hasOutput = true;
+                            break;
+                    }
                 });
+
+                const accounting = dl.dataset.inputTokenAccounting || 'cache_tokens_separate';
+                let effectiveInput = null;
+                if (accounting === 'cache_tokens_separate') {
+                    if (hasInput || hasCacheInput) effectiveInput = input + cacheWrite + cacheRead;
+                } else if (accounting === 'cache_tokens_included') {
+                    if (hasInput) effectiveInput = input;
+                } else {
+                    console.warn(`Unknown input token accounting type "${accounting}" for row "${row.id}"`);
+                }
+
+                if (effectiveInput !== null) inputTokens = (inputTokens ?? 0) + effectiveInput;
+                if (hasOutput) outputTokens = (outputTokens ?? 0) + output;
             });
             return { inputTokens, outputTokens };
         }
@@ -1950,7 +1983,7 @@
                                         {{- if or $u.InputTokens $u.InputCacheWriteTokens $u.InputCacheReadTokens $u.OutputTokens }}
                                         <details>
                                             <summary>Token Usage</summary>
-                                            <dl class="tech-details" style="margin-top:0.4em;">
+                                            <dl class="tech-details" style="margin-top:0.4em;"{{with $u.InputTokenAccounting}} data-input-token-accounting="{{.}}"{{end}}>
                                                 {{- with $u.InputTokens }}
                                                 <dt>Input</dt><dd>{{.}}</dd>
                                                 {{- end }}
@@ -2006,7 +2039,7 @@
                                         {{- if or $vu.InputTokens $vu.InputCacheWriteTokens $vu.InputCacheReadTokens $vu.OutputTokens }}
                                         <details>
                                             <summary>Token Usage</summary>
-                                            <dl class="tech-details" style="margin-top:0.4em;">
+                                            <dl class="tech-details" style="margin-top:0.4em;"{{with $vu.InputTokenAccounting}} data-input-token-accounting="{{.}}"{{end}}>
                                                 {{- with $vu.InputTokens }}
                                                 <dt>Input</dt><dd>{{.}}</dd>
                                                 {{ end -}}
@@ -2070,7 +2103,7 @@
                                         {{- if or $eu.InputTokens $eu.InputCacheWriteTokens $eu.InputCacheReadTokens $eu.OutputTokens }}
                                         <details>
                                             <summary>Token Usage</summary>
-                                            <dl class="tech-details" style="margin-top:0.4em;">
+                                            <dl class="tech-details" style="margin-top:0.4em;"{{with $eu.InputTokenAccounting}} data-input-token-accounting="{{.}}"{{end}}>
                                                 {{- with $eu.InputTokens }}
                                                 <dt>Input</dt><dd>{{.}}</dd>
                                                 {{ end -}}

@@ -18,7 +18,8 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details,Suite,Category,Diffic
       ""InputTokens"": 9876543210,
       ""OutputTokens"": 1234567890,
       ""InputCacheWriteTokens"": 9757309999902428,
-      ""InputCacheReadTokens"": 91835
+      ""InputCacheReadTokens"": 91835,
+      ""InputTokenAccounting"": ""cache_tokens_separate""
     },
     ""ToolUsage"": {
       ""calculator"": {
@@ -88,7 +89,8 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details,Suite,Category,Diffic
       ""InputTokens"": 11,
       ""OutputTokens"": 5,
       ""InputCacheWriteTokens"": 55,
-      ""InputCacheReadTokens"": 99
+      ""InputCacheReadTokens"": 99,
+      ""InputTokenAccounting"": ""cache_tokens_included""
     },
     ""ToolUsage"": {
       ""data_formatter"": {
@@ -228,7 +230,8 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details,Suite,Category,Diffic
       ""InputTokens"": 0,
       ""OutputTokens"": 0,
       ""InputCacheWriteTokens"": 0,
-      ""InputCacheReadTokens"": 0
+      ""InputCacheReadTokens"": 0,
+      ""InputTokenAccounting"": ""cache_tokens_separate""
     },
     ""ToolUsage"": {
       ""config_loader"": {
