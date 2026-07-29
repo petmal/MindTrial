@@ -8,6 +8,7 @@ package runners
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"testing"
 	"time"
@@ -2793,4 +2794,128 @@ func TestMergeResults(t *testing.T) {
 		assert.Equal(t, rs1Before, rs1)
 		assert.Equal(t, rs2Before, rs2)
 	})
+}
+
+func TestToTokenUsage(t *testing.T) {
+	tests := []struct {
+		name string
+		in   providers.Usage
+		want TokenUsage
+	}{
+		{
+			name: "all fields populated",
+			in: providers.Usage{
+				InputTokens:           testutils.Ptr(int64(10)),
+				OutputTokens:          testutils.Ptr(int64(20)),
+				InputCacheWriteTokens: testutils.Ptr(int64(30)),
+				InputCacheReadTokens:  testutils.Ptr(int64(40)),
+			},
+			want: TokenUsage{
+				InputTokens:           testutils.Ptr(int64(10)),
+				OutputTokens:          testutils.Ptr(int64(20)),
+				InputCacheWriteTokens: testutils.Ptr(int64(30)),
+				InputCacheReadTokens:  testutils.Ptr(int64(40)),
+			},
+		},
+		{
+			name: "all fields populated with large values",
+			in: providers.Usage{
+				InputTokens:           testutils.Ptr(int64(6297909999937021)),
+				OutputTokens:          testutils.Ptr(int64(57709999999423)),
+				InputCacheWriteTokens: testutils.Ptr(int64(8802309999911977)),
+				InputCacheReadTokens:  testutils.Ptr(int64(1750409999982496)),
+			},
+			want: TokenUsage{
+				InputTokens:           testutils.Ptr(int64(6297909999937021)),
+				OutputTokens:          testutils.Ptr(int64(57709999999423)),
+				InputCacheWriteTokens: testutils.Ptr(int64(8802309999911977)),
+				InputCacheReadTokens:  testutils.Ptr(int64(1750409999982496)),
+			},
+		},
+		{
+			name: "only some fields populated",
+			in: providers.Usage{
+				OutputTokens:         testutils.Ptr(int64(0)),
+				InputCacheReadTokens: testutils.Ptr(int64(5)),
+			},
+			want: TokenUsage{
+				OutputTokens:         testutils.Ptr(int64(0)),
+				InputCacheReadTokens: testutils.Ptr(int64(5)),
+			},
+		},
+		{
+			name: "empty usage",
+			in:   providers.Usage{},
+			want: TokenUsage{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, toTokenUsage(tt.in))
+		})
+	}
+}
+
+func TestTokenUsageJSONRoundTrip(t *testing.T) {
+	original := TokenUsage{
+		InputTokens:           testutils.Ptr(int64(4705009999952950)),
+		OutputTokens:          testutils.Ptr(int64(8149309999918507)),
+		InputCacheWriteTokens: testutils.Ptr(int64(6972209999930278)),
+		InputCacheReadTokens:  testutils.Ptr(int64(7772909999922271)),
+	}
+
+	data, err := json.Marshal(original)
+	require.NoError(t, err)
+
+	var got TokenUsage
+	require.NoError(t, json.Unmarshal(data, &got))
+
+	assert.Equal(t, original, got)
+}
+
+func TestMergeResultsPreservesTokenUsage(t *testing.T) {
+	rs1 := Results{
+		"ProviderA": {
+			{
+				Provider: "ProviderA", Run: "run1", Task: "task1", Kind: Success,
+				Details: Details{
+					Answer: AnswerDetails{
+						Usage: TokenUsage{
+							InputTokens:           testutils.Ptr(int64(1)),
+							OutputTokens:          testutils.Ptr(int64(2)),
+							InputCacheWriteTokens: testutils.Ptr(int64(3)),
+							InputCacheReadTokens:  testutils.Ptr(int64(4)),
+						},
+					},
+				},
+			},
+		},
+	}
+	rs2 := Results{
+		"ProviderA": {
+			{
+				Provider: "ProviderA", Run: "run1", Task: "task1", Kind: Success,
+				Details: Details{
+					Answer: AnswerDetails{
+						Usage: TokenUsage{
+							InputTokens:           testutils.Ptr(int64(10)),
+							OutputTokens:          testutils.Ptr(int64(20)),
+							InputCacheWriteTokens: testutils.Ptr(int64(30)),
+							InputCacheReadTokens:  testutils.Ptr(int64(40)),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	merged, _ := MergeResults(rs1, rs2)
+	require.Len(t, merged["ProviderA"], 1)
+	assert.Equal(t, TokenUsage{
+		InputTokens:           testutils.Ptr(int64(10)),
+		OutputTokens:          testutils.Ptr(int64(20)),
+		InputCacheWriteTokens: testutils.Ptr(int64(30)),
+		InputCacheReadTokens:  testutils.Ptr(int64(40)),
+	}, merged["ProviderA"][0].Details.Answer.Usage)
 }

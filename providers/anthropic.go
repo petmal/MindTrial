@@ -22,7 +22,7 @@ import (
 	"github.com/petmal/mindtrial/providers/tools"
 )
 
-const defaultMaxTokens = 2048
+const defaultMaxTokens = 32768
 const submitResponseToolName = "submit_response"
 
 // NewAnthropic creates a new Anthropic provider instance with the given configuration.
@@ -55,6 +55,7 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 
 	// Setup tools if any.
 	var executor *tools.DockerToolExecutor
+	var lastCacheableLocalToolIndex = -1
 	toolSelector := task.GetResolvedToolSelector()
 	if enabledTools, hasTools := toolSelector.GetEnabledToolsByName(); hasTools {
 		var err error
@@ -85,6 +86,7 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 					},
 				},
 			})
+			lastCacheableLocalToolIndex = len(request.Tools) - 1
 		}
 		// If user tools are present, allow auto tool choice.
 		request.ToolChoice = anthropic.ToolChoiceUnionParam{
@@ -105,6 +107,7 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 	}
 	var useStreaming bool
 	var useLegacyStructuredOutput bool
+	var promptCacheTTL *string
 	if cfg.ModelParams != nil {
 		if modelParams, ok := cfg.ModelParams.(config.AnthropicModelParams); ok {
 			if modelParams.MaxTokens != nil {
@@ -122,6 +125,19 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 					request.Thinking = anthropic.ThinkingConfigParamOfEnabled(*modelParams.ThinkingBudgetTokens)
 				}
 			}
+			if modelParams.Thinking != nil { // explicit thinking mode overrides Effort and ThinkingBudgetTokens defaults
+				switch *modelParams.Thinking { //nolint:gocritic
+				case "disabled":
+					if modelParams.ThinkingBudgetTokens != nil {
+						return result, fmt.Errorf("%w: %s: thinking-budget-tokens must not be set when thinking is disabled", ErrInvalidModelParams, cfg.Name)
+					}
+					disabled := anthropic.NewThinkingConfigDisabledParam()
+					request.Thinking = anthropic.ThinkingConfigParamUnion{
+						OfDisabled: &disabled,
+					}
+					// Disabled thinking is compatible with some OutputConfig.Effort levels, hence we keep the field if set.
+				}
+			}
 			if modelParams.Temperature != nil {
 				request.Temperature = anthropic.Float(*modelParams.Temperature)
 			}
@@ -133,6 +149,7 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 			}
 			useStreaming = modelParams.Stream
 			useLegacyStructuredOutput = modelParams.LegacyStructuredOutput && !cfg.DisableStructuredOutput
+			promptCacheTTL = modelParams.PromptCacheTTL
 		} else {
 			return result, fmt.Errorf("%w: %s", ErrInvalidModelParams, cfg.Name)
 		}
@@ -194,6 +211,8 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 		anthropic.NewUserMessage(promptParts...),
 	}
 
+	o.configurePromptCaching(&request, lastCacheableLocalToolIndex, promptCacheTTL)
+
 	// Conversation loop to handle tool calls.
 	var turn int
 	for {
@@ -217,7 +236,7 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 			return result, nil // return current result state
 		}
 
-		recordUsage(&resp.Usage.InputTokens, &resp.Usage.OutputTokens, &result.usage)
+		recordUsage(&resp.Usage.InputTokens, &resp.Usage.OutputTokens, &resp.Usage.CacheCreationInputTokens, &resp.Usage.CacheReadInputTokens, &result.usage)
 		isTerminal := o.isTerminalStopReason(resp.StopReason)
 		logFinishReason(ctx, logger, string(resp.StopReason), isTerminal)
 
@@ -396,4 +415,59 @@ func (o *Anthropic) createPromptMessageParts(ctx context.Context, promptText str
 
 func (o *Anthropic) Close(ctx context.Context) error {
 	return nil
+}
+
+// configurePromptCaching enables top-level automatic caching and places
+// exactly one explicit cache breakpoint on the most reusable request prefix if available.
+// Priority: last local tool > final system block > final cacheable
+// initial user content block.
+func (o *Anthropic) configurePromptCaching(
+	request *anthropic.MessageNewParams,
+	lastLocalToolIndex int,
+	promptCacheTTL *string,
+) {
+	if promptCacheTTL != nil {
+		cacheControl := o.newCacheControlForTTL(*promptCacheTTL)
+		request.CacheControl = cacheControl
+
+		if lastLocalToolIndex >= 0 && lastLocalToolIndex < len(request.Tools) {
+			tool := &request.Tools[lastLocalToolIndex]
+			if tool.OfTool != nil {
+				tool.OfTool.CacheControl = cacheControl
+				return
+			}
+		}
+
+		if len(request.System) > 0 {
+			request.System[len(request.System)-1].CacheControl = cacheControl
+			return
+		}
+
+		if len(request.Messages) > 0 {
+			content := request.Messages[0].Content
+			for i := len(content) - 1; i >= 0; i-- {
+				block := &content[i]
+				if block.OfText != nil {
+					block.OfText.CacheControl = cacheControl
+					return
+				}
+				if block.OfImage != nil {
+					block.OfImage.CacheControl = cacheControl
+					return
+				}
+			}
+		}
+	}
+}
+
+// newCacheControlForTTL returns the SDK cache control param for a given TTL string.
+func (o *Anthropic) newCacheControlForTTL(ttl string) anthropic.CacheControlEphemeralParam {
+	cacheControl := anthropic.NewCacheControlEphemeralParam()
+	switch ttl {
+	case "5m":
+		cacheControl.TTL = anthropic.CacheControlEphemeralTTLTTL5m
+	case "1h":
+		cacheControl.TTL = anthropic.CacheControlEphemeralTTLTTL1h
+	}
+	return cacheControl // fall back to default TTL
 }

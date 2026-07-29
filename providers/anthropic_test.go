@@ -118,3 +118,121 @@ func TestSanitizeAssistantMessage(t *testing.T) {
 		})
 	}
 }
+
+func TestAnthropic_Run_IncompatibleThinking(t *testing.T) {
+	logger := testutils.NewTestLogger(t)
+	p := &Anthropic{}
+
+	runCfg := config.RunConfig{
+		Name:  "test-run",
+		Model: "claude",
+		ModelParams: config.AnthropicModelParams{
+			Thinking:             testutils.Ptr("disabled"), // incompatible with ThinkingBudgetTokens
+			ThinkingBudgetTokens: testutils.Ptr(int64(1024)),
+		},
+	}
+	task := config.Task{Name: "t"}
+	_, err := p.Run(context.Background(), logger, runCfg, task)
+	require.ErrorIs(t, err, ErrInvalidModelParams) // Should error due to ErrInvalidModelParams
+}
+
+func TestAnthropic_ConfigurePromptCaching(t *testing.T) {
+	t.Run("places breakpoint on last local tool", func(t *testing.T) {
+		p := &Anthropic{}
+		req := anthropic.MessageNewParams{Model: "claude-opus-5", MaxTokens: 2048}
+		req.Tools = append(req.Tools, anthropic.ToolUnionParam{
+			OfTool: &anthropic.ToolParam{Name: "t1", InputSchema: anthropic.ToolInputSchemaParam{}},
+		})
+		req.Tools = append(req.Tools, anthropic.ToolUnionParam{
+			OfTool: &anthropic.ToolParam{Name: "t2", InputSchema: anthropic.ToolInputSchemaParam{}},
+		})
+
+		p.configurePromptCaching(&req, len(req.Tools)-1, testutils.Ptr("5m"))
+
+		assert.Equal(t, anthropic.CacheControlEphemeralTTLTTL5m, req.CacheControl.TTL)
+		assert.Equal(t, anthropic.CacheControlEphemeralTTLTTL5m, req.Tools[1].OfTool.CacheControl.TTL)
+		assert.Zero(t, req.Tools[0].OfTool.CacheControl)
+	})
+
+	t.Run("falls back to last system block", func(t *testing.T) {
+		p := &Anthropic{}
+		req := anthropic.MessageNewParams{Model: "claude-opus-5", MaxTokens: 2048}
+		req.System = append(req.System, anthropic.TextBlockParam{Text: "first"})
+		req.System = append(req.System, anthropic.TextBlockParam{Text: "last"})
+
+		p.configurePromptCaching(&req, -1, testutils.Ptr("1h"))
+
+		assert.Equal(t, anthropic.CacheControlEphemeralTTLTTL1h, req.CacheControl.TTL)
+		assert.Equal(t, anthropic.CacheControlEphemeralTTLTTL1h, req.System[len(req.System)-1].CacheControl.TTL)
+		assert.Zero(t, req.System[0].CacheControl)
+	})
+
+	t.Run("falls back to last user text block", func(t *testing.T) {
+		p := &Anthropic{}
+		req := anthropic.MessageNewParams{Model: "claude-opus-5", MaxTokens: 2048}
+		req.Messages = append(req.Messages, anthropic.NewUserMessage(
+			anthropic.NewTextBlock("first"),
+			anthropic.NewTextBlock("last"),
+		))
+
+		p.configurePromptCaching(&req, -1, testutils.Ptr("5m"))
+
+		assert.Equal(t, anthropic.CacheControlEphemeralTTLTTL5m, req.CacheControl.TTL)
+
+		content := req.Messages[0].Content
+		require.Len(t, content, 2)
+
+		assert.Equal(t, anthropic.CacheControlEphemeralTTLTTL5m, content[1].OfText.CacheControl.TTL)
+		assert.Zero(t, content[0].OfText.CacheControl)
+	})
+
+	t.Run("falls back to last user image block", func(t *testing.T) {
+		p := &Anthropic{}
+		req := anthropic.MessageNewParams{Model: "claude-opus-5", MaxTokens: 2048}
+		req.Messages = append(req.Messages, anthropic.NewUserMessage(
+			anthropic.NewTextBlock("describe"),
+			anthropic.NewImageBlockBase64("image/png", "abc"),
+		))
+
+		p.configurePromptCaching(&req, -1, testutils.Ptr("1h"))
+
+		assert.Equal(t, anthropic.CacheControlEphemeralTTLTTL1h, req.CacheControl.TTL)
+
+		content := req.Messages[0].Content
+		require.Len(t, content, 2)
+
+		assert.Equal(t, anthropic.CacheControlEphemeralTTLTTL1h, content[1].OfImage.CacheControl.TTL)
+		assert.Zero(t, content[0].OfText.CacheControl)
+	})
+
+	t.Run("always sets the top-level cache control", func(t *testing.T) {
+		p := &Anthropic{}
+		req := anthropic.MessageNewParams{Model: "claude-opus-5", MaxTokens: 2048}
+
+		p.configurePromptCaching(&req, -1, testutils.Ptr("5m"))
+		assert.Equal(t, anthropic.CacheControlEphemeralTTLTTL5m, req.CacheControl.TTL)
+	})
+
+	t.Run("nil does not enable cache control", func(t *testing.T) {
+		p := &Anthropic{}
+		req := anthropic.MessageNewParams{Model: "claude-opus-5", MaxTokens: 2048}
+		req.Tools = append(req.Tools, anthropic.ToolUnionParam{
+			OfTool: &anthropic.ToolParam{Name: "t1", InputSchema: anthropic.ToolInputSchemaParam{}},
+		})
+
+		p.configurePromptCaching(&req, len(req.Tools)-1, nil)
+
+		assert.Zero(t, req.CacheControl)
+		assert.Zero(t, req.Tools[0].OfTool.CacheControl)
+	})
+
+	t.Run("unknown values fall back to SDK default", func(t *testing.T) {
+		p := &Anthropic{}
+		req := anthropic.MessageNewParams{Model: "claude-opus-5", MaxTokens: 2048}
+
+		p.configurePromptCaching(&req, -1, testutils.Ptr("unknown"))
+
+		assert.NotZero(t, req.CacheControl)
+		assert.Zero(t, req.CacheControl.TTL)
+	})
+}

@@ -40,7 +40,9 @@
             ],
             "Usage": {
               "InputTokens": 9876543210,
-              "OutputTokens": 1234567890
+              "OutputTokens": 1234567890,
+              "InputCacheWriteTokens": 9757309999902428,
+              "InputCacheReadTokens": 91835
             },
             "ToolUsage": {
               "calculator": {
@@ -108,7 +110,9 @@
             ],
             "Usage": {
               "InputTokens": 11,
-              "OutputTokens": 5
+              "OutputTokens": 5,
+              "InputCacheWriteTokens": 55,
+              "InputCacheReadTokens": 99
             },
             "ToolUsage": {
               "data_formatter": {
@@ -149,7 +153,8 @@
               ]
             ],
             "Usage": {
-              "InputTokens": 200
+              "InputTokens": 200,
+              "InputCacheWriteTokens": 100
             },
             "ToolUsage": {
               "json_parser": {
@@ -275,7 +280,9 @@
             "Message": "Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus.",
             "Usage": {
               "InputTokens": 0,
-              "OutputTokens": 0
+              "OutputTokens": 0,
+              "InputCacheWriteTokens": 0,
+              "InputCacheReadTokens": 0
             },
             "ToolUsage": {
               "config_loader": {

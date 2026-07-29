@@ -160,7 +160,7 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 		}
 
 		if resp.Usage != nil {
-			recordUsage(&resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, &result.usage)
+			recordUsage(&resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, nil, nil, &result.usage)
 		}
 		if len(resp.Choices) == 0 {
 			return result, ErrNoResponseCandidates

@@ -611,6 +611,15 @@ type AnthropicModelParams struct {
 	// The "xhigh" level is recommended for coding and agentic use cases on Claude Opus 4.7+.
 	Effort *string `yaml:"effort" validate:"omitempty,oneof=low medium high xhigh max"`
 
+	// Thinking explicitly overrides the thinking mode when supported.
+	//
+	// Accepted values:
+	//   - "disabled": explicitly disable thinking; cannot be combined with ThinkingBudgetTokens, or with Effort levels greater than `high`
+	//
+	// When omitted, the model's default thinking behaviour is used unless
+	// Effort or ThinkingBudgetTokens requests an explicit mode.
+	Thinking *string `yaml:"thinking" validate:"omitempty,oneof=disabled"`
+
 	// Temperature controls the randomness or "creativity" of responses.
 	// Values range from 0.0 to 1.0, with lower values making the output more focused.
 	// The default value is 1.0.
@@ -649,6 +658,15 @@ type AnthropicModelParams struct {
 	// submit_response tool and instructs the model to use it instead of relying
 	// on output_config.format constrained decoding.
 	LegacyStructuredOutput bool `yaml:"legacy-structured-output" validate:"omitempty"`
+
+	// PromptCacheTTL enables Anthropic prompt caching and selects the cache
+	// lifetime. When set, MindTrial enables top-level automatic caching and
+	// places one explicit cache breakpoint on the most reusable request
+	// prefix.
+	//
+	// Supported values are "5m" and "1h". When omitted or empty, MindTrial
+	// does not add prompt cache controls.
+	PromptCacheTTL *string `yaml:"prompt-cache-ttl" validate:"omitempty,oneof=5m 1h"`
 }
 
 // DeepseekModelParams represents DeepSeek model-specific settings.

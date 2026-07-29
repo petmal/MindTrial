@@ -244,6 +244,14 @@ config:
             max-tokens: 65536
             effort: xhigh
             stream: true
+        - name: "Claude Opus 5 - latest (xhigh adaptive thinking)"
+          model: "claude-opus-5"
+          max-requests-per-minute: 10
+          model-parameters:
+            max-tokens: 65536
+            effort: xhigh
+            stream: true
+            prompt-cache-ttl: 5m
     - name: deepseek
       client-config:
         api-key: ""

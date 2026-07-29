@@ -365,7 +365,7 @@ func (o *openAICompletionsProvider) Run(ctx context.Context, logger logging.Logg
 			return result, nil // return current result state
 		}
 
-		recordUsage(&resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, &result.usage)
+		recordUsage(&resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, nil, nil, &result.usage)
 
 		if len(resp.Choices) == 0 {
 			return result, ErrNoResponseCandidates

@@ -75,11 +75,13 @@ func TestResultGetPrompts(t *testing.T) {
 
 func TestResultGetUsage(t *testing.T) {
 	tests := []struct {
-		name         string
-		init         Usage
-		inputTokens  *int64
-		outputTokens *int64
-		want         Usage
+		name                  string
+		init                  Usage
+		inputTokens           *int64
+		outputTokens          *int64
+		inputCacheWriteTokens *int64
+		inputCacheReadTokens  *int64
+		want                  Usage
 	}{
 		{
 			name: "zero usage",
@@ -114,12 +116,29 @@ func TestResultGetUsage(t *testing.T) {
 			outputTokens: testutils.Ptr(int64(6440809999935592)),
 			want:         Usage{InputTokens: testutils.Ptr(int64(9313009999906870)), OutputTokens: testutils.Ptr(int64(6440809999935592))},
 		},
+		{
+			name:                  "cache tokens only",
+			inputCacheWriteTokens: testutils.Ptr(int64(37)),
+			inputCacheReadTokens:  testutils.Ptr(int64(77)),
+			want:                  Usage{InputCacheWriteTokens: testutils.Ptr(int64(37)), InputCacheReadTokens: testutils.Ptr(int64(77))},
+		},
+		{
+			name:                  "all tokens",
+			inputTokens:           testutils.Ptr(int64(5147809999948522)),
+			outputTokens:          testutils.Ptr(int64(3763809999962362)),
+			inputCacheWriteTokens: testutils.Ptr(int64(4500109999954999)),
+			inputCacheReadTokens:  testutils.Ptr(int64(6304309999936957)),
+			want: Usage{
+				InputTokens: testutils.Ptr(int64(5147809999948522)), OutputTokens: testutils.Ptr(int64(3763809999962362)),
+				InputCacheWriteTokens: testutils.Ptr(int64(4500109999954999)), InputCacheReadTokens: testutils.Ptr(int64(6304309999936957)),
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := Result{usage: tt.init}
-			recordUsage(tt.inputTokens, tt.outputTokens, &result.usage)
+			recordUsage(tt.inputTokens, tt.outputTokens, tt.inputCacheWriteTokens, tt.inputCacheReadTokens, &result.usage)
 			assert.Equal(t, tt.want, result.GetUsage())
 		})
 	}

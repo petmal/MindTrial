@@ -360,8 +360,18 @@ func UnmarshalUnstructuredResponse(ctx context.Context, logger logging.Logger, c
 type Usage struct {
 	// InputTokens used by the input if available.
 	InputTokens *int64 `json:"-"`
+
 	// OutputTokens used by the output if available.
 	OutputTokens *int64 `json:"-"`
+
+	// InputCacheWriteTokens is the number of input tokens written
+	// into a provider prompt cache if reported.
+	InputCacheWriteTokens *int64 `json:"-"`
+
+	// InputCacheReadTokens is the number of input tokens read from a
+	// provider prompt cache if reported.
+	InputCacheReadTokens *int64 `json:"-"`
+
 	// ToolUsage contains per-tool aggregate execution statistics collected during
 	// the run if available.
 	ToolUsage map[string]tools.ToolUsage `json:"-"`
@@ -504,9 +514,11 @@ func (r *Result) recordToolCalls(calls []tools.ToolCallSummary) {
 	r.toolCalls = calls
 }
 
-func recordUsage[T constraints.Signed](inputTokens *T, outputTokens *T, out *Usage) {
+func recordUsage[T constraints.Signed](inputTokens *T, outputTokens *T, inputCacheWriteTokens *T, inputCacheReadTokens *T, out *Usage) {
 	addIfNotNil(&out.InputTokens, inputTokens)
 	addIfNotNil(&out.OutputTokens, outputTokens)
+	addIfNotNil(&out.InputCacheWriteTokens, inputCacheWriteTokens)
+	addIfNotNil(&out.InputCacheReadTokens, inputCacheReadTokens)
 }
 
 // addIfNotNil adds the values from src to dst if src is not nil.

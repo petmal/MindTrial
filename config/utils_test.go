@@ -528,10 +528,12 @@ func TestLoadConfigFromFile(t *testing.T) {
                     top-p: 0.95
                     top-k: 40
                     stream: true
+                    prompt-cache-ttl: 5m
               - name: "Claude Opus 4.6"
                 model: "claude-opus-4-6"
                 model-parameters:
                     max-tokens: 16000
+                    thinking: disabled
                     effort: medium
                     legacy-structured-output: true
         - name: deepseek
@@ -745,6 +747,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 										TopP:                 testutils.Ptr(float64(0.95)),
 										TopK:                 testutils.Ptr(int64(40)),
 										Stream:               true,
+										PromptCacheTTL:       testutils.Ptr("5m"),
 									},
 								},
 								{
@@ -753,6 +756,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 									MaxRequestsPerMinute: 0,
 									ModelParams: AnthropicModelParams{
 										MaxTokens:              testutils.Ptr(int64(16000)),
+										Thinking:               testutils.Ptr("disabled"),
 										Effort:                 testutils.Ptr("medium"),
 										LegacyStructuredOutput: true,
 									},

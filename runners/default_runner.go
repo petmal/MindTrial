@@ -401,6 +401,9 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 	usage := result.GetUsage()
 	toolCalls := result.GetToolCalls()
 	logger.Message(ctx, logging.LevelDebug, "token usage: [in:%s, out:%s]", logging.FormatLogInt64(usage.InputTokens), logging.FormatLogInt64(usage.OutputTokens))
+	if usage.InputCacheWriteTokens != nil || usage.InputCacheReadTokens != nil {
+		logger.Message(ctx, logging.LevelDebug, "cache token usage: [write:%s, read:%s]", logging.FormatLogInt64(usage.InputCacheWriteTokens), logging.FormatLogInt64(usage.InputCacheReadTokens))
+	}
 	logger.Message(ctx, logging.LevelTrace, "prompts:\n%s", logging.FormatLogText(result.GetPrompts()))
 	if err != nil { //nolint:gocritic
 		runResult.Kind = Error
@@ -561,7 +564,12 @@ func pluralize(tokens ...any) []interface{} {
 }
 
 func toTokenUsage(u providers.Usage) TokenUsage {
-	return TokenUsage{InputTokens: u.InputTokens, OutputTokens: u.OutputTokens}
+	return TokenUsage{
+		InputTokens:           u.InputTokens,
+		OutputTokens:          u.OutputTokens,
+		InputCacheWriteTokens: u.InputCacheWriteTokens,
+		InputCacheReadTokens:  u.InputCacheReadTokens,
+	}
 }
 
 func toToolUsage(u providers.Usage) (toolUsage map[string]ToolUsage) {

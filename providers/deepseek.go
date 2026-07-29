@@ -181,7 +181,7 @@ func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 			return result, nil // return current result state
 		}
 
-		recordUsage(&resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, &result.usage)
+		recordUsage(&resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, nil, nil, &result.usage)
 		if len(resp.Choices) == 0 {
 			return result, ErrNoResponseCandidates
 		}

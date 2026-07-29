@@ -1947,12 +1947,25 @@
                                     </details>
                                     {{- end }}
                                     {{- with $u := $ad.Usage }}
-                                        {{- if or $u.InputTokens $u.OutputTokens }}
+                                        {{- if or $u.InputTokens $u.InputCacheWriteTokens $u.InputCacheReadTokens $u.OutputTokens }}
                                         <details>
                                             <summary>Token Usage</summary>
                                             <dl class="tech-details" style="margin-top:0.4em;">
-                                                {{- with $u.InputTokens }}<dt>Input</dt><dd>{{.}}</dd>{{ end -}}
-                                                {{- with $u.OutputTokens }}<dt>Output</dt><dd>{{.}}</dd>{{ end -}}
+                                                {{- with $u.InputTokens }}
+                                                <dt>Input</dt><dd>{{.}}</dd>
+                                                {{- end }}
+
+                                                {{- with $u.InputCacheWriteTokens }}
+                                                <dt>Input Cache Write</dt><dd>{{.}}</dd>
+                                                {{- end }}
+
+                                                {{- with $u.InputCacheReadTokens }}
+                                                <dt>Input Cache Read</dt><dd>{{.}}</dd>
+                                                {{- end }}
+
+                                                {{- with $u.OutputTokens }}
+                                                <dt>Output</dt><dd>{{.}}</dd>
+                                                {{- end }}
                                             </dl>
                                         </details>
                                         {{- end }}
@@ -1990,12 +2003,25 @@
                                         </div>
                                     </details>
                                     {{- with $vu := $vd.Usage }}
-                                        {{- if or $vu.InputTokens $vu.OutputTokens }}
+                                        {{- if or $vu.InputTokens $vu.InputCacheWriteTokens $vu.InputCacheReadTokens $vu.OutputTokens }}
                                         <details>
                                             <summary>Token Usage</summary>
                                             <dl class="tech-details" style="margin-top:0.4em;">
-                                                {{- with $vu.InputTokens }}<dt>Input</dt><dd>{{.}}</dd>{{ end -}}
-                                                {{- with $vu.OutputTokens }}<dt>Output</dt><dd>{{.}}</dd>{{ end -}}
+                                                {{- with $vu.InputTokens }}
+                                                <dt>Input</dt><dd>{{.}}</dd>
+                                                {{ end -}}
+
+                                                {{- with $vu.InputCacheWriteTokens }}
+                                                <dt>Input Cache Write</dt><dd>{{.}}</dd>
+                                                {{ end -}}
+
+                                                {{- with $vu.InputCacheReadTokens }}
+                                                <dt>Input Cache Read</dt><dd>{{.}}</dd>
+                                                {{ end -}}
+
+                                                {{- with $vu.OutputTokens }}
+                                                <dt>Output</dt><dd>{{.}}</dd>
+                                                {{ end -}}
                                             </dl>
                                         </details>
                                         {{- end }}
@@ -2041,12 +2067,25 @@
                                     </details>
                                     {{- end }}
                                     {{- with $eu := $ed.Usage }}
-                                        {{- if or $eu.InputTokens $eu.OutputTokens }}
+                                        {{- if or $eu.InputTokens $eu.InputCacheWriteTokens $eu.InputCacheReadTokens $eu.OutputTokens }}
                                         <details>
                                             <summary>Token Usage</summary>
                                             <dl class="tech-details" style="margin-top:0.4em;">
-                                                {{- with $eu.InputTokens }}<dt>Input</dt><dd>{{.}}</dd>{{ end -}}
-                                                {{- with $eu.OutputTokens }}<dt>Output</dt><dd>{{.}}</dd>{{ end -}}
+                                                {{- with $eu.InputTokens }}
+                                                <dt>Input</dt><dd>{{.}}</dd>
+                                                {{ end -}}
+
+                                                {{- with $eu.InputCacheWriteTokens }}
+                                                <dt>Input Cache Write</dt><dd>{{.}}</dd>
+                                                {{ end -}}
+
+                                                {{- with $eu.InputCacheReadTokens }}
+                                                <dt>Input Cache Read</dt><dd>{{.}}</dd>
+                                                {{ end -}}
+
+                                                {{- with $eu.OutputTokens }}
+                                                <dt>Output</dt><dd>{{.}}</dd>
+                                                {{ end -}}
                                             </dl>
                                         </details>
                                         {{- end }}

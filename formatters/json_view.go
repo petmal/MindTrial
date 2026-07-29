@@ -284,7 +284,10 @@ func durationToNsPtr(d *time.Duration) *int64 {
 }
 
 func tokenUsageToPtr(u runners.TokenUsage) *runners.TokenUsage {
-	if u.InputTokens == nil && u.OutputTokens == nil {
+	if u.InputTokens == nil &&
+		u.OutputTokens == nil &&
+		u.InputCacheWriteTokens == nil &&
+		u.InputCacheReadTokens == nil {
 		return nil
 	}
 	return &u

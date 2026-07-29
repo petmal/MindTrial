@@ -215,11 +215,13 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **max-tokens**: Controls the maximum number of tokens available to the model for generating a response.
 > - **thinking-budget-tokens**: Enables extended thinking with a fixed token budget, giving the model more reasoning capacity on complex tasks. Must be at least 1024 and less than `max-tokens`. Ignored when `effort` is also set. If neither is set, extended thinking is disabled. **Deprecated**: Claude Opus 4.7+ removed fixed thinking budgets; setting this returns a 400 error. Use `effort` instead.
 > - **effort**: Enables adaptive extended thinking and guides how deeply the model reasons before responding, from quick answers (`low`) to thorough multi-step reasoning (`max`) (values: `low`, `medium`, `high`, `xhigh`, `max`). If neither is set, extended thinking is disabled. When set, `thinking-budget-tokens` is ignored. Use `max-tokens` to cap total output (thinking + response text). The `xhigh` level is recommended for coding and agentic use cases on Claude Opus 4.7+.
+> - **thinking**: Explicitly overrides the thinking mode (values: `disabled`). `disabled` explicitly disables thinking, it cannot be combined with `thinking-budget-tokens`, or with `effort` levels greater than `high`. When omitted, the model's default thinking behaviour is used unless `effort` or `thinking-budget-tokens` requests an explicit mode.
 > - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 1.0, default: 1.0). Lower values produce more focused and deterministic outputs. **Deprecated**: Claude Opus 4.7+ rejects non-default values with a 400 error.
 > - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0). Lower values produce more focused outputs. **Deprecated**: Claude Opus 4.7+ rejects non-default values with a 400 error.
 > - **top-k**: Limits tokens considered for each position to top K options. Higher values allow more diverse outputs. **Deprecated**: Claude Opus 4.7+ rejects any value with a 400 error.
 > - **stream**: If `true`, enables streaming mode for the API response. Streaming is recommended for requests with large `max-tokens` values, especially when extended thinking is enabled, to prevent HTTP timeouts on long-running requests. Responses are streamed incrementally and buffered internally before processing.
 > - **legacy-structured-output**: If `true`, uses tool-based structured output instead of native JSON schema output. This is a workaround for models that have difficulty producing valid responses with native `output_config.format` constrained decoding when extended thinking is enabled. When set, the provider registers a `submit_response` tool and instructs the model to use it to submit its response.
+> - **prompt-cache-ttl**: Enables Anthropic prompt caching and selects the cache lifetime. Supported values are `5m` and `1h`. When set, MindTrial enables top-level automatic caching and places one explicit cache breakpoint on the most reusable request prefix: the final configured local tool, the final system block, or the final cacheable initial user content block. When omitted, no prompt cache controls are added.
 >
 > Currently supported parameters for **Google** models include:
 >
@@ -448,6 +450,14 @@ config:
             max-tokens: 65536
             effort: xhigh
             stream: true
+        - name: "Claude Opus 5 (xhigh adaptive thinking with prompt caching)"
+          model: "claude-opus-5"
+          max-requests-per-minute: 5
+          model-parameters:
+            max-tokens: 65536
+            effort: xhigh
+            stream: true
+            prompt-cache-ttl: 5m
     - name: deepseek
       client-config:
         api-key: "<your-api-key>"

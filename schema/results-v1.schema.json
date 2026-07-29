@@ -137,10 +137,24 @@
                     "Usage": {
                       "properties": {
                         "InputTokens": {
-                          "type": "integer"
+                          "type": "integer",
+                          "title": "Input Tokens",
+                          "description": "The number of ordinary input tokens reported."
                         },
                         "OutputTokens": {
-                          "type": "integer"
+                          "type": "integer",
+                          "title": "Output Tokens",
+                          "description": "The number of generated output tokens."
+                        },
+                        "InputCacheWriteTokens": {
+                          "type": "integer",
+                          "title": "Input Cache Write Tokens",
+                          "description": "The number of input tokens written into a provider prompt cache."
+                        },
+                        "InputCacheReadTokens": {
+                          "type": "integer",
+                          "title": "Input Cache Read Tokens",
+                          "description": "The number of input tokens read from a provider prompt cache."
                         }
                       },
                       "additionalProperties": false,
@@ -328,10 +342,24 @@
                     "Usage": {
                       "properties": {
                         "InputTokens": {
-                          "type": "integer"
+                          "type": "integer",
+                          "title": "Input Tokens",
+                          "description": "The number of ordinary input tokens reported."
                         },
                         "OutputTokens": {
-                          "type": "integer"
+                          "type": "integer",
+                          "title": "Output Tokens",
+                          "description": "The number of generated output tokens."
+                        },
+                        "InputCacheWriteTokens": {
+                          "type": "integer",
+                          "title": "Input Cache Write Tokens",
+                          "description": "The number of input tokens written into a provider prompt cache."
+                        },
+                        "InputCacheReadTokens": {
+                          "type": "integer",
+                          "title": "Input Cache Read Tokens",
+                          "description": "The number of input tokens read from a provider prompt cache."
                         }
                       },
                       "additionalProperties": false,
@@ -527,10 +555,24 @@
                     "Usage": {
                       "properties": {
                         "InputTokens": {
-                          "type": "integer"
+                          "type": "integer",
+                          "title": "Input Tokens",
+                          "description": "The number of ordinary input tokens reported."
                         },
                         "OutputTokens": {
-                          "type": "integer"
+                          "type": "integer",
+                          "title": "Output Tokens",
+                          "description": "The number of generated output tokens."
+                        },
+                        "InputCacheWriteTokens": {
+                          "type": "integer",
+                          "title": "Input Cache Write Tokens",
+                          "description": "The number of input tokens written into a provider prompt cache."
+                        },
+                        "InputCacheReadTokens": {
+                          "type": "integer",
+                          "title": "Input Cache Read Tokens",
+                          "description": "The number of input tokens read from a provider prompt cache."
                         }
                       },
                       "additionalProperties": false,

@@ -67,8 +67,10 @@ var mockResults = runners.Results{
 					ActualAnswer:   []string{"Quos aut rerum quaerat qui ad culpa."},
 					ExpectedAnswer: [][]string{{"Quos aut rerum quaerat qui ad culpa."}},
 					Usage: runners.TokenUsage{
-						InputTokens:  testutils.Ptr(int64(9876543210)),
-						OutputTokens: testutils.Ptr(int64(1234567890)),
+						InputTokens:           testutils.Ptr(int64(9876543210)),
+						InputCacheWriteTokens: testutils.Ptr(int64(9757309999902428)),
+						InputCacheReadTokens:  testutils.Ptr(int64(91835)),
+						OutputTokens:          testutils.Ptr(int64(1234567890)),
 					},
 					ToolUsage: map[string]runners.ToolUsage{
 						"calculator": {
@@ -130,8 +132,10 @@ var mockResults = runners.Results{
 					Title:       "Validatio Perfecta",
 					Explanation: []string{"Sed ut perspiciatis unde omnis iste natus error sit voluptatem."},
 					Usage: runners.TokenUsage{
-						InputTokens:  testutils.Ptr(int64(11)),
-						OutputTokens: testutils.Ptr(int64(5)),
+						InputTokens:           testutils.Ptr(int64(11)),
+						InputCacheWriteTokens: testutils.Ptr(int64(55)),
+						InputCacheReadTokens:  testutils.Ptr(int64(99)),
+						OutputTokens:          testutils.Ptr(int64(5)),
 					},
 					ToolUsage: map[string]runners.ToolUsage{
 						"validator": {
@@ -163,7 +167,8 @@ var mockResults = runners.Results{
 					ActualAnswer:   []string{"Ipsam ea et optio explicabo eius et."},
 					ExpectedAnswer: [][]string{{"Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui."}},
 					Usage: runners.TokenUsage{
-						InputTokens: testutils.Ptr(int64(200)),
+						InputTokens:           testutils.Ptr(int64(200)),
+						InputCacheWriteTokens: testutils.Ptr(int64(100)),
 					},
 					ToolUsage: map[string]runners.ToolUsage{
 						"json_parser": {
@@ -260,8 +265,10 @@ var mockResults = runners.Results{
 					Message: "Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus.",
 					Details: nil,
 					Usage: runners.TokenUsage{
-						InputTokens:  testutils.Ptr(int64(0)),
-						OutputTokens: testutils.Ptr(int64(0)),
+						InputTokens:           testutils.Ptr(int64(0)),
+						InputCacheWriteTokens: testutils.Ptr(int64(0)),
+						InputCacheReadTokens:  testutils.Ptr(int64(0)),
+						OutputTokens:          testutils.Ptr(int64(0)),
 					},
 					ToolUsage: map[string]runners.ToolUsage{
 						"file_reader": {

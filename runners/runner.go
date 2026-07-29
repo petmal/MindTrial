@@ -223,10 +223,19 @@ type ErrorDetails struct {
 // TokenUsage represents token usage consumed by an LLM request.
 // Values are optional and may be nil if not available.
 type TokenUsage struct {
-	// InputTokens is the number of tokens consumed by the prompt/input.
-	InputTokens *int64 `json:"InputTokens,omitempty"`
-	// OutputTokens is the number of tokens generated in the completion/output.
-	OutputTokens *int64 `json:"OutputTokens,omitempty"`
+	// InputTokens is the number of ordinary input tokens reported.
+	InputTokens *int64 `json:"InputTokens,omitempty" jsonschema:"title=Input Tokens" jsonschema_description:"The number of ordinary input tokens reported."`
+
+	// OutputTokens is the number of generated output tokens.
+	OutputTokens *int64 `json:"OutputTokens,omitempty" jsonschema:"title=Output Tokens" jsonschema_description:"The number of generated output tokens."`
+
+	// InputCacheWriteTokens is the number of input tokens written
+	// into a provider prompt cache.
+	InputCacheWriteTokens *int64 `json:"InputCacheWriteTokens,omitempty" jsonschema:"title=Input Cache Write Tokens" jsonschema_description:"The number of input tokens written into a provider prompt cache."`
+
+	// InputCacheReadTokens is the number of input tokens read from a
+	// provider prompt cache.
+	InputCacheReadTokens *int64 `json:"InputCacheReadTokens,omitempty" jsonschema:"title=Input Cache Read Tokens" jsonschema_description:"The number of input tokens read from a provider prompt cache."`
 }
 
 // ToolUsage represents aggregated execution statistics captured for a tool during

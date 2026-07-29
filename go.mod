@@ -106,7 +106,7 @@ require (
 )
 
 require (
-	github.com/anthropics/anthropic-sdk-go v1.51.1
+	github.com/anthropics/anthropic-sdk-go v1.61.0
 	github.com/cohesion-org/deepseek-go v1.3.4
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-playground/validator/v10 v10.30.3
