@@ -67,8 +67,6 @@ func (v *judgeValidator) IsCorrect(ctx context.Context, logger logging.Logger, r
 			IsCorrect:   false,
 			Title:       "Invalid Response Type",
 			Explanation: fmt.Sprintf("Semantic validation requires plain text responses but received %T:\n%v", actual.GetFinalAnswerContent(), utils.ToString(actual.GetFinalAnswerContent())),
-			Usage:       actual.GetUsage(),
-			ToolCalls:   actual.GetToolCalls(),
 		}, nil
 	}
 	// Create prefixed logger for judge evaluation, extending the existing prefix.
