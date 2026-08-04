@@ -31,13 +31,14 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
+
 )
 
 var (
 	JsonCheck       = regexp.MustCompile(`(?i:(?:application|text)/(?:[^;]+\+)?json)`)
 	XmlCheck        = regexp.MustCompile(`(?i:(?:application|text)/(?:[^;]+\+)?xml)`)
 	queryParamSplit = regexp.MustCompile(`(^|&)([^&]+)`)
-	queryDescape    = strings.NewReplacer("%5B", "[", "%5D", "]")
+	queryDescape    = strings.NewReplacer( "%5B", "[", "%5D", "]" )
 )
 
 // APIClient manages communication with the Mistral AI API API v1.0.0
@@ -52,9 +53,29 @@ type APIClient struct {
 
 	AudioTranscriptionsAPI AudioTranscriptionsAPI
 
+	AudioVoicesAPI AudioVoicesAPI
+
 	BatchAPI BatchAPI
 
+	BetaAdminApiKeysAPI BetaAdminApiKeysAPI
+
+	BetaAdminAuditLogsAPI BetaAdminAuditLogsAPI
+
+	BetaAdminBillingAPI BetaAdminBillingAPI
+
+	BetaAdminUserGroupsAPI BetaAdminUserGroupsAPI
+
+	BetaAdminUsersAPI BetaAdminUsersAPI
+
+	BetaAdminVibeCodeAnalyticsAPI BetaAdminVibeCodeAnalyticsAPI
+
+	BetaAdminVibeWorkAnalyticsAPI BetaAdminVibeWorkAnalyticsAPI
+
+	BetaAdminWorkspacesAPI BetaAdminWorkspacesAPI
+
 	BetaAgentsAPI BetaAgentsAPI
+
+	BetaConnectorsAPI BetaConnectorsAPI
 
 	BetaConversationsAPI BetaConversationsAPI
 
@@ -63,6 +84,34 @@ type APIClient struct {
 	BetaLibrariesAccessesAPI BetaLibrariesAccessesAPI
 
 	BetaLibrariesDocumentsAPI BetaLibrariesDocumentsAPI
+
+	BetaObservabilityCampaignsAPI BetaObservabilityCampaignsAPI
+
+	BetaObservabilityChatCompletionEventsAPI BetaObservabilityChatCompletionEventsAPI
+
+	BetaObservabilityChatCompletionEventsFieldsAPI BetaObservabilityChatCompletionEventsFieldsAPI
+
+	BetaObservabilityDatasetsAPI BetaObservabilityDatasetsAPI
+
+	BetaObservabilityDatasetsRecordsAPI BetaObservabilityDatasetsRecordsAPI
+
+	BetaObservabilityJudgesAPI BetaObservabilityJudgesAPI
+
+	BetaObservabilityLogsAPI BetaObservabilityLogsAPI
+
+	BetaObservabilitySpansAPI BetaObservabilitySpansAPI
+
+	BetaObservabilityTracesAPI BetaObservabilityTracesAPI
+
+	BetaPromptsAPI BetaPromptsAPI
+
+	BetaRagIngestionPipelineConfigurationsAPI BetaRagIngestionPipelineConfigurationsAPI
+
+	BetaRagSearchIndexesAPI BetaRagSearchIndexesAPI
+
+	BetaSkillsAPI BetaSkillsAPI
+
+	BetaUsersAPI BetaUsersAPI
 
 	ChatAPI ChatAPI
 
@@ -74,11 +123,23 @@ type APIClient struct {
 
 	FimAPI FimAPI
 
-	FineTuningAPI FineTuningAPI
-
 	ModelsAPI ModelsAPI
 
 	OcrAPI OcrAPI
+
+	WorkflowsAPI WorkflowsAPI
+
+	WorkflowsDeploymentsAPI WorkflowsDeploymentsAPI
+
+	WorkflowsEventsAPI WorkflowsEventsAPI
+
+	WorkflowsExecutionsAPI WorkflowsExecutionsAPI
+
+	WorkflowsMetricsAPI WorkflowsMetricsAPI
+
+	WorkflowsRunsAPI WorkflowsRunsAPI
+
+	WorkflowsSchedulesAPI WorkflowsSchedulesAPI
 }
 
 type service struct {
@@ -99,20 +160,50 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	// API Services
 	c.AgentsAPI = (*AgentsAPIService)(&c.common)
 	c.AudioTranscriptionsAPI = (*AudioTranscriptionsAPIService)(&c.common)
+	c.AudioVoicesAPI = (*AudioVoicesAPIService)(&c.common)
 	c.BatchAPI = (*BatchAPIService)(&c.common)
+	c.BetaAdminApiKeysAPI = (*BetaAdminApiKeysAPIService)(&c.common)
+	c.BetaAdminAuditLogsAPI = (*BetaAdminAuditLogsAPIService)(&c.common)
+	c.BetaAdminBillingAPI = (*BetaAdminBillingAPIService)(&c.common)
+	c.BetaAdminUserGroupsAPI = (*BetaAdminUserGroupsAPIService)(&c.common)
+	c.BetaAdminUsersAPI = (*BetaAdminUsersAPIService)(&c.common)
+	c.BetaAdminVibeCodeAnalyticsAPI = (*BetaAdminVibeCodeAnalyticsAPIService)(&c.common)
+	c.BetaAdminVibeWorkAnalyticsAPI = (*BetaAdminVibeWorkAnalyticsAPIService)(&c.common)
+	c.BetaAdminWorkspacesAPI = (*BetaAdminWorkspacesAPIService)(&c.common)
 	c.BetaAgentsAPI = (*BetaAgentsAPIService)(&c.common)
+	c.BetaConnectorsAPI = (*BetaConnectorsAPIService)(&c.common)
 	c.BetaConversationsAPI = (*BetaConversationsAPIService)(&c.common)
 	c.BetaLibrariesAPI = (*BetaLibrariesAPIService)(&c.common)
 	c.BetaLibrariesAccessesAPI = (*BetaLibrariesAccessesAPIService)(&c.common)
 	c.BetaLibrariesDocumentsAPI = (*BetaLibrariesDocumentsAPIService)(&c.common)
+	c.BetaObservabilityCampaignsAPI = (*BetaObservabilityCampaignsAPIService)(&c.common)
+	c.BetaObservabilityChatCompletionEventsAPI = (*BetaObservabilityChatCompletionEventsAPIService)(&c.common)
+	c.BetaObservabilityChatCompletionEventsFieldsAPI = (*BetaObservabilityChatCompletionEventsFieldsAPIService)(&c.common)
+	c.BetaObservabilityDatasetsAPI = (*BetaObservabilityDatasetsAPIService)(&c.common)
+	c.BetaObservabilityDatasetsRecordsAPI = (*BetaObservabilityDatasetsRecordsAPIService)(&c.common)
+	c.BetaObservabilityJudgesAPI = (*BetaObservabilityJudgesAPIService)(&c.common)
+	c.BetaObservabilityLogsAPI = (*BetaObservabilityLogsAPIService)(&c.common)
+	c.BetaObservabilitySpansAPI = (*BetaObservabilitySpansAPIService)(&c.common)
+	c.BetaObservabilityTracesAPI = (*BetaObservabilityTracesAPIService)(&c.common)
+	c.BetaPromptsAPI = (*BetaPromptsAPIService)(&c.common)
+	c.BetaRagIngestionPipelineConfigurationsAPI = (*BetaRagIngestionPipelineConfigurationsAPIService)(&c.common)
+	c.BetaRagSearchIndexesAPI = (*BetaRagSearchIndexesAPIService)(&c.common)
+	c.BetaSkillsAPI = (*BetaSkillsAPIService)(&c.common)
+	c.BetaUsersAPI = (*BetaUsersAPIService)(&c.common)
 	c.ChatAPI = (*ChatAPIService)(&c.common)
 	c.ClassifiersAPI = (*ClassifiersAPIService)(&c.common)
 	c.EmbeddingsAPI = (*EmbeddingsAPIService)(&c.common)
 	c.FilesAPI = (*FilesAPIService)(&c.common)
 	c.FimAPI = (*FimAPIService)(&c.common)
-	c.FineTuningAPI = (*FineTuningAPIService)(&c.common)
 	c.ModelsAPI = (*ModelsAPIService)(&c.common)
 	c.OcrAPI = (*OcrAPIService)(&c.common)
+	c.WorkflowsAPI = (*WorkflowsAPIService)(&c.common)
+	c.WorkflowsDeploymentsAPI = (*WorkflowsDeploymentsAPIService)(&c.common)
+	c.WorkflowsEventsAPI = (*WorkflowsEventsAPIService)(&c.common)
+	c.WorkflowsExecutionsAPI = (*WorkflowsExecutionsAPIService)(&c.common)
+	c.WorkflowsMetricsAPI = (*WorkflowsMetricsAPIService)(&c.common)
+	c.WorkflowsRunsAPI = (*WorkflowsRunsAPIService)(&c.common)
+	c.WorkflowsSchedulesAPI = (*WorkflowsSchedulesAPIService)(&c.common)
 
 	return c
 }
@@ -169,7 +260,7 @@ func typeCheckParameter(obj interface{}, expected string, name string) error {
 	return nil
 }
 
-func parameterValueToString(obj interface{}, key string) string {
+func parameterValueToString( obj interface{}, key string ) string {
 	if reflect.TypeOf(obj).Kind() != reflect.Ptr {
 		if actualObj, ok := obj.(interface{ GetActualInstanceValue() interface{} }); ok {
 			return fmt.Sprintf("%v", actualObj.GetActualInstanceValue())
@@ -177,11 +268,11 @@ func parameterValueToString(obj interface{}, key string) string {
 
 		return fmt.Sprintf("%v", obj)
 	}
-	var param, ok = obj.(MappedNullable)
+	var param,ok = obj.(MappedNullable)
 	if !ok {
 		return ""
 	}
-	dataMap, err := param.ToMap()
+	dataMap,err := param.ToMap()
 	if err != nil {
 		return ""
 	}
@@ -197,85 +288,85 @@ func parameterAddToHeaderOrQuery(headerOrQueryParams interface{}, keyPrefix stri
 		value = "null"
 	} else {
 		switch v.Kind() {
-		case reflect.Invalid:
-			value = "invalid"
+			case reflect.Invalid:
+				value = "invalid"
 
-		case reflect.Struct:
-			if t, ok := obj.(MappedNullable); ok {
-				dataMap, err := t.ToMap()
-				if err != nil {
+			case reflect.Struct:
+				if t,ok := obj.(MappedNullable); ok {
+					dataMap,err := t.ToMap()
+					if err != nil {
+						return
+					}
+					parameterAddToHeaderOrQuery(headerOrQueryParams, keyPrefix, dataMap, style, collectionType)
 					return
 				}
-				parameterAddToHeaderOrQuery(headerOrQueryParams, keyPrefix, dataMap, style, collectionType)
-				return
-			}
-			if t, ok := obj.(time.Time); ok {
-				parameterAddToHeaderOrQuery(headerOrQueryParams, keyPrefix, t.Format(time.RFC3339Nano), style, collectionType)
-				return
-			}
-			value = v.Type().String() + " value"
-		case reflect.Slice:
-			var indValue = reflect.ValueOf(obj)
-			if indValue == reflect.ValueOf(nil) {
-				return
-			}
-			var lenIndValue = indValue.Len()
-			for i := 0; i < lenIndValue; i++ {
-				var arrayValue = indValue.Index(i)
-				var keyPrefixForCollectionType = keyPrefix
-				if style == "deepObject" {
-					keyPrefixForCollectionType = keyPrefix + "[" + strconv.Itoa(i) + "]"
+				if t, ok := obj.(time.Time); ok {
+					parameterAddToHeaderOrQuery(headerOrQueryParams, keyPrefix, t.Format(time.RFC3339Nano), style, collectionType)
+					return
 				}
-				parameterAddToHeaderOrQuery(headerOrQueryParams, keyPrefixForCollectionType, arrayValue.Interface(), style, collectionType)
-			}
-			return
-
-		case reflect.Map:
-			var indValue = reflect.ValueOf(obj)
-			if indValue == reflect.ValueOf(nil) {
+				value = v.Type().String() + " value"
+			case reflect.Slice:
+				var indValue = reflect.ValueOf(obj)
+				if indValue == reflect.ValueOf(nil) {
+					return
+				}
+				var lenIndValue = indValue.Len()
+				for i:=0;i<lenIndValue;i++ {
+					var arrayValue = indValue.Index(i)
+					var keyPrefixForCollectionType = keyPrefix
+					if style == "deepObject" {
+						keyPrefixForCollectionType = keyPrefix + "[" + strconv.Itoa(i) + "]"
+					}
+					parameterAddToHeaderOrQuery(headerOrQueryParams, keyPrefixForCollectionType, arrayValue.Interface(), style, collectionType)
+				}
 				return
-			}
-			iter := indValue.MapRange()
-			for iter.Next() {
-				k, v := iter.Key(), iter.Value()
-				parameterAddToHeaderOrQuery(headerOrQueryParams, fmt.Sprintf("%s[%s]", keyPrefix, k.String()), v.Interface(), style, collectionType)
-			}
-			return
 
-		case reflect.Interface:
-			fallthrough
-		case reflect.Ptr:
-			parameterAddToHeaderOrQuery(headerOrQueryParams, keyPrefix, v.Elem().Interface(), style, collectionType)
-			return
+			case reflect.Map:
+				var indValue = reflect.ValueOf(obj)
+				if indValue == reflect.ValueOf(nil) {
+					return
+				}
+				iter := indValue.MapRange()
+				for iter.Next() {
+					k,v := iter.Key(), iter.Value()
+					parameterAddToHeaderOrQuery(headerOrQueryParams, fmt.Sprintf("%s[%s]", keyPrefix, k.String()), v.Interface(), style, collectionType)
+				}
+				return
 
-		case reflect.Int, reflect.Int8, reflect.Int16,
-			reflect.Int32, reflect.Int64:
-			value = strconv.FormatInt(v.Int(), 10)
-		case reflect.Uint, reflect.Uint8, reflect.Uint16,
-			reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-			value = strconv.FormatUint(v.Uint(), 10)
-		case reflect.Float32, reflect.Float64:
-			value = strconv.FormatFloat(v.Float(), 'g', -1, 32)
-		case reflect.Bool:
-			value = strconv.FormatBool(v.Bool())
-		case reflect.String:
-			value = v.String()
-		default:
-			value = v.Type().String() + " value"
+			case reflect.Interface:
+				fallthrough
+			case reflect.Ptr:
+				parameterAddToHeaderOrQuery(headerOrQueryParams, keyPrefix, v.Elem().Interface(), style, collectionType)
+				return
+
+			case reflect.Int, reflect.Int8, reflect.Int16,
+				reflect.Int32, reflect.Int64:
+				value = strconv.FormatInt(v.Int(), 10)
+			case reflect.Uint, reflect.Uint8, reflect.Uint16,
+				reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				value = strconv.FormatUint(v.Uint(), 10)
+			case reflect.Float32, reflect.Float64:
+				value = strconv.FormatFloat(v.Float(), 'g', -1, 32)
+			case reflect.Bool:
+				value = strconv.FormatBool(v.Bool())
+			case reflect.String:
+				value = v.String()
+			default:
+				value = v.Type().String() + " value"
 		}
 	}
 
 	switch valuesMap := headerOrQueryParams.(type) {
-	case url.Values:
-		if collectionType == "csv" && valuesMap.Get(keyPrefix) != "" {
-			valuesMap.Set(keyPrefix, valuesMap.Get(keyPrefix)+","+value)
-		} else {
-			valuesMap.Add(keyPrefix, value)
-		}
-		break
-	case map[string]string:
-		valuesMap[keyPrefix] = value
-		break
+		case url.Values:
+			if collectionType == "csv" && valuesMap.Get(keyPrefix) != "" {
+				valuesMap.Set(keyPrefix, valuesMap.Get(keyPrefix) + "," + value)
+			} else {
+				valuesMap.Add(keyPrefix, value)
+			}
+			break
+		case map[string]string:
+			valuesMap[keyPrefix] = value
+			break
 	}
 }
 
@@ -320,9 +411,9 @@ func (c *APIClient) GetConfig() *Configuration {
 }
 
 type formFile struct {
-	fileBytes    []byte
-	fileName     string
-	formFileName string
+		fileBytes []byte
+		fileName string
+		formFileName string
 }
 
 // prepareRequest build the request
@@ -376,11 +467,11 @@ func (c *APIClient) prepareRequest(
 				w.Boundary()
 				part, err := w.CreateFormFile(formFile.formFileName, filepath.Base(formFile.fileName))
 				if err != nil {
-					return nil, err
+						return nil, err
 				}
 				_, err = part.Write(formFile.fileBytes)
 				if err != nil {
-					return nil, err
+						return nil, err
 				}
 			}
 		}
@@ -481,6 +572,15 @@ func (c *APIClient) decode(v interface{}, b []byte, contentType string) (err err
 	}
 	if s, ok := v.(*string); ok {
 		*s = string(b)
+		return nil
+	}
+	if r, ok := v.(*io.Reader); ok {
+		*r = bytes.NewReader(b)
+		return nil
+	}
+	// Must stay before the JSON branch: json.Unmarshal would base64-decode into *[]byte.
+	if p, ok := v.(*[]byte); ok {
+		*p = b
 		return nil
 	}
 	if f, ok := v.(*os.File); ok {

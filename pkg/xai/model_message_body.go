@@ -23,7 +23,7 @@ type MessageBody struct {
 	// The content message.
 	Content MessageContent `json:"content"`
 	// The role that the message belongs to, `\"system\"` for system prompt, `\"user\"` for user prompt, and `\"assistant\"` for response from the model.
-	Role                 string `json:"role"`
+	Role string `json:"role"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -97,7 +97,7 @@ func (o *MessageBody) SetRole(v string) {
 }
 
 func (o MessageBody) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -130,10 +130,10 @@ func (o *MessageBody) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

@@ -28,7 +28,7 @@ type VideoGenerationModel struct {
 	Fingerprint string `json:"fingerprint"`
 	// Model ID.
 	Id string `json:"id"`
-	// The input modalities supported by the model (e.g. \"text\", \"image\").
+	// The input modalities supported by the model (e.g. \"text\", \"image\"; \"audio\" for models accepting reference audio).
 	InputModalities []string `json:"input_modalities"`
 	// The object type, which is always `\"model\"`.
 	Object string `json:"object"`
@@ -37,7 +37,7 @@ type VideoGenerationModel struct {
 	// Owner of the model.
 	OwnedBy string `json:"owned_by"`
 	// Version of the model.
-	Version              string `json:"version"`
+	Version string `json:"version"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -286,7 +286,7 @@ func (o *VideoGenerationModel) SetVersion(v string) {
 }
 
 func (o VideoGenerationModel) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -333,10 +333,10 @@ func (o *VideoGenerationModel) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

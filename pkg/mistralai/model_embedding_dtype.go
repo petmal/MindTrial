@@ -20,10 +20,10 @@ type EmbeddingDtype string
 
 // List of EmbeddingDtype
 const (
-	EMBEDDINGDTYPE_FLOAT   EmbeddingDtype = "float"
-	EMBEDDINGDTYPE_INT8    EmbeddingDtype = "int8"
-	EMBEDDINGDTYPE_UINT8   EmbeddingDtype = "uint8"
-	EMBEDDINGDTYPE_BINARY  EmbeddingDtype = "binary"
+	EMBEDDINGDTYPE_FLOAT EmbeddingDtype = "float"
+	EMBEDDINGDTYPE_INT8 EmbeddingDtype = "int8"
+	EMBEDDINGDTYPE_UINT8 EmbeddingDtype = "uint8"
+	EMBEDDINGDTYPE_BINARY EmbeddingDtype = "binary"
 	EMBEDDINGDTYPE_UBINARY EmbeddingDtype = "ubinary"
 )
 

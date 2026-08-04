@@ -11,7 +11,6 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -21,12 +20,15 @@ var _ MappedNullable = &OCRTableObject{}
 
 // OCRTableObject struct for OCRTableObject
 type OCRTableObject struct {
-	// Table ID for extracted table in a page
-	Id string `json:"id"`
 	// Content of the table in the given format
 	Content string `json:"content"`
 	// Format of the table
 	Format string `json:"format"`
+	// Table ID for extracted table in a page
+	Id string `json:"id"`
+	// Per-word confidence scores for the table content. Returned when confidence_scores_granularity is set to 'word'.
+	WordConfidenceScores []OCRConfidenceScore `json:"word_confidence_scores,omitempty"`
+	AdditionalProperties map[string]interface{}
 }
 
 type _OCRTableObject OCRTableObject
@@ -35,11 +37,11 @@ type _OCRTableObject OCRTableObject
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewOCRTableObject(id string, content string, format string) *OCRTableObject {
+func NewOCRTableObject(content string, format string, id string) *OCRTableObject {
 	this := OCRTableObject{}
-	this.Id = id
 	this.Content = content
 	this.Format = format
+	this.Id = id
 	return &this
 }
 
@@ -49,30 +51,6 @@ func NewOCRTableObject(id string, content string, format string) *OCRTableObject
 func NewOCRTableObjectWithDefaults() *OCRTableObject {
 	this := OCRTableObject{}
 	return &this
-}
-
-// GetId returns the Id field value
-func (o *OCRTableObject) GetId() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Id
-}
-
-// GetIdOk returns a tuple with the Id field value
-// and a boolean to check if the value has been set.
-func (o *OCRTableObject) GetIdOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Id, true
-}
-
-// SetId sets field value
-func (o *OCRTableObject) SetId(v string) {
-	o.Id = v
 }
 
 // GetContent returns the Content field value
@@ -123,8 +101,65 @@ func (o *OCRTableObject) SetFormat(v string) {
 	o.Format = v
 }
 
+// GetId returns the Id field value
+func (o *OCRTableObject) GetId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Id
+}
+
+// GetIdOk returns a tuple with the Id field value
+// and a boolean to check if the value has been set.
+func (o *OCRTableObject) GetIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Id, true
+}
+
+// SetId sets field value
+func (o *OCRTableObject) SetId(v string) {
+	o.Id = v
+}
+
+// GetWordConfidenceScores returns the WordConfidenceScores field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *OCRTableObject) GetWordConfidenceScores() []OCRConfidenceScore {
+	if o == nil {
+		var ret []OCRConfidenceScore
+		return ret
+	}
+	return o.WordConfidenceScores
+}
+
+// GetWordConfidenceScoresOk returns a tuple with the WordConfidenceScores field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OCRTableObject) GetWordConfidenceScoresOk() ([]OCRConfidenceScore, bool) {
+	if o == nil || IsNil(o.WordConfidenceScores) {
+		return nil, false
+	}
+	return o.WordConfidenceScores, true
+}
+
+// HasWordConfidenceScores returns a boolean if a field has been set.
+func (o *OCRTableObject) HasWordConfidenceScores() bool {
+	if o != nil && !IsNil(o.WordConfidenceScores) {
+		return true
+	}
+
+	return false
+}
+
+// SetWordConfidenceScores gets a reference to the given []OCRConfidenceScore and assigns it to the WordConfidenceScores field.
+func (o *OCRTableObject) SetWordConfidenceScores(v []OCRConfidenceScore) {
+	o.WordConfidenceScores = v
+}
+
 func (o OCRTableObject) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -133,9 +168,17 @@ func (o OCRTableObject) MarshalJSON() ([]byte, error) {
 
 func (o OCRTableObject) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["id"] = o.Id
 	toSerialize["content"] = o.Content
 	toSerialize["format"] = o.Format
+	toSerialize["id"] = o.Id
+	if o.WordConfidenceScores != nil {
+		toSerialize["word_confidence_scores"] = o.WordConfidenceScores
+	}
+
+	for key, value := range o.AdditionalProperties {
+		toSerialize[key] = value
+	}
+
 	return toSerialize, nil
 }
 
@@ -144,9 +187,9 @@ func (o *OCRTableObject) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"id",
 		"content",
 		"format",
+		"id",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -154,10 +197,10 @@ func (o *OCRTableObject) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -165,15 +208,23 @@ func (o *OCRTableObject) UnmarshalJSON(data []byte) (err error) {
 
 	varOCRTableObject := _OCRTableObject{}
 
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varOCRTableObject)
+	err = json.Unmarshal(data, &varOCRTableObject)
 
 	if err != nil {
 		return err
 	}
 
 	*o = OCRTableObject(varOCRTableObject)
+
+	additionalProperties := make(map[string]interface{})
+
+	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "content")
+		delete(additionalProperties, "format")
+		delete(additionalProperties, "id")
+		delete(additionalProperties, "word_confidence_scores")
+		o.AdditionalProperties = additionalProperties
+	}
 
 	return err
 }

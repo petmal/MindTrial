@@ -25,7 +25,7 @@ type RevokePublicUrlResponse struct {
 	// The full public URL that was revoked. Only present when `revoked` is `true`.
 	PublicUrl NullableString `json:"public_url,omitempty"`
 	// Whether a public URL was actually revoked. `false` if the file had no active public URL (no-op).
-	Revoked              bool `json:"revoked"`
+	Revoked bool `json:"revoked"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -106,7 +106,6 @@ func (o *RevokePublicUrlResponse) HasPublicUrl() bool {
 func (o *RevokePublicUrlResponse) SetPublicUrl(v string) {
 	o.PublicUrl.Set(&v)
 }
-
 // SetPublicUrlNil sets the value for PublicUrl to be an explicit nil
 func (o *RevokePublicUrlResponse) SetPublicUrlNil() {
 	o.PublicUrl.Set(nil)
@@ -142,7 +141,7 @@ func (o *RevokePublicUrlResponse) SetRevoked(v bool) {
 }
 
 func (o RevokePublicUrlResponse) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -178,10 +177,10 @@ func (o *RevokePublicUrlResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

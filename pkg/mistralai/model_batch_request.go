@@ -20,8 +20,8 @@ var _ MappedNullable = &BatchRequest{}
 
 // BatchRequest struct for BatchRequest
 type BatchRequest struct {
-	CustomId             NullableString         `json:"custom_id,omitempty"`
-	Body                 map[string]interface{} `json:"body"`
+	Body map[string]interface{} `json:"body"`
+	CustomId NullableString `json:"custom_id,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -43,6 +43,30 @@ func NewBatchRequest(body map[string]interface{}) *BatchRequest {
 func NewBatchRequestWithDefaults() *BatchRequest {
 	this := BatchRequest{}
 	return &this
+}
+
+// GetBody returns the Body field value
+func (o *BatchRequest) GetBody() map[string]interface{} {
+	if o == nil {
+		var ret map[string]interface{}
+		return ret
+	}
+
+	return o.Body
+}
+
+// GetBodyOk returns a tuple with the Body field value
+// and a boolean to check if the value has been set.
+func (o *BatchRequest) GetBodyOk() (map[string]interface{}, bool) {
+	if o == nil {
+		return map[string]interface{}{}, false
+	}
+	return o.Body, true
+}
+
+// SetBody sets field value
+func (o *BatchRequest) SetBody(v map[string]interface{}) {
+	o.Body = v
 }
 
 // GetCustomId returns the CustomId field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -77,7 +101,6 @@ func (o *BatchRequest) HasCustomId() bool {
 func (o *BatchRequest) SetCustomId(v string) {
 	o.CustomId.Set(&v)
 }
-
 // SetCustomIdNil sets the value for CustomId to be an explicit nil
 func (o *BatchRequest) SetCustomIdNil() {
 	o.CustomId.Set(nil)
@@ -88,32 +111,8 @@ func (o *BatchRequest) UnsetCustomId() {
 	o.CustomId.Unset()
 }
 
-// GetBody returns the Body field value
-func (o *BatchRequest) GetBody() map[string]interface{} {
-	if o == nil {
-		var ret map[string]interface{}
-		return ret
-	}
-
-	return o.Body
-}
-
-// GetBodyOk returns a tuple with the Body field value
-// and a boolean to check if the value has been set.
-func (o *BatchRequest) GetBodyOk() (map[string]interface{}, bool) {
-	if o == nil {
-		return map[string]interface{}{}, false
-	}
-	return o.Body, true
-}
-
-// SetBody sets field value
-func (o *BatchRequest) SetBody(v map[string]interface{}) {
-	o.Body = v
-}
-
 func (o BatchRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -122,10 +121,10 @@ func (o BatchRequest) MarshalJSON() ([]byte, error) {
 
 func (o BatchRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["body"] = o.Body
 	if o.CustomId.IsSet() {
 		toSerialize["custom_id"] = o.CustomId.Get()
 	}
-	toSerialize["body"] = o.Body
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -147,10 +146,10 @@ func (o *BatchRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -169,8 +168,8 @@ func (o *BatchRequest) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "custom_id")
 		delete(additionalProperties, "body")
+		delete(additionalProperties, "custom_id")
 		o.AdditionalProperties = additionalProperties
 	}
 

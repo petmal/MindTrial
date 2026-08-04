@@ -31,7 +31,7 @@ type Reasoning struct {
 	// The summarized reasoning text contents.
 	Summary []SummaryText `json:"summary"`
 	// The type of the object, which is always `reasoning`.
-	Type                 string `json:"type"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -120,7 +120,6 @@ func (o *Reasoning) HasEncryptedContent() bool {
 func (o *Reasoning) SetEncryptedContent(v string) {
 	o.EncryptedContent.Set(&v)
 }
-
 // SetEncryptedContentNil sets the value for EncryptedContent to be an explicit nil
 func (o *Reasoning) SetEncryptedContentNil() {
 	o.EncryptedContent.Set(nil)
@@ -244,7 +243,7 @@ func (o *Reasoning) SetType(v string) {
 }
 
 func (o Reasoning) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -289,10 +288,10 @@ func (o *Reasoning) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

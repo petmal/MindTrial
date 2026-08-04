@@ -36,7 +36,7 @@ type CompleteRequest struct {
 	// (Unsupported) When generating next tokens, randomly selecting the next token from the k most likely options.
 	TopK NullableInt32 `json:"top_k,omitempty"`
 	// An alternative to sampling with `temperature`, called nucleus sampling, where the model considers the results of the tokens with `top_p` probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. It is generally recommended to alter this or `temperature` but not both.
-	TopP                 NullableFloat32 `json:"top_p,omitempty"`
+	TopP NullableFloat32 `json:"top_p,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -131,7 +131,6 @@ func (o *CompleteRequest) HasMetadata() bool {
 func (o *CompleteRequest) SetMetadata(v MessageMetadata) {
 	o.Metadata.Set(&v)
 }
-
 // SetMetadataNil sets the value for Metadata to be an explicit nil
 func (o *CompleteRequest) SetMetadataNil() {
 	o.Metadata.Set(nil)
@@ -271,7 +270,6 @@ func (o *CompleteRequest) HasStream() bool {
 func (o *CompleteRequest) SetStream(v bool) {
 	o.Stream.Set(&v)
 }
-
 // SetStreamNil sets the value for Stream to be an explicit nil
 func (o *CompleteRequest) SetStreamNil() {
 	o.Stream.Set(nil)
@@ -314,7 +312,6 @@ func (o *CompleteRequest) HasTemperature() bool {
 func (o *CompleteRequest) SetTemperature(v float32) {
 	o.Temperature.Set(&v)
 }
-
 // SetTemperatureNil sets the value for Temperature to be an explicit nil
 func (o *CompleteRequest) SetTemperatureNil() {
 	o.Temperature.Set(nil)
@@ -357,7 +354,6 @@ func (o *CompleteRequest) HasTopK() bool {
 func (o *CompleteRequest) SetTopK(v int32) {
 	o.TopK.Set(&v)
 }
-
 // SetTopKNil sets the value for TopK to be an explicit nil
 func (o *CompleteRequest) SetTopKNil() {
 	o.TopK.Set(nil)
@@ -400,7 +396,6 @@ func (o *CompleteRequest) HasTopP() bool {
 func (o *CompleteRequest) SetTopP(v float32) {
 	o.TopP.Set(&v)
 }
-
 // SetTopPNil sets the value for TopP to be an explicit nil
 func (o *CompleteRequest) SetTopPNil() {
 	o.TopP.Set(nil)
@@ -412,7 +407,7 @@ func (o *CompleteRequest) UnsetTopP() {
 }
 
 func (o CompleteRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

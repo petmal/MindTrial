@@ -22,7 +22,7 @@ var _ MappedNullable = &CodeInterpreterOutputOneOf1{}
 type CodeInterpreterOutputOneOf1 struct {
 	Type string `json:"type"`
 	// The error of the code interpreter tool call.
-	Url                  string `json:"url"`
+	Url string `json:"url"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -96,7 +96,7 @@ func (o *CodeInterpreterOutputOneOf1) SetUrl(v string) {
 }
 
 func (o CodeInterpreterOutputOneOf1) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -129,10 +129,10 @@ func (o *CodeInterpreterOutputOneOf1) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

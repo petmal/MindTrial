@@ -11,10 +11,10 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"time"
+	"bytes"
+	"fmt"
 )
 
 // checks if the AgentAliasResponse type satisfies the MappedNullable interface at compile time
@@ -22,10 +22,10 @@ var _ MappedNullable = &AgentAliasResponse{}
 
 // AgentAliasResponse struct for AgentAliasResponse
 type AgentAliasResponse struct {
-	Alias     string    `json:"alias"`
-	Version   int32     `json:"version"`
+	Alias string `json:"alias"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	Version int32 `json:"version"`
 }
 
 type _AgentAliasResponse AgentAliasResponse
@@ -34,12 +34,12 @@ type _AgentAliasResponse AgentAliasResponse
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewAgentAliasResponse(alias string, version int32, createdAt time.Time, updatedAt time.Time) *AgentAliasResponse {
+func NewAgentAliasResponse(alias string, createdAt time.Time, updatedAt time.Time, version int32) *AgentAliasResponse {
 	this := AgentAliasResponse{}
 	this.Alias = alias
-	this.Version = version
 	this.CreatedAt = createdAt
 	this.UpdatedAt = updatedAt
+	this.Version = version
 	return &this
 }
 
@@ -73,30 +73,6 @@ func (o *AgentAliasResponse) GetAliasOk() (*string, bool) {
 // SetAlias sets field value
 func (o *AgentAliasResponse) SetAlias(v string) {
 	o.Alias = v
-}
-
-// GetVersion returns the Version field value
-func (o *AgentAliasResponse) GetVersion() int32 {
-	if o == nil {
-		var ret int32
-		return ret
-	}
-
-	return o.Version
-}
-
-// GetVersionOk returns a tuple with the Version field value
-// and a boolean to check if the value has been set.
-func (o *AgentAliasResponse) GetVersionOk() (*int32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Version, true
-}
-
-// SetVersion sets field value
-func (o *AgentAliasResponse) SetVersion(v int32) {
-	o.Version = v
 }
 
 // GetCreatedAt returns the CreatedAt field value
@@ -147,8 +123,32 @@ func (o *AgentAliasResponse) SetUpdatedAt(v time.Time) {
 	o.UpdatedAt = v
 }
 
+// GetVersion returns the Version field value
+func (o *AgentAliasResponse) GetVersion() int32 {
+	if o == nil {
+		var ret int32
+		return ret
+	}
+
+	return o.Version
+}
+
+// GetVersionOk returns a tuple with the Version field value
+// and a boolean to check if the value has been set.
+func (o *AgentAliasResponse) GetVersionOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Version, true
+}
+
+// SetVersion sets field value
+func (o *AgentAliasResponse) SetVersion(v int32) {
+	o.Version = v
+}
+
 func (o AgentAliasResponse) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -158,9 +158,9 @@ func (o AgentAliasResponse) MarshalJSON() ([]byte, error) {
 func (o AgentAliasResponse) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["alias"] = o.Alias
-	toSerialize["version"] = o.Version
 	toSerialize["created_at"] = o.CreatedAt
 	toSerialize["updated_at"] = o.UpdatedAt
+	toSerialize["version"] = o.Version
 	return toSerialize, nil
 }
 
@@ -170,9 +170,9 @@ func (o *AgentAliasResponse) UnmarshalJSON(data []byte) (err error) {
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
 		"alias",
-		"version",
 		"created_at",
 		"updated_at",
+		"version",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -180,10 +180,10 @@ func (o *AgentAliasResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

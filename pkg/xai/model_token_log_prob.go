@@ -27,7 +27,7 @@ type TokenLogProb struct {
 	// The token.
 	Token string `json:"token"`
 	// An array of the most likely tokens to return at this token position.
-	TopLogprobs          []TopLogProb `json:"top_logprobs"`
+	TopLogprobs []TopLogProb `json:"top_logprobs"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -159,7 +159,7 @@ func (o *TokenLogProb) SetTopLogprobs(v []TopLogProb) {
 }
 
 func (o TokenLogProb) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -197,10 +197,10 @@ func (o *TokenLogProb) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

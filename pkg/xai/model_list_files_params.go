@@ -30,7 +30,7 @@ type ListFilesParams struct {
 	// The pagination token returned by the previous list files request.
 	PaginationToken NullableString `json:"pagination_token,omitempty"`
 	// The field to sort by. Valid options: `created_at`, `filename`, `size`. Defaults to `created_at`.
-	SortBy               NullableString `json:"sort_by,omitempty"`
+	SortBy NullableString `json:"sort_by,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -97,7 +97,6 @@ func (o *ListFilesParams) HasAfter() bool {
 func (o *ListFilesParams) SetAfter(v string) {
 	o.After.Set(&v)
 }
-
 // SetAfterNil sets the value for After to be an explicit nil
 func (o *ListFilesParams) SetAfterNil() {
 	o.After.Set(nil)
@@ -140,7 +139,6 @@ func (o *ListFilesParams) HasFilter() bool {
 func (o *ListFilesParams) SetFilter(v string) {
 	o.Filter.Set(&v)
 }
-
 // SetFilterNil sets the value for Filter to be an explicit nil
 func (o *ListFilesParams) SetFilterNil() {
 	o.Filter.Set(nil)
@@ -183,7 +181,6 @@ func (o *ListFilesParams) HasLimit() bool {
 func (o *ListFilesParams) SetLimit(v int32) {
 	o.Limit.Set(&v)
 }
-
 // SetLimitNil sets the value for Limit to be an explicit nil
 func (o *ListFilesParams) SetLimitNil() {
 	o.Limit.Set(nil)
@@ -226,7 +223,6 @@ func (o *ListFilesParams) HasOrder() bool {
 func (o *ListFilesParams) SetOrder(v string) {
 	o.Order.Set(&v)
 }
-
 // SetOrderNil sets the value for Order to be an explicit nil
 func (o *ListFilesParams) SetOrderNil() {
 	o.Order.Set(nil)
@@ -269,7 +265,6 @@ func (o *ListFilesParams) HasPaginationToken() bool {
 func (o *ListFilesParams) SetPaginationToken(v string) {
 	o.PaginationToken.Set(&v)
 }
-
 // SetPaginationTokenNil sets the value for PaginationToken to be an explicit nil
 func (o *ListFilesParams) SetPaginationTokenNil() {
 	o.PaginationToken.Set(nil)
@@ -312,7 +307,6 @@ func (o *ListFilesParams) HasSortBy() bool {
 func (o *ListFilesParams) SetSortBy(v string) {
 	o.SortBy.Set(&v)
 }
-
 // SetSortByNil sets the value for SortBy to be an explicit nil
 func (o *ListFilesParams) SetSortByNil() {
 	o.SortBy.Set(nil)
@@ -324,7 +318,7 @@ func (o *ListFilesParams) UnsetSortBy() {
 }
 
 func (o ListFilesParams) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

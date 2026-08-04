@@ -11,10 +11,10 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"time"
+	"bytes"
+	"fmt"
 )
 
 // checks if the FunctionCallEntry type satisfies the MappedNullable interface at compile time
@@ -22,14 +22,17 @@ var _ MappedNullable = &FunctionCallEntry{}
 
 // FunctionCallEntry struct for FunctionCallEntry
 type FunctionCallEntry struct {
-	Object      *string                    `json:"object,omitempty"`
-	Type        *string                    `json:"type,omitempty"`
-	CreatedAt   *time.Time                 `json:"created_at,omitempty"`
-	CompletedAt NullableTime               `json:"completed_at,omitempty"`
-	Id          *string                    `json:"id,omitempty"`
-	ToolCallId  string                     `json:"tool_call_id"`
-	Name        string                     `json:"name"`
-	Arguments   FunctionCallEntryArguments `json:"arguments"`
+	AgentId NullableString `json:"agent_id,omitempty"`
+	Arguments FunctionCallEntryArguments `json:"arguments"`
+	CompletedAt NullableTime `json:"completed_at,omitempty"`
+	ConfirmationStatus NullableString `json:"confirmation_status,omitempty"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	Id *string `json:"id,omitempty"`
+	Model NullableString `json:"model,omitempty"`
+	Name string `json:"name"`
+	Object *string `json:"object,omitempty"`
+	ToolCallId string `json:"tool_call_id"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _FunctionCallEntry FunctionCallEntry
@@ -38,15 +41,15 @@ type _FunctionCallEntry FunctionCallEntry
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewFunctionCallEntry(toolCallId string, name string, arguments FunctionCallEntryArguments) *FunctionCallEntry {
+func NewFunctionCallEntry(arguments FunctionCallEntryArguments, name string, toolCallId string) *FunctionCallEntry {
 	this := FunctionCallEntry{}
+	this.Arguments = arguments
+	this.Name = name
 	var object string = "entry"
 	this.Object = &object
+	this.ToolCallId = toolCallId
 	var type_ string = "function.call"
 	this.Type = &type_
-	this.ToolCallId = toolCallId
-	this.Name = name
-	this.Arguments = arguments
 	return &this
 }
 
@@ -62,100 +65,70 @@ func NewFunctionCallEntryWithDefaults() *FunctionCallEntry {
 	return &this
 }
 
-// GetObject returns the Object field value if set, zero value otherwise.
-func (o *FunctionCallEntry) GetObject() string {
-	if o == nil || IsNil(o.Object) {
+// GetAgentId returns the AgentId field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *FunctionCallEntry) GetAgentId() string {
+	if o == nil || IsNil(o.AgentId.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.Object
+	return *o.AgentId.Get()
 }
 
-// GetObjectOk returns a tuple with the Object field value if set, nil otherwise
+// GetAgentIdOk returns a tuple with the AgentId field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *FunctionCallEntry) GetObjectOk() (*string, bool) {
-	if o == nil || IsNil(o.Object) {
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *FunctionCallEntry) GetAgentIdOk() (*string, bool) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Object, true
+	return o.AgentId.Get(), o.AgentId.IsSet()
 }
 
-// HasObject returns a boolean if a field has been set.
-func (o *FunctionCallEntry) HasObject() bool {
-	if o != nil && !IsNil(o.Object) {
+// HasAgentId returns a boolean if a field has been set.
+func (o *FunctionCallEntry) HasAgentId() bool {
+	if o != nil && o.AgentId.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetObject gets a reference to the given string and assigns it to the Object field.
-func (o *FunctionCallEntry) SetObject(v string) {
-	o.Object = &v
+// SetAgentId gets a reference to the given NullableString and assigns it to the AgentId field.
+func (o *FunctionCallEntry) SetAgentId(v string) {
+	o.AgentId.Set(&v)
+}
+// SetAgentIdNil sets the value for AgentId to be an explicit nil
+func (o *FunctionCallEntry) SetAgentIdNil() {
+	o.AgentId.Set(nil)
 }
 
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *FunctionCallEntry) GetType() string {
-	if o == nil || IsNil(o.Type) {
-		var ret string
+// UnsetAgentId ensures that no value is present for AgentId, not even an explicit nil
+func (o *FunctionCallEntry) UnsetAgentId() {
+	o.AgentId.Unset()
+}
+
+// GetArguments returns the Arguments field value
+func (o *FunctionCallEntry) GetArguments() FunctionCallEntryArguments {
+	if o == nil {
+		var ret FunctionCallEntryArguments
 		return ret
 	}
-	return *o.Type
+
+	return o.Arguments
 }
 
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
+// GetArgumentsOk returns a tuple with the Arguments field value
 // and a boolean to check if the value has been set.
-func (o *FunctionCallEntry) GetTypeOk() (*string, bool) {
-	if o == nil || IsNil(o.Type) {
+func (o *FunctionCallEntry) GetArgumentsOk() (*FunctionCallEntryArguments, bool) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Type, true
+	return &o.Arguments, true
 }
 
-// HasType returns a boolean if a field has been set.
-func (o *FunctionCallEntry) HasType() bool {
-	if o != nil && !IsNil(o.Type) {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given string and assigns it to the Type field.
-func (o *FunctionCallEntry) SetType(v string) {
-	o.Type = &v
-}
-
-// GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
-func (o *FunctionCallEntry) GetCreatedAt() time.Time {
-	if o == nil || IsNil(o.CreatedAt) {
-		var ret time.Time
-		return ret
-	}
-	return *o.CreatedAt
-}
-
-// GetCreatedAtOk returns a tuple with the CreatedAt field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *FunctionCallEntry) GetCreatedAtOk() (*time.Time, bool) {
-	if o == nil || IsNil(o.CreatedAt) {
-		return nil, false
-	}
-	return o.CreatedAt, true
-}
-
-// HasCreatedAt returns a boolean if a field has been set.
-func (o *FunctionCallEntry) HasCreatedAt() bool {
-	if o != nil && !IsNil(o.CreatedAt) {
-		return true
-	}
-
-	return false
-}
-
-// SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
-func (o *FunctionCallEntry) SetCreatedAt(v time.Time) {
-	o.CreatedAt = &v
+// SetArguments sets field value
+func (o *FunctionCallEntry) SetArguments(v FunctionCallEntryArguments) {
+	o.Arguments = v
 }
 
 // GetCompletedAt returns the CompletedAt field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -190,7 +163,6 @@ func (o *FunctionCallEntry) HasCompletedAt() bool {
 func (o *FunctionCallEntry) SetCompletedAt(v time.Time) {
 	o.CompletedAt.Set(&v)
 }
-
 // SetCompletedAtNil sets the value for CompletedAt to be an explicit nil
 func (o *FunctionCallEntry) SetCompletedAtNil() {
 	o.CompletedAt.Set(nil)
@@ -199,6 +171,80 @@ func (o *FunctionCallEntry) SetCompletedAtNil() {
 // UnsetCompletedAt ensures that no value is present for CompletedAt, not even an explicit nil
 func (o *FunctionCallEntry) UnsetCompletedAt() {
 	o.CompletedAt.Unset()
+}
+
+// GetConfirmationStatus returns the ConfirmationStatus field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *FunctionCallEntry) GetConfirmationStatus() string {
+	if o == nil || IsNil(o.ConfirmationStatus.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.ConfirmationStatus.Get()
+}
+
+// GetConfirmationStatusOk returns a tuple with the ConfirmationStatus field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *FunctionCallEntry) GetConfirmationStatusOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ConfirmationStatus.Get(), o.ConfirmationStatus.IsSet()
+}
+
+// HasConfirmationStatus returns a boolean if a field has been set.
+func (o *FunctionCallEntry) HasConfirmationStatus() bool {
+	if o != nil && o.ConfirmationStatus.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetConfirmationStatus gets a reference to the given NullableString and assigns it to the ConfirmationStatus field.
+func (o *FunctionCallEntry) SetConfirmationStatus(v string) {
+	o.ConfirmationStatus.Set(&v)
+}
+// SetConfirmationStatusNil sets the value for ConfirmationStatus to be an explicit nil
+func (o *FunctionCallEntry) SetConfirmationStatusNil() {
+	o.ConfirmationStatus.Set(nil)
+}
+
+// UnsetConfirmationStatus ensures that no value is present for ConfirmationStatus, not even an explicit nil
+func (o *FunctionCallEntry) UnsetConfirmationStatus() {
+	o.ConfirmationStatus.Unset()
+}
+
+// GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
+func (o *FunctionCallEntry) GetCreatedAt() time.Time {
+	if o == nil || IsNil(o.CreatedAt) {
+		var ret time.Time
+		return ret
+	}
+	return *o.CreatedAt
+}
+
+// GetCreatedAtOk returns a tuple with the CreatedAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *FunctionCallEntry) GetCreatedAtOk() (*time.Time, bool) {
+	if o == nil || IsNil(o.CreatedAt) {
+		return nil, false
+	}
+	return o.CreatedAt, true
+}
+
+// HasCreatedAt returns a boolean if a field has been set.
+func (o *FunctionCallEntry) HasCreatedAt() bool {
+	if o != nil && !IsNil(o.CreatedAt) {
+		return true
+	}
+
+	return false
+}
+
+// SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
+func (o *FunctionCallEntry) SetCreatedAt(v time.Time) {
+	o.CreatedAt = &v
 }
 
 // GetId returns the Id field value if set, zero value otherwise.
@@ -233,28 +279,46 @@ func (o *FunctionCallEntry) SetId(v string) {
 	o.Id = &v
 }
 
-// GetToolCallId returns the ToolCallId field value
-func (o *FunctionCallEntry) GetToolCallId() string {
-	if o == nil {
+// GetModel returns the Model field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *FunctionCallEntry) GetModel() string {
+	if o == nil || IsNil(o.Model.Get()) {
 		var ret string
 		return ret
 	}
-
-	return o.ToolCallId
+	return *o.Model.Get()
 }
 
-// GetToolCallIdOk returns a tuple with the ToolCallId field value
+// GetModelOk returns a tuple with the Model field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *FunctionCallEntry) GetToolCallIdOk() (*string, bool) {
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *FunctionCallEntry) GetModelOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.ToolCallId, true
+	return o.Model.Get(), o.Model.IsSet()
 }
 
-// SetToolCallId sets field value
-func (o *FunctionCallEntry) SetToolCallId(v string) {
-	o.ToolCallId = v
+// HasModel returns a boolean if a field has been set.
+func (o *FunctionCallEntry) HasModel() bool {
+	if o != nil && o.Model.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetModel gets a reference to the given NullableString and assigns it to the Model field.
+func (o *FunctionCallEntry) SetModel(v string) {
+	o.Model.Set(&v)
+}
+// SetModelNil sets the value for Model to be an explicit nil
+func (o *FunctionCallEntry) SetModelNil() {
+	o.Model.Set(nil)
+}
+
+// UnsetModel ensures that no value is present for Model, not even an explicit nil
+func (o *FunctionCallEntry) UnsetModel() {
+	o.Model.Unset()
 }
 
 // GetName returns the Name field value
@@ -281,32 +345,96 @@ func (o *FunctionCallEntry) SetName(v string) {
 	o.Name = v
 }
 
-// GetArguments returns the Arguments field value
-func (o *FunctionCallEntry) GetArguments() FunctionCallEntryArguments {
+// GetObject returns the Object field value if set, zero value otherwise.
+func (o *FunctionCallEntry) GetObject() string {
+	if o == nil || IsNil(o.Object) {
+		var ret string
+		return ret
+	}
+	return *o.Object
+}
+
+// GetObjectOk returns a tuple with the Object field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *FunctionCallEntry) GetObjectOk() (*string, bool) {
+	if o == nil || IsNil(o.Object) {
+		return nil, false
+	}
+	return o.Object, true
+}
+
+// HasObject returns a boolean if a field has been set.
+func (o *FunctionCallEntry) HasObject() bool {
+	if o != nil && !IsNil(o.Object) {
+		return true
+	}
+
+	return false
+}
+
+// SetObject gets a reference to the given string and assigns it to the Object field.
+func (o *FunctionCallEntry) SetObject(v string) {
+	o.Object = &v
+}
+
+// GetToolCallId returns the ToolCallId field value
+func (o *FunctionCallEntry) GetToolCallId() string {
 	if o == nil {
-		var ret FunctionCallEntryArguments
+		var ret string
 		return ret
 	}
 
-	return o.Arguments
+	return o.ToolCallId
 }
 
-// GetArgumentsOk returns a tuple with the Arguments field value
+// GetToolCallIdOk returns a tuple with the ToolCallId field value
 // and a boolean to check if the value has been set.
-func (o *FunctionCallEntry) GetArgumentsOk() (*FunctionCallEntryArguments, bool) {
+func (o *FunctionCallEntry) GetToolCallIdOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Arguments, true
+	return &o.ToolCallId, true
 }
 
-// SetArguments sets field value
-func (o *FunctionCallEntry) SetArguments(v FunctionCallEntryArguments) {
-	o.Arguments = v
+// SetToolCallId sets field value
+func (o *FunctionCallEntry) SetToolCallId(v string) {
+	o.ToolCallId = v
+}
+
+// GetType returns the Type field value if set, zero value otherwise.
+func (o *FunctionCallEntry) GetType() string {
+	if o == nil || IsNil(o.Type) {
+		var ret string
+		return ret
+	}
+	return *o.Type
+}
+
+// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *FunctionCallEntry) GetTypeOk() (*string, bool) {
+	if o == nil || IsNil(o.Type) {
+		return nil, false
+	}
+	return o.Type, true
+}
+
+// HasType returns a boolean if a field has been set.
+func (o *FunctionCallEntry) HasType() bool {
+	if o != nil && !IsNil(o.Type) {
+		return true
+	}
+
+	return false
+}
+
+// SetType gets a reference to the given string and assigns it to the Type field.
+func (o *FunctionCallEntry) SetType(v string) {
+	o.Type = &v
 }
 
 func (o FunctionCallEntry) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -315,24 +443,33 @@ func (o FunctionCallEntry) MarshalJSON() ([]byte, error) {
 
 func (o FunctionCallEntry) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Object) {
-		toSerialize["object"] = o.Object
+	if o.AgentId.IsSet() {
+		toSerialize["agent_id"] = o.AgentId.Get()
 	}
-	if !IsNil(o.Type) {
-		toSerialize["type"] = o.Type
+	toSerialize["arguments"] = o.Arguments
+	if o.CompletedAt.IsSet() {
+		toSerialize["completed_at"] = o.CompletedAt.Get()
+	}
+	if o.ConfirmationStatus.IsSet() {
+		toSerialize["confirmation_status"] = o.ConfirmationStatus.Get()
 	}
 	if !IsNil(o.CreatedAt) {
 		toSerialize["created_at"] = o.CreatedAt
 	}
-	if o.CompletedAt.IsSet() {
-		toSerialize["completed_at"] = o.CompletedAt.Get()
-	}
 	if !IsNil(o.Id) {
 		toSerialize["id"] = o.Id
 	}
-	toSerialize["tool_call_id"] = o.ToolCallId
+	if o.Model.IsSet() {
+		toSerialize["model"] = o.Model.Get()
+	}
 	toSerialize["name"] = o.Name
-	toSerialize["arguments"] = o.Arguments
+	if !IsNil(o.Object) {
+		toSerialize["object"] = o.Object
+	}
+	toSerialize["tool_call_id"] = o.ToolCallId
+	if !IsNil(o.Type) {
+		toSerialize["type"] = o.Type
+	}
 	return toSerialize, nil
 }
 
@@ -341,9 +478,9 @@ func (o *FunctionCallEntry) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"tool_call_id",
-		"name",
 		"arguments",
+		"name",
+		"tool_call_id",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -351,10 +488,10 @@ func (o *FunctionCallEntry) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

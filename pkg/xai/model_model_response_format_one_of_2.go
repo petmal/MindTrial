@@ -23,11 +23,11 @@ type ModelResponseFormatOneOf2 struct {
 	// Only included for compatibility.
 	Description NullableString `json:"description,omitempty"`
 	// Only included for compatibility.
-	Name   NullableString `json:"name,omitempty"`
-	Schema interface{}    `json:"schema"`
+	Name NullableString `json:"name,omitempty"`
+	Schema interface{} `json:"schema"`
 	// Only included for compatibility.
-	Strict               NullableBool `json:"strict,omitempty"`
-	Type                 string       `json:"type"`
+	Strict NullableBool `json:"strict,omitempty"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -84,7 +84,6 @@ func (o *ModelResponseFormatOneOf2) HasDescription() bool {
 func (o *ModelResponseFormatOneOf2) SetDescription(v string) {
 	o.Description.Set(&v)
 }
-
 // SetDescriptionNil sets the value for Description to be an explicit nil
 func (o *ModelResponseFormatOneOf2) SetDescriptionNil() {
 	o.Description.Set(nil)
@@ -127,7 +126,6 @@ func (o *ModelResponseFormatOneOf2) HasName() bool {
 func (o *ModelResponseFormatOneOf2) SetName(v string) {
 	o.Name.Set(&v)
 }
-
 // SetNameNil sets the value for Name to be an explicit nil
 func (o *ModelResponseFormatOneOf2) SetNameNil() {
 	o.Name.Set(nil)
@@ -196,7 +194,6 @@ func (o *ModelResponseFormatOneOf2) HasStrict() bool {
 func (o *ModelResponseFormatOneOf2) SetStrict(v bool) {
 	o.Strict.Set(&v)
 }
-
 // SetStrictNil sets the value for Strict to be an explicit nil
 func (o *ModelResponseFormatOneOf2) SetStrictNil() {
 	o.Strict.Set(nil)
@@ -232,7 +229,7 @@ func (o *ModelResponseFormatOneOf2) SetType(v string) {
 }
 
 func (o ModelResponseFormatOneOf2) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -276,10 +273,10 @@ func (o *ModelResponseFormatOneOf2) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

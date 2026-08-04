@@ -20,13 +20,13 @@ type VideoAspectRatio string
 
 // List of VideoAspectRatio
 const (
-	VIDEOASPECTRATIO__1_1  VideoAspectRatio = "1:1"
+	VIDEOASPECTRATIO__1_1 VideoAspectRatio = "1:1"
 	VIDEOASPECTRATIO__16_9 VideoAspectRatio = "16:9"
 	VIDEOASPECTRATIO__9_16 VideoAspectRatio = "9:16"
-	VIDEOASPECTRATIO__4_3  VideoAspectRatio = "4:3"
-	VIDEOASPECTRATIO__3_4  VideoAspectRatio = "3:4"
-	VIDEOASPECTRATIO__3_2  VideoAspectRatio = "3:2"
-	VIDEOASPECTRATIO__2_3  VideoAspectRatio = "2:3"
+	VIDEOASPECTRATIO__4_3 VideoAspectRatio = "4:3"
+	VIDEOASPECTRATIO__3_4 VideoAspectRatio = "3:4"
+	VIDEOASPECTRATIO__3_2 VideoAspectRatio = "3:2"
+	VIDEOASPECTRATIO__2_3 VideoAspectRatio = "2:3"
 )
 
 // All allowed values of VideoAspectRatio enum

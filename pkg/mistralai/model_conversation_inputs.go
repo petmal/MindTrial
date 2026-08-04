@@ -15,17 +15,18 @@ import (
 	"fmt"
 )
 
+
 // ConversationInputs struct for ConversationInputs
 type ConversationInputs struct {
 	ArrayOfEntriesInner *[]EntriesInner
-	String              *string
+	String *string
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
 func (dst *ConversationInputs) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into ArrayOfEntriesInner
-	err = json.Unmarshal(data, &dst.ArrayOfEntriesInner)
+	err = json.Unmarshal(data, &dst.ArrayOfEntriesInner);
 	if err == nil {
 		jsonArrayOfEntriesInner, _ := json.Marshal(dst.ArrayOfEntriesInner)
 		if string(jsonArrayOfEntriesInner) == "{}" { // empty struct
@@ -38,7 +39,7 @@ func (dst *ConversationInputs) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into String
-	err = json.Unmarshal(data, &dst.String)
+	err = json.Unmarshal(data, &dst.String);
 	if err == nil {
 		jsonString, _ := json.Marshal(dst.String)
 		if string(jsonString) == "{}" { // empty struct
@@ -65,6 +66,7 @@ func (src ConversationInputs) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
+
 
 type NullableConversationInputs struct {
 	value *ConversationInputs

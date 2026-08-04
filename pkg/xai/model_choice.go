@@ -27,7 +27,7 @@ type Choice struct {
 	// The log probabilities of each output token returned in the content of message.
 	Logprobs NullableLogProbs `json:"logprobs,omitempty"`
 	// The generated chat completion message.
-	Message              ChoiceMessage `json:"message"`
+	Message ChoiceMessage `json:"message"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -84,7 +84,6 @@ func (o *Choice) HasFinishReason() bool {
 func (o *Choice) SetFinishReason(v string) {
 	o.FinishReason.Set(&v)
 }
-
 // SetFinishReasonNil sets the value for FinishReason to be an explicit nil
 func (o *Choice) SetFinishReasonNil() {
 	o.FinishReason.Set(nil)
@@ -151,7 +150,6 @@ func (o *Choice) HasLogprobs() bool {
 func (o *Choice) SetLogprobs(v LogProbs) {
 	o.Logprobs.Set(&v)
 }
-
 // SetLogprobsNil sets the value for Logprobs to be an explicit nil
 func (o *Choice) SetLogprobsNil() {
 	o.Logprobs.Set(nil)
@@ -187,7 +185,7 @@ func (o *Choice) SetMessage(v ChoiceMessage) {
 }
 
 func (o Choice) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -226,10 +224,10 @@ func (o *Choice) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

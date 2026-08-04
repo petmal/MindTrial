@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,8 +21,8 @@ var _ MappedNullable = &FileChunk{}
 
 // FileChunk struct for FileChunk
 type FileChunk struct {
-	Type   *string `json:"type,omitempty"`
-	FileId string  `json:"file_id"`
+	FileId string `json:"file_id"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _FileChunk FileChunk
@@ -33,9 +33,9 @@ type _FileChunk FileChunk
 // will change when the set of required properties is changed
 func NewFileChunk(fileId string) *FileChunk {
 	this := FileChunk{}
+	this.FileId = fileId
 	var type_ string = "file"
 	this.Type = &type_
-	this.FileId = fileId
 	return &this
 }
 
@@ -47,6 +47,30 @@ func NewFileChunkWithDefaults() *FileChunk {
 	var type_ string = "file"
 	this.Type = &type_
 	return &this
+}
+
+// GetFileId returns the FileId field value
+func (o *FileChunk) GetFileId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.FileId
+}
+
+// GetFileIdOk returns a tuple with the FileId field value
+// and a boolean to check if the value has been set.
+func (o *FileChunk) GetFileIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.FileId, true
+}
+
+// SetFileId sets field value
+func (o *FileChunk) SetFileId(v string) {
+	o.FileId = v
 }
 
 // GetType returns the Type field value if set, zero value otherwise.
@@ -81,32 +105,8 @@ func (o *FileChunk) SetType(v string) {
 	o.Type = &v
 }
 
-// GetFileId returns the FileId field value
-func (o *FileChunk) GetFileId() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.FileId
-}
-
-// GetFileIdOk returns a tuple with the FileId field value
-// and a boolean to check if the value has been set.
-func (o *FileChunk) GetFileIdOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.FileId, true
-}
-
-// SetFileId sets field value
-func (o *FileChunk) SetFileId(v string) {
-	o.FileId = v
-}
-
 func (o FileChunk) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -115,10 +115,10 @@ func (o FileChunk) MarshalJSON() ([]byte, error) {
 
 func (o FileChunk) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["file_id"] = o.FileId
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
 	}
-	toSerialize["file_id"] = o.FileId
 	return toSerialize, nil
 }
 
@@ -135,10 +135,10 @@ func (o *FileChunk) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

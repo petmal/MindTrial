@@ -21,15 +21,15 @@ type SSETypes string
 // List of SSETypes
 const (
 	SSETYPES_CONVERSATION_RESPONSE_STARTED SSETypes = "conversation.response.started"
-	SSETYPES_CONVERSATION_RESPONSE_DONE    SSETypes = "conversation.response.done"
-	SSETYPES_CONVERSATION_RESPONSE_ERROR   SSETypes = "conversation.response.error"
-	SSETYPES_MESSAGE_OUTPUT_DELTA          SSETypes = "message.output.delta"
-	SSETYPES_TOOL_EXECUTION_STARTED        SSETypes = "tool.execution.started"
-	SSETYPES_TOOL_EXECUTION_DELTA          SSETypes = "tool.execution.delta"
-	SSETYPES_TOOL_EXECUTION_DONE           SSETypes = "tool.execution.done"
-	SSETYPES_AGENT_HANDOFF_STARTED         SSETypes = "agent.handoff.started"
-	SSETYPES_AGENT_HANDOFF_DONE            SSETypes = "agent.handoff.done"
-	SSETYPES_FUNCTION_CALL_DELTA           SSETypes = "function.call.delta"
+	SSETYPES_CONVERSATION_RESPONSE_DONE SSETypes = "conversation.response.done"
+	SSETYPES_CONVERSATION_RESPONSE_ERROR SSETypes = "conversation.response.error"
+	SSETYPES_MESSAGE_OUTPUT_DELTA SSETypes = "message.output.delta"
+	SSETYPES_TOOL_EXECUTION_STARTED SSETypes = "tool.execution.started"
+	SSETYPES_TOOL_EXECUTION_DELTA SSETypes = "tool.execution.delta"
+	SSETYPES_TOOL_EXECUTION_DONE SSETypes = "tool.execution.done"
+	SSETYPES_AGENT_HANDOFF_STARTED SSETypes = "agent.handoff.started"
+	SSETYPES_AGENT_HANDOFF_DONE SSETypes = "agent.handoff.done"
+	SSETYPES_FUNCTION_CALL_DELTA SSETypes = "function.call.delta"
 )
 
 // All allowed values of SSETypes enum

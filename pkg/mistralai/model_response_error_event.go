@@ -11,10 +11,10 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"time"
+	"bytes"
+	"fmt"
 )
 
 // checks if the ResponseErrorEvent type satisfies the MappedNullable interface at compile time
@@ -22,10 +22,10 @@ var _ MappedNullable = &ResponseErrorEvent{}
 
 // ResponseErrorEvent struct for ResponseErrorEvent
 type ResponseErrorEvent struct {
-	Type      *string    `json:"type,omitempty"`
+	Code int32 `json:"code"`
 	CreatedAt *time.Time `json:"created_at,omitempty"`
-	Message   string     `json:"message"`
-	Code      int32      `json:"code"`
+	Message string `json:"message"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _ResponseErrorEvent ResponseErrorEvent
@@ -34,12 +34,12 @@ type _ResponseErrorEvent ResponseErrorEvent
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewResponseErrorEvent(message string, code int32) *ResponseErrorEvent {
+func NewResponseErrorEvent(code int32, message string) *ResponseErrorEvent {
 	this := ResponseErrorEvent{}
+	this.Code = code
+	this.Message = message
 	var type_ string = "conversation.response.error"
 	this.Type = &type_
-	this.Message = message
-	this.Code = code
 	return &this
 }
 
@@ -53,36 +53,28 @@ func NewResponseErrorEventWithDefaults() *ResponseErrorEvent {
 	return &this
 }
 
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *ResponseErrorEvent) GetType() string {
-	if o == nil || IsNil(o.Type) {
-		var ret string
+// GetCode returns the Code field value
+func (o *ResponseErrorEvent) GetCode() int32 {
+	if o == nil {
+		var ret int32
 		return ret
 	}
-	return *o.Type
+
+	return o.Code
 }
 
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
+// GetCodeOk returns a tuple with the Code field value
 // and a boolean to check if the value has been set.
-func (o *ResponseErrorEvent) GetTypeOk() (*string, bool) {
-	if o == nil || IsNil(o.Type) {
+func (o *ResponseErrorEvent) GetCodeOk() (*int32, bool) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Type, true
+	return &o.Code, true
 }
 
-// HasType returns a boolean if a field has been set.
-func (o *ResponseErrorEvent) HasType() bool {
-	if o != nil && !IsNil(o.Type) {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given string and assigns it to the Type field.
-func (o *ResponseErrorEvent) SetType(v string) {
-	o.Type = &v
+// SetCode sets field value
+func (o *ResponseErrorEvent) SetCode(v int32) {
+	o.Code = v
 }
 
 // GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
@@ -141,32 +133,40 @@ func (o *ResponseErrorEvent) SetMessage(v string) {
 	o.Message = v
 }
 
-// GetCode returns the Code field value
-func (o *ResponseErrorEvent) GetCode() int32 {
-	if o == nil {
-		var ret int32
+// GetType returns the Type field value if set, zero value otherwise.
+func (o *ResponseErrorEvent) GetType() string {
+	if o == nil || IsNil(o.Type) {
+		var ret string
 		return ret
 	}
-
-	return o.Code
+	return *o.Type
 }
 
-// GetCodeOk returns a tuple with the Code field value
+// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ResponseErrorEvent) GetCodeOk() (*int32, bool) {
-	if o == nil {
+func (o *ResponseErrorEvent) GetTypeOk() (*string, bool) {
+	if o == nil || IsNil(o.Type) {
 		return nil, false
 	}
-	return &o.Code, true
+	return o.Type, true
 }
 
-// SetCode sets field value
-func (o *ResponseErrorEvent) SetCode(v int32) {
-	o.Code = v
+// HasType returns a boolean if a field has been set.
+func (o *ResponseErrorEvent) HasType() bool {
+	if o != nil && !IsNil(o.Type) {
+		return true
+	}
+
+	return false
+}
+
+// SetType gets a reference to the given string and assigns it to the Type field.
+func (o *ResponseErrorEvent) SetType(v string) {
+	o.Type = &v
 }
 
 func (o ResponseErrorEvent) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -175,14 +175,14 @@ func (o ResponseErrorEvent) MarshalJSON() ([]byte, error) {
 
 func (o ResponseErrorEvent) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Type) {
-		toSerialize["type"] = o.Type
-	}
+	toSerialize["code"] = o.Code
 	if !IsNil(o.CreatedAt) {
 		toSerialize["created_at"] = o.CreatedAt
 	}
 	toSerialize["message"] = o.Message
-	toSerialize["code"] = o.Code
+	if !IsNil(o.Type) {
+		toSerialize["type"] = o.Type
+	}
 	return toSerialize, nil
 }
 
@@ -191,8 +191,8 @@ func (o *ResponseErrorEvent) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"message",
 		"code",
+		"message",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -200,10 +200,10 @@ func (o *ResponseErrorEvent) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

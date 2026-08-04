@@ -27,7 +27,7 @@ type ChatRequest struct {
 	LogitBias map[string]float32 `json:"logit_bias,omitempty"`
 	// Whether to return log probabilities of the output tokens or not. If true, returns the log probabilities of each output token returned in the content of message. Not supported by models `grok-4.20` and newer; the field will be silently ignored if set.
 	Logprobs NullableBool `json:"logprobs,omitempty"`
-	// An upper bound for the number of tokens that can be generated for a completion, only applies to visible output tokens (i.e. does not apply to tokens used for reasoning or function calls). Defaults to None, meaning the model will generate as many tokens as needed up until the model's maximum context length.
+	// An upper bound for the number of tokens that can be generated for a completion, only applies to visible output tokens (i.e. does not apply to tokens used for reasoning or function calls). Defaults to 128,000 when unset; set a larger value to allow longer generations.
 	MaxCompletionTokens NullableInt32 `json:"max_completion_tokens,omitempty"`
 	// \\[DEPRECATED\\] The maximum number of tokens that can be generated in the chat completion. Deprecated in favor of `max_completion_tokens`.
 	MaxTokens NullableInt32 `json:"max_tokens,omitempty"`
@@ -72,7 +72,7 @@ type ChatRequest struct {
 	// A unique identifier representing your end-user, which can help xAI to monitor and detect abuse.
 	User NullableString `json:"user,omitempty"`
 	// Options to control the web search. This is only included for compatibility reason. Prefer the usage of `realtime_data_parameters` instead.
-	WebSearchOptions     NullableWebSearchOptions `json:"web_search_options,omitempty"`
+	WebSearchOptions NullableWebSearchOptions `json:"web_search_options,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -163,7 +163,6 @@ func (o *ChatRequest) HasDeferred() bool {
 func (o *ChatRequest) SetDeferred(v bool) {
 	o.Deferred.Set(&v)
 }
-
 // SetDeferredNil sets the value for Deferred to be an explicit nil
 func (o *ChatRequest) SetDeferredNil() {
 	o.Deferred.Set(nil)
@@ -206,7 +205,6 @@ func (o *ChatRequest) HasFrequencyPenalty() bool {
 func (o *ChatRequest) SetFrequencyPenalty(v float32) {
 	o.FrequencyPenalty.Set(&v)
 }
-
 // SetFrequencyPenaltyNil sets the value for FrequencyPenalty to be an explicit nil
 func (o *ChatRequest) SetFrequencyPenaltyNil() {
 	o.FrequencyPenalty.Set(nil)
@@ -281,7 +279,6 @@ func (o *ChatRequest) HasLogprobs() bool {
 func (o *ChatRequest) SetLogprobs(v bool) {
 	o.Logprobs.Set(&v)
 }
-
 // SetLogprobsNil sets the value for Logprobs to be an explicit nil
 func (o *ChatRequest) SetLogprobsNil() {
 	o.Logprobs.Set(nil)
@@ -324,7 +321,6 @@ func (o *ChatRequest) HasMaxCompletionTokens() bool {
 func (o *ChatRequest) SetMaxCompletionTokens(v int32) {
 	o.MaxCompletionTokens.Set(&v)
 }
-
 // SetMaxCompletionTokensNil sets the value for MaxCompletionTokens to be an explicit nil
 func (o *ChatRequest) SetMaxCompletionTokensNil() {
 	o.MaxCompletionTokens.Set(nil)
@@ -367,7 +363,6 @@ func (o *ChatRequest) HasMaxTokens() bool {
 func (o *ChatRequest) SetMaxTokens(v int32) {
 	o.MaxTokens.Set(&v)
 }
-
 // SetMaxTokensNil sets the value for MaxTokens to be an explicit nil
 func (o *ChatRequest) SetMaxTokensNil() {
 	o.MaxTokens.Set(nil)
@@ -474,7 +469,6 @@ func (o *ChatRequest) HasN() bool {
 func (o *ChatRequest) SetN(v int32) {
 	o.N.Set(&v)
 }
-
 // SetNNil sets the value for N to be an explicit nil
 func (o *ChatRequest) SetNNil() {
 	o.N.Set(nil)
@@ -517,7 +511,6 @@ func (o *ChatRequest) HasParallelToolCalls() bool {
 func (o *ChatRequest) SetParallelToolCalls(v bool) {
 	o.ParallelToolCalls.Set(&v)
 }
-
 // SetParallelToolCallsNil sets the value for ParallelToolCalls to be an explicit nil
 func (o *ChatRequest) SetParallelToolCallsNil() {
 	o.ParallelToolCalls.Set(nil)
@@ -560,7 +553,6 @@ func (o *ChatRequest) HasPresencePenalty() bool {
 func (o *ChatRequest) SetPresencePenalty(v float32) {
 	o.PresencePenalty.Set(&v)
 }
-
 // SetPresencePenaltyNil sets the value for PresencePenalty to be an explicit nil
 func (o *ChatRequest) SetPresencePenaltyNil() {
 	o.PresencePenalty.Set(nil)
@@ -603,7 +595,6 @@ func (o *ChatRequest) HasPromptCacheKey() bool {
 func (o *ChatRequest) SetPromptCacheKey(v string) {
 	o.PromptCacheKey.Set(&v)
 }
-
 // SetPromptCacheKeyNil sets the value for PromptCacheKey to be an explicit nil
 func (o *ChatRequest) SetPromptCacheKeyNil() {
 	o.PromptCacheKey.Set(nil)
@@ -646,7 +637,6 @@ func (o *ChatRequest) HasReasoningEffort() bool {
 func (o *ChatRequest) SetReasoningEffort(v string) {
 	o.ReasoningEffort.Set(&v)
 }
-
 // SetReasoningEffortNil sets the value for ReasoningEffort to be an explicit nil
 func (o *ChatRequest) SetReasoningEffortNil() {
 	o.ReasoningEffort.Set(nil)
@@ -689,7 +679,6 @@ func (o *ChatRequest) HasResponseFormat() bool {
 func (o *ChatRequest) SetResponseFormat(v ResponseFormat) {
 	o.ResponseFormat.Set(&v)
 }
-
 // SetResponseFormatNil sets the value for ResponseFormat to be an explicit nil
 func (o *ChatRequest) SetResponseFormatNil() {
 	o.ResponseFormat.Set(nil)
@@ -732,7 +721,6 @@ func (o *ChatRequest) HasSearchParameters() bool {
 func (o *ChatRequest) SetSearchParameters(v SearchParameters) {
 	o.SearchParameters.Set(&v)
 }
-
 // SetSearchParametersNil sets the value for SearchParameters to be an explicit nil
 func (o *ChatRequest) SetSearchParametersNil() {
 	o.SearchParameters.Set(nil)
@@ -775,7 +763,6 @@ func (o *ChatRequest) HasSeed() bool {
 func (o *ChatRequest) SetSeed(v int32) {
 	o.Seed.Set(&v)
 }
-
 // SetSeedNil sets the value for Seed to be an explicit nil
 func (o *ChatRequest) SetSeedNil() {
 	o.Seed.Set(nil)
@@ -818,7 +805,6 @@ func (o *ChatRequest) HasServiceTier() bool {
 func (o *ChatRequest) SetServiceTier(v ServiceTier) {
 	o.ServiceTier.Set(&v)
 }
-
 // SetServiceTierNil sets the value for ServiceTier to be an explicit nil
 func (o *ChatRequest) SetServiceTierNil() {
 	o.ServiceTier.Set(nil)
@@ -894,7 +880,6 @@ func (o *ChatRequest) HasStream() bool {
 func (o *ChatRequest) SetStream(v bool) {
 	o.Stream.Set(&v)
 }
-
 // SetStreamNil sets the value for Stream to be an explicit nil
 func (o *ChatRequest) SetStreamNil() {
 	o.Stream.Set(nil)
@@ -937,7 +922,6 @@ func (o *ChatRequest) HasStreamOptions() bool {
 func (o *ChatRequest) SetStreamOptions(v StreamOptions) {
 	o.StreamOptions.Set(&v)
 }
-
 // SetStreamOptionsNil sets the value for StreamOptions to be an explicit nil
 func (o *ChatRequest) SetStreamOptionsNil() {
 	o.StreamOptions.Set(nil)
@@ -980,7 +964,6 @@ func (o *ChatRequest) HasTemperature() bool {
 func (o *ChatRequest) SetTemperature(v float32) {
 	o.Temperature.Set(&v)
 }
-
 // SetTemperatureNil sets the value for Temperature to be an explicit nil
 func (o *ChatRequest) SetTemperatureNil() {
 	o.Temperature.Set(nil)
@@ -1023,7 +1006,6 @@ func (o *ChatRequest) HasToolChoice() bool {
 func (o *ChatRequest) SetToolChoice(v ToolChoice) {
 	o.ToolChoice.Set(&v)
 }
-
 // SetToolChoiceNil sets the value for ToolChoice to be an explicit nil
 func (o *ChatRequest) SetToolChoiceNil() {
 	o.ToolChoice.Set(nil)
@@ -1099,7 +1081,6 @@ func (o *ChatRequest) HasTopLogprobs() bool {
 func (o *ChatRequest) SetTopLogprobs(v int32) {
 	o.TopLogprobs.Set(&v)
 }
-
 // SetTopLogprobsNil sets the value for TopLogprobs to be an explicit nil
 func (o *ChatRequest) SetTopLogprobsNil() {
 	o.TopLogprobs.Set(nil)
@@ -1142,7 +1123,6 @@ func (o *ChatRequest) HasTopP() bool {
 func (o *ChatRequest) SetTopP(v float32) {
 	o.TopP.Set(&v)
 }
-
 // SetTopPNil sets the value for TopP to be an explicit nil
 func (o *ChatRequest) SetTopPNil() {
 	o.TopP.Set(nil)
@@ -1185,7 +1165,6 @@ func (o *ChatRequest) HasUser() bool {
 func (o *ChatRequest) SetUser(v string) {
 	o.User.Set(&v)
 }
-
 // SetUserNil sets the value for User to be an explicit nil
 func (o *ChatRequest) SetUserNil() {
 	o.User.Set(nil)
@@ -1228,7 +1207,6 @@ func (o *ChatRequest) HasWebSearchOptions() bool {
 func (o *ChatRequest) SetWebSearchOptions(v WebSearchOptions) {
 	o.WebSearchOptions.Set(&v)
 }
-
 // SetWebSearchOptionsNil sets the value for WebSearchOptions to be an explicit nil
 func (o *ChatRequest) SetWebSearchOptionsNil() {
 	o.WebSearchOptions.Set(nil)
@@ -1240,7 +1218,7 @@ func (o *ChatRequest) UnsetWebSearchOptions() {
 }
 
 func (o ChatRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

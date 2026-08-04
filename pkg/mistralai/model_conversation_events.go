@@ -20,8 +20,8 @@ var _ MappedNullable = &ConversationEvents{}
 
 // ConversationEvents struct for ConversationEvents
 type ConversationEvents struct {
-	Event                SSETypes `json:"event"`
-	Data                 Data     `json:"data"`
+	Data Data `json:"data"`
+	Event SSETypes `json:"event"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -31,10 +31,10 @@ type _ConversationEvents ConversationEvents
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewConversationEvents(event SSETypes, data Data) *ConversationEvents {
+func NewConversationEvents(data Data, event SSETypes) *ConversationEvents {
 	this := ConversationEvents{}
-	this.Event = event
 	this.Data = data
+	this.Event = event
 	return &this
 }
 
@@ -44,30 +44,6 @@ func NewConversationEvents(event SSETypes, data Data) *ConversationEvents {
 func NewConversationEventsWithDefaults() *ConversationEvents {
 	this := ConversationEvents{}
 	return &this
-}
-
-// GetEvent returns the Event field value
-func (o *ConversationEvents) GetEvent() SSETypes {
-	if o == nil {
-		var ret SSETypes
-		return ret
-	}
-
-	return o.Event
-}
-
-// GetEventOk returns a tuple with the Event field value
-// and a boolean to check if the value has been set.
-func (o *ConversationEvents) GetEventOk() (*SSETypes, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Event, true
-}
-
-// SetEvent sets field value
-func (o *ConversationEvents) SetEvent(v SSETypes) {
-	o.Event = v
 }
 
 // GetData returns the Data field value
@@ -94,8 +70,32 @@ func (o *ConversationEvents) SetData(v Data) {
 	o.Data = v
 }
 
+// GetEvent returns the Event field value
+func (o *ConversationEvents) GetEvent() SSETypes {
+	if o == nil {
+		var ret SSETypes
+		return ret
+	}
+
+	return o.Event
+}
+
+// GetEventOk returns a tuple with the Event field value
+// and a boolean to check if the value has been set.
+func (o *ConversationEvents) GetEventOk() (*SSETypes, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Event, true
+}
+
+// SetEvent sets field value
+func (o *ConversationEvents) SetEvent(v SSETypes) {
+	o.Event = v
+}
+
 func (o ConversationEvents) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -104,8 +104,8 @@ func (o ConversationEvents) MarshalJSON() ([]byte, error) {
 
 func (o ConversationEvents) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["event"] = o.Event
 	toSerialize["data"] = o.Data
+	toSerialize["event"] = o.Event
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -119,8 +119,8 @@ func (o *ConversationEvents) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"event",
 		"data",
+		"event",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -128,10 +128,10 @@ func (o *ConversationEvents) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -150,8 +150,8 @@ func (o *ConversationEvents) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "event")
 		delete(additionalProperties, "data")
+		delete(additionalProperties, "event")
 		o.AdditionalProperties = additionalProperties
 	}
 

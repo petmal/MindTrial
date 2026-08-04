@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,11 +21,11 @@ var _ MappedNullable = &ToolFileChunk{}
 
 // ToolFileChunk struct for ToolFileChunk
 type ToolFileChunk struct {
-	Type     *string        `json:"type,omitempty"`
-	Tool     Tool1          `json:"tool"`
-	FileId   string         `json:"file_id"`
+	FileId string `json:"file_id"`
 	FileName NullableString `json:"file_name,omitempty"`
 	FileType NullableString `json:"file_type,omitempty"`
+	Tool Tool1 `json:"tool"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _ToolFileChunk ToolFileChunk
@@ -34,12 +34,12 @@ type _ToolFileChunk ToolFileChunk
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewToolFileChunk(tool Tool1, fileId string) *ToolFileChunk {
+func NewToolFileChunk(fileId string, tool Tool1) *ToolFileChunk {
 	this := ToolFileChunk{}
+	this.FileId = fileId
+	this.Tool = tool
 	var type_ string = "tool_file"
 	this.Type = &type_
-	this.Tool = tool
-	this.FileId = fileId
 	return &this
 }
 
@@ -51,62 +51,6 @@ func NewToolFileChunkWithDefaults() *ToolFileChunk {
 	var type_ string = "tool_file"
 	this.Type = &type_
 	return &this
-}
-
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *ToolFileChunk) GetType() string {
-	if o == nil || IsNil(o.Type) {
-		var ret string
-		return ret
-	}
-	return *o.Type
-}
-
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ToolFileChunk) GetTypeOk() (*string, bool) {
-	if o == nil || IsNil(o.Type) {
-		return nil, false
-	}
-	return o.Type, true
-}
-
-// HasType returns a boolean if a field has been set.
-func (o *ToolFileChunk) HasType() bool {
-	if o != nil && !IsNil(o.Type) {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given string and assigns it to the Type field.
-func (o *ToolFileChunk) SetType(v string) {
-	o.Type = &v
-}
-
-// GetTool returns the Tool field value
-func (o *ToolFileChunk) GetTool() Tool1 {
-	if o == nil {
-		var ret Tool1
-		return ret
-	}
-
-	return o.Tool
-}
-
-// GetToolOk returns a tuple with the Tool field value
-// and a boolean to check if the value has been set.
-func (o *ToolFileChunk) GetToolOk() (*Tool1, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Tool, true
-}
-
-// SetTool sets field value
-func (o *ToolFileChunk) SetTool(v Tool1) {
-	o.Tool = v
 }
 
 // GetFileId returns the FileId field value
@@ -165,7 +109,6 @@ func (o *ToolFileChunk) HasFileName() bool {
 func (o *ToolFileChunk) SetFileName(v string) {
 	o.FileName.Set(&v)
 }
-
 // SetFileNameNil sets the value for FileName to be an explicit nil
 func (o *ToolFileChunk) SetFileNameNil() {
 	o.FileName.Set(nil)
@@ -208,7 +151,6 @@ func (o *ToolFileChunk) HasFileType() bool {
 func (o *ToolFileChunk) SetFileType(v string) {
 	o.FileType.Set(&v)
 }
-
 // SetFileTypeNil sets the value for FileType to be an explicit nil
 func (o *ToolFileChunk) SetFileTypeNil() {
 	o.FileType.Set(nil)
@@ -219,8 +161,64 @@ func (o *ToolFileChunk) UnsetFileType() {
 	o.FileType.Unset()
 }
 
+// GetTool returns the Tool field value
+func (o *ToolFileChunk) GetTool() Tool1 {
+	if o == nil {
+		var ret Tool1
+		return ret
+	}
+
+	return o.Tool
+}
+
+// GetToolOk returns a tuple with the Tool field value
+// and a boolean to check if the value has been set.
+func (o *ToolFileChunk) GetToolOk() (*Tool1, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Tool, true
+}
+
+// SetTool sets field value
+func (o *ToolFileChunk) SetTool(v Tool1) {
+	o.Tool = v
+}
+
+// GetType returns the Type field value if set, zero value otherwise.
+func (o *ToolFileChunk) GetType() string {
+	if o == nil || IsNil(o.Type) {
+		var ret string
+		return ret
+	}
+	return *o.Type
+}
+
+// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ToolFileChunk) GetTypeOk() (*string, bool) {
+	if o == nil || IsNil(o.Type) {
+		return nil, false
+	}
+	return o.Type, true
+}
+
+// HasType returns a boolean if a field has been set.
+func (o *ToolFileChunk) HasType() bool {
+	if o != nil && !IsNil(o.Type) {
+		return true
+	}
+
+	return false
+}
+
+// SetType gets a reference to the given string and assigns it to the Type field.
+func (o *ToolFileChunk) SetType(v string) {
+	o.Type = &v
+}
+
 func (o ToolFileChunk) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -229,16 +227,16 @@ func (o ToolFileChunk) MarshalJSON() ([]byte, error) {
 
 func (o ToolFileChunk) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Type) {
-		toSerialize["type"] = o.Type
-	}
-	toSerialize["tool"] = o.Tool
 	toSerialize["file_id"] = o.FileId
 	if o.FileName.IsSet() {
 		toSerialize["file_name"] = o.FileName.Get()
 	}
 	if o.FileType.IsSet() {
 		toSerialize["file_type"] = o.FileType.Get()
+	}
+	toSerialize["tool"] = o.Tool
+	if !IsNil(o.Type) {
+		toSerialize["type"] = o.Type
 	}
 	return toSerialize, nil
 }
@@ -248,8 +246,8 @@ func (o *ToolFileChunk) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"tool",
 		"file_id",
+		"tool",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -257,10 +255,10 @@ func (o *ToolFileChunk) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

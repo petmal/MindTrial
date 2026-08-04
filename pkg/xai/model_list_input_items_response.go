@@ -29,7 +29,7 @@ type ListInputItemsResponse struct {
 	// The ID of the last item in the list.
 	LastId NullableString `json:"last_id,omitempty"`
 	// The object type, always `list`.
-	Object               string `json:"object"`
+	Object string `json:"object"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -111,7 +111,6 @@ func (o *ListInputItemsResponse) HasFirstId() bool {
 func (o *ListInputItemsResponse) SetFirstId(v string) {
 	o.FirstId.Set(&v)
 }
-
 // SetFirstIdNil sets the value for FirstId to be an explicit nil
 func (o *ListInputItemsResponse) SetFirstIdNil() {
 	o.FirstId.Set(nil)
@@ -178,7 +177,6 @@ func (o *ListInputItemsResponse) HasLastId() bool {
 func (o *ListInputItemsResponse) SetLastId(v string) {
 	o.LastId.Set(&v)
 }
-
 // SetLastIdNil sets the value for LastId to be an explicit nil
 func (o *ListInputItemsResponse) SetLastIdNil() {
 	o.LastId.Set(nil)
@@ -214,7 +212,7 @@ func (o *ListInputItemsResponse) SetObject(v string) {
 }
 
 func (o ListInputItemsResponse) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -255,10 +253,10 @@ func (o *ListInputItemsResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

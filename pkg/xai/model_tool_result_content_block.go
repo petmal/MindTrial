@@ -18,15 +18,8 @@ import (
 
 // ToolResultContentBlock - A single content block within a tool_result's array content.
 type ToolResultContentBlock struct {
-	MessageResponseContentOneOf *MessageResponseContentOneOf
-	ToolResultContentBlockOneOf *ToolResultContentBlockOneOf
-}
-
-// MessageResponseContentOneOfAsToolResultContentBlock is a convenience function that returns MessageResponseContentOneOf wrapped in ToolResultContentBlock
-func MessageResponseContentOneOfAsToolResultContentBlock(v *MessageResponseContentOneOf) ToolResultContentBlock {
-	return ToolResultContentBlock{
-		MessageResponseContentOneOf: v,
-	}
+	ToolResultContentBlockOneOf  *ToolResultContentBlockOneOf
+	ToolResultContentBlockOneOf1 *ToolResultContentBlockOneOf1
 }
 
 // ToolResultContentBlockOneOfAsToolResultContentBlock is a convenience function that returns ToolResultContentBlockOneOf wrapped in ToolResultContentBlock
@@ -36,27 +29,17 @@ func ToolResultContentBlockOneOfAsToolResultContentBlock(v *ToolResultContentBlo
 	}
 }
 
+// ToolResultContentBlockOneOf1AsToolResultContentBlock is a convenience function that returns ToolResultContentBlockOneOf1 wrapped in ToolResultContentBlock
+func ToolResultContentBlockOneOf1AsToolResultContentBlock(v *ToolResultContentBlockOneOf1) ToolResultContentBlock {
+	return ToolResultContentBlock{
+		ToolResultContentBlockOneOf1: v,
+	}
+}
+
 // Unmarshal JSON data into one of the pointers in the struct
 func (dst *ToolResultContentBlock) UnmarshalJSON(data []byte) error {
 	var err error
 	match := 0
-	// try to unmarshal data into MessageResponseContentOneOf
-	err = newStrictDecoder(data).Decode(&dst.MessageResponseContentOneOf)
-	if err == nil {
-		jsonMessageResponseContentOneOf, _ := json.Marshal(dst.MessageResponseContentOneOf)
-		if string(jsonMessageResponseContentOneOf) == "{}" { // empty struct
-			dst.MessageResponseContentOneOf = nil
-		} else {
-			if err = validator.Validate(dst.MessageResponseContentOneOf); err != nil {
-				dst.MessageResponseContentOneOf = nil
-			} else {
-				match++
-			}
-		}
-	} else {
-		dst.MessageResponseContentOneOf = nil
-	}
-
 	// try to unmarshal data into ToolResultContentBlockOneOf
 	err = newStrictDecoder(data).Decode(&dst.ToolResultContentBlockOneOf)
 	if err == nil {
@@ -74,27 +57,49 @@ func (dst *ToolResultContentBlock) UnmarshalJSON(data []byte) error {
 		dst.ToolResultContentBlockOneOf = nil
 	}
 
+	// try to unmarshal data into ToolResultContentBlockOneOf1
+	err = newStrictDecoder(data).Decode(&dst.ToolResultContentBlockOneOf1)
+	if err == nil {
+		jsonToolResultContentBlockOneOf1, _ := json.Marshal(dst.ToolResultContentBlockOneOf1)
+		if string(jsonToolResultContentBlockOneOf1) == "{}" { // empty struct
+			dst.ToolResultContentBlockOneOf1 = nil
+		} else {
+			if err = validator.Validate(dst.ToolResultContentBlockOneOf1); err != nil {
+				dst.ToolResultContentBlockOneOf1 = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.ToolResultContentBlockOneOf1 = nil
+	}
+
 	if match > 1 { // more than 1 match
 		// reset to nil
-		dst.MessageResponseContentOneOf = nil
 		dst.ToolResultContentBlockOneOf = nil
+		dst.ToolResultContentBlockOneOf1 = nil
 
 		return fmt.Errorf("data matches more than one schema in oneOf(ToolResultContentBlock)")
 	} else if match == 1 {
 		return nil // exactly one match
 	} else { // no match
-		return fmt.Errorf("data failed to match schemas in oneOf(ToolResultContentBlock)")
+		if err != nil {
+			return fmt.Errorf("data failed to match schemas in oneOf(ToolResultContentBlock): %v", err)
+		} else {
+			return fmt.Errorf("data failed to match schemas in oneOf(ToolResultContentBlock)")
+		}
+
 	}
 }
 
 // Marshal data from the first non-nil pointers in the struct to JSON
 func (src ToolResultContentBlock) MarshalJSON() ([]byte, error) {
-	if src.MessageResponseContentOneOf != nil {
-		return json.Marshal(&src.MessageResponseContentOneOf)
-	}
-
 	if src.ToolResultContentBlockOneOf != nil {
 		return json.Marshal(&src.ToolResultContentBlockOneOf)
+	}
+
+	if src.ToolResultContentBlockOneOf1 != nil {
+		return json.Marshal(&src.ToolResultContentBlockOneOf1)
 	}
 
 	return nil, nil // no data in oneOf schemas
@@ -105,12 +110,12 @@ func (obj *ToolResultContentBlock) GetActualInstance() interface{} {
 	if obj == nil {
 		return nil
 	}
-	if obj.MessageResponseContentOneOf != nil {
-		return obj.MessageResponseContentOneOf
-	}
-
 	if obj.ToolResultContentBlockOneOf != nil {
 		return obj.ToolResultContentBlockOneOf
+	}
+
+	if obj.ToolResultContentBlockOneOf1 != nil {
+		return obj.ToolResultContentBlockOneOf1
 	}
 
 	// all schemas are nil
@@ -119,12 +124,12 @@ func (obj *ToolResultContentBlock) GetActualInstance() interface{} {
 
 // Get the actual instance value
 func (obj ToolResultContentBlock) GetActualInstanceValue() interface{} {
-	if obj.MessageResponseContentOneOf != nil {
-		return *obj.MessageResponseContentOneOf
-	}
-
 	if obj.ToolResultContentBlockOneOf != nil {
 		return *obj.ToolResultContentBlockOneOf
+	}
+
+	if obj.ToolResultContentBlockOneOf1 != nil {
+		return *obj.ToolResultContentBlockOneOf1
 	}
 
 	// all schemas are nil

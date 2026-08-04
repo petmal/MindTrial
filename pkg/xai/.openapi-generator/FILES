@@ -3,6 +3,7 @@ client.go
 configuration.go
 model_annotation.go
 model_api_key.go
+model_audio_url.go
 model_chat_request.go
 model_chat_response.go
 model_chat_response_chunk.go
@@ -72,12 +73,14 @@ model_group_by.go
 model_group_by_aggregate.go
 model_group_by_aggregate_one_of.go
 model_group_by_aggregate_one_of_1.go
+model_group_by_aggregate_one_of_1_max_k.go
 model_group_by_aggregate_one_of_min_k.go
 model_hybrid_reranker.go
 model_hybrid_reranker_one_of.go
 model_hybrid_reranker_one_of_1.go
 model_hybrid_retrieval.go
 model_image_aspect_ratio.go
+model_image_generation_call.go
 model_image_generation_model.go
 model_image_resolution.go
 model_image_url.go
@@ -129,6 +132,7 @@ model_message_response_content.go
 model_message_response_content_one_of.go
 model_message_response_content_one_of_1.go
 model_message_response_content_one_of_2.go
+model_message_response_content_one_of_3.go
 model_message_tool_choice.go
 model_message_tool_choice_one_of.go
 model_message_tool_choice_one_of_1.go
@@ -164,6 +168,7 @@ model_model_tool_one_of_3.go
 model_model_tool_one_of_4.go
 model_model_tool_one_of_5.go
 model_model_tool_one_of_6.go
+model_model_tool_one_of_7.go
 model_model_usage.go
 model_output_file.go
 model_output_message.go
@@ -235,6 +240,7 @@ model_tool_one_of_1.go
 model_tool_result_content.go
 model_tool_result_content_block.go
 model_tool_result_content_block_one_of.go
+model_tool_result_content_block_one_of_1.go
 model_top_log_prob.go
 model_usage.go
 model_video_aspect_ratio.go

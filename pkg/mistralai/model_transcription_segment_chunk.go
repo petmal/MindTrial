@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,12 +21,12 @@ var _ MappedNullable = &TranscriptionSegmentChunk{}
 
 // TranscriptionSegmentChunk struct for TranscriptionSegmentChunk
 type TranscriptionSegmentChunk struct {
-	Text      string          `json:"text"`
-	Start     float32         `json:"start"`
-	End       float32         `json:"end"`
-	Score     NullableFloat32 `json:"score,omitempty"`
-	SpeakerId NullableString  `json:"speaker_id,omitempty"`
-	Type      *string         `json:"type,omitempty"`
+	End float32 `json:"end"`
+	Score NullableFloat32 `json:"score,omitempty"`
+	SpeakerId NullableString `json:"speaker_id,omitempty"`
+	Start float32 `json:"start"`
+	Text string `json:"text"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _TranscriptionSegmentChunk TranscriptionSegmentChunk
@@ -35,11 +35,11 @@ type _TranscriptionSegmentChunk TranscriptionSegmentChunk
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewTranscriptionSegmentChunk(text string, start float32, end float32) *TranscriptionSegmentChunk {
+func NewTranscriptionSegmentChunk(end float32, start float32, text string) *TranscriptionSegmentChunk {
 	this := TranscriptionSegmentChunk{}
-	this.Text = text
-	this.Start = start
 	this.End = end
+	this.Start = start
+	this.Text = text
 	var type_ string = "transcription_segment"
 	this.Type = &type_
 	return &this
@@ -53,54 +53,6 @@ func NewTranscriptionSegmentChunkWithDefaults() *TranscriptionSegmentChunk {
 	var type_ string = "transcription_segment"
 	this.Type = &type_
 	return &this
-}
-
-// GetText returns the Text field value
-func (o *TranscriptionSegmentChunk) GetText() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Text
-}
-
-// GetTextOk returns a tuple with the Text field value
-// and a boolean to check if the value has been set.
-func (o *TranscriptionSegmentChunk) GetTextOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Text, true
-}
-
-// SetText sets field value
-func (o *TranscriptionSegmentChunk) SetText(v string) {
-	o.Text = v
-}
-
-// GetStart returns the Start field value
-func (o *TranscriptionSegmentChunk) GetStart() float32 {
-	if o == nil {
-		var ret float32
-		return ret
-	}
-
-	return o.Start
-}
-
-// GetStartOk returns a tuple with the Start field value
-// and a boolean to check if the value has been set.
-func (o *TranscriptionSegmentChunk) GetStartOk() (*float32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Start, true
-}
-
-// SetStart sets field value
-func (o *TranscriptionSegmentChunk) SetStart(v float32) {
-	o.Start = v
 }
 
 // GetEnd returns the End field value
@@ -159,7 +111,6 @@ func (o *TranscriptionSegmentChunk) HasScore() bool {
 func (o *TranscriptionSegmentChunk) SetScore(v float32) {
 	o.Score.Set(&v)
 }
-
 // SetScoreNil sets the value for Score to be an explicit nil
 func (o *TranscriptionSegmentChunk) SetScoreNil() {
 	o.Score.Set(nil)
@@ -202,7 +153,6 @@ func (o *TranscriptionSegmentChunk) HasSpeakerId() bool {
 func (o *TranscriptionSegmentChunk) SetSpeakerId(v string) {
 	o.SpeakerId.Set(&v)
 }
-
 // SetSpeakerIdNil sets the value for SpeakerId to be an explicit nil
 func (o *TranscriptionSegmentChunk) SetSpeakerIdNil() {
 	o.SpeakerId.Set(nil)
@@ -211,6 +161,54 @@ func (o *TranscriptionSegmentChunk) SetSpeakerIdNil() {
 // UnsetSpeakerId ensures that no value is present for SpeakerId, not even an explicit nil
 func (o *TranscriptionSegmentChunk) UnsetSpeakerId() {
 	o.SpeakerId.Unset()
+}
+
+// GetStart returns the Start field value
+func (o *TranscriptionSegmentChunk) GetStart() float32 {
+	if o == nil {
+		var ret float32
+		return ret
+	}
+
+	return o.Start
+}
+
+// GetStartOk returns a tuple with the Start field value
+// and a boolean to check if the value has been set.
+func (o *TranscriptionSegmentChunk) GetStartOk() (*float32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Start, true
+}
+
+// SetStart sets field value
+func (o *TranscriptionSegmentChunk) SetStart(v float32) {
+	o.Start = v
+}
+
+// GetText returns the Text field value
+func (o *TranscriptionSegmentChunk) GetText() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Text
+}
+
+// GetTextOk returns a tuple with the Text field value
+// and a boolean to check if the value has been set.
+func (o *TranscriptionSegmentChunk) GetTextOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Text, true
+}
+
+// SetText sets field value
+func (o *TranscriptionSegmentChunk) SetText(v string) {
+	o.Text = v
 }
 
 // GetType returns the Type field value if set, zero value otherwise.
@@ -246,7 +244,7 @@ func (o *TranscriptionSegmentChunk) SetType(v string) {
 }
 
 func (o TranscriptionSegmentChunk) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -255,8 +253,6 @@ func (o TranscriptionSegmentChunk) MarshalJSON() ([]byte, error) {
 
 func (o TranscriptionSegmentChunk) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["text"] = o.Text
-	toSerialize["start"] = o.Start
 	toSerialize["end"] = o.End
 	if o.Score.IsSet() {
 		toSerialize["score"] = o.Score.Get()
@@ -264,6 +260,8 @@ func (o TranscriptionSegmentChunk) ToMap() (map[string]interface{}, error) {
 	if o.SpeakerId.IsSet() {
 		toSerialize["speaker_id"] = o.SpeakerId.Get()
 	}
+	toSerialize["start"] = o.Start
+	toSerialize["text"] = o.Text
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
 	}
@@ -275,9 +273,9 @@ func (o *TranscriptionSegmentChunk) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"text",
-		"start",
 		"end",
+		"start",
+		"text",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -285,10 +283,10 @@ func (o *TranscriptionSegmentChunk) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

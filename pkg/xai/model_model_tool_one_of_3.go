@@ -18,14 +18,11 @@ import (
 // checks if the ModelToolOneOf3 type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &ModelToolOneOf3{}
 
-// ModelToolOneOf3 Search the knowledge bases.
+// ModelToolOneOf3 Generate images from text prompts.
 type ModelToolOneOf3 struct {
-	Filters        interface{}   `json:"filters,omitempty"`
-	MaxNumResults  NullableInt32 `json:"max_num_results,omitempty"`
-	RankingOptions interface{}   `json:"ranking_options,omitempty"`
-	Type           string        `json:"type"`
-	// List of vector store IDs to search within.
-	VectorStoreIds       []string `json:"vector_store_ids"`
+	// Which image capabilities to expose to the model. One of `auto` (the default; both generation and editing), `generate` (text-to-image only), or `edit` (image editing only).
+	Action NullableString `json:"action,omitempty"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -35,10 +32,9 @@ type _ModelToolOneOf3 ModelToolOneOf3
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewModelToolOneOf3(type_ string, vectorStoreIds []string) *ModelToolOneOf3 {
+func NewModelToolOneOf3(type_ string) *ModelToolOneOf3 {
 	this := ModelToolOneOf3{}
 	this.Type = type_
-	this.VectorStoreIds = vectorStoreIds
 	return &this
 }
 
@@ -50,113 +46,46 @@ func NewModelToolOneOf3WithDefaults() *ModelToolOneOf3 {
 	return &this
 }
 
-// GetFilters returns the Filters field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ModelToolOneOf3) GetFilters() interface{} {
-	if o == nil {
-		var ret interface{}
+// GetAction returns the Action field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ModelToolOneOf3) GetAction() string {
+	if o == nil || IsNil(o.Action.Get()) {
+		var ret string
 		return ret
 	}
-	return o.Filters
+	return *o.Action.Get()
 }
 
-// GetFiltersOk returns a tuple with the Filters field value if set, nil otherwise
+// GetActionOk returns a tuple with the Action field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 // NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ModelToolOneOf3) GetFiltersOk() (*interface{}, bool) {
-	if o == nil || IsNil(o.Filters) {
+func (o *ModelToolOneOf3) GetActionOk() (*string, bool) {
+	if o == nil {
 		return nil, false
 	}
-	return &o.Filters, true
+	return o.Action.Get(), o.Action.IsSet()
 }
 
-// HasFilters returns a boolean if a field has been set.
-func (o *ModelToolOneOf3) HasFilters() bool {
-	if o != nil && !IsNil(o.Filters) {
+// HasAction returns a boolean if a field has been set.
+func (o *ModelToolOneOf3) HasAction() bool {
+	if o != nil && o.Action.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetFilters gets a reference to the given interface{} and assigns it to the Filters field.
-func (o *ModelToolOneOf3) SetFilters(v interface{}) {
-	o.Filters = v
+// SetAction gets a reference to the given NullableString and assigns it to the Action field.
+func (o *ModelToolOneOf3) SetAction(v string) {
+	o.Action.Set(&v)
+}
+// SetActionNil sets the value for Action to be an explicit nil
+func (o *ModelToolOneOf3) SetActionNil() {
+	o.Action.Set(nil)
 }
 
-// GetMaxNumResults returns the MaxNumResults field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ModelToolOneOf3) GetMaxNumResults() int32 {
-	if o == nil || IsNil(o.MaxNumResults.Get()) {
-		var ret int32
-		return ret
-	}
-	return *o.MaxNumResults.Get()
-}
-
-// GetMaxNumResultsOk returns a tuple with the MaxNumResults field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ModelToolOneOf3) GetMaxNumResultsOk() (*int32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.MaxNumResults.Get(), o.MaxNumResults.IsSet()
-}
-
-// HasMaxNumResults returns a boolean if a field has been set.
-func (o *ModelToolOneOf3) HasMaxNumResults() bool {
-	if o != nil && o.MaxNumResults.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetMaxNumResults gets a reference to the given NullableInt32 and assigns it to the MaxNumResults field.
-func (o *ModelToolOneOf3) SetMaxNumResults(v int32) {
-	o.MaxNumResults.Set(&v)
-}
-
-// SetMaxNumResultsNil sets the value for MaxNumResults to be an explicit nil
-func (o *ModelToolOneOf3) SetMaxNumResultsNil() {
-	o.MaxNumResults.Set(nil)
-}
-
-// UnsetMaxNumResults ensures that no value is present for MaxNumResults, not even an explicit nil
-func (o *ModelToolOneOf3) UnsetMaxNumResults() {
-	o.MaxNumResults.Unset()
-}
-
-// GetRankingOptions returns the RankingOptions field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ModelToolOneOf3) GetRankingOptions() interface{} {
-	if o == nil {
-		var ret interface{}
-		return ret
-	}
-	return o.RankingOptions
-}
-
-// GetRankingOptionsOk returns a tuple with the RankingOptions field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ModelToolOneOf3) GetRankingOptionsOk() (*interface{}, bool) {
-	if o == nil || IsNil(o.RankingOptions) {
-		return nil, false
-	}
-	return &o.RankingOptions, true
-}
-
-// HasRankingOptions returns a boolean if a field has been set.
-func (o *ModelToolOneOf3) HasRankingOptions() bool {
-	if o != nil && !IsNil(o.RankingOptions) {
-		return true
-	}
-
-	return false
-}
-
-// SetRankingOptions gets a reference to the given interface{} and assigns it to the RankingOptions field.
-func (o *ModelToolOneOf3) SetRankingOptions(v interface{}) {
-	o.RankingOptions = v
+// UnsetAction ensures that no value is present for Action, not even an explicit nil
+func (o *ModelToolOneOf3) UnsetAction() {
+	o.Action.Unset()
 }
 
 // GetType returns the Type field value
@@ -183,32 +112,8 @@ func (o *ModelToolOneOf3) SetType(v string) {
 	o.Type = v
 }
 
-// GetVectorStoreIds returns the VectorStoreIds field value
-func (o *ModelToolOneOf3) GetVectorStoreIds() []string {
-	if o == nil {
-		var ret []string
-		return ret
-	}
-
-	return o.VectorStoreIds
-}
-
-// GetVectorStoreIdsOk returns a tuple with the VectorStoreIds field value
-// and a boolean to check if the value has been set.
-func (o *ModelToolOneOf3) GetVectorStoreIdsOk() ([]string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.VectorStoreIds, true
-}
-
-// SetVectorStoreIds sets field value
-func (o *ModelToolOneOf3) SetVectorStoreIds(v []string) {
-	o.VectorStoreIds = v
-}
-
 func (o ModelToolOneOf3) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -217,17 +122,10 @@ func (o ModelToolOneOf3) MarshalJSON() ([]byte, error) {
 
 func (o ModelToolOneOf3) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if o.Filters != nil {
-		toSerialize["filters"] = o.Filters
-	}
-	if o.MaxNumResults.IsSet() {
-		toSerialize["max_num_results"] = o.MaxNumResults.Get()
-	}
-	if o.RankingOptions != nil {
-		toSerialize["ranking_options"] = o.RankingOptions
+	if o.Action.IsSet() {
+		toSerialize["action"] = o.Action.Get()
 	}
 	toSerialize["type"] = o.Type
-	toSerialize["vector_store_ids"] = o.VectorStoreIds
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -242,7 +140,6 @@ func (o *ModelToolOneOf3) UnmarshalJSON(data []byte) (err error) {
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
 		"type",
-		"vector_store_ids",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -250,10 +147,10 @@ func (o *ModelToolOneOf3) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -272,11 +169,8 @@ func (o *ModelToolOneOf3) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "filters")
-		delete(additionalProperties, "max_num_results")
-		delete(additionalProperties, "ranking_options")
+		delete(additionalProperties, "action")
 		delete(additionalProperties, "type")
-		delete(additionalProperties, "vector_store_ids")
 		o.AdditionalProperties = additionalProperties
 	}
 

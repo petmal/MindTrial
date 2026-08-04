@@ -11,10 +11,10 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"time"
+	"bytes"
+	"fmt"
 )
 
 // checks if the ModelConversation type satisfies the MappedNullable interface at compile time
@@ -22,20 +22,24 @@ var _ MappedNullable = &ModelConversation{}
 
 // ModelConversation struct for ModelConversation
 type ModelConversation struct {
-	Instructions NullableString `json:"instructions,omitempty"`
-	// List of tools which are available to the model during the conversation.
-	Tools []ToolsInner `json:"tools,omitempty"`
 	// Completion arguments that will be used to generate assistant responses. Can be overridden at each message request.
 	CompletionArgs *CompletionArgs `json:"completion_args,omitempty"`
-	Name           NullableString  `json:"name,omitempty"`
-	Description    NullableString  `json:"description,omitempty"`
-	// Custom type for metadata with embedded validation.
-	Metadata  map[string]interface{} `json:"metadata,omitempty"`
-	Object    *string                `json:"object,omitempty"`
-	Id        string                 `json:"id"`
-	CreatedAt time.Time              `json:"created_at"`
-	UpdatedAt time.Time              `json:"updated_at"`
-	Model     string                 `json:"model"`
+	CreatedAt time.Time `json:"created_at"`
+	// Description of the what the conversation is about.
+	Description NullableString `json:"description,omitempty"`
+	Guardrails []GuardrailConfig `json:"guardrails,omitempty"`
+	Id string `json:"id"`
+	// Instruction prompt the model will follow during the conversation.
+	Instructions NullableString `json:"instructions,omitempty"`
+	// Custom metadata for the conversation.
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Model string `json:"model"`
+	// Name given to the conversation.
+	Name NullableString `json:"name,omitempty"`
+	Object *string `json:"object,omitempty"`
+	// List of tools which are available to the model during the conversation.
+	Tools []ToolsInner `json:"tools,omitempty"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type _ModelConversation ModelConversation
@@ -44,14 +48,14 @@ type _ModelConversation ModelConversation
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewModelConversation(id string, createdAt time.Time, updatedAt time.Time, model string) *ModelConversation {
+func NewModelConversation(createdAt time.Time, id string, model string, updatedAt time.Time) *ModelConversation {
 	this := ModelConversation{}
+	this.CreatedAt = createdAt
+	this.Id = id
+	this.Model = model
 	var object string = "conversation"
 	this.Object = &object
-	this.Id = id
-	this.CreatedAt = createdAt
 	this.UpdatedAt = updatedAt
-	this.Model = model
 	return &this
 }
 
@@ -63,81 +67,6 @@ func NewModelConversationWithDefaults() *ModelConversation {
 	var object string = "conversation"
 	this.Object = &object
 	return &this
-}
-
-// GetInstructions returns the Instructions field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ModelConversation) GetInstructions() string {
-	if o == nil || IsNil(o.Instructions.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.Instructions.Get()
-}
-
-// GetInstructionsOk returns a tuple with the Instructions field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ModelConversation) GetInstructionsOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Instructions.Get(), o.Instructions.IsSet()
-}
-
-// HasInstructions returns a boolean if a field has been set.
-func (o *ModelConversation) HasInstructions() bool {
-	if o != nil && o.Instructions.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetInstructions gets a reference to the given NullableString and assigns it to the Instructions field.
-func (o *ModelConversation) SetInstructions(v string) {
-	o.Instructions.Set(&v)
-}
-
-// SetInstructionsNil sets the value for Instructions to be an explicit nil
-func (o *ModelConversation) SetInstructionsNil() {
-	o.Instructions.Set(nil)
-}
-
-// UnsetInstructions ensures that no value is present for Instructions, not even an explicit nil
-func (o *ModelConversation) UnsetInstructions() {
-	o.Instructions.Unset()
-}
-
-// GetTools returns the Tools field value if set, zero value otherwise.
-func (o *ModelConversation) GetTools() []ToolsInner {
-	if o == nil || IsNil(o.Tools) {
-		var ret []ToolsInner
-		return ret
-	}
-	return o.Tools
-}
-
-// GetToolsOk returns a tuple with the Tools field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ModelConversation) GetToolsOk() ([]ToolsInner, bool) {
-	if o == nil || IsNil(o.Tools) {
-		return nil, false
-	}
-	return o.Tools, true
-}
-
-// HasTools returns a boolean if a field has been set.
-func (o *ModelConversation) HasTools() bool {
-	if o != nil && !IsNil(o.Tools) {
-		return true
-	}
-
-	return false
-}
-
-// SetTools gets a reference to the given []ToolsInner and assigns it to the Tools field.
-func (o *ModelConversation) SetTools(v []ToolsInner) {
-	o.Tools = v
 }
 
 // GetCompletionArgs returns the CompletionArgs field value if set, zero value otherwise.
@@ -172,47 +101,28 @@ func (o *ModelConversation) SetCompletionArgs(v CompletionArgs) {
 	o.CompletionArgs = &v
 }
 
-// GetName returns the Name field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ModelConversation) GetName() string {
-	if o == nil || IsNil(o.Name.Get()) {
-		var ret string
+// GetCreatedAt returns the CreatedAt field value
+func (o *ModelConversation) GetCreatedAt() time.Time {
+	if o == nil {
+		var ret time.Time
 		return ret
 	}
-	return *o.Name.Get()
+
+	return o.CreatedAt
 }
 
-// GetNameOk returns a tuple with the Name field value if set, nil otherwise
+// GetCreatedAtOk returns a tuple with the CreatedAt field value
 // and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ModelConversation) GetNameOk() (*string, bool) {
+func (o *ModelConversation) GetCreatedAtOk() (*time.Time, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return o.Name.Get(), o.Name.IsSet()
+	return &o.CreatedAt, true
 }
 
-// HasName returns a boolean if a field has been set.
-func (o *ModelConversation) HasName() bool {
-	if o != nil && o.Name.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetName gets a reference to the given NullableString and assigns it to the Name field.
-func (o *ModelConversation) SetName(v string) {
-	o.Name.Set(&v)
-}
-
-// SetNameNil sets the value for Name to be an explicit nil
-func (o *ModelConversation) SetNameNil() {
-	o.Name.Set(nil)
-}
-
-// UnsetName ensures that no value is present for Name, not even an explicit nil
-func (o *ModelConversation) UnsetName() {
-	o.Name.Unset()
+// SetCreatedAt sets field value
+func (o *ModelConversation) SetCreatedAt(v time.Time) {
+	o.CreatedAt = v
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -247,7 +157,6 @@ func (o *ModelConversation) HasDescription() bool {
 func (o *ModelConversation) SetDescription(v string) {
 	o.Description.Set(&v)
 }
-
 // SetDescriptionNil sets the value for Description to be an explicit nil
 func (o *ModelConversation) SetDescriptionNil() {
 	o.Description.Set(nil)
@@ -256,6 +165,105 @@ func (o *ModelConversation) SetDescriptionNil() {
 // UnsetDescription ensures that no value is present for Description, not even an explicit nil
 func (o *ModelConversation) UnsetDescription() {
 	o.Description.Unset()
+}
+
+// GetGuardrails returns the Guardrails field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ModelConversation) GetGuardrails() []GuardrailConfig {
+	if o == nil {
+		var ret []GuardrailConfig
+		return ret
+	}
+	return o.Guardrails
+}
+
+// GetGuardrailsOk returns a tuple with the Guardrails field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ModelConversation) GetGuardrailsOk() ([]GuardrailConfig, bool) {
+	if o == nil || IsNil(o.Guardrails) {
+		return nil, false
+	}
+	return o.Guardrails, true
+}
+
+// HasGuardrails returns a boolean if a field has been set.
+func (o *ModelConversation) HasGuardrails() bool {
+	if o != nil && !IsNil(o.Guardrails) {
+		return true
+	}
+
+	return false
+}
+
+// SetGuardrails gets a reference to the given []GuardrailConfig and assigns it to the Guardrails field.
+func (o *ModelConversation) SetGuardrails(v []GuardrailConfig) {
+	o.Guardrails = v
+}
+
+// GetId returns the Id field value
+func (o *ModelConversation) GetId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Id
+}
+
+// GetIdOk returns a tuple with the Id field value
+// and a boolean to check if the value has been set.
+func (o *ModelConversation) GetIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Id, true
+}
+
+// SetId sets field value
+func (o *ModelConversation) SetId(v string) {
+	o.Id = v
+}
+
+// GetInstructions returns the Instructions field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ModelConversation) GetInstructions() string {
+	if o == nil || IsNil(o.Instructions.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Instructions.Get()
+}
+
+// GetInstructionsOk returns a tuple with the Instructions field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ModelConversation) GetInstructionsOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Instructions.Get(), o.Instructions.IsSet()
+}
+
+// HasInstructions returns a boolean if a field has been set.
+func (o *ModelConversation) HasInstructions() bool {
+	if o != nil && o.Instructions.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetInstructions gets a reference to the given NullableString and assigns it to the Instructions field.
+func (o *ModelConversation) SetInstructions(v string) {
+	o.Instructions.Set(&v)
+}
+// SetInstructionsNil sets the value for Instructions to be an explicit nil
+func (o *ModelConversation) SetInstructionsNil() {
+	o.Instructions.Set(nil)
+}
+
+// UnsetInstructions ensures that no value is present for Instructions, not even an explicit nil
+func (o *ModelConversation) UnsetInstructions() {
+	o.Instructions.Unset()
 }
 
 // GetMetadata returns the Metadata field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -291,6 +299,72 @@ func (o *ModelConversation) SetMetadata(v map[string]interface{}) {
 	o.Metadata = v
 }
 
+// GetModel returns the Model field value
+func (o *ModelConversation) GetModel() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Model
+}
+
+// GetModelOk returns a tuple with the Model field value
+// and a boolean to check if the value has been set.
+func (o *ModelConversation) GetModelOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Model, true
+}
+
+// SetModel sets field value
+func (o *ModelConversation) SetModel(v string) {
+	o.Model = v
+}
+
+// GetName returns the Name field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ModelConversation) GetName() string {
+	if o == nil || IsNil(o.Name.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Name.Get()
+}
+
+// GetNameOk returns a tuple with the Name field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ModelConversation) GetNameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Name.Get(), o.Name.IsSet()
+}
+
+// HasName returns a boolean if a field has been set.
+func (o *ModelConversation) HasName() bool {
+	if o != nil && o.Name.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetName gets a reference to the given NullableString and assigns it to the Name field.
+func (o *ModelConversation) SetName(v string) {
+	o.Name.Set(&v)
+}
+// SetNameNil sets the value for Name to be an explicit nil
+func (o *ModelConversation) SetNameNil() {
+	o.Name.Set(nil)
+}
+
+// UnsetName ensures that no value is present for Name, not even an explicit nil
+func (o *ModelConversation) UnsetName() {
+	o.Name.Unset()
+}
+
 // GetObject returns the Object field value if set, zero value otherwise.
 func (o *ModelConversation) GetObject() string {
 	if o == nil || IsNil(o.Object) {
@@ -323,52 +397,36 @@ func (o *ModelConversation) SetObject(v string) {
 	o.Object = &v
 }
 
-// GetId returns the Id field value
-func (o *ModelConversation) GetId() string {
-	if o == nil {
-		var ret string
+// GetTools returns the Tools field value if set, zero value otherwise.
+func (o *ModelConversation) GetTools() []ToolsInner {
+	if o == nil || IsNil(o.Tools) {
+		var ret []ToolsInner
 		return ret
 	}
-
-	return o.Id
+	return o.Tools
 }
 
-// GetIdOk returns a tuple with the Id field value
+// GetToolsOk returns a tuple with the Tools field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ModelConversation) GetIdOk() (*string, bool) {
-	if o == nil {
+func (o *ModelConversation) GetToolsOk() ([]ToolsInner, bool) {
+	if o == nil || IsNil(o.Tools) {
 		return nil, false
 	}
-	return &o.Id, true
+	return o.Tools, true
 }
 
-// SetId sets field value
-func (o *ModelConversation) SetId(v string) {
-	o.Id = v
-}
-
-// GetCreatedAt returns the CreatedAt field value
-func (o *ModelConversation) GetCreatedAt() time.Time {
-	if o == nil {
-		var ret time.Time
-		return ret
+// HasTools returns a boolean if a field has been set.
+func (o *ModelConversation) HasTools() bool {
+	if o != nil && !IsNil(o.Tools) {
+		return true
 	}
 
-	return o.CreatedAt
+	return false
 }
 
-// GetCreatedAtOk returns a tuple with the CreatedAt field value
-// and a boolean to check if the value has been set.
-func (o *ModelConversation) GetCreatedAtOk() (*time.Time, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.CreatedAt, true
-}
-
-// SetCreatedAt sets field value
-func (o *ModelConversation) SetCreatedAt(v time.Time) {
-	o.CreatedAt = v
+// SetTools gets a reference to the given []ToolsInner and assigns it to the Tools field.
+func (o *ModelConversation) SetTools(v []ToolsInner) {
+	o.Tools = v
 }
 
 // GetUpdatedAt returns the UpdatedAt field value
@@ -395,32 +453,8 @@ func (o *ModelConversation) SetUpdatedAt(v time.Time) {
 	o.UpdatedAt = v
 }
 
-// GetModel returns the Model field value
-func (o *ModelConversation) GetModel() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Model
-}
-
-// GetModelOk returns a tuple with the Model field value
-// and a boolean to check if the value has been set.
-func (o *ModelConversation) GetModelOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Model, true
-}
-
-// SetModel sets field value
-func (o *ModelConversation) SetModel(v string) {
-	o.Model = v
-}
-
 func (o ModelConversation) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -429,31 +463,34 @@ func (o ModelConversation) MarshalJSON() ([]byte, error) {
 
 func (o ModelConversation) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if o.Instructions.IsSet() {
-		toSerialize["instructions"] = o.Instructions.Get()
-	}
-	if !IsNil(o.Tools) {
-		toSerialize["tools"] = o.Tools
-	}
 	if !IsNil(o.CompletionArgs) {
 		toSerialize["completion_args"] = o.CompletionArgs
 	}
-	if o.Name.IsSet() {
-		toSerialize["name"] = o.Name.Get()
-	}
+	toSerialize["created_at"] = o.CreatedAt
 	if o.Description.IsSet() {
 		toSerialize["description"] = o.Description.Get()
+	}
+	if o.Guardrails != nil {
+		toSerialize["guardrails"] = o.Guardrails
+	}
+	toSerialize["id"] = o.Id
+	if o.Instructions.IsSet() {
+		toSerialize["instructions"] = o.Instructions.Get()
 	}
 	if o.Metadata != nil {
 		toSerialize["metadata"] = o.Metadata
 	}
+	toSerialize["model"] = o.Model
+	if o.Name.IsSet() {
+		toSerialize["name"] = o.Name.Get()
+	}
 	if !IsNil(o.Object) {
 		toSerialize["object"] = o.Object
 	}
-	toSerialize["id"] = o.Id
-	toSerialize["created_at"] = o.CreatedAt
+	if !IsNil(o.Tools) {
+		toSerialize["tools"] = o.Tools
+	}
 	toSerialize["updated_at"] = o.UpdatedAt
-	toSerialize["model"] = o.Model
 	return toSerialize, nil
 }
 
@@ -462,10 +499,10 @@ func (o *ModelConversation) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"id",
 		"created_at",
-		"updated_at",
+		"id",
 		"model",
+		"updated_at",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -473,10 +510,10 @@ func (o *ModelConversation) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

@@ -23,10 +23,10 @@ type FunctionDefinition struct {
 	// A description of the function to indicate to the model when to call it.
 	Description NullableString `json:"description,omitempty"`
 	// The name of the function. If the model calls the function, this name is used in the response.
-	Name       string      `json:"name"`
+	Name string `json:"name"`
 	Parameters interface{} `json:"parameters"`
 	// Not supported. Only maintained for compatibility reasons.
-	Strict               NullableBool `json:"strict,omitempty"`
+	Strict NullableBool `json:"strict,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -83,7 +83,6 @@ func (o *FunctionDefinition) HasDescription() bool {
 func (o *FunctionDefinition) SetDescription(v string) {
 	o.Description.Set(&v)
 }
-
 // SetDescriptionNil sets the value for Description to be an explicit nil
 func (o *FunctionDefinition) SetDescriptionNil() {
 	o.Description.Set(nil)
@@ -176,7 +175,6 @@ func (o *FunctionDefinition) HasStrict() bool {
 func (o *FunctionDefinition) SetStrict(v bool) {
 	o.Strict.Set(&v)
 }
-
 // SetStrictNil sets the value for Strict to be an explicit nil
 func (o *FunctionDefinition) SetStrictNil() {
 	o.Strict.Set(nil)
@@ -188,7 +186,7 @@ func (o *FunctionDefinition) UnsetStrict() {
 }
 
 func (o FunctionDefinition) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -229,10 +227,10 @@ func (o *FunctionDefinition) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

@@ -31,7 +31,7 @@ type FunctionToolCall struct {
 	// Status of the item. One of `completed`, `in_progress` or `incomplete`.
 	Status *string `json:"status,omitempty"`
 	// The type of the function tool call, which can be `\"function_call\"` for client-side tool calls, and `\"web_search_call\"` or `\"x_search_call\"` or `\"code_interpreter_call\"` or `\"mcp_call\"` for server-side tool calls.
-	Type                 string `json:"type"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -219,7 +219,7 @@ func (o *FunctionToolCall) SetType(v string) {
 }
 
 func (o FunctionToolCall) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -262,10 +262,10 @@ func (o *FunctionToolCall) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

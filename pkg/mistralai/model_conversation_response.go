@@ -11,7 +11,6 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -21,10 +20,12 @@ var _ MappedNullable = &ConversationResponse{}
 
 // ConversationResponse The response after appending new entries to the conversation.
 type ConversationResponse struct {
-	Object         *string               `json:"object,omitempty"`
-	ConversationId string                `json:"conversation_id"`
-	Outputs        []OutputsInner        `json:"outputs"`
-	Usage          ConversationUsageInfo `json:"usage"`
+	ConversationId string `json:"conversation_id"`
+	Guardrails []map[string]interface{} `json:"guardrails,omitempty"`
+	Object *string `json:"object,omitempty"`
+	Outputs []OutputsInner `json:"outputs"`
+	Usage ConversationUsageInfo `json:"usage"`
+	AdditionalProperties map[string]interface{}
 }
 
 type _ConversationResponse ConversationResponse
@@ -35,9 +36,9 @@ type _ConversationResponse ConversationResponse
 // will change when the set of required properties is changed
 func NewConversationResponse(conversationId string, outputs []OutputsInner, usage ConversationUsageInfo) *ConversationResponse {
 	this := ConversationResponse{}
+	this.ConversationId = conversationId
 	var object string = "conversation.response"
 	this.Object = &object
-	this.ConversationId = conversationId
 	this.Outputs = outputs
 	this.Usage = usage
 	return &this
@@ -51,6 +52,63 @@ func NewConversationResponseWithDefaults() *ConversationResponse {
 	var object string = "conversation.response"
 	this.Object = &object
 	return &this
+}
+
+// GetConversationId returns the ConversationId field value
+func (o *ConversationResponse) GetConversationId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.ConversationId
+}
+
+// GetConversationIdOk returns a tuple with the ConversationId field value
+// and a boolean to check if the value has been set.
+func (o *ConversationResponse) GetConversationIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.ConversationId, true
+}
+
+// SetConversationId sets field value
+func (o *ConversationResponse) SetConversationId(v string) {
+	o.ConversationId = v
+}
+
+// GetGuardrails returns the Guardrails field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ConversationResponse) GetGuardrails() []map[string]interface{} {
+	if o == nil {
+		var ret []map[string]interface{}
+		return ret
+	}
+	return o.Guardrails
+}
+
+// GetGuardrailsOk returns a tuple with the Guardrails field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ConversationResponse) GetGuardrailsOk() ([]map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Guardrails) {
+		return nil, false
+	}
+	return o.Guardrails, true
+}
+
+// HasGuardrails returns a boolean if a field has been set.
+func (o *ConversationResponse) HasGuardrails() bool {
+	if o != nil && !IsNil(o.Guardrails) {
+		return true
+	}
+
+	return false
+}
+
+// SetGuardrails gets a reference to the given []map[string]interface{} and assigns it to the Guardrails field.
+func (o *ConversationResponse) SetGuardrails(v []map[string]interface{}) {
+	o.Guardrails = v
 }
 
 // GetObject returns the Object field value if set, zero value otherwise.
@@ -83,30 +141,6 @@ func (o *ConversationResponse) HasObject() bool {
 // SetObject gets a reference to the given string and assigns it to the Object field.
 func (o *ConversationResponse) SetObject(v string) {
 	o.Object = &v
-}
-
-// GetConversationId returns the ConversationId field value
-func (o *ConversationResponse) GetConversationId() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.ConversationId
-}
-
-// GetConversationIdOk returns a tuple with the ConversationId field value
-// and a boolean to check if the value has been set.
-func (o *ConversationResponse) GetConversationIdOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.ConversationId, true
-}
-
-// SetConversationId sets field value
-func (o *ConversationResponse) SetConversationId(v string) {
-	o.ConversationId = v
 }
 
 // GetOutputs returns the Outputs field value
@@ -158,7 +192,7 @@ func (o *ConversationResponse) SetUsage(v ConversationUsageInfo) {
 }
 
 func (o ConversationResponse) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -167,12 +201,20 @@ func (o ConversationResponse) MarshalJSON() ([]byte, error) {
 
 func (o ConversationResponse) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["conversation_id"] = o.ConversationId
+	if o.Guardrails != nil {
+		toSerialize["guardrails"] = o.Guardrails
+	}
 	if !IsNil(o.Object) {
 		toSerialize["object"] = o.Object
 	}
-	toSerialize["conversation_id"] = o.ConversationId
 	toSerialize["outputs"] = o.Outputs
 	toSerialize["usage"] = o.Usage
+
+	for key, value := range o.AdditionalProperties {
+		toSerialize[key] = value
+	}
+
 	return toSerialize, nil
 }
 
@@ -191,10 +233,10 @@ func (o *ConversationResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -202,15 +244,24 @@ func (o *ConversationResponse) UnmarshalJSON(data []byte) (err error) {
 
 	varConversationResponse := _ConversationResponse{}
 
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varConversationResponse)
+	err = json.Unmarshal(data, &varConversationResponse)
 
 	if err != nil {
 		return err
 	}
 
 	*o = ConversationResponse(varConversationResponse)
+
+	additionalProperties := make(map[string]interface{})
+
+	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "conversation_id")
+		delete(additionalProperties, "guardrails")
+		delete(additionalProperties, "object")
+		delete(additionalProperties, "outputs")
+		delete(additionalProperties, "usage")
+		o.AdditionalProperties = additionalProperties
+	}
 
 	return err
 }

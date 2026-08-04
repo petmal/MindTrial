@@ -11,10 +11,10 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"time"
+	"bytes"
+	"fmt"
 )
 
 // checks if the ResponseStartedEvent type satisfies the MappedNullable interface at compile time
@@ -22,9 +22,9 @@ var _ MappedNullable = &ResponseStartedEvent{}
 
 // ResponseStartedEvent struct for ResponseStartedEvent
 type ResponseStartedEvent struct {
-	Type           *string    `json:"type,omitempty"`
-	CreatedAt      *time.Time `json:"created_at,omitempty"`
-	ConversationId string     `json:"conversation_id"`
+	ConversationId string `json:"conversation_id"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _ResponseStartedEvent ResponseStartedEvent
@@ -35,9 +35,9 @@ type _ResponseStartedEvent ResponseStartedEvent
 // will change when the set of required properties is changed
 func NewResponseStartedEvent(conversationId string) *ResponseStartedEvent {
 	this := ResponseStartedEvent{}
+	this.ConversationId = conversationId
 	var type_ string = "conversation.response.started"
 	this.Type = &type_
-	this.ConversationId = conversationId
 	return &this
 }
 
@@ -51,36 +51,28 @@ func NewResponseStartedEventWithDefaults() *ResponseStartedEvent {
 	return &this
 }
 
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *ResponseStartedEvent) GetType() string {
-	if o == nil || IsNil(o.Type) {
+// GetConversationId returns the ConversationId field value
+func (o *ResponseStartedEvent) GetConversationId() string {
+	if o == nil {
 		var ret string
 		return ret
 	}
-	return *o.Type
+
+	return o.ConversationId
 }
 
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
+// GetConversationIdOk returns a tuple with the ConversationId field value
 // and a boolean to check if the value has been set.
-func (o *ResponseStartedEvent) GetTypeOk() (*string, bool) {
-	if o == nil || IsNil(o.Type) {
+func (o *ResponseStartedEvent) GetConversationIdOk() (*string, bool) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Type, true
+	return &o.ConversationId, true
 }
 
-// HasType returns a boolean if a field has been set.
-func (o *ResponseStartedEvent) HasType() bool {
-	if o != nil && !IsNil(o.Type) {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given string and assigns it to the Type field.
-func (o *ResponseStartedEvent) SetType(v string) {
-	o.Type = &v
+// SetConversationId sets field value
+func (o *ResponseStartedEvent) SetConversationId(v string) {
+	o.ConversationId = v
 }
 
 // GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
@@ -115,32 +107,40 @@ func (o *ResponseStartedEvent) SetCreatedAt(v time.Time) {
 	o.CreatedAt = &v
 }
 
-// GetConversationId returns the ConversationId field value
-func (o *ResponseStartedEvent) GetConversationId() string {
-	if o == nil {
+// GetType returns the Type field value if set, zero value otherwise.
+func (o *ResponseStartedEvent) GetType() string {
+	if o == nil || IsNil(o.Type) {
 		var ret string
 		return ret
 	}
-
-	return o.ConversationId
+	return *o.Type
 }
 
-// GetConversationIdOk returns a tuple with the ConversationId field value
+// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ResponseStartedEvent) GetConversationIdOk() (*string, bool) {
-	if o == nil {
+func (o *ResponseStartedEvent) GetTypeOk() (*string, bool) {
+	if o == nil || IsNil(o.Type) {
 		return nil, false
 	}
-	return &o.ConversationId, true
+	return o.Type, true
 }
 
-// SetConversationId sets field value
-func (o *ResponseStartedEvent) SetConversationId(v string) {
-	o.ConversationId = v
+// HasType returns a boolean if a field has been set.
+func (o *ResponseStartedEvent) HasType() bool {
+	if o != nil && !IsNil(o.Type) {
+		return true
+	}
+
+	return false
+}
+
+// SetType gets a reference to the given string and assigns it to the Type field.
+func (o *ResponseStartedEvent) SetType(v string) {
+	o.Type = &v
 }
 
 func (o ResponseStartedEvent) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -149,13 +149,13 @@ func (o ResponseStartedEvent) MarshalJSON() ([]byte, error) {
 
 func (o ResponseStartedEvent) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Type) {
-		toSerialize["type"] = o.Type
-	}
+	toSerialize["conversation_id"] = o.ConversationId
 	if !IsNil(o.CreatedAt) {
 		toSerialize["created_at"] = o.CreatedAt
 	}
-	toSerialize["conversation_id"] = o.ConversationId
+	if !IsNil(o.Type) {
+		toSerialize["type"] = o.Type
+	}
 	return toSerialize, nil
 }
 
@@ -172,10 +172,10 @@ func (o *ResponseStartedEvent) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

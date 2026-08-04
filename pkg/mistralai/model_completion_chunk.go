@@ -20,12 +20,12 @@ var _ MappedNullable = &CompletionChunk{}
 
 // CompletionChunk struct for CompletionChunk
 type CompletionChunk struct {
-	Id                   string                           `json:"id"`
-	Object               *string                          `json:"object,omitempty"`
-	Created              *int32                           `json:"created,omitempty"`
-	Model                string                           `json:"model"`
-	Usage                *UsageInfo                       `json:"usage,omitempty"`
-	Choices              []CompletionResponseStreamChoice `json:"choices"`
+	Choices []CompletionResponseStreamChoice `json:"choices"`
+	Created *int32 `json:"created,omitempty"`
+	Id string `json:"id"`
+	Model string `json:"model"`
+	Object *string `json:"object,omitempty"`
+	Usage *UsageInfo `json:"usage,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -35,11 +35,11 @@ type _CompletionChunk CompletionChunk
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCompletionChunk(id string, model string, choices []CompletionResponseStreamChoice) *CompletionChunk {
+func NewCompletionChunk(choices []CompletionResponseStreamChoice, id string, model string) *CompletionChunk {
 	this := CompletionChunk{}
+	this.Choices = choices
 	this.Id = id
 	this.Model = model
-	this.Choices = choices
 	return &this
 }
 
@@ -51,60 +51,28 @@ func NewCompletionChunkWithDefaults() *CompletionChunk {
 	return &this
 }
 
-// GetId returns the Id field value
-func (o *CompletionChunk) GetId() string {
+// GetChoices returns the Choices field value
+func (o *CompletionChunk) GetChoices() []CompletionResponseStreamChoice {
 	if o == nil {
-		var ret string
+		var ret []CompletionResponseStreamChoice
 		return ret
 	}
 
-	return o.Id
+	return o.Choices
 }
 
-// GetIdOk returns a tuple with the Id field value
+// GetChoicesOk returns a tuple with the Choices field value
 // and a boolean to check if the value has been set.
-func (o *CompletionChunk) GetIdOk() (*string, bool) {
+func (o *CompletionChunk) GetChoicesOk() ([]CompletionResponseStreamChoice, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Id, true
+	return o.Choices, true
 }
 
-// SetId sets field value
-func (o *CompletionChunk) SetId(v string) {
-	o.Id = v
-}
-
-// GetObject returns the Object field value if set, zero value otherwise.
-func (o *CompletionChunk) GetObject() string {
-	if o == nil || IsNil(o.Object) {
-		var ret string
-		return ret
-	}
-	return *o.Object
-}
-
-// GetObjectOk returns a tuple with the Object field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *CompletionChunk) GetObjectOk() (*string, bool) {
-	if o == nil || IsNil(o.Object) {
-		return nil, false
-	}
-	return o.Object, true
-}
-
-// HasObject returns a boolean if a field has been set.
-func (o *CompletionChunk) HasObject() bool {
-	if o != nil && !IsNil(o.Object) {
-		return true
-	}
-
-	return false
-}
-
-// SetObject gets a reference to the given string and assigns it to the Object field.
-func (o *CompletionChunk) SetObject(v string) {
-	o.Object = &v
+// SetChoices sets field value
+func (o *CompletionChunk) SetChoices(v []CompletionResponseStreamChoice) {
+	o.Choices = v
 }
 
 // GetCreated returns the Created field value if set, zero value otherwise.
@@ -139,6 +107,30 @@ func (o *CompletionChunk) SetCreated(v int32) {
 	o.Created = &v
 }
 
+// GetId returns the Id field value
+func (o *CompletionChunk) GetId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Id
+}
+
+// GetIdOk returns a tuple with the Id field value
+// and a boolean to check if the value has been set.
+func (o *CompletionChunk) GetIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Id, true
+}
+
+// SetId sets field value
+func (o *CompletionChunk) SetId(v string) {
+	o.Id = v
+}
+
 // GetModel returns the Model field value
 func (o *CompletionChunk) GetModel() string {
 	if o == nil {
@@ -161,6 +153,38 @@ func (o *CompletionChunk) GetModelOk() (*string, bool) {
 // SetModel sets field value
 func (o *CompletionChunk) SetModel(v string) {
 	o.Model = v
+}
+
+// GetObject returns the Object field value if set, zero value otherwise.
+func (o *CompletionChunk) GetObject() string {
+	if o == nil || IsNil(o.Object) {
+		var ret string
+		return ret
+	}
+	return *o.Object
+}
+
+// GetObjectOk returns a tuple with the Object field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CompletionChunk) GetObjectOk() (*string, bool) {
+	if o == nil || IsNil(o.Object) {
+		return nil, false
+	}
+	return o.Object, true
+}
+
+// HasObject returns a boolean if a field has been set.
+func (o *CompletionChunk) HasObject() bool {
+	if o != nil && !IsNil(o.Object) {
+		return true
+	}
+
+	return false
+}
+
+// SetObject gets a reference to the given string and assigns it to the Object field.
+func (o *CompletionChunk) SetObject(v string) {
+	o.Object = &v
 }
 
 // GetUsage returns the Usage field value if set, zero value otherwise.
@@ -195,32 +219,8 @@ func (o *CompletionChunk) SetUsage(v UsageInfo) {
 	o.Usage = &v
 }
 
-// GetChoices returns the Choices field value
-func (o *CompletionChunk) GetChoices() []CompletionResponseStreamChoice {
-	if o == nil {
-		var ret []CompletionResponseStreamChoice
-		return ret
-	}
-
-	return o.Choices
-}
-
-// GetChoicesOk returns a tuple with the Choices field value
-// and a boolean to check if the value has been set.
-func (o *CompletionChunk) GetChoicesOk() ([]CompletionResponseStreamChoice, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Choices, true
-}
-
-// SetChoices sets field value
-func (o *CompletionChunk) SetChoices(v []CompletionResponseStreamChoice) {
-	o.Choices = v
-}
-
 func (o CompletionChunk) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -229,18 +229,18 @@ func (o CompletionChunk) MarshalJSON() ([]byte, error) {
 
 func (o CompletionChunk) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["id"] = o.Id
-	if !IsNil(o.Object) {
-		toSerialize["object"] = o.Object
-	}
+	toSerialize["choices"] = o.Choices
 	if !IsNil(o.Created) {
 		toSerialize["created"] = o.Created
 	}
+	toSerialize["id"] = o.Id
 	toSerialize["model"] = o.Model
+	if !IsNil(o.Object) {
+		toSerialize["object"] = o.Object
+	}
 	if !IsNil(o.Usage) {
 		toSerialize["usage"] = o.Usage
 	}
-	toSerialize["choices"] = o.Choices
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -254,9 +254,9 @@ func (o *CompletionChunk) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
+		"choices",
 		"id",
 		"model",
-		"choices",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -264,10 +264,10 @@ func (o *CompletionChunk) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -286,12 +286,12 @@ func (o *CompletionChunk) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "id")
-		delete(additionalProperties, "object")
-		delete(additionalProperties, "created")
-		delete(additionalProperties, "model")
-		delete(additionalProperties, "usage")
 		delete(additionalProperties, "choices")
+		delete(additionalProperties, "created")
+		delete(additionalProperties, "id")
+		delete(additionalProperties, "model")
+		delete(additionalProperties, "object")
+		delete(additionalProperties, "usage")
 		o.AdditionalProperties = additionalProperties
 	}
 

@@ -20,7 +20,7 @@ type SortOrder string
 
 // List of SortOrder
 const (
-	SORTORDER_ASC  SortOrder = "asc"
+	SORTORDER_ASC SortOrder = "asc"
 	SORTORDER_DESC SortOrder = "desc"
 )
 

@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,8 +21,8 @@ var _ MappedNullable = &FunctionCall{}
 
 // FunctionCall struct for FunctionCall
 type FunctionCall struct {
-	Name      string    `json:"name"`
 	Arguments Arguments `json:"arguments"`
+	Name string `json:"name"`
 }
 
 type _FunctionCall FunctionCall
@@ -31,10 +31,10 @@ type _FunctionCall FunctionCall
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewFunctionCall(name string, arguments Arguments) *FunctionCall {
+func NewFunctionCall(arguments Arguments, name string) *FunctionCall {
 	this := FunctionCall{}
-	this.Name = name
 	this.Arguments = arguments
+	this.Name = name
 	return &this
 }
 
@@ -44,30 +44,6 @@ func NewFunctionCall(name string, arguments Arguments) *FunctionCall {
 func NewFunctionCallWithDefaults() *FunctionCall {
 	this := FunctionCall{}
 	return &this
-}
-
-// GetName returns the Name field value
-func (o *FunctionCall) GetName() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Name
-}
-
-// GetNameOk returns a tuple with the Name field value
-// and a boolean to check if the value has been set.
-func (o *FunctionCall) GetNameOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Name, true
-}
-
-// SetName sets field value
-func (o *FunctionCall) SetName(v string) {
-	o.Name = v
 }
 
 // GetArguments returns the Arguments field value
@@ -94,8 +70,32 @@ func (o *FunctionCall) SetArguments(v Arguments) {
 	o.Arguments = v
 }
 
+// GetName returns the Name field value
+func (o *FunctionCall) GetName() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value
+// and a boolean to check if the value has been set.
+func (o *FunctionCall) GetNameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Name, true
+}
+
+// SetName sets field value
+func (o *FunctionCall) SetName(v string) {
+	o.Name = v
+}
+
 func (o FunctionCall) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -104,8 +104,8 @@ func (o FunctionCall) MarshalJSON() ([]byte, error) {
 
 func (o FunctionCall) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["name"] = o.Name
 	toSerialize["arguments"] = o.Arguments
+	toSerialize["name"] = o.Name
 	return toSerialize, nil
 }
 
@@ -114,8 +114,8 @@ func (o *FunctionCall) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"name",
 		"arguments",
+		"name",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -123,10 +123,10 @@ func (o *FunctionCall) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

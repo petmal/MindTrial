@@ -286,7 +286,7 @@ func (o *openAIResponsesProvider) Run(ctx context.Context, logger logging.Logger
 			return result, nil // return current result state
 		}
 
-		recordUsage(&resp.Usage.InputTokens, &resp.Usage.OutputTokens, nil, nil, &result.usage)
+		recordUsage(InputTokenAccountingCacheTokensIncluded, &resp.Usage.InputTokens, &resp.Usage.OutputTokens, &resp.Usage.InputTokensDetails.CacheWriteTokens, &resp.Usage.InputTokensDetails.CachedTokens, &result.usage)
 
 		isTerminal := o.isTerminalResponseStatus(resp)
 		logFinishReason(ctx, logger, string(resp.Status), isTerminal)

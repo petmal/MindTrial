@@ -23,7 +23,7 @@ type ShellEnvironment struct {
 	// An optional list of skills available in the local environment.
 	Skills []LocalShellSkill `json:"skills,omitempty"`
 	// The type of the environment. Currently only `local` is supported.
-	Type                 string `json:"type"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -104,7 +104,7 @@ func (o *ShellEnvironment) SetType(v string) {
 }
 
 func (o ShellEnvironment) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -138,10 +138,10 @@ func (o *ShellEnvironment) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

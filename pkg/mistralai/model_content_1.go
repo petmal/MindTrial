@@ -15,30 +15,31 @@ import (
 	"fmt"
 )
 
+
 // Content1 struct for Content1
 type Content1 struct {
-	ArrayOfMessageOutputContentChunksInner *[]MessageOutputContentChunksInner
-	String                                 *string
+	ArrayOfMessageInputContentChunksInner *[]MessageInputContentChunksInner
+	String *string
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
 func (dst *Content1) UnmarshalJSON(data []byte) error {
 	var err error
-	// try to unmarshal JSON data into ArrayOfMessageOutputContentChunksInner
-	err = json.Unmarshal(data, &dst.ArrayOfMessageOutputContentChunksInner)
+	// try to unmarshal JSON data into ArrayOfMessageInputContentChunksInner
+	err = json.Unmarshal(data, &dst.ArrayOfMessageInputContentChunksInner);
 	if err == nil {
-		jsonArrayOfMessageOutputContentChunksInner, _ := json.Marshal(dst.ArrayOfMessageOutputContentChunksInner)
-		if string(jsonArrayOfMessageOutputContentChunksInner) == "{}" { // empty struct
-			dst.ArrayOfMessageOutputContentChunksInner = nil
+		jsonArrayOfMessageInputContentChunksInner, _ := json.Marshal(dst.ArrayOfMessageInputContentChunksInner)
+		if string(jsonArrayOfMessageInputContentChunksInner) == "{}" { // empty struct
+			dst.ArrayOfMessageInputContentChunksInner = nil
 		} else {
-			return nil // data stored in dst.ArrayOfMessageOutputContentChunksInner, return on the first match
+			return nil // data stored in dst.ArrayOfMessageInputContentChunksInner, return on the first match
 		}
 	} else {
-		dst.ArrayOfMessageOutputContentChunksInner = nil
+		dst.ArrayOfMessageInputContentChunksInner = nil
 	}
 
 	// try to unmarshal JSON data into String
-	err = json.Unmarshal(data, &dst.String)
+	err = json.Unmarshal(data, &dst.String);
 	if err == nil {
 		jsonString, _ := json.Marshal(dst.String)
 		if string(jsonString) == "{}" { // empty struct
@@ -55,8 +56,8 @@ func (dst *Content1) UnmarshalJSON(data []byte) error {
 
 // Marshal data from the first non-nil pointers in the struct to JSON
 func (src Content1) MarshalJSON() ([]byte, error) {
-	if src.ArrayOfMessageOutputContentChunksInner != nil {
-		return json.Marshal(&src.ArrayOfMessageOutputContentChunksInner)
+	if src.ArrayOfMessageInputContentChunksInner != nil {
+		return json.Marshal(&src.ArrayOfMessageInputContentChunksInner)
 	}
 
 	if src.String != nil {
@@ -65,6 +66,7 @@ func (src Content1) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
+
 
 type NullableContent1 struct {
 	value *Content1

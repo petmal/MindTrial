@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,9 +21,10 @@ var _ MappedNullable = &DocumentURLChunk{}
 
 // DocumentURLChunk struct for DocumentURLChunk
 type DocumentURLChunk struct {
-	DocumentUrl  string         `json:"document_url"`
+	// The filename of the document
 	DocumentName NullableString `json:"document_name,omitempty"`
-	Type         *string        `json:"type,omitempty"`
+	DocumentUrl string `json:"document_url"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _DocumentURLChunk DocumentURLChunk
@@ -48,30 +49,6 @@ func NewDocumentURLChunkWithDefaults() *DocumentURLChunk {
 	var type_ string = "document_url"
 	this.Type = &type_
 	return &this
-}
-
-// GetDocumentUrl returns the DocumentUrl field value
-func (o *DocumentURLChunk) GetDocumentUrl() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.DocumentUrl
-}
-
-// GetDocumentUrlOk returns a tuple with the DocumentUrl field value
-// and a boolean to check if the value has been set.
-func (o *DocumentURLChunk) GetDocumentUrlOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.DocumentUrl, true
-}
-
-// SetDocumentUrl sets field value
-func (o *DocumentURLChunk) SetDocumentUrl(v string) {
-	o.DocumentUrl = v
 }
 
 // GetDocumentName returns the DocumentName field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -106,7 +83,6 @@ func (o *DocumentURLChunk) HasDocumentName() bool {
 func (o *DocumentURLChunk) SetDocumentName(v string) {
 	o.DocumentName.Set(&v)
 }
-
 // SetDocumentNameNil sets the value for DocumentName to be an explicit nil
 func (o *DocumentURLChunk) SetDocumentNameNil() {
 	o.DocumentName.Set(nil)
@@ -115,6 +91,30 @@ func (o *DocumentURLChunk) SetDocumentNameNil() {
 // UnsetDocumentName ensures that no value is present for DocumentName, not even an explicit nil
 func (o *DocumentURLChunk) UnsetDocumentName() {
 	o.DocumentName.Unset()
+}
+
+// GetDocumentUrl returns the DocumentUrl field value
+func (o *DocumentURLChunk) GetDocumentUrl() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.DocumentUrl
+}
+
+// GetDocumentUrlOk returns a tuple with the DocumentUrl field value
+// and a boolean to check if the value has been set.
+func (o *DocumentURLChunk) GetDocumentUrlOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.DocumentUrl, true
+}
+
+// SetDocumentUrl sets field value
+func (o *DocumentURLChunk) SetDocumentUrl(v string) {
+	o.DocumentUrl = v
 }
 
 // GetType returns the Type field value if set, zero value otherwise.
@@ -150,7 +150,7 @@ func (o *DocumentURLChunk) SetType(v string) {
 }
 
 func (o DocumentURLChunk) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -159,10 +159,10 @@ func (o DocumentURLChunk) MarshalJSON() ([]byte, error) {
 
 func (o DocumentURLChunk) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["document_url"] = o.DocumentUrl
 	if o.DocumentName.IsSet() {
 		toSerialize["document_name"] = o.DocumentName.Get()
 	}
+	toSerialize["document_url"] = o.DocumentUrl
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
 	}
@@ -182,10 +182,10 @@ func (o *DocumentURLChunk) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

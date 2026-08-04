@@ -21,8 +21,8 @@ var _ MappedNullable = &WebSearchOptions{}
 type WebSearchOptions struct {
 	Filters interface{} `json:"filters,omitempty"`
 	// This field included for compatibility reason with OpenAI's API. It is mapped to `max_search`.
-	SearchContextSize    NullableString `json:"search_context_size,omitempty"`
-	UserLocation         interface{}    `json:"user_location,omitempty"`
+	SearchContextSize NullableString `json:"search_context_size,omitempty"`
+	UserLocation interface{} `json:"user_location,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -114,7 +114,6 @@ func (o *WebSearchOptions) HasSearchContextSize() bool {
 func (o *WebSearchOptions) SetSearchContextSize(v string) {
 	o.SearchContextSize.Set(&v)
 }
-
 // SetSearchContextSizeNil sets the value for SearchContextSize to be an explicit nil
 func (o *WebSearchOptions) SetSearchContextSizeNil() {
 	o.SearchContextSize.Set(nil)
@@ -159,7 +158,7 @@ func (o *WebSearchOptions) SetUserLocation(v interface{}) {
 }
 
 func (o WebSearchOptions) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

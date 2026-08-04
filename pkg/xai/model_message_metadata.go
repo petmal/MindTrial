@@ -20,7 +20,7 @@ var _ MappedNullable = &MessageMetadata{}
 // MessageMetadata struct for MessageMetadata
 type MessageMetadata struct {
 	// A unique identifier representing your end-user, which can help xAI to monitor and detect abuse.
-	UserId               NullableString `json:"user_id,omitempty"`
+	UserId NullableString `json:"user_id,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -75,7 +75,6 @@ func (o *MessageMetadata) HasUserId() bool {
 func (o *MessageMetadata) SetUserId(v string) {
 	o.UserId.Set(&v)
 }
-
 // SetUserIdNil sets the value for UserId to be an explicit nil
 func (o *MessageMetadata) SetUserIdNil() {
 	o.UserId.Set(nil)
@@ -87,7 +86,7 @@ func (o *MessageMetadata) UnsetUserId() {
 }
 
 func (o MessageMetadata) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

@@ -22,7 +22,7 @@ type ImageUrl struct {
 	// File ID from the xAI Files API. Mutually exclusive with `url`. The file must be an image (JPEG, PNG, or WebP) and fully uploaded.
 	FileId NullableString `json:"file_id,omitempty"`
 	// Public URL or base64-encoded data URL of the image (JPEG, PNG, or WebP). Also accepts `image_url` for compatibility. Required when `file_id` is not set.
-	Url                  *string `json:"url,omitempty"`
+	Url *string `json:"url,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -77,7 +77,6 @@ func (o *ImageUrl) HasFileId() bool {
 func (o *ImageUrl) SetFileId(v string) {
 	o.FileId.Set(&v)
 }
-
 // SetFileIdNil sets the value for FileId to be an explicit nil
 func (o *ImageUrl) SetFileIdNil() {
 	o.FileId.Set(nil)
@@ -121,7 +120,7 @@ func (o *ImageUrl) SetUrl(v string) {
 }
 
 func (o ImageUrl) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

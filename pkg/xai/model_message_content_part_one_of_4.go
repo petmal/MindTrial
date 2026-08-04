@@ -21,8 +21,8 @@ var _ MappedNullable = &MessageContentPartOneOf4{}
 // MessageContentPartOneOf4 (Redacted) Thinking of the model.
 type MessageContentPartOneOf4 struct {
 	// Encrypted data of the redacted thinking.
-	Data                 string `json:"data"`
-	Type                 string `json:"type"`
+	Data string `json:"data"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -96,7 +96,7 @@ func (o *MessageContentPartOneOf4) SetType(v string) {
 }
 
 func (o MessageContentPartOneOf4) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -129,10 +129,10 @@ func (o *MessageContentPartOneOf4) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

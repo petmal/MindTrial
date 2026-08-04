@@ -27,7 +27,7 @@ type EmbeddingResponse struct {
 	// The object type of `data` field, which is always `\"list\"`.
 	Object string `json:"object"`
 	// Token usage information.
-	Usage                NullableEmbeddingUsage `json:"usage,omitempty"`
+	Usage NullableEmbeddingUsage `json:"usage,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -157,7 +157,6 @@ func (o *EmbeddingResponse) HasUsage() bool {
 func (o *EmbeddingResponse) SetUsage(v EmbeddingUsage) {
 	o.Usage.Set(&v)
 }
-
 // SetUsageNil sets the value for Usage to be an explicit nil
 func (o *EmbeddingResponse) SetUsageNil() {
 	o.Usage.Set(nil)
@@ -169,7 +168,7 @@ func (o *EmbeddingResponse) UnsetUsage() {
 }
 
 func (o EmbeddingResponse) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -207,10 +206,10 @@ func (o *EmbeddingResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

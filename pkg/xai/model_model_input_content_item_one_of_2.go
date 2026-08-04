@@ -23,8 +23,8 @@ type ModelInputContentItemOneOf2 struct {
 	// Only included for compatibility.
 	FileId NullableString `json:"file_id,omitempty"`
 	// A public URL of image prompt, only available for vision models.
-	ImageUrl             string `json:"image_url"`
-	Type                 string `json:"type"`
+	ImageUrl string `json:"image_url"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -81,7 +81,6 @@ func (o *ModelInputContentItemOneOf2) HasFileId() bool {
 func (o *ModelInputContentItemOneOf2) SetFileId(v string) {
 	o.FileId.Set(&v)
 }
-
 // SetFileIdNil sets the value for FileId to be an explicit nil
 func (o *ModelInputContentItemOneOf2) SetFileIdNil() {
 	o.FileId.Set(nil)
@@ -141,7 +140,7 @@ func (o *ModelInputContentItemOneOf2) SetType(v string) {
 }
 
 func (o ModelInputContentItemOneOf2) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -177,10 +176,10 @@ func (o *ModelInputContentItemOneOf2) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

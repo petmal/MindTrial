@@ -25,8 +25,8 @@ type HybridRerankerOneOf1 struct {
 	// The RRF constant k used in the reciprocal rank fusion formula. Defaults to 60.
 	K NullableInt32 `json:"k,omitempty"`
 	// Weight for keyword (sparse) search results. Should be between 0 and 1. Defaults to 0.5.
-	TextWeight           *float32 `json:"text_weight,omitempty"`
-	Type                 string   `json:"type"`
+	TextWeight *float32 `json:"text_weight,omitempty"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -114,7 +114,6 @@ func (o *HybridRerankerOneOf1) HasK() bool {
 func (o *HybridRerankerOneOf1) SetK(v int32) {
 	o.K.Set(&v)
 }
-
 // SetKNil sets the value for K to be an explicit nil
 func (o *HybridRerankerOneOf1) SetKNil() {
 	o.K.Set(nil)
@@ -182,7 +181,7 @@ func (o *HybridRerankerOneOf1) SetType(v string) {
 }
 
 func (o HybridRerankerOneOf1) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -222,10 +221,10 @@ func (o *HybridRerankerOneOf1) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

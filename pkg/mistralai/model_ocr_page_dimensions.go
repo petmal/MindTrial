@@ -11,7 +11,6 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -27,6 +26,7 @@ type OCRPageDimensions struct {
 	Height int32 `json:"height"`
 	// Width of the image in pixels
 	Width int32 `json:"width"`
+	AdditionalProperties map[string]interface{}
 }
 
 type _OCRPageDimensions OCRPageDimensions
@@ -124,7 +124,7 @@ func (o *OCRPageDimensions) SetWidth(v int32) {
 }
 
 func (o OCRPageDimensions) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -136,6 +136,11 @@ func (o OCRPageDimensions) ToMap() (map[string]interface{}, error) {
 	toSerialize["dpi"] = o.Dpi
 	toSerialize["height"] = o.Height
 	toSerialize["width"] = o.Width
+
+	for key, value := range o.AdditionalProperties {
+		toSerialize[key] = value
+	}
+
 	return toSerialize, nil
 }
 
@@ -154,10 +159,10 @@ func (o *OCRPageDimensions) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -165,15 +170,22 @@ func (o *OCRPageDimensions) UnmarshalJSON(data []byte) (err error) {
 
 	varOCRPageDimensions := _OCRPageDimensions{}
 
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varOCRPageDimensions)
+	err = json.Unmarshal(data, &varOCRPageDimensions)
 
 	if err != nil {
 		return err
 	}
 
 	*o = OCRPageDimensions(varOCRPageDimensions)
+
+	additionalProperties := make(map[string]interface{})
+
+	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "dpi")
+		delete(additionalProperties, "height")
+		delete(additionalProperties, "width")
+		o.AdditionalProperties = additionalProperties
+	}
 
 	return err
 }

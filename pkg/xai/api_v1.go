@@ -16,30 +16,31 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
+	"os"
 )
+
 
 type V1API interface {
 
 	/*
-		HandleCompactRequest Compacts a full Responses API input window into a shorter canonical window.
+	HandleCompactRequest Compacts a full Responses API input window into a shorter canonical window.
 
-		The client sends its current input (the same items that would be passed
-	to `POST /v1/responses`) and receives a compacted output window.
-	The output should be used **verbatim** as the `input` of the next
-	`/v1/responses` call (appending only the new user turn).
+	The client sends its current input (the same items that would be passed
+to `POST /v1/responses`) and receives a compacted output window.
+The output should be used **verbatim** as the `input` of the next
+`/v1/responses` call (appending only the new user turn).
 
-	This generalizes the compaction approach used by the coding-agent
-	harness (`generate_session_compact` in xai-grok-shell):
+This generalizes the compaction approach used by the coding-agent
+harness (`generate_session_compact` in xai-grok-shell):
 
-	1. Strip tool-result noise from the history.
-	2. Ask the model to produce a structured `<summary>` of the conversation.
-	3. Rebuild a compact window:  system message → summary → last user query.
-	4. Return that window to the client.
+1. Strip tool-result noise from the history.
+2. Ask the model to produce a structured `<summary>` of the conversation.
+3. Rebuild a compact window:  system message → summary → last user query.
+4. Return that window to the client.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleCompactRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleCompactRequestRequest
 	*/
 	HandleCompactRequest(ctx context.Context) ApiHandleCompactRequestRequest
 
@@ -48,11 +49,11 @@ type V1API interface {
 	HandleCompactRequestExecute(r ApiHandleCompactRequestRequest) (*CompactResponse, *http.Response, error)
 
 	/*
-		HandleCreatePublicUrlRequest Create a permanent, unauthenticated public URL for an existing file. The underlying file is unaffected and can still be fetched through the authenticated content endpoint. Use this when you want to share a stored asset (image, video, PDF) outside your API-keyed environment. Public URLs can be revoked at any time via `POST /v1/files/{file_id}/public-url/revoke`.
+	HandleCreatePublicUrlRequest Create a permanent, unauthenticated public URL for an existing file. The underlying file is unaffected and can still be fetched through the authenticated content endpoint. Use this when you want to share a stored asset (image, video, PDF) outside your API-keyed environment. Public URLs can be revoked at any time via `POST /v1/files/{file_id}/public-url/revoke`.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param fileId The file's `id`.
-		@return ApiHandleCreatePublicUrlRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param fileId The file's `id`.
+	@return ApiHandleCreatePublicUrlRequestRequest
 	*/
 	HandleCreatePublicUrlRequest(ctx context.Context, fileId string) ApiHandleCreatePublicUrlRequestRequest
 
@@ -61,11 +62,11 @@ type V1API interface {
 	HandleCreatePublicUrlRequestExecute(r ApiHandleCreatePublicUrlRequestRequest) (*CreatePublicUrlResponse, *http.Response, error)
 
 	/*
-		HandleDeleteFileRequest Delete a file by ID. After this returns, the file no longer appears in `GET /v1/files`, content download returns 404, and the ID can no longer be referenced in chat attachments.
+	HandleDeleteFileRequest Delete a file by ID. After this returns, the file no longer appears in `GET /v1/files`, content download returns 404, and the ID can no longer be referenced in chat attachments.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param fileId The file's `id` to delete.
-		@return ApiHandleDeleteFileRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param fileId The file's `id` to delete.
+	@return ApiHandleDeleteFileRequestRequest
 	*/
 	HandleDeleteFileRequest(ctx context.Context, fileId string) ApiHandleDeleteFileRequestRequest
 
@@ -74,11 +75,11 @@ type V1API interface {
 	HandleDeleteFileRequestExecute(r ApiHandleDeleteFileRequestRequest) (*DeleteFileResponse, *http.Response, error)
 
 	/*
-		HandleDeleteSkillRequest Method for HandleDeleteSkillRequest
+	HandleDeleteSkillRequest Method for HandleDeleteSkillRequest
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param skillId The skill ID.
-		@return ApiHandleDeleteSkillRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param skillId The skill ID.
+	@return ApiHandleDeleteSkillRequestRequest
 	*/
 	HandleDeleteSkillRequest(ctx context.Context, skillId string) ApiHandleDeleteSkillRequestRequest
 
@@ -87,11 +88,11 @@ type V1API interface {
 	HandleDeleteSkillRequestExecute(r ApiHandleDeleteSkillRequestRequest) (*DeletedSkill, *http.Response, error)
 
 	/*
-		HandleDeleteStoredCompletionRequest Delete a previously generated response.
+	HandleDeleteStoredCompletionRequest Delete a previously generated response.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param responseId The response id returned by a previous create response request.
-		@return ApiHandleDeleteStoredCompletionRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param responseId The response id returned by a previous create response request.
+	@return ApiHandleDeleteStoredCompletionRequestRequest
 	*/
 	HandleDeleteStoredCompletionRequest(ctx context.Context, responseId string) ApiHandleDeleteStoredCompletionRequestRequest
 
@@ -100,10 +101,10 @@ type V1API interface {
 	HandleDeleteStoredCompletionRequestExecute(r ApiHandleDeleteStoredCompletionRequestRequest) (*DeleteStoredCompletionResponse, *http.Response, error)
 
 	/*
-		HandleDocumentSearchRequestV2 Search for content related to the query within the given collections.
+	HandleDocumentSearchRequestV2 Search for content related to the query within the given collections.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleDocumentSearchRequestV2Request
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleDocumentSearchRequestV2Request
 	*/
 	HandleDocumentSearchRequestV2(ctx context.Context) ApiHandleDocumentSearchRequestV2Request
 
@@ -112,11 +113,11 @@ type V1API interface {
 	HandleDocumentSearchRequestV2Execute(r ApiHandleDocumentSearchRequestV2Request) (*SearchResponse, *http.Response, error)
 
 	/*
-		HandleDownloadFileContentRequest Download the contents of a file as a stream of raw bytes. The response `Content-Type` is `application/octet-stream`. Use this for the binary payload; use `GET /v1/files/{file_id}` for metadata only.
+	HandleDownloadFileContentRequest Download the contents of a file as a stream of raw bytes. The response `Content-Type` is `application/octet-stream`. Use this for the binary payload; use `GET /v1/files/{file_id}` for metadata only.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param fileId The file's `id` to download.
-		@return ApiHandleDownloadFileContentRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param fileId The file's `id` to download.
+	@return ApiHandleDownloadFileContentRequestRequest
 	*/
 	HandleDownloadFileContentRequest(ctx context.Context, fileId string) ApiHandleDownloadFileContentRequestRequest
 
@@ -125,11 +126,11 @@ type V1API interface {
 	HandleDownloadFileContentRequestExecute(r ApiHandleDownloadFileContentRequestRequest) (string, *http.Response, error)
 
 	/*
-		HandleDownloadSkillContentRequest Method for HandleDownloadSkillContentRequest
+	HandleDownloadSkillContentRequest Method for HandleDownloadSkillContentRequest
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param skillId The skill ID.
-		@return ApiHandleDownloadSkillContentRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param skillId The skill ID.
+	@return ApiHandleDownloadSkillContentRequestRequest
 	*/
 	HandleDownloadSkillContentRequest(ctx context.Context, skillId string) ApiHandleDownloadSkillContentRequestRequest
 
@@ -138,10 +139,10 @@ type V1API interface {
 	HandleDownloadSkillContentRequestExecute(r ApiHandleDownloadSkillContentRequestRequest) (string, *http.Response, error)
 
 	/*
-		HandleEditImageRequest Edit an image based on a prompt. This is the endpoint for making edit requests to image generation models.
+	HandleEditImageRequest Edit an image based on a prompt. This is the endpoint for making edit requests to image generation models.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleEditImageRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleEditImageRequestRequest
 	*/
 	HandleEditImageRequest(ctx context.Context) ApiHandleEditImageRequestRequest
 
@@ -150,10 +151,10 @@ type V1API interface {
 	HandleEditImageRequestExecute(r ApiHandleEditImageRequestRequest) (*GeneratedImageResponse, *http.Response, error)
 
 	/*
-		HandleEditVideoRequest Edit a video based on a prompt. This is an asynchronous operation that returns a request_id for polling.
+	HandleEditVideoRequest Edit a video based on a prompt. This is an asynchronous operation that returns a request_id for polling.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleEditVideoRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleEditVideoRequestRequest
 	*/
 	HandleEditVideoRequest(ctx context.Context) ApiHandleEditVideoRequestRequest
 
@@ -162,11 +163,11 @@ type V1API interface {
 	HandleEditVideoRequestExecute(r ApiHandleEditVideoRequestRequest) (*StartDeferredResponse, *http.Response, error)
 
 	/*
-		HandleEmbeddingModelGetRequest Get full information about an embedding model with its model_id.
+	HandleEmbeddingModelGetRequest Get full information about an embedding model with its model_id.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param modelId ID of the model to get.
-		@return ApiHandleEmbeddingModelGetRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param modelId ID of the model to get.
+	@return ApiHandleEmbeddingModelGetRequestRequest
 	*/
 	HandleEmbeddingModelGetRequest(ctx context.Context, modelId string) ApiHandleEmbeddingModelGetRequestRequest
 
@@ -175,10 +176,10 @@ type V1API interface {
 	HandleEmbeddingModelGetRequestExecute(r ApiHandleEmbeddingModelGetRequestRequest) (*EmbeddingModel, *http.Response, error)
 
 	/*
-		HandleEmbeddingModelsListRequest List all embedding models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, fingerprint and alias(es).
+	HandleEmbeddingModelsListRequest List all embedding models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, fingerprint and alias(es).
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleEmbeddingModelsListRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleEmbeddingModelsListRequestRequest
 	*/
 	HandleEmbeddingModelsListRequest(ctx context.Context) ApiHandleEmbeddingModelsListRequestRequest
 
@@ -187,10 +188,10 @@ type V1API interface {
 	HandleEmbeddingModelsListRequestExecute(r ApiHandleEmbeddingModelsListRequestRequest) (*ListEmbeddingModelsResponse, *http.Response, error)
 
 	/*
-		HandleEmbeddingRequest Create an embedding vector representation corresponding to the input text. This is the endpoint for making requests to embedding models.
+	HandleEmbeddingRequest Create an embedding vector representation corresponding to the input text. This is the endpoint for making requests to embedding models.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleEmbeddingRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleEmbeddingRequestRequest
 	*/
 	HandleEmbeddingRequest(ctx context.Context) ApiHandleEmbeddingRequestRequest
 
@@ -199,10 +200,10 @@ type V1API interface {
 	HandleEmbeddingRequestExecute(r ApiHandleEmbeddingRequestRequest) (*EmbeddingResponse, *http.Response, error)
 
 	/*
-		HandleExtendVideoRequest Extend a video by generating continuation content. This is an asynchronous operation that returns a request_id for polling.
+	HandleExtendVideoRequest Extend a video by generating continuation content. This is an asynchronous operation that returns a request_id for polling.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleExtendVideoRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleExtendVideoRequestRequest
 	*/
 	HandleExtendVideoRequest(ctx context.Context) ApiHandleExtendVideoRequestRequest
 
@@ -211,10 +212,10 @@ type V1API interface {
 	HandleExtendVideoRequestExecute(r ApiHandleExtendVideoRequestRequest) (*StartDeferredResponse, *http.Response, error)
 
 	/*
-		HandleGenerateImageRequest Generate an image based on a prompt. This is the endpoint for making generation requests to image generation models.
+	HandleGenerateImageRequest Generate an image based on a prompt. This is the endpoint for making generation requests to image generation models.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleGenerateImageRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleGenerateImageRequestRequest
 	*/
 	HandleGenerateImageRequest(ctx context.Context) ApiHandleGenerateImageRequestRequest
 
@@ -223,10 +224,10 @@ type V1API interface {
 	HandleGenerateImageRequestExecute(r ApiHandleGenerateImageRequestRequest) (*GeneratedImageResponse, *http.Response, error)
 
 	/*
-		HandleGenerateVideoRequest Generate a video from a text prompt and optionally an image. This is an asynchronous operation that returns a request_id for polling.
+	HandleGenerateVideoRequest Generate a video from a text prompt and optionally an image. This is an asynchronous operation that returns a request_id for polling.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleGenerateVideoRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleGenerateVideoRequestRequest
 	*/
 	HandleGenerateVideoRequest(ctx context.Context) ApiHandleGenerateVideoRequestRequest
 
@@ -235,10 +236,10 @@ type V1API interface {
 	HandleGenerateVideoRequestExecute(r ApiHandleGenerateVideoRequestRequest) (*StartDeferredResponse, *http.Response, error)
 
 	/*
-		HandleGenericCompleteRequest (Legacy - Not supported by reasoning models) Create a text completion response. This endpoint is compatible with the Anthropic API.
+	HandleGenericCompleteRequest (Legacy - Not supported by reasoning models) Create a text completion response. This endpoint is compatible with the Anthropic API.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleGenericCompleteRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleGenericCompleteRequestRequest
 	*/
 	HandleGenericCompleteRequest(ctx context.Context) ApiHandleGenericCompleteRequestRequest
 
@@ -247,10 +248,10 @@ type V1API interface {
 	HandleGenericCompleteRequestExecute(r ApiHandleGenericCompleteRequestRequest) (*CompleteResponse, *http.Response, error)
 
 	/*
-		HandleGenericCompletionRequest Create a chat response from text/image chat prompts. This is the endpoint for making requests to chat and image understanding models.
+	HandleGenericCompletionRequest Create a chat response from text/image chat prompts. This is the endpoint for making requests to chat and image understanding models.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleGenericCompletionRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleGenericCompletionRequestRequest
 	*/
 	HandleGenericCompletionRequest(ctx context.Context) ApiHandleGenericCompletionRequestRequest
 
@@ -259,10 +260,10 @@ type V1API interface {
 	HandleGenericCompletionRequestExecute(r ApiHandleGenericCompletionRequestRequest) (*ChatResponse, *http.Response, error)
 
 	/*
-		HandleGenericMessagesRequest Create a messages response. This endpoint is compatible with the Anthropic API.
+	HandleGenericMessagesRequest Create a messages response. This endpoint is compatible with the Anthropic API.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleGenericMessagesRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleGenericMessagesRequestRequest
 	*/
 	HandleGenericMessagesRequest(ctx context.Context) ApiHandleGenericMessagesRequestRequest
 
@@ -271,10 +272,10 @@ type V1API interface {
 	HandleGenericMessagesRequestExecute(r ApiHandleGenericMessagesRequestRequest) (*MessageResponse, *http.Response, error)
 
 	/*
-		HandleGenericModelRequest Generates a response based on text or image prompts. The response ID can be used to retrieve the response later or to continue the conversation without repeating prior context. New responses will be stored for 30 days and then permanently deleted.
+	HandleGenericModelRequest Generates a response based on text or image prompts. The response ID can be used to retrieve the response later or to continue the conversation without repeating prior context. New responses will be stored for 30 days and then permanently deleted.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleGenericModelRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleGenericModelRequestRequest
 	*/
 	HandleGenericModelRequest(ctx context.Context) ApiHandleGenericModelRequestRequest
 
@@ -283,10 +284,10 @@ type V1API interface {
 	HandleGenericModelRequestExecute(r ApiHandleGenericModelRequestRequest) (*ModelResponse, *http.Response, error)
 
 	/*
-		HandleGetApiKeyInfoRequest Get information about an API key, including name, status, permissions and users who created or modified this key.
+	HandleGetApiKeyInfoRequest Get information about an API key, including name, status, permissions and users who created or modified this key.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleGetApiKeyInfoRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleGetApiKeyInfoRequestRequest
 	*/
 	HandleGetApiKeyInfoRequest(ctx context.Context) ApiHandleGetApiKeyInfoRequestRequest
 
@@ -295,11 +296,11 @@ type V1API interface {
 	HandleGetApiKeyInfoRequestExecute(r ApiHandleGetApiKeyInfoRequestRequest) (*ApiKey, *http.Response, error)
 
 	/*
-		HandleGetDeferredCompletionRequest Tries to fetch a result for a previously-started deferred completion. Returns `200 Success` with the response body, if the request has been completed. Returns `202 Accepted` when the request is pending processing.
+	HandleGetDeferredCompletionRequest Tries to fetch a result for a previously-started deferred completion. Returns `200 Success` with the response body, if the request has been completed. Returns `202 Accepted` when the request is pending processing.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param requestId The deferred request id returned by a previous deferred chat request.
-		@return ApiHandleGetDeferredCompletionRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param requestId The deferred request id returned by a previous deferred chat request.
+	@return ApiHandleGetDeferredCompletionRequestRequest
 	*/
 	HandleGetDeferredCompletionRequest(ctx context.Context, requestId string) ApiHandleGetDeferredCompletionRequestRequest
 
@@ -308,19 +309,19 @@ type V1API interface {
 	HandleGetDeferredCompletionRequestExecute(r ApiHandleGetDeferredCompletionRequestRequest) (*ChatResponse, *http.Response, error)
 
 	/*
-		HandleGetDeferredVideoRequest Get the result of a deferred video generation request.
+	HandleGetDeferredVideoRequest Get the result of a deferred video generation request.
 
-		Returns the current status of a video generation job. When the job completes
-	successfully the response contains the generated video URL. When the job fails
-	the response contains a structured `error` object with a machine-readable
-	`code` and a human-readable `message`.
+	Returns the current status of a video generation job. When the job completes
+successfully the response contains the generated video URL. When the job fails
+the response contains a structured `error` object with a machine-readable
+`code` and a human-readable `message`.
 
-	Both successful and failed completions return HTTP 200 — use the `status`
-	field (`"done"` or `"failed"`) to distinguish between the two.
+Both successful and failed completions return HTTP 200 — use the `status`
+field (`"done"` or `"failed"`) to distinguish between the two.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param requestId The deferred request id returned by a previous video generation request.
-		@return ApiHandleGetDeferredVideoRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param requestId The deferred request id returned by a previous video generation request.
+	@return ApiHandleGetDeferredVideoRequestRequest
 	*/
 	HandleGetDeferredVideoRequest(ctx context.Context, requestId string) ApiHandleGetDeferredVideoRequestRequest
 
@@ -329,10 +330,10 @@ type V1API interface {
 	HandleGetDeferredVideoRequestExecute(r ApiHandleGetDeferredVideoRequestRequest) (*VideoResponse, *http.Response, error)
 
 	/*
-		HandleGetMeRequest Get information about the currently authenticated caller. Works with both API keys and OAuth tokens. Returns identity, team, and ZDR status.
+	HandleGetMeRequest Get information about the currently authenticated caller. Works with both API keys and OAuth tokens. Returns identity, team, and ZDR status.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleGetMeRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleGetMeRequestRequest
 	*/
 	HandleGetMeRequest(ctx context.Context) ApiHandleGetMeRequestRequest
 
@@ -341,11 +342,11 @@ type V1API interface {
 	HandleGetMeRequestExecute(r ApiHandleGetMeRequestRequest) (*GetMeResponse, *http.Response, error)
 
 	/*
-		HandleGetStoredCompletionRequest Retrieve a previously generated response.
+	HandleGetStoredCompletionRequest Retrieve a previously generated response.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param responseId The response id returned by a previous create response request.
-		@return ApiHandleGetStoredCompletionRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param responseId The response id returned by a previous create response request.
+	@return ApiHandleGetStoredCompletionRequestRequest
 	*/
 	HandleGetStoredCompletionRequest(ctx context.Context, responseId string) ApiHandleGetStoredCompletionRequestRequest
 
@@ -354,11 +355,11 @@ type V1API interface {
 	HandleGetStoredCompletionRequestExecute(r ApiHandleGetStoredCompletionRequestRequest) (*ModelResponse, *http.Response, error)
 
 	/*
-		HandleImageGenerationModelGetRequest Get full information about an image generation model with its model_id.
+	HandleImageGenerationModelGetRequest Get full information about an image generation model with its model_id.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param modelId ID of the model to get.
-		@return ApiHandleImageGenerationModelGetRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param modelId ID of the model to get.
+	@return ApiHandleImageGenerationModelGetRequestRequest
 	*/
 	HandleImageGenerationModelGetRequest(ctx context.Context, modelId string) ApiHandleImageGenerationModelGetRequestRequest
 
@@ -367,10 +368,10 @@ type V1API interface {
 	HandleImageGenerationModelGetRequestExecute(r ApiHandleImageGenerationModelGetRequestRequest) (*ImageGenerationModel, *http.Response, error)
 
 	/*
-		HandleImageGenerationModelsListRequest List all image generation models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, fingerprint and alias(es).
+	HandleImageGenerationModelsListRequest List all image generation models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, fingerprint and alias(es).
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleImageGenerationModelsListRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleImageGenerationModelsListRequestRequest
 	*/
 	HandleImageGenerationModelsListRequest(ctx context.Context) ApiHandleImageGenerationModelsListRequestRequest
 
@@ -379,11 +380,11 @@ type V1API interface {
 	HandleImageGenerationModelsListRequestExecute(r ApiHandleImageGenerationModelsListRequestRequest) (*ListImageGenerationModelsResponse, *http.Response, error)
 
 	/*
-		HandleLanguageModelGetRequest Get full information about a chat or image understanding model with its model_id.
+	HandleLanguageModelGetRequest Get full information about a chat or image understanding model with its model_id.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param modelId ID of the model to get.
-		@return ApiHandleLanguageModelGetRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param modelId ID of the model to get.
+	@return ApiHandleLanguageModelGetRequestRequest
 	*/
 	HandleLanguageModelGetRequest(ctx context.Context, modelId string) ApiHandleLanguageModelGetRequestRequest
 
@@ -392,10 +393,10 @@ type V1API interface {
 	HandleLanguageModelGetRequestExecute(r ApiHandleLanguageModelGetRequestRequest) (*LanguageModel, *http.Response, error)
 
 	/*
-		HandleLanguageModelsListRequest List all chat and image understanding models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, fingerprint and alias(es).
+	HandleLanguageModelsListRequest List all chat and image understanding models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, fingerprint and alias(es).
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleLanguageModelsListRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleLanguageModelsListRequestRequest
 	*/
 	HandleLanguageModelsListRequest(ctx context.Context) ApiHandleLanguageModelsListRequestRequest
 
@@ -404,10 +405,10 @@ type V1API interface {
 	HandleLanguageModelsListRequestExecute(r ApiHandleLanguageModelsListRequestRequest) (*ListLanguageModelsResponse, *http.Response, error)
 
 	/*
-		HandleListFilesRequest List files owned by the authenticated team, paginated. The response always returns a `pagination_token`; pass it back as a query parameter to fetch the next page. The end of the list is reached when the returned `data` array is shorter than `limit`.
+	HandleListFilesRequest List files owned by the authenticated team, paginated. The response always returns a `pagination_token`; pass it back as a query parameter to fetch the next page. The end of the list is reached when the returned `data` array is shorter than `limit`.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleListFilesRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleListFilesRequestRequest
 	*/
 	HandleListFilesRequest(ctx context.Context) ApiHandleListFilesRequestRequest
 
@@ -416,14 +417,14 @@ type V1API interface {
 	HandleListFilesRequestExecute(r ApiHandleListFilesRequestRequest) (*ListFilesResponse, *http.Response, error)
 
 	/*
-		HandleListInputItems List input items for a previously generated response.
+	HandleListInputItems List input items for a previously generated response.
 
-		Returns a paginated list of the input items that were part of the
-	conversation context for the given response.
+	Returns a paginated list of the input items that were part of the
+conversation context for the given response.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param responseId The response id returned by a previous create response request.
-		@return ApiHandleListInputItemsRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param responseId The response id returned by a previous create response request.
+	@return ApiHandleListInputItemsRequest
 	*/
 	HandleListInputItems(ctx context.Context, responseId string) ApiHandleListInputItemsRequest
 
@@ -432,10 +433,10 @@ type V1API interface {
 	HandleListInputItemsExecute(r ApiHandleListInputItemsRequest) (*ListInputItemsResponse, *http.Response, error)
 
 	/*
-		HandleListSkillsRequest Method for HandleListSkillsRequest
+	HandleListSkillsRequest Method for HandleListSkillsRequest
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleListSkillsRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleListSkillsRequestRequest
 	*/
 	HandleListSkillsRequest(ctx context.Context) ApiHandleListSkillsRequestRequest
 
@@ -444,11 +445,11 @@ type V1API interface {
 	HandleListSkillsRequestExecute(r ApiHandleListSkillsRequestRequest) (*SkillList, *http.Response, error)
 
 	/*
-		HandleModelGetRequest Get information about a model with its model_id, including pricing.
+	HandleModelGetRequest Get information about a model with its model_id, including pricing.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param modelId ID of the model to get.
-		@return ApiHandleModelGetRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param modelId ID of the model to get.
+	@return ApiHandleModelGetRequestRequest
 	*/
 	HandleModelGetRequest(ctx context.Context, modelId string) ApiHandleModelGetRequestRequest
 
@@ -457,10 +458,10 @@ type V1API interface {
 	HandleModelGetRequestExecute(r ApiHandleModelGetRequestRequest) (*Model, *http.Response, error)
 
 	/*
-		HandleModelsListRequest List all models available to the authenticating API key, including model names (ID), creation times, and pricing.
+	HandleModelsListRequest List all models available to the authenticating API key, including model names (ID), creation times, and pricing.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleModelsListRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleModelsListRequestRequest
 	*/
 	HandleModelsListRequest(ctx context.Context) ApiHandleModelsListRequestRequest
 
@@ -469,11 +470,11 @@ type V1API interface {
 	HandleModelsListRequestExecute(r ApiHandleModelsListRequestRequest) (*ListModelsResponse, *http.Response, error)
 
 	/*
-		HandleRetrieveFileRequest Retrieve metadata for a single file by ID. Errors with 404 if the file doesn't exist, has been deleted, or has passed its `expires_at`.
+	HandleRetrieveFileRequest Retrieve metadata for a single file by ID. Errors with 404 if the file doesn't exist, has been deleted, or has passed its `expires_at`.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param fileId The file's `id` returned by upload or list.
-		@return ApiHandleRetrieveFileRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param fileId The file's `id` returned by upload or list.
+	@return ApiHandleRetrieveFileRequestRequest
 	*/
 	HandleRetrieveFileRequest(ctx context.Context, fileId string) ApiHandleRetrieveFileRequestRequest
 
@@ -482,11 +483,11 @@ type V1API interface {
 	HandleRetrieveFileRequestExecute(r ApiHandleRetrieveFileRequestRequest) (*File, *http.Response, error)
 
 	/*
-		HandleRetrieveSkillRequest Method for HandleRetrieveSkillRequest
+	HandleRetrieveSkillRequest Method for HandleRetrieveSkillRequest
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param skillId The skill ID.
-		@return ApiHandleRetrieveSkillRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param skillId The skill ID.
+	@return ApiHandleRetrieveSkillRequestRequest
 	*/
 	HandleRetrieveSkillRequest(ctx context.Context, skillId string) ApiHandleRetrieveSkillRequestRequest
 
@@ -495,11 +496,11 @@ type V1API interface {
 	HandleRetrieveSkillRequestExecute(r ApiHandleRetrieveSkillRequestRequest) (*Skill, *http.Response, error)
 
 	/*
-		HandleRevokePublicUrlRequest Revoke the active public URL for a file. The underlying file remains available through the authenticated content endpoint. Revoke is idempotent — calling it on a file without an active public URL returns `revoked: false` without an error.
+	HandleRevokePublicUrlRequest Revoke the active public URL for a file. The underlying file remains available through the authenticated content endpoint. Revoke is idempotent — calling it on a file without an active public URL returns `revoked: false` without an error.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param fileId The file's `id`.
-		@return ApiHandleRevokePublicUrlRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param fileId The file's `id`.
+	@return ApiHandleRevokePublicUrlRequestRequest
 	*/
 	HandleRevokePublicUrlRequest(ctx context.Context, fileId string) ApiHandleRevokePublicUrlRequestRequest
 
@@ -508,10 +509,10 @@ type V1API interface {
 	HandleRevokePublicUrlRequestExecute(r ApiHandleRevokePublicUrlRequestRequest) (*RevokePublicUrlResponse, *http.Response, error)
 
 	/*
-		HandleSampleRequest (Legacy - Not supported by reasoning models) Create a text completion response for a given prompt. Replaced by /v1/chat/completions.
+	HandleSampleRequest (Legacy - Not supported by reasoning models) Create a text completion response for a given prompt. Replaced by /v1/chat/completions.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleSampleRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleSampleRequestRequest
 	*/
 	HandleSampleRequest(ctx context.Context) ApiHandleSampleRequestRequest
 
@@ -520,10 +521,10 @@ type V1API interface {
 	HandleSampleRequestExecute(r ApiHandleSampleRequestRequest) (*SampleResponse, *http.Response, error)
 
 	/*
-		HandleTokenizeTextRequest Tokenize text with the specified model
+	HandleTokenizeTextRequest Tokenize text with the specified model
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleTokenizeTextRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleTokenizeTextRequestRequest
 	*/
 	HandleTokenizeTextRequest(ctx context.Context) ApiHandleTokenizeTextRequestRequest
 
@@ -532,10 +533,10 @@ type V1API interface {
 	HandleTokenizeTextRequestExecute(r ApiHandleTokenizeTextRequestRequest) (*TokenizeResponse, *http.Response, error)
 
 	/*
-		HandleUploadFileRequest Upload a file to xAI's storage. Returns the file's metadata. Files can be referenced by ID anywhere a `file_id` is accepted (e.g. chat attachments). Maximum file size: 50 MB. Files are kept until you delete them, or until `expires_after` elapses if set at upload time.
+	HandleUploadFileRequest Upload a file to xAI's storage. Returns the file's metadata. Files can be referenced by ID anywhere a `file_id` is accepted (e.g. chat attachments). Maximum file size: 50 MB. Files are kept until you delete them, or until `expires_after` elapses if set at upload time.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleUploadFileRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleUploadFileRequestRequest
 	*/
 	HandleUploadFileRequest(ctx context.Context) ApiHandleUploadFileRequestRequest
 
@@ -544,10 +545,10 @@ type V1API interface {
 	HandleUploadFileRequestExecute(r ApiHandleUploadFileRequestRequest) (*File, *http.Response, error)
 
 	/*
-		HandleUploadSkillRequest Method for HandleUploadSkillRequest
+	HandleUploadSkillRequest Method for HandleUploadSkillRequest
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleUploadSkillRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleUploadSkillRequestRequest
 	*/
 	HandleUploadSkillRequest(ctx context.Context) ApiHandleUploadSkillRequestRequest
 
@@ -556,11 +557,11 @@ type V1API interface {
 	HandleUploadSkillRequestExecute(r ApiHandleUploadSkillRequestRequest) (*Skill, *http.Response, error)
 
 	/*
-		HandleVideoGenerationModelGetRequest Get full information about a video generation model with its model_id.
+	HandleVideoGenerationModelGetRequest Get full information about a video generation model with its model_id.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param modelId ID of the model to get.
-		@return ApiHandleVideoGenerationModelGetRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param modelId ID of the model to get.
+	@return ApiHandleVideoGenerationModelGetRequestRequest
 	*/
 	HandleVideoGenerationModelGetRequest(ctx context.Context, modelId string) ApiHandleVideoGenerationModelGetRequestRequest
 
@@ -569,10 +570,10 @@ type V1API interface {
 	HandleVideoGenerationModelGetRequestExecute(r ApiHandleVideoGenerationModelGetRequestRequest) (*VideoGenerationModel, *http.Response, error)
 
 	/*
-		HandleVideoGenerationModelsListRequest List all video generation models available to the authenticating API key with full information.
+	HandleVideoGenerationModelsListRequest List all video generation models available to the authenticating API key with full information.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiHandleVideoGenerationModelsListRequestRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHandleVideoGenerationModelsListRequestRequest
 	*/
 	HandleVideoGenerationModelsListRequest(ctx context.Context) ApiHandleVideoGenerationModelsListRequestRequest
 
@@ -585,8 +586,8 @@ type V1API interface {
 type V1APIService service
 
 type ApiHandleCompactRequestRequest struct {
-	ctx            context.Context
-	ApiService     V1API
+	ctx context.Context
+	ApiService V1API
 	compactRequest *CompactRequest
 }
 
@@ -615,25 +616,24 @@ harness (`generate_session_compact` in xai-grok-shell):
 3. Rebuild a compact window:  system message → summary → last user query.
 4. Return that window to the client.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleCompactRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleCompactRequestRequest
 */
 func (a *V1APIService) HandleCompactRequest(ctx context.Context) ApiHandleCompactRequestRequest {
 	return ApiHandleCompactRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return CompactResponse
+//  @return CompactResponse
 func (a *V1APIService) HandleCompactRequestExecute(r ApiHandleCompactRequestRequest) (*CompactResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *CompactResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *CompactResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleCompactRequest")
@@ -707,9 +707,9 @@ func (a *V1APIService) HandleCompactRequestExecute(r ApiHandleCompactRequestRequ
 }
 
 type ApiHandleCreatePublicUrlRequestRequest struct {
-	ctx                    context.Context
-	ApiService             V1API
-	fileId                 string
+	ctx context.Context
+	ApiService V1API
+	fileId string
 	createPublicUrlRequest *CreatePublicUrlRequest
 }
 
@@ -725,27 +725,26 @@ func (r ApiHandleCreatePublicUrlRequestRequest) Execute() (*CreatePublicUrlRespo
 /*
 HandleCreatePublicUrlRequest Create a permanent, unauthenticated public URL for an existing file. The underlying file is unaffected and can still be fetched through the authenticated content endpoint. Use this when you want to share a stored asset (image, video, PDF) outside your API-keyed environment. Public URLs can be revoked at any time via `POST /v1/files/{file_id}/public-url/revoke`.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param fileId The file's `id`.
-	@return ApiHandleCreatePublicUrlRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param fileId The file's `id`.
+ @return ApiHandleCreatePublicUrlRequestRequest
 */
 func (a *V1APIService) HandleCreatePublicUrlRequest(ctx context.Context, fileId string) ApiHandleCreatePublicUrlRequestRequest {
 	return ApiHandleCreatePublicUrlRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
-		fileId:     fileId,
+		ctx: ctx,
+		fileId: fileId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return CreatePublicUrlResponse
+//  @return CreatePublicUrlResponse
 func (a *V1APIService) HandleCreatePublicUrlRequestExecute(r ApiHandleCreatePublicUrlRequestRequest) (*CreatePublicUrlResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *CreatePublicUrlResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *CreatePublicUrlResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleCreatePublicUrlRequest")
@@ -820,9 +819,9 @@ func (a *V1APIService) HandleCreatePublicUrlRequestExecute(r ApiHandleCreatePubl
 }
 
 type ApiHandleDeleteFileRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
-	fileId     string
+	fileId string
 }
 
 func (r ApiHandleDeleteFileRequestRequest) Execute() (*DeleteFileResponse, *http.Response, error) {
@@ -832,27 +831,26 @@ func (r ApiHandleDeleteFileRequestRequest) Execute() (*DeleteFileResponse, *http
 /*
 HandleDeleteFileRequest Delete a file by ID. After this returns, the file no longer appears in `GET /v1/files`, content download returns 404, and the ID can no longer be referenced in chat attachments.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param fileId The file's `id` to delete.
-	@return ApiHandleDeleteFileRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param fileId The file's `id` to delete.
+ @return ApiHandleDeleteFileRequestRequest
 */
 func (a *V1APIService) HandleDeleteFileRequest(ctx context.Context, fileId string) ApiHandleDeleteFileRequestRequest {
 	return ApiHandleDeleteFileRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
-		fileId:     fileId,
+		ctx: ctx,
+		fileId: fileId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return DeleteFileResponse
+//  @return DeleteFileResponse
 func (a *V1APIService) HandleDeleteFileRequestExecute(r ApiHandleDeleteFileRequestRequest) (*DeleteFileResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodDelete
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *DeleteFileResponse
+		localVarHTTPMethod   = http.MethodDelete
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *DeleteFileResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleDeleteFileRequest")
@@ -922,9 +920,9 @@ func (a *V1APIService) HandleDeleteFileRequestExecute(r ApiHandleDeleteFileReque
 }
 
 type ApiHandleDeleteSkillRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
-	skillId    string
+	skillId string
 }
 
 func (r ApiHandleDeleteSkillRequestRequest) Execute() (*DeletedSkill, *http.Response, error) {
@@ -934,27 +932,26 @@ func (r ApiHandleDeleteSkillRequestRequest) Execute() (*DeletedSkill, *http.Resp
 /*
 HandleDeleteSkillRequest Method for HandleDeleteSkillRequest
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param skillId The skill ID.
-	@return ApiHandleDeleteSkillRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param skillId The skill ID.
+ @return ApiHandleDeleteSkillRequestRequest
 */
 func (a *V1APIService) HandleDeleteSkillRequest(ctx context.Context, skillId string) ApiHandleDeleteSkillRequestRequest {
 	return ApiHandleDeleteSkillRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
-		skillId:    skillId,
+		ctx: ctx,
+		skillId: skillId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return DeletedSkill
+//  @return DeletedSkill
 func (a *V1APIService) HandleDeleteSkillRequestExecute(r ApiHandleDeleteSkillRequestRequest) (*DeletedSkill, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodDelete
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *DeletedSkill
+		localVarHTTPMethod   = http.MethodDelete
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *DeletedSkill
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleDeleteSkillRequest")
@@ -1024,7 +1021,7 @@ func (a *V1APIService) HandleDeleteSkillRequestExecute(r ApiHandleDeleteSkillReq
 }
 
 type ApiHandleDeleteStoredCompletionRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
 	responseId string
 }
@@ -1036,27 +1033,26 @@ func (r ApiHandleDeleteStoredCompletionRequestRequest) Execute() (*DeleteStoredC
 /*
 HandleDeleteStoredCompletionRequest Delete a previously generated response.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param responseId The response id returned by a previous create response request.
-	@return ApiHandleDeleteStoredCompletionRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param responseId The response id returned by a previous create response request.
+ @return ApiHandleDeleteStoredCompletionRequestRequest
 */
 func (a *V1APIService) HandleDeleteStoredCompletionRequest(ctx context.Context, responseId string) ApiHandleDeleteStoredCompletionRequestRequest {
 	return ApiHandleDeleteStoredCompletionRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 		responseId: responseId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return DeleteStoredCompletionResponse
+//  @return DeleteStoredCompletionResponse
 func (a *V1APIService) HandleDeleteStoredCompletionRequestExecute(r ApiHandleDeleteStoredCompletionRequestRequest) (*DeleteStoredCompletionResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodDelete
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *DeleteStoredCompletionResponse
+		localVarHTTPMethod   = http.MethodDelete
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *DeleteStoredCompletionResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleDeleteStoredCompletionRequest")
@@ -1126,8 +1122,8 @@ func (a *V1APIService) HandleDeleteStoredCompletionRequestExecute(r ApiHandleDel
 }
 
 type ApiHandleDocumentSearchRequestV2Request struct {
-	ctx           context.Context
-	ApiService    V1API
+	ctx context.Context
+	ApiService V1API
 	searchRequest *SearchRequest
 }
 
@@ -1143,25 +1139,24 @@ func (r ApiHandleDocumentSearchRequestV2Request) Execute() (*SearchResponse, *ht
 /*
 HandleDocumentSearchRequestV2 Search for content related to the query within the given collections.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleDocumentSearchRequestV2Request
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleDocumentSearchRequestV2Request
 */
 func (a *V1APIService) HandleDocumentSearchRequestV2(ctx context.Context) ApiHandleDocumentSearchRequestV2Request {
 	return ApiHandleDocumentSearchRequestV2Request{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return SearchResponse
+//  @return SearchResponse
 func (a *V1APIService) HandleDocumentSearchRequestV2Execute(r ApiHandleDocumentSearchRequestV2Request) (*SearchResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *SearchResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *SearchResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleDocumentSearchRequestV2")
@@ -1235,10 +1230,10 @@ func (a *V1APIService) HandleDocumentSearchRequestV2Execute(r ApiHandleDocumentS
 }
 
 type ApiHandleDownloadFileContentRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
-	fileId     string
-	format     *ContentFormat
+	fileId string
+	format *ContentFormat
 }
 
 // Format of the downloaded content.
@@ -1254,27 +1249,26 @@ func (r ApiHandleDownloadFileContentRequestRequest) Execute() (string, *http.Res
 /*
 HandleDownloadFileContentRequest Download the contents of a file as a stream of raw bytes. The response `Content-Type` is `application/octet-stream`. Use this for the binary payload; use `GET /v1/files/{file_id}` for metadata only.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param fileId The file's `id` to download.
-	@return ApiHandleDownloadFileContentRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param fileId The file's `id` to download.
+ @return ApiHandleDownloadFileContentRequestRequest
 */
 func (a *V1APIService) HandleDownloadFileContentRequest(ctx context.Context, fileId string) ApiHandleDownloadFileContentRequestRequest {
 	return ApiHandleDownloadFileContentRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
-		fileId:     fileId,
+		ctx: ctx,
+		fileId: fileId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return string
+//  @return string
 func (a *V1APIService) HandleDownloadFileContentRequestExecute(r ApiHandleDownloadFileContentRequestRequest) (string, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue string
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  string
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleDownloadFileContentRequest")
@@ -1347,9 +1341,9 @@ func (a *V1APIService) HandleDownloadFileContentRequestExecute(r ApiHandleDownlo
 }
 
 type ApiHandleDownloadSkillContentRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
-	skillId    string
+	skillId string
 }
 
 func (r ApiHandleDownloadSkillContentRequestRequest) Execute() (string, *http.Response, error) {
@@ -1359,27 +1353,26 @@ func (r ApiHandleDownloadSkillContentRequestRequest) Execute() (string, *http.Re
 /*
 HandleDownloadSkillContentRequest Method for HandleDownloadSkillContentRequest
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param skillId The skill ID.
-	@return ApiHandleDownloadSkillContentRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param skillId The skill ID.
+ @return ApiHandleDownloadSkillContentRequestRequest
 */
 func (a *V1APIService) HandleDownloadSkillContentRequest(ctx context.Context, skillId string) ApiHandleDownloadSkillContentRequestRequest {
 	return ApiHandleDownloadSkillContentRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
-		skillId:    skillId,
+		ctx: ctx,
+		skillId: skillId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return string
+//  @return string
 func (a *V1APIService) HandleDownloadSkillContentRequestExecute(r ApiHandleDownloadSkillContentRequestRequest) (string, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue string
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  string
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleDownloadSkillContentRequest")
@@ -1449,8 +1442,8 @@ func (a *V1APIService) HandleDownloadSkillContentRequestExecute(r ApiHandleDownl
 }
 
 type ApiHandleEditImageRequestRequest struct {
-	ctx              context.Context
-	ApiService       V1API
+	ctx context.Context
+	ApiService V1API
 	editImageRequest *EditImageRequest
 }
 
@@ -1466,25 +1459,24 @@ func (r ApiHandleEditImageRequestRequest) Execute() (*GeneratedImageResponse, *h
 /*
 HandleEditImageRequest Edit an image based on a prompt. This is the endpoint for making edit requests to image generation models.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleEditImageRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleEditImageRequestRequest
 */
 func (a *V1APIService) HandleEditImageRequest(ctx context.Context) ApiHandleEditImageRequestRequest {
 	return ApiHandleEditImageRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return GeneratedImageResponse
+//  @return GeneratedImageResponse
 func (a *V1APIService) HandleEditImageRequestExecute(r ApiHandleEditImageRequestRequest) (*GeneratedImageResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *GeneratedImageResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *GeneratedImageResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleEditImageRequest")
@@ -1558,8 +1550,8 @@ func (a *V1APIService) HandleEditImageRequestExecute(r ApiHandleEditImageRequest
 }
 
 type ApiHandleEditVideoRequestRequest struct {
-	ctx              context.Context
-	ApiService       V1API
+	ctx context.Context
+	ApiService V1API
 	editVideoRequest *EditVideoRequest
 }
 
@@ -1575,25 +1567,24 @@ func (r ApiHandleEditVideoRequestRequest) Execute() (*StartDeferredResponse, *ht
 /*
 HandleEditVideoRequest Edit a video based on a prompt. This is an asynchronous operation that returns a request_id for polling.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleEditVideoRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleEditVideoRequestRequest
 */
 func (a *V1APIService) HandleEditVideoRequest(ctx context.Context) ApiHandleEditVideoRequestRequest {
 	return ApiHandleEditVideoRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return StartDeferredResponse
+//  @return StartDeferredResponse
 func (a *V1APIService) HandleEditVideoRequestExecute(r ApiHandleEditVideoRequestRequest) (*StartDeferredResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *StartDeferredResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *StartDeferredResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleEditVideoRequest")
@@ -1667,9 +1658,9 @@ func (a *V1APIService) HandleEditVideoRequestExecute(r ApiHandleEditVideoRequest
 }
 
 type ApiHandleEmbeddingModelGetRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
-	modelId    string
+	modelId string
 }
 
 func (r ApiHandleEmbeddingModelGetRequestRequest) Execute() (*EmbeddingModel, *http.Response, error) {
@@ -1679,27 +1670,26 @@ func (r ApiHandleEmbeddingModelGetRequestRequest) Execute() (*EmbeddingModel, *h
 /*
 HandleEmbeddingModelGetRequest Get full information about an embedding model with its model_id.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param modelId ID of the model to get.
-	@return ApiHandleEmbeddingModelGetRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param modelId ID of the model to get.
+ @return ApiHandleEmbeddingModelGetRequestRequest
 */
 func (a *V1APIService) HandleEmbeddingModelGetRequest(ctx context.Context, modelId string) ApiHandleEmbeddingModelGetRequestRequest {
 	return ApiHandleEmbeddingModelGetRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
-		modelId:    modelId,
+		ctx: ctx,
+		modelId: modelId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return EmbeddingModel
+//  @return EmbeddingModel
 func (a *V1APIService) HandleEmbeddingModelGetRequestExecute(r ApiHandleEmbeddingModelGetRequestRequest) (*EmbeddingModel, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *EmbeddingModel
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *EmbeddingModel
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleEmbeddingModelGetRequest")
@@ -1769,7 +1759,7 @@ func (a *V1APIService) HandleEmbeddingModelGetRequestExecute(r ApiHandleEmbeddin
 }
 
 type ApiHandleEmbeddingModelsListRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
 }
 
@@ -1780,25 +1770,24 @@ func (r ApiHandleEmbeddingModelsListRequestRequest) Execute() (*ListEmbeddingMod
 /*
 HandleEmbeddingModelsListRequest List all embedding models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, fingerprint and alias(es).
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleEmbeddingModelsListRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleEmbeddingModelsListRequestRequest
 */
 func (a *V1APIService) HandleEmbeddingModelsListRequest(ctx context.Context) ApiHandleEmbeddingModelsListRequestRequest {
 	return ApiHandleEmbeddingModelsListRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ListEmbeddingModelsResponse
+//  @return ListEmbeddingModelsResponse
 func (a *V1APIService) HandleEmbeddingModelsListRequestExecute(r ApiHandleEmbeddingModelsListRequestRequest) (*ListEmbeddingModelsResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ListEmbeddingModelsResponse
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ListEmbeddingModelsResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleEmbeddingModelsListRequest")
@@ -1867,8 +1856,8 @@ func (a *V1APIService) HandleEmbeddingModelsListRequestExecute(r ApiHandleEmbedd
 }
 
 type ApiHandleEmbeddingRequestRequest struct {
-	ctx              context.Context
-	ApiService       V1API
+	ctx context.Context
+	ApiService V1API
 	embeddingRequest *EmbeddingRequest
 }
 
@@ -1884,25 +1873,24 @@ func (r ApiHandleEmbeddingRequestRequest) Execute() (*EmbeddingResponse, *http.R
 /*
 HandleEmbeddingRequest Create an embedding vector representation corresponding to the input text. This is the endpoint for making requests to embedding models.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleEmbeddingRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleEmbeddingRequestRequest
 */
 func (a *V1APIService) HandleEmbeddingRequest(ctx context.Context) ApiHandleEmbeddingRequestRequest {
 	return ApiHandleEmbeddingRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return EmbeddingResponse
+//  @return EmbeddingResponse
 func (a *V1APIService) HandleEmbeddingRequestExecute(r ApiHandleEmbeddingRequestRequest) (*EmbeddingResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *EmbeddingResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *EmbeddingResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleEmbeddingRequest")
@@ -1976,8 +1964,8 @@ func (a *V1APIService) HandleEmbeddingRequestExecute(r ApiHandleEmbeddingRequest
 }
 
 type ApiHandleExtendVideoRequestRequest struct {
-	ctx                context.Context
-	ApiService         V1API
+	ctx context.Context
+	ApiService V1API
 	extendVideoRequest *ExtendVideoRequest
 }
 
@@ -1993,25 +1981,24 @@ func (r ApiHandleExtendVideoRequestRequest) Execute() (*StartDeferredResponse, *
 /*
 HandleExtendVideoRequest Extend a video by generating continuation content. This is an asynchronous operation that returns a request_id for polling.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleExtendVideoRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleExtendVideoRequestRequest
 */
 func (a *V1APIService) HandleExtendVideoRequest(ctx context.Context) ApiHandleExtendVideoRequestRequest {
 	return ApiHandleExtendVideoRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return StartDeferredResponse
+//  @return StartDeferredResponse
 func (a *V1APIService) HandleExtendVideoRequestExecute(r ApiHandleExtendVideoRequestRequest) (*StartDeferredResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *StartDeferredResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *StartDeferredResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleExtendVideoRequest")
@@ -2085,8 +2072,8 @@ func (a *V1APIService) HandleExtendVideoRequestExecute(r ApiHandleExtendVideoReq
 }
 
 type ApiHandleGenerateImageRequestRequest struct {
-	ctx                  context.Context
-	ApiService           V1API
+	ctx context.Context
+	ApiService V1API
 	generateImageRequest *GenerateImageRequest
 }
 
@@ -2102,25 +2089,24 @@ func (r ApiHandleGenerateImageRequestRequest) Execute() (*GeneratedImageResponse
 /*
 HandleGenerateImageRequest Generate an image based on a prompt. This is the endpoint for making generation requests to image generation models.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleGenerateImageRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleGenerateImageRequestRequest
 */
 func (a *V1APIService) HandleGenerateImageRequest(ctx context.Context) ApiHandleGenerateImageRequestRequest {
 	return ApiHandleGenerateImageRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return GeneratedImageResponse
+//  @return GeneratedImageResponse
 func (a *V1APIService) HandleGenerateImageRequestExecute(r ApiHandleGenerateImageRequestRequest) (*GeneratedImageResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *GeneratedImageResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *GeneratedImageResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleGenerateImageRequest")
@@ -2194,8 +2180,8 @@ func (a *V1APIService) HandleGenerateImageRequestExecute(r ApiHandleGenerateImag
 }
 
 type ApiHandleGenerateVideoRequestRequest struct {
-	ctx                  context.Context
-	ApiService           V1API
+	ctx context.Context
+	ApiService V1API
 	generateVideoRequest *GenerateVideoRequest
 }
 
@@ -2211,25 +2197,24 @@ func (r ApiHandleGenerateVideoRequestRequest) Execute() (*StartDeferredResponse,
 /*
 HandleGenerateVideoRequest Generate a video from a text prompt and optionally an image. This is an asynchronous operation that returns a request_id for polling.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleGenerateVideoRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleGenerateVideoRequestRequest
 */
 func (a *V1APIService) HandleGenerateVideoRequest(ctx context.Context) ApiHandleGenerateVideoRequestRequest {
 	return ApiHandleGenerateVideoRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return StartDeferredResponse
+//  @return StartDeferredResponse
 func (a *V1APIService) HandleGenerateVideoRequestExecute(r ApiHandleGenerateVideoRequestRequest) (*StartDeferredResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *StartDeferredResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *StartDeferredResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleGenerateVideoRequest")
@@ -2303,8 +2288,8 @@ func (a *V1APIService) HandleGenerateVideoRequestExecute(r ApiHandleGenerateVide
 }
 
 type ApiHandleGenericCompleteRequestRequest struct {
-	ctx             context.Context
-	ApiService      V1API
+	ctx context.Context
+	ApiService V1API
 	completeRequest *CompleteRequest
 }
 
@@ -2320,25 +2305,24 @@ func (r ApiHandleGenericCompleteRequestRequest) Execute() (*CompleteResponse, *h
 /*
 HandleGenericCompleteRequest (Legacy - Not supported by reasoning models) Create a text completion response. This endpoint is compatible with the Anthropic API.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleGenericCompleteRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleGenericCompleteRequestRequest
 */
 func (a *V1APIService) HandleGenericCompleteRequest(ctx context.Context) ApiHandleGenericCompleteRequestRequest {
 	return ApiHandleGenericCompleteRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return CompleteResponse
+//  @return CompleteResponse
 func (a *V1APIService) HandleGenericCompleteRequestExecute(r ApiHandleGenericCompleteRequestRequest) (*CompleteResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *CompleteResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *CompleteResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleGenericCompleteRequest")
@@ -2412,8 +2396,8 @@ func (a *V1APIService) HandleGenericCompleteRequestExecute(r ApiHandleGenericCom
 }
 
 type ApiHandleGenericCompletionRequestRequest struct {
-	ctx         context.Context
-	ApiService  V1API
+	ctx context.Context
+	ApiService V1API
 	chatRequest *ChatRequest
 }
 
@@ -2429,25 +2413,24 @@ func (r ApiHandleGenericCompletionRequestRequest) Execute() (*ChatResponse, *htt
 /*
 HandleGenericCompletionRequest Create a chat response from text/image chat prompts. This is the endpoint for making requests to chat and image understanding models.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleGenericCompletionRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleGenericCompletionRequestRequest
 */
 func (a *V1APIService) HandleGenericCompletionRequest(ctx context.Context) ApiHandleGenericCompletionRequestRequest {
 	return ApiHandleGenericCompletionRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ChatResponse
+//  @return ChatResponse
 func (a *V1APIService) HandleGenericCompletionRequestExecute(r ApiHandleGenericCompletionRequestRequest) (*ChatResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ChatResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ChatResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleGenericCompletionRequest")
@@ -2521,8 +2504,8 @@ func (a *V1APIService) HandleGenericCompletionRequestExecute(r ApiHandleGenericC
 }
 
 type ApiHandleGenericMessagesRequestRequest struct {
-	ctx            context.Context
-	ApiService     V1API
+	ctx context.Context
+	ApiService V1API
 	messageRequest *MessageRequest
 }
 
@@ -2538,25 +2521,24 @@ func (r ApiHandleGenericMessagesRequestRequest) Execute() (*MessageResponse, *ht
 /*
 HandleGenericMessagesRequest Create a messages response. This endpoint is compatible with the Anthropic API.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleGenericMessagesRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleGenericMessagesRequestRequest
 */
 func (a *V1APIService) HandleGenericMessagesRequest(ctx context.Context) ApiHandleGenericMessagesRequestRequest {
 	return ApiHandleGenericMessagesRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return MessageResponse
+//  @return MessageResponse
 func (a *V1APIService) HandleGenericMessagesRequestExecute(r ApiHandleGenericMessagesRequestRequest) (*MessageResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *MessageResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *MessageResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleGenericMessagesRequest")
@@ -2630,8 +2612,8 @@ func (a *V1APIService) HandleGenericMessagesRequestExecute(r ApiHandleGenericMes
 }
 
 type ApiHandleGenericModelRequestRequest struct {
-	ctx          context.Context
-	ApiService   V1API
+	ctx context.Context
+	ApiService V1API
 	modelRequest *ModelRequest
 }
 
@@ -2647,25 +2629,24 @@ func (r ApiHandleGenericModelRequestRequest) Execute() (*ModelResponse, *http.Re
 /*
 HandleGenericModelRequest Generates a response based on text or image prompts. The response ID can be used to retrieve the response later or to continue the conversation without repeating prior context. New responses will be stored for 30 days and then permanently deleted.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleGenericModelRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleGenericModelRequestRequest
 */
 func (a *V1APIService) HandleGenericModelRequest(ctx context.Context) ApiHandleGenericModelRequestRequest {
 	return ApiHandleGenericModelRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ModelResponse
+//  @return ModelResponse
 func (a *V1APIService) HandleGenericModelRequestExecute(r ApiHandleGenericModelRequestRequest) (*ModelResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ModelResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ModelResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleGenericModelRequest")
@@ -2739,7 +2720,7 @@ func (a *V1APIService) HandleGenericModelRequestExecute(r ApiHandleGenericModelR
 }
 
 type ApiHandleGetApiKeyInfoRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
 }
 
@@ -2750,25 +2731,24 @@ func (r ApiHandleGetApiKeyInfoRequestRequest) Execute() (*ApiKey, *http.Response
 /*
 HandleGetApiKeyInfoRequest Get information about an API key, including name, status, permissions and users who created or modified this key.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleGetApiKeyInfoRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleGetApiKeyInfoRequestRequest
 */
 func (a *V1APIService) HandleGetApiKeyInfoRequest(ctx context.Context) ApiHandleGetApiKeyInfoRequestRequest {
 	return ApiHandleGetApiKeyInfoRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ApiKey
+//  @return ApiKey
 func (a *V1APIService) HandleGetApiKeyInfoRequestExecute(r ApiHandleGetApiKeyInfoRequestRequest) (*ApiKey, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ApiKey
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ApiKey
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleGetApiKeyInfoRequest")
@@ -2837,9 +2817,9 @@ func (a *V1APIService) HandleGetApiKeyInfoRequestExecute(r ApiHandleGetApiKeyInf
 }
 
 type ApiHandleGetDeferredCompletionRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
-	requestId  string
+	requestId string
 }
 
 func (r ApiHandleGetDeferredCompletionRequestRequest) Execute() (*ChatResponse, *http.Response, error) {
@@ -2849,27 +2829,26 @@ func (r ApiHandleGetDeferredCompletionRequestRequest) Execute() (*ChatResponse, 
 /*
 HandleGetDeferredCompletionRequest Tries to fetch a result for a previously-started deferred completion. Returns `200 Success` with the response body, if the request has been completed. Returns `202 Accepted` when the request is pending processing.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param requestId The deferred request id returned by a previous deferred chat request.
-	@return ApiHandleGetDeferredCompletionRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param requestId The deferred request id returned by a previous deferred chat request.
+ @return ApiHandleGetDeferredCompletionRequestRequest
 */
 func (a *V1APIService) HandleGetDeferredCompletionRequest(ctx context.Context, requestId string) ApiHandleGetDeferredCompletionRequestRequest {
 	return ApiHandleGetDeferredCompletionRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
-		requestId:  requestId,
+		ctx: ctx,
+		requestId: requestId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ChatResponse
+//  @return ChatResponse
 func (a *V1APIService) HandleGetDeferredCompletionRequestExecute(r ApiHandleGetDeferredCompletionRequestRequest) (*ChatResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ChatResponse
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ChatResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleGetDeferredCompletionRequest")
@@ -2939,9 +2918,9 @@ func (a *V1APIService) HandleGetDeferredCompletionRequestExecute(r ApiHandleGetD
 }
 
 type ApiHandleGetDeferredVideoRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
-	requestId  string
+	requestId string
 }
 
 func (r ApiHandleGetDeferredVideoRequestRequest) Execute() (*VideoResponse, *http.Response, error) {
@@ -2959,27 +2938,26 @@ the response contains a structured `error` object with a machine-readable
 Both successful and failed completions return HTTP 200 — use the `status`
 field (`"done"` or `"failed"`) to distinguish between the two.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param requestId The deferred request id returned by a previous video generation request.
-	@return ApiHandleGetDeferredVideoRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param requestId The deferred request id returned by a previous video generation request.
+ @return ApiHandleGetDeferredVideoRequestRequest
 */
 func (a *V1APIService) HandleGetDeferredVideoRequest(ctx context.Context, requestId string) ApiHandleGetDeferredVideoRequestRequest {
 	return ApiHandleGetDeferredVideoRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
-		requestId:  requestId,
+		ctx: ctx,
+		requestId: requestId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return VideoResponse
+//  @return VideoResponse
 func (a *V1APIService) HandleGetDeferredVideoRequestExecute(r ApiHandleGetDeferredVideoRequestRequest) (*VideoResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *VideoResponse
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *VideoResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleGetDeferredVideoRequest")
@@ -3049,7 +3027,7 @@ func (a *V1APIService) HandleGetDeferredVideoRequestExecute(r ApiHandleGetDeferr
 }
 
 type ApiHandleGetMeRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
 }
 
@@ -3060,25 +3038,24 @@ func (r ApiHandleGetMeRequestRequest) Execute() (*GetMeResponse, *http.Response,
 /*
 HandleGetMeRequest Get information about the currently authenticated caller. Works with both API keys and OAuth tokens. Returns identity, team, and ZDR status.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleGetMeRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleGetMeRequestRequest
 */
 func (a *V1APIService) HandleGetMeRequest(ctx context.Context) ApiHandleGetMeRequestRequest {
 	return ApiHandleGetMeRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return GetMeResponse
+//  @return GetMeResponse
 func (a *V1APIService) HandleGetMeRequestExecute(r ApiHandleGetMeRequestRequest) (*GetMeResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *GetMeResponse
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *GetMeResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleGetMeRequest")
@@ -3147,7 +3124,7 @@ func (a *V1APIService) HandleGetMeRequestExecute(r ApiHandleGetMeRequestRequest)
 }
 
 type ApiHandleGetStoredCompletionRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
 	responseId string
 }
@@ -3159,27 +3136,26 @@ func (r ApiHandleGetStoredCompletionRequestRequest) Execute() (*ModelResponse, *
 /*
 HandleGetStoredCompletionRequest Retrieve a previously generated response.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param responseId The response id returned by a previous create response request.
-	@return ApiHandleGetStoredCompletionRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param responseId The response id returned by a previous create response request.
+ @return ApiHandleGetStoredCompletionRequestRequest
 */
 func (a *V1APIService) HandleGetStoredCompletionRequest(ctx context.Context, responseId string) ApiHandleGetStoredCompletionRequestRequest {
 	return ApiHandleGetStoredCompletionRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 		responseId: responseId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ModelResponse
+//  @return ModelResponse
 func (a *V1APIService) HandleGetStoredCompletionRequestExecute(r ApiHandleGetStoredCompletionRequestRequest) (*ModelResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ModelResponse
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ModelResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleGetStoredCompletionRequest")
@@ -3249,9 +3225,9 @@ func (a *V1APIService) HandleGetStoredCompletionRequestExecute(r ApiHandleGetSto
 }
 
 type ApiHandleImageGenerationModelGetRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
-	modelId    string
+	modelId string
 }
 
 func (r ApiHandleImageGenerationModelGetRequestRequest) Execute() (*ImageGenerationModel, *http.Response, error) {
@@ -3261,27 +3237,26 @@ func (r ApiHandleImageGenerationModelGetRequestRequest) Execute() (*ImageGenerat
 /*
 HandleImageGenerationModelGetRequest Get full information about an image generation model with its model_id.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param modelId ID of the model to get.
-	@return ApiHandleImageGenerationModelGetRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param modelId ID of the model to get.
+ @return ApiHandleImageGenerationModelGetRequestRequest
 */
 func (a *V1APIService) HandleImageGenerationModelGetRequest(ctx context.Context, modelId string) ApiHandleImageGenerationModelGetRequestRequest {
 	return ApiHandleImageGenerationModelGetRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
-		modelId:    modelId,
+		ctx: ctx,
+		modelId: modelId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ImageGenerationModel
+//  @return ImageGenerationModel
 func (a *V1APIService) HandleImageGenerationModelGetRequestExecute(r ApiHandleImageGenerationModelGetRequestRequest) (*ImageGenerationModel, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ImageGenerationModel
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ImageGenerationModel
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleImageGenerationModelGetRequest")
@@ -3351,7 +3326,7 @@ func (a *V1APIService) HandleImageGenerationModelGetRequestExecute(r ApiHandleIm
 }
 
 type ApiHandleImageGenerationModelsListRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
 }
 
@@ -3362,25 +3337,24 @@ func (r ApiHandleImageGenerationModelsListRequestRequest) Execute() (*ListImageG
 /*
 HandleImageGenerationModelsListRequest List all image generation models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, fingerprint and alias(es).
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleImageGenerationModelsListRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleImageGenerationModelsListRequestRequest
 */
 func (a *V1APIService) HandleImageGenerationModelsListRequest(ctx context.Context) ApiHandleImageGenerationModelsListRequestRequest {
 	return ApiHandleImageGenerationModelsListRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ListImageGenerationModelsResponse
+//  @return ListImageGenerationModelsResponse
 func (a *V1APIService) HandleImageGenerationModelsListRequestExecute(r ApiHandleImageGenerationModelsListRequestRequest) (*ListImageGenerationModelsResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ListImageGenerationModelsResponse
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ListImageGenerationModelsResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleImageGenerationModelsListRequest")
@@ -3449,9 +3423,9 @@ func (a *V1APIService) HandleImageGenerationModelsListRequestExecute(r ApiHandle
 }
 
 type ApiHandleLanguageModelGetRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
-	modelId    string
+	modelId string
 }
 
 func (r ApiHandleLanguageModelGetRequestRequest) Execute() (*LanguageModel, *http.Response, error) {
@@ -3461,27 +3435,26 @@ func (r ApiHandleLanguageModelGetRequestRequest) Execute() (*LanguageModel, *htt
 /*
 HandleLanguageModelGetRequest Get full information about a chat or image understanding model with its model_id.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param modelId ID of the model to get.
-	@return ApiHandleLanguageModelGetRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param modelId ID of the model to get.
+ @return ApiHandleLanguageModelGetRequestRequest
 */
 func (a *V1APIService) HandleLanguageModelGetRequest(ctx context.Context, modelId string) ApiHandleLanguageModelGetRequestRequest {
 	return ApiHandleLanguageModelGetRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
-		modelId:    modelId,
+		ctx: ctx,
+		modelId: modelId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return LanguageModel
+//  @return LanguageModel
 func (a *V1APIService) HandleLanguageModelGetRequestExecute(r ApiHandleLanguageModelGetRequestRequest) (*LanguageModel, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *LanguageModel
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *LanguageModel
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleLanguageModelGetRequest")
@@ -3551,7 +3524,7 @@ func (a *V1APIService) HandleLanguageModelGetRequestExecute(r ApiHandleLanguageM
 }
 
 type ApiHandleLanguageModelsListRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
 }
 
@@ -3562,25 +3535,24 @@ func (r ApiHandleLanguageModelsListRequestRequest) Execute() (*ListLanguageModel
 /*
 HandleLanguageModelsListRequest List all chat and image understanding models available to the authenticating API key with full information. Additional information compared to /v1/models includes modalities, fingerprint and alias(es).
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleLanguageModelsListRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleLanguageModelsListRequestRequest
 */
 func (a *V1APIService) HandleLanguageModelsListRequest(ctx context.Context) ApiHandleLanguageModelsListRequestRequest {
 	return ApiHandleLanguageModelsListRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ListLanguageModelsResponse
+//  @return ListLanguageModelsResponse
 func (a *V1APIService) HandleLanguageModelsListRequestExecute(r ApiHandleLanguageModelsListRequestRequest) (*ListLanguageModelsResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ListLanguageModelsResponse
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ListLanguageModelsResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleLanguageModelsListRequest")
@@ -3649,14 +3621,14 @@ func (a *V1APIService) HandleLanguageModelsListRequestExecute(r ApiHandleLanguag
 }
 
 type ApiHandleListFilesRequestRequest struct {
-	ctx             context.Context
-	ApiService      V1API
-	limit           *int32
-	order           *string
-	sortBy          *string
+	ctx context.Context
+	ApiService V1API
+	limit *int32
+	order *string
+	sortBy *string
 	paginationToken *string
-	after           *string
-	filter          *string
+	after *string
+	filter *string
 }
 
 // The maximum number of objects to be returned in a single response.
@@ -3702,25 +3674,24 @@ func (r ApiHandleListFilesRequestRequest) Execute() (*ListFilesResponse, *http.R
 /*
 HandleListFilesRequest List files owned by the authenticated team, paginated. The response always returns a `pagination_token`; pass it back as a query parameter to fetch the next page. The end of the list is reached when the returned `data` array is shorter than `limit`.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleListFilesRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleListFilesRequestRequest
 */
 func (a *V1APIService) HandleListFilesRequest(ctx context.Context) ApiHandleListFilesRequestRequest {
 	return ApiHandleListFilesRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ListFilesResponse
+//  @return ListFilesResponse
 func (a *V1APIService) HandleListFilesRequestExecute(r ApiHandleListFilesRequestRequest) (*ListFilesResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ListFilesResponse
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ListFilesResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleListFilesRequest")
@@ -3807,12 +3778,12 @@ func (a *V1APIService) HandleListFilesRequestExecute(r ApiHandleListFilesRequest
 }
 
 type ApiHandleListInputItemsRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
 	responseId string
-	limit      *int32
-	order      *SortOrder
-	after      *string
+	limit *int32
+	order *SortOrder
+	after *string
 }
 
 // Maximum number of items to return (1-100, default 20).
@@ -3843,27 +3814,26 @@ HandleListInputItems List input items for a previously generated response.
 Returns a paginated list of the input items that were part of the
 conversation context for the given response.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param responseId The response id returned by a previous create response request.
-	@return ApiHandleListInputItemsRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param responseId The response id returned by a previous create response request.
+ @return ApiHandleListInputItemsRequest
 */
 func (a *V1APIService) HandleListInputItems(ctx context.Context, responseId string) ApiHandleListInputItemsRequest {
 	return ApiHandleListInputItemsRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 		responseId: responseId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ListInputItemsResponse
+//  @return ListInputItemsResponse
 func (a *V1APIService) HandleListInputItemsExecute(r ApiHandleListInputItemsRequest) (*ListInputItemsResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ListInputItemsResponse
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ListInputItemsResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleListInputItems")
@@ -3942,11 +3912,11 @@ func (a *V1APIService) HandleListInputItemsExecute(r ApiHandleListInputItemsRequ
 }
 
 type ApiHandleListSkillsRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
-	limit      *int32
-	after      *string
-	order      *string
+	limit *int32
+	after *string
+	order *string
 }
 
 // The maximum number of objects to be returned in a single response.
@@ -3974,25 +3944,24 @@ func (r ApiHandleListSkillsRequestRequest) Execute() (*SkillList, *http.Response
 /*
 HandleListSkillsRequest Method for HandleListSkillsRequest
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleListSkillsRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleListSkillsRequestRequest
 */
 func (a *V1APIService) HandleListSkillsRequest(ctx context.Context) ApiHandleListSkillsRequestRequest {
 	return ApiHandleListSkillsRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return SkillList
+//  @return SkillList
 func (a *V1APIService) HandleListSkillsRequestExecute(r ApiHandleListSkillsRequestRequest) (*SkillList, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *SkillList
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *SkillList
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleListSkillsRequest")
@@ -4070,9 +4039,9 @@ func (a *V1APIService) HandleListSkillsRequestExecute(r ApiHandleListSkillsReque
 }
 
 type ApiHandleModelGetRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
-	modelId    string
+	modelId string
 }
 
 func (r ApiHandleModelGetRequestRequest) Execute() (*Model, *http.Response, error) {
@@ -4082,27 +4051,26 @@ func (r ApiHandleModelGetRequestRequest) Execute() (*Model, *http.Response, erro
 /*
 HandleModelGetRequest Get information about a model with its model_id, including pricing.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param modelId ID of the model to get.
-	@return ApiHandleModelGetRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param modelId ID of the model to get.
+ @return ApiHandleModelGetRequestRequest
 */
 func (a *V1APIService) HandleModelGetRequest(ctx context.Context, modelId string) ApiHandleModelGetRequestRequest {
 	return ApiHandleModelGetRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
-		modelId:    modelId,
+		ctx: ctx,
+		modelId: modelId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return Model
+//  @return Model
 func (a *V1APIService) HandleModelGetRequestExecute(r ApiHandleModelGetRequestRequest) (*Model, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *Model
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *Model
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleModelGetRequest")
@@ -4172,7 +4140,7 @@ func (a *V1APIService) HandleModelGetRequestExecute(r ApiHandleModelGetRequestRe
 }
 
 type ApiHandleModelsListRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
 }
 
@@ -4183,25 +4151,24 @@ func (r ApiHandleModelsListRequestRequest) Execute() (*ListModelsResponse, *http
 /*
 HandleModelsListRequest List all models available to the authenticating API key, including model names (ID), creation times, and pricing.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleModelsListRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleModelsListRequestRequest
 */
 func (a *V1APIService) HandleModelsListRequest(ctx context.Context) ApiHandleModelsListRequestRequest {
 	return ApiHandleModelsListRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ListModelsResponse
+//  @return ListModelsResponse
 func (a *V1APIService) HandleModelsListRequestExecute(r ApiHandleModelsListRequestRequest) (*ListModelsResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ListModelsResponse
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ListModelsResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleModelsListRequest")
@@ -4270,9 +4237,9 @@ func (a *V1APIService) HandleModelsListRequestExecute(r ApiHandleModelsListReque
 }
 
 type ApiHandleRetrieveFileRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
-	fileId     string
+	fileId string
 }
 
 func (r ApiHandleRetrieveFileRequestRequest) Execute() (*File, *http.Response, error) {
@@ -4282,27 +4249,26 @@ func (r ApiHandleRetrieveFileRequestRequest) Execute() (*File, *http.Response, e
 /*
 HandleRetrieveFileRequest Retrieve metadata for a single file by ID. Errors with 404 if the file doesn't exist, has been deleted, or has passed its `expires_at`.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param fileId The file's `id` returned by upload or list.
-	@return ApiHandleRetrieveFileRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param fileId The file's `id` returned by upload or list.
+ @return ApiHandleRetrieveFileRequestRequest
 */
 func (a *V1APIService) HandleRetrieveFileRequest(ctx context.Context, fileId string) ApiHandleRetrieveFileRequestRequest {
 	return ApiHandleRetrieveFileRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
-		fileId:     fileId,
+		ctx: ctx,
+		fileId: fileId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return File
+//  @return File
 func (a *V1APIService) HandleRetrieveFileRequestExecute(r ApiHandleRetrieveFileRequestRequest) (*File, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *File
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *File
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleRetrieveFileRequest")
@@ -4372,9 +4338,9 @@ func (a *V1APIService) HandleRetrieveFileRequestExecute(r ApiHandleRetrieveFileR
 }
 
 type ApiHandleRetrieveSkillRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
-	skillId    string
+	skillId string
 }
 
 func (r ApiHandleRetrieveSkillRequestRequest) Execute() (*Skill, *http.Response, error) {
@@ -4384,27 +4350,26 @@ func (r ApiHandleRetrieveSkillRequestRequest) Execute() (*Skill, *http.Response,
 /*
 HandleRetrieveSkillRequest Method for HandleRetrieveSkillRequest
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param skillId The skill ID.
-	@return ApiHandleRetrieveSkillRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param skillId The skill ID.
+ @return ApiHandleRetrieveSkillRequestRequest
 */
 func (a *V1APIService) HandleRetrieveSkillRequest(ctx context.Context, skillId string) ApiHandleRetrieveSkillRequestRequest {
 	return ApiHandleRetrieveSkillRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
-		skillId:    skillId,
+		ctx: ctx,
+		skillId: skillId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return Skill
+//  @return Skill
 func (a *V1APIService) HandleRetrieveSkillRequestExecute(r ApiHandleRetrieveSkillRequestRequest) (*Skill, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *Skill
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *Skill
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleRetrieveSkillRequest")
@@ -4474,9 +4439,9 @@ func (a *V1APIService) HandleRetrieveSkillRequestExecute(r ApiHandleRetrieveSkil
 }
 
 type ApiHandleRevokePublicUrlRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
-	fileId     string
+	fileId string
 }
 
 func (r ApiHandleRevokePublicUrlRequestRequest) Execute() (*RevokePublicUrlResponse, *http.Response, error) {
@@ -4486,27 +4451,26 @@ func (r ApiHandleRevokePublicUrlRequestRequest) Execute() (*RevokePublicUrlRespo
 /*
 HandleRevokePublicUrlRequest Revoke the active public URL for a file. The underlying file remains available through the authenticated content endpoint. Revoke is idempotent — calling it on a file without an active public URL returns `revoked: false` without an error.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param fileId The file's `id`.
-	@return ApiHandleRevokePublicUrlRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param fileId The file's `id`.
+ @return ApiHandleRevokePublicUrlRequestRequest
 */
 func (a *V1APIService) HandleRevokePublicUrlRequest(ctx context.Context, fileId string) ApiHandleRevokePublicUrlRequestRequest {
 	return ApiHandleRevokePublicUrlRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
-		fileId:     fileId,
+		ctx: ctx,
+		fileId: fileId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return RevokePublicUrlResponse
+//  @return RevokePublicUrlResponse
 func (a *V1APIService) HandleRevokePublicUrlRequestExecute(r ApiHandleRevokePublicUrlRequestRequest) (*RevokePublicUrlResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *RevokePublicUrlResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *RevokePublicUrlResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleRevokePublicUrlRequest")
@@ -4576,8 +4540,8 @@ func (a *V1APIService) HandleRevokePublicUrlRequestExecute(r ApiHandleRevokePubl
 }
 
 type ApiHandleSampleRequestRequest struct {
-	ctx           context.Context
-	ApiService    V1API
+	ctx context.Context
+	ApiService V1API
 	sampleRequest *SampleRequest
 }
 
@@ -4593,25 +4557,24 @@ func (r ApiHandleSampleRequestRequest) Execute() (*SampleResponse, *http.Respons
 /*
 HandleSampleRequest (Legacy - Not supported by reasoning models) Create a text completion response for a given prompt. Replaced by /v1/chat/completions.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleSampleRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleSampleRequestRequest
 */
 func (a *V1APIService) HandleSampleRequest(ctx context.Context) ApiHandleSampleRequestRequest {
 	return ApiHandleSampleRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return SampleResponse
+//  @return SampleResponse
 func (a *V1APIService) HandleSampleRequestExecute(r ApiHandleSampleRequestRequest) (*SampleResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *SampleResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *SampleResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleSampleRequest")
@@ -4685,8 +4648,8 @@ func (a *V1APIService) HandleSampleRequestExecute(r ApiHandleSampleRequestReques
 }
 
 type ApiHandleTokenizeTextRequestRequest struct {
-	ctx             context.Context
-	ApiService      V1API
+	ctx context.Context
+	ApiService V1API
 	tokenizeRequest *TokenizeRequest
 }
 
@@ -4702,25 +4665,24 @@ func (r ApiHandleTokenizeTextRequestRequest) Execute() (*TokenizeResponse, *http
 /*
 HandleTokenizeTextRequest Tokenize text with the specified model
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleTokenizeTextRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleTokenizeTextRequestRequest
 */
 func (a *V1APIService) HandleTokenizeTextRequest(ctx context.Context) ApiHandleTokenizeTextRequestRequest {
 	return ApiHandleTokenizeTextRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return TokenizeResponse
+//  @return TokenizeResponse
 func (a *V1APIService) HandleTokenizeTextRequestExecute(r ApiHandleTokenizeTextRequestRequest) (*TokenizeResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *TokenizeResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *TokenizeResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleTokenizeTextRequest")
@@ -4794,11 +4756,11 @@ func (a *V1APIService) HandleTokenizeTextRequestExecute(r ApiHandleTokenizeTextR
 }
 
 type ApiHandleUploadFileRequestRequest struct {
-	ctx          context.Context
-	ApiService   V1API
-	file         *os.File
+	ctx context.Context
+	ApiService V1API
+	file *os.File
 	expiresAfter *int64
-	purpose      *string
+	purpose *string
 }
 
 // The file to upload. The filename from the multipart &#x60;Content-Disposition: filename&#x3D;&#x60; header is recorded as the file&#39;s &#x60;filename&#x60;.
@@ -4826,25 +4788,24 @@ func (r ApiHandleUploadFileRequestRequest) Execute() (*File, *http.Response, err
 /*
 HandleUploadFileRequest Upload a file to xAI's storage. Returns the file's metadata. Files can be referenced by ID anywhere a `file_id` is accepted (e.g. chat attachments). Maximum file size: 50 MB. Files are kept until you delete them, or until `expires_after` elapses if set at upload time.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleUploadFileRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleUploadFileRequestRequest
 */
 func (a *V1APIService) HandleUploadFileRequest(ctx context.Context) ApiHandleUploadFileRequestRequest {
 	return ApiHandleUploadFileRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return File
+//  @return File
 func (a *V1APIService) HandleUploadFileRequestExecute(r ApiHandleUploadFileRequestRequest) (*File, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *File
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *File
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleUploadFileRequest")
@@ -4882,8 +4843,8 @@ func (a *V1APIService) HandleUploadFileRequestExecute(r ApiHandleUploadFileReque
 		parameterAddToHeaderOrQuery(localVarFormParams, "expires_after", r.expiresAfter, "", "")
 	}
 	var fileLocalVarFormFileName string
-	var fileLocalVarFileName string
-	var fileLocalVarFileBytes []byte
+	var fileLocalVarFileName     string
+	var fileLocalVarFileBytes    []byte
 
 	fileLocalVarFormFileName = "file"
 	fileLocalVarFile := r.file
@@ -4937,9 +4898,9 @@ func (a *V1APIService) HandleUploadFileRequestExecute(r ApiHandleUploadFileReque
 }
 
 type ApiHandleUploadSkillRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
-	files      []*os.File
+	files []*os.File
 }
 
 // Skill zip file or one file from a directory upload. Clients may send this field once with a zip file, or repeatedly with directory files.
@@ -4955,25 +4916,24 @@ func (r ApiHandleUploadSkillRequestRequest) Execute() (*Skill, *http.Response, e
 /*
 HandleUploadSkillRequest Method for HandleUploadSkillRequest
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleUploadSkillRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleUploadSkillRequestRequest
 */
 func (a *V1APIService) HandleUploadSkillRequest(ctx context.Context) ApiHandleUploadSkillRequestRequest {
 	return ApiHandleUploadSkillRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return Skill
+//  @return Skill
 func (a *V1APIService) HandleUploadSkillRequestExecute(r ApiHandleUploadSkillRequestRequest) (*Skill, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *Skill
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *Skill
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleUploadSkillRequest")
@@ -5008,8 +4968,8 @@ func (a *V1APIService) HandleUploadSkillRequestExecute(r ApiHandleUploadSkillReq
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	var filesLocalVarFormFileName string
-	var filesLocalVarFileName string
-	var filesLocalVarFileBytes []byte
+	var filesLocalVarFileName     string
+	var filesLocalVarFileBytes    []byte
 
 	filesLocalVarFormFileName = "files"
 	filesLocalVarFile := r.files
@@ -5063,9 +5023,9 @@ func (a *V1APIService) HandleUploadSkillRequestExecute(r ApiHandleUploadSkillReq
 }
 
 type ApiHandleVideoGenerationModelGetRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
-	modelId    string
+	modelId string
 }
 
 func (r ApiHandleVideoGenerationModelGetRequestRequest) Execute() (*VideoGenerationModel, *http.Response, error) {
@@ -5075,27 +5035,26 @@ func (r ApiHandleVideoGenerationModelGetRequestRequest) Execute() (*VideoGenerat
 /*
 HandleVideoGenerationModelGetRequest Get full information about a video generation model with its model_id.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param modelId ID of the model to get.
-	@return ApiHandleVideoGenerationModelGetRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param modelId ID of the model to get.
+ @return ApiHandleVideoGenerationModelGetRequestRequest
 */
 func (a *V1APIService) HandleVideoGenerationModelGetRequest(ctx context.Context, modelId string) ApiHandleVideoGenerationModelGetRequestRequest {
 	return ApiHandleVideoGenerationModelGetRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
-		modelId:    modelId,
+		ctx: ctx,
+		modelId: modelId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return VideoGenerationModel
+//  @return VideoGenerationModel
 func (a *V1APIService) HandleVideoGenerationModelGetRequestExecute(r ApiHandleVideoGenerationModelGetRequestRequest) (*VideoGenerationModel, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *VideoGenerationModel
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *VideoGenerationModel
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleVideoGenerationModelGetRequest")
@@ -5165,7 +5124,7 @@ func (a *V1APIService) HandleVideoGenerationModelGetRequestExecute(r ApiHandleVi
 }
 
 type ApiHandleVideoGenerationModelsListRequestRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService V1API
 }
 
@@ -5176,25 +5135,24 @@ func (r ApiHandleVideoGenerationModelsListRequestRequest) Execute() (*ListVideoG
 /*
 HandleVideoGenerationModelsListRequest List all video generation models available to the authenticating API key with full information.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiHandleVideoGenerationModelsListRequestRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHandleVideoGenerationModelsListRequestRequest
 */
 func (a *V1APIService) HandleVideoGenerationModelsListRequest(ctx context.Context) ApiHandleVideoGenerationModelsListRequestRequest {
 	return ApiHandleVideoGenerationModelsListRequestRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ListVideoGenerationModelsResponse
+//  @return ListVideoGenerationModelsResponse
 func (a *V1APIService) HandleVideoGenerationModelsListRequestExecute(r ApiHandleVideoGenerationModelsListRequestRequest) (*ListVideoGenerationModelsResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ListVideoGenerationModelsResponse
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ListVideoGenerationModelsResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleVideoGenerationModelsListRequest")

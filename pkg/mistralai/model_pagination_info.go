@@ -20,11 +20,11 @@ var _ MappedNullable = &PaginationInfo{}
 
 // PaginationInfo struct for PaginationInfo
 type PaginationInfo struct {
-	TotalItems           int32 `json:"total_items"`
-	TotalPages           int32 `json:"total_pages"`
-	CurrentPage          int32 `json:"current_page"`
-	PageSize             int32 `json:"page_size"`
-	HasMore              bool  `json:"has_more"`
+	CurrentPage int32 `json:"current_page"`
+	HasMore bool `json:"has_more"`
+	PageSize int32 `json:"page_size"`
+	TotalItems int32 `json:"total_items"`
+	TotalPages int32 `json:"total_pages"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -34,13 +34,13 @@ type _PaginationInfo PaginationInfo
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewPaginationInfo(totalItems int32, totalPages int32, currentPage int32, pageSize int32, hasMore bool) *PaginationInfo {
+func NewPaginationInfo(currentPage int32, hasMore bool, pageSize int32, totalItems int32, totalPages int32) *PaginationInfo {
 	this := PaginationInfo{}
+	this.CurrentPage = currentPage
+	this.HasMore = hasMore
+	this.PageSize = pageSize
 	this.TotalItems = totalItems
 	this.TotalPages = totalPages
-	this.CurrentPage = currentPage
-	this.PageSize = pageSize
-	this.HasMore = hasMore
 	return &this
 }
 
@@ -50,6 +50,78 @@ func NewPaginationInfo(totalItems int32, totalPages int32, currentPage int32, pa
 func NewPaginationInfoWithDefaults() *PaginationInfo {
 	this := PaginationInfo{}
 	return &this
+}
+
+// GetCurrentPage returns the CurrentPage field value
+func (o *PaginationInfo) GetCurrentPage() int32 {
+	if o == nil {
+		var ret int32
+		return ret
+	}
+
+	return o.CurrentPage
+}
+
+// GetCurrentPageOk returns a tuple with the CurrentPage field value
+// and a boolean to check if the value has been set.
+func (o *PaginationInfo) GetCurrentPageOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.CurrentPage, true
+}
+
+// SetCurrentPage sets field value
+func (o *PaginationInfo) SetCurrentPage(v int32) {
+	o.CurrentPage = v
+}
+
+// GetHasMore returns the HasMore field value
+func (o *PaginationInfo) GetHasMore() bool {
+	if o == nil {
+		var ret bool
+		return ret
+	}
+
+	return o.HasMore
+}
+
+// GetHasMoreOk returns a tuple with the HasMore field value
+// and a boolean to check if the value has been set.
+func (o *PaginationInfo) GetHasMoreOk() (*bool, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.HasMore, true
+}
+
+// SetHasMore sets field value
+func (o *PaginationInfo) SetHasMore(v bool) {
+	o.HasMore = v
+}
+
+// GetPageSize returns the PageSize field value
+func (o *PaginationInfo) GetPageSize() int32 {
+	if o == nil {
+		var ret int32
+		return ret
+	}
+
+	return o.PageSize
+}
+
+// GetPageSizeOk returns a tuple with the PageSize field value
+// and a boolean to check if the value has been set.
+func (o *PaginationInfo) GetPageSizeOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.PageSize, true
+}
+
+// SetPageSize sets field value
+func (o *PaginationInfo) SetPageSize(v int32) {
+	o.PageSize = v
 }
 
 // GetTotalItems returns the TotalItems field value
@@ -100,80 +172,8 @@ func (o *PaginationInfo) SetTotalPages(v int32) {
 	o.TotalPages = v
 }
 
-// GetCurrentPage returns the CurrentPage field value
-func (o *PaginationInfo) GetCurrentPage() int32 {
-	if o == nil {
-		var ret int32
-		return ret
-	}
-
-	return o.CurrentPage
-}
-
-// GetCurrentPageOk returns a tuple with the CurrentPage field value
-// and a boolean to check if the value has been set.
-func (o *PaginationInfo) GetCurrentPageOk() (*int32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.CurrentPage, true
-}
-
-// SetCurrentPage sets field value
-func (o *PaginationInfo) SetCurrentPage(v int32) {
-	o.CurrentPage = v
-}
-
-// GetPageSize returns the PageSize field value
-func (o *PaginationInfo) GetPageSize() int32 {
-	if o == nil {
-		var ret int32
-		return ret
-	}
-
-	return o.PageSize
-}
-
-// GetPageSizeOk returns a tuple with the PageSize field value
-// and a boolean to check if the value has been set.
-func (o *PaginationInfo) GetPageSizeOk() (*int32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.PageSize, true
-}
-
-// SetPageSize sets field value
-func (o *PaginationInfo) SetPageSize(v int32) {
-	o.PageSize = v
-}
-
-// GetHasMore returns the HasMore field value
-func (o *PaginationInfo) GetHasMore() bool {
-	if o == nil {
-		var ret bool
-		return ret
-	}
-
-	return o.HasMore
-}
-
-// GetHasMoreOk returns a tuple with the HasMore field value
-// and a boolean to check if the value has been set.
-func (o *PaginationInfo) GetHasMoreOk() (*bool, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.HasMore, true
-}
-
-// SetHasMore sets field value
-func (o *PaginationInfo) SetHasMore(v bool) {
-	o.HasMore = v
-}
-
 func (o PaginationInfo) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -182,11 +182,11 @@ func (o PaginationInfo) MarshalJSON() ([]byte, error) {
 
 func (o PaginationInfo) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["current_page"] = o.CurrentPage
+	toSerialize["has_more"] = o.HasMore
+	toSerialize["page_size"] = o.PageSize
 	toSerialize["total_items"] = o.TotalItems
 	toSerialize["total_pages"] = o.TotalPages
-	toSerialize["current_page"] = o.CurrentPage
-	toSerialize["page_size"] = o.PageSize
-	toSerialize["has_more"] = o.HasMore
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -200,11 +200,11 @@ func (o *PaginationInfo) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
+		"current_page",
+		"has_more",
+		"page_size",
 		"total_items",
 		"total_pages",
-		"current_page",
-		"page_size",
-		"has_more",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -212,10 +212,10 @@ func (o *PaginationInfo) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -234,11 +234,11 @@ func (o *PaginationInfo) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "current_page")
+		delete(additionalProperties, "has_more")
+		delete(additionalProperties, "page_size")
 		delete(additionalProperties, "total_items")
 		delete(additionalProperties, "total_pages")
-		delete(additionalProperties, "current_page")
-		delete(additionalProperties, "page_size")
-		delete(additionalProperties, "has_more")
 		o.AdditionalProperties = additionalProperties
 	}
 

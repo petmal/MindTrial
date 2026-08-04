@@ -31,7 +31,7 @@ type EditVideoRequest struct {
 	// A unique identifier representing your end-user.
 	User NullableString `json:"user,omitempty"`
 	// Input video to perform edit on.
-	Video                VideoUrl `json:"video"`
+	Video VideoUrl `json:"video"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -88,7 +88,6 @@ func (o *EditVideoRequest) HasModel() bool {
 func (o *EditVideoRequest) SetModel(v string) {
 	o.Model.Set(&v)
 }
-
 // SetModelNil sets the value for Model to be an explicit nil
 func (o *EditVideoRequest) SetModelNil() {
 	o.Model.Set(nil)
@@ -131,7 +130,6 @@ func (o *EditVideoRequest) HasOutput() bool {
 func (o *EditVideoRequest) SetOutput(v VideoOutput) {
 	o.Output.Set(&v)
 }
-
 // SetOutputNil sets the value for Output to be an explicit nil
 func (o *EditVideoRequest) SetOutputNil() {
 	o.Output.Set(nil)
@@ -198,7 +196,6 @@ func (o *EditVideoRequest) HasStorageOptions() bool {
 func (o *EditVideoRequest) SetStorageOptions(v StorageOptions) {
 	o.StorageOptions.Set(&v)
 }
-
 // SetStorageOptionsNil sets the value for StorageOptions to be an explicit nil
 func (o *EditVideoRequest) SetStorageOptionsNil() {
 	o.StorageOptions.Set(nil)
@@ -241,7 +238,6 @@ func (o *EditVideoRequest) HasUser() bool {
 func (o *EditVideoRequest) SetUser(v string) {
 	o.User.Set(&v)
 }
-
 // SetUserNil sets the value for User to be an explicit nil
 func (o *EditVideoRequest) SetUserNil() {
 	o.User.Set(nil)
@@ -277,7 +273,7 @@ func (o *EditVideoRequest) SetVideo(v VideoUrl) {
 }
 
 func (o EditVideoRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -322,10 +318,10 @@ func (o *EditVideoRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

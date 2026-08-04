@@ -21,7 +21,7 @@ var _ MappedNullable = &TokenizeResponse{}
 // TokenizeResponse struct for TokenizeResponse
 type TokenizeResponse struct {
 	// A list of tokens.
-	TokenIds             []TokenizeResponseToken `json:"token_ids"`
+	TokenIds []TokenizeResponseToken `json:"token_ids"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -70,7 +70,7 @@ func (o *TokenizeResponse) SetTokenIds(v []TokenizeResponseToken) {
 }
 
 func (o TokenizeResponse) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -101,10 +101,10 @@ func (o *TokenizeResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

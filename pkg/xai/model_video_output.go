@@ -21,7 +21,7 @@ var _ MappedNullable = &VideoOutput{}
 // VideoOutput Output destination for generated video.
 type VideoOutput struct {
 	// Signed URL to upload the generated video via HTTP PUT.
-	UploadUrl            string `json:"upload_url"`
+	UploadUrl string `json:"upload_url"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -70,7 +70,7 @@ func (o *VideoOutput) SetUploadUrl(v string) {
 }
 
 func (o VideoOutput) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -101,10 +101,10 @@ func (o *VideoOutput) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

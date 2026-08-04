@@ -21,8 +21,8 @@ var _ MappedNullable = &RetrievalModeOneOf1{}
 // RetrievalModeOneOf1 Semantic search using dense embeddings.
 type RetrievalModeOneOf1 struct {
 	// Optional, but always used when doing search across multiple collections.
-	Reranker             NullableRerankerModel `json:"reranker,omitempty"`
-	Type                 string                `json:"type"`
+	Reranker NullableRerankerModel `json:"reranker,omitempty"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -78,7 +78,6 @@ func (o *RetrievalModeOneOf1) HasReranker() bool {
 func (o *RetrievalModeOneOf1) SetReranker(v RerankerModel) {
 	o.Reranker.Set(&v)
 }
-
 // SetRerankerNil sets the value for Reranker to be an explicit nil
 func (o *RetrievalModeOneOf1) SetRerankerNil() {
 	o.Reranker.Set(nil)
@@ -114,7 +113,7 @@ func (o *RetrievalModeOneOf1) SetType(v string) {
 }
 
 func (o RetrievalModeOneOf1) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -148,10 +147,10 @@ func (o *RetrievalModeOneOf1) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

@@ -22,7 +22,7 @@ type WebSearchFilters struct {
 	// List of website domains (without protocol specification or subdomains) to restrict search results to (e.g., [\"example.com\"]). A maximum of 5 websites can be allowed. Use this as a whitelist to limit results to only these specific sites; no other websites will be considered. If no relevant information is found on these websites, the number of results returned might be smaller than `max_search_results` set in `SearchParameters`. Note: This parameter cannot be set together with `excluded_domains`.
 	AllowedDomains []string `json:"allowed_domains,omitempty"`
 	// List of website domains (without protocol specification or subdomains) to exclude from search results (e.g., [\"example.com\"]). Use this to prevent results from unwanted sites. A maximum of 5 websites can be excluded. This parameter cannot be set together with `allowed_domains`.
-	ExcludedDomains      []string `json:"excluded_domains,omitempty"`
+	ExcludedDomains []string `json:"excluded_domains,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -112,7 +112,7 @@ func (o *WebSearchFilters) SetExcludedDomains(v []string) {
 }
 
 func (o WebSearchFilters) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

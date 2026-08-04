@@ -19,9 +19,9 @@ var _ MappedNullable = &EmbeddingResponseData{}
 
 // EmbeddingResponseData struct for EmbeddingResponseData
 type EmbeddingResponseData struct {
-	Object               *string   `json:"object,omitempty"`
-	Embedding            []float32 `json:"embedding,omitempty"`
-	Index                *int32    `json:"index,omitempty"`
+	Embedding []float32 `json:"embedding,omitempty"`
+	Index *int32 `json:"index,omitempty"`
+	Object *string `json:"object,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -42,38 +42,6 @@ func NewEmbeddingResponseData() *EmbeddingResponseData {
 func NewEmbeddingResponseDataWithDefaults() *EmbeddingResponseData {
 	this := EmbeddingResponseData{}
 	return &this
-}
-
-// GetObject returns the Object field value if set, zero value otherwise.
-func (o *EmbeddingResponseData) GetObject() string {
-	if o == nil || IsNil(o.Object) {
-		var ret string
-		return ret
-	}
-	return *o.Object
-}
-
-// GetObjectOk returns a tuple with the Object field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *EmbeddingResponseData) GetObjectOk() (*string, bool) {
-	if o == nil || IsNil(o.Object) {
-		return nil, false
-	}
-	return o.Object, true
-}
-
-// HasObject returns a boolean if a field has been set.
-func (o *EmbeddingResponseData) HasObject() bool {
-	if o != nil && !IsNil(o.Object) {
-		return true
-	}
-
-	return false
-}
-
-// SetObject gets a reference to the given string and assigns it to the Object field.
-func (o *EmbeddingResponseData) SetObject(v string) {
-	o.Object = &v
 }
 
 // GetEmbedding returns the Embedding field value if set, zero value otherwise.
@@ -140,8 +108,40 @@ func (o *EmbeddingResponseData) SetIndex(v int32) {
 	o.Index = &v
 }
 
+// GetObject returns the Object field value if set, zero value otherwise.
+func (o *EmbeddingResponseData) GetObject() string {
+	if o == nil || IsNil(o.Object) {
+		var ret string
+		return ret
+	}
+	return *o.Object
+}
+
+// GetObjectOk returns a tuple with the Object field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *EmbeddingResponseData) GetObjectOk() (*string, bool) {
+	if o == nil || IsNil(o.Object) {
+		return nil, false
+	}
+	return o.Object, true
+}
+
+// HasObject returns a boolean if a field has been set.
+func (o *EmbeddingResponseData) HasObject() bool {
+	if o != nil && !IsNil(o.Object) {
+		return true
+	}
+
+	return false
+}
+
+// SetObject gets a reference to the given string and assigns it to the Object field.
+func (o *EmbeddingResponseData) SetObject(v string) {
+	o.Object = &v
+}
+
 func (o EmbeddingResponseData) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -150,14 +150,14 @@ func (o EmbeddingResponseData) MarshalJSON() ([]byte, error) {
 
 func (o EmbeddingResponseData) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Object) {
-		toSerialize["object"] = o.Object
-	}
 	if !IsNil(o.Embedding) {
 		toSerialize["embedding"] = o.Embedding
 	}
 	if !IsNil(o.Index) {
 		toSerialize["index"] = o.Index
+	}
+	if !IsNil(o.Object) {
+		toSerialize["object"] = o.Object
 	}
 
 	for key, value := range o.AdditionalProperties {
@@ -181,9 +181,9 @@ func (o *EmbeddingResponseData) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "object")
 		delete(additionalProperties, "embedding")
 		delete(additionalProperties, "index")
+		delete(additionalProperties, "object")
 		o.AdditionalProperties = additionalProperties
 	}
 

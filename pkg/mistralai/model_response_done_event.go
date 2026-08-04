@@ -11,10 +11,10 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"time"
+	"bytes"
+	"fmt"
 )
 
 // checks if the ResponseDoneEvent type satisfies the MappedNullable interface at compile time
@@ -22,9 +22,9 @@ var _ MappedNullable = &ResponseDoneEvent{}
 
 // ResponseDoneEvent struct for ResponseDoneEvent
 type ResponseDoneEvent struct {
-	Type      *string               `json:"type,omitempty"`
-	CreatedAt *time.Time            `json:"created_at,omitempty"`
-	Usage     ConversationUsageInfo `json:"usage"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	Type *string `json:"type,omitempty"`
+	Usage ConversationUsageInfo `json:"usage"`
 }
 
 type _ResponseDoneEvent ResponseDoneEvent
@@ -49,38 +49,6 @@ func NewResponseDoneEventWithDefaults() *ResponseDoneEvent {
 	var type_ string = "conversation.response.done"
 	this.Type = &type_
 	return &this
-}
-
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *ResponseDoneEvent) GetType() string {
-	if o == nil || IsNil(o.Type) {
-		var ret string
-		return ret
-	}
-	return *o.Type
-}
-
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ResponseDoneEvent) GetTypeOk() (*string, bool) {
-	if o == nil || IsNil(o.Type) {
-		return nil, false
-	}
-	return o.Type, true
-}
-
-// HasType returns a boolean if a field has been set.
-func (o *ResponseDoneEvent) HasType() bool {
-	if o != nil && !IsNil(o.Type) {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given string and assigns it to the Type field.
-func (o *ResponseDoneEvent) SetType(v string) {
-	o.Type = &v
 }
 
 // GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
@@ -115,6 +83,38 @@ func (o *ResponseDoneEvent) SetCreatedAt(v time.Time) {
 	o.CreatedAt = &v
 }
 
+// GetType returns the Type field value if set, zero value otherwise.
+func (o *ResponseDoneEvent) GetType() string {
+	if o == nil || IsNil(o.Type) {
+		var ret string
+		return ret
+	}
+	return *o.Type
+}
+
+// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ResponseDoneEvent) GetTypeOk() (*string, bool) {
+	if o == nil || IsNil(o.Type) {
+		return nil, false
+	}
+	return o.Type, true
+}
+
+// HasType returns a boolean if a field has been set.
+func (o *ResponseDoneEvent) HasType() bool {
+	if o != nil && !IsNil(o.Type) {
+		return true
+	}
+
+	return false
+}
+
+// SetType gets a reference to the given string and assigns it to the Type field.
+func (o *ResponseDoneEvent) SetType(v string) {
+	o.Type = &v
+}
+
 // GetUsage returns the Usage field value
 func (o *ResponseDoneEvent) GetUsage() ConversationUsageInfo {
 	if o == nil {
@@ -140,7 +140,7 @@ func (o *ResponseDoneEvent) SetUsage(v ConversationUsageInfo) {
 }
 
 func (o ResponseDoneEvent) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -149,11 +149,11 @@ func (o ResponseDoneEvent) MarshalJSON() ([]byte, error) {
 
 func (o ResponseDoneEvent) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Type) {
-		toSerialize["type"] = o.Type
-	}
 	if !IsNil(o.CreatedAt) {
 		toSerialize["created_at"] = o.CreatedAt
+	}
+	if !IsNil(o.Type) {
+		toSerialize["type"] = o.Type
 	}
 	toSerialize["usage"] = o.Usage
 	return toSerialize, nil
@@ -172,10 +172,10 @@ func (o *ResponseDoneEvent) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

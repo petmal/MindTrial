@@ -24,7 +24,7 @@ type TokenizeRequest struct {
 	// The text content to be tokenized.
 	Text *string `json:"text,omitempty"`
 	// Optional user identifier.
-	User                 NullableString `json:"user,omitempty"`
+	User NullableString `json:"user,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -143,7 +143,6 @@ func (o *TokenizeRequest) HasUser() bool {
 func (o *TokenizeRequest) SetUser(v string) {
 	o.User.Set(&v)
 }
-
 // SetUserNil sets the value for User to be an explicit nil
 func (o *TokenizeRequest) SetUserNil() {
 	o.User.Set(nil)
@@ -155,7 +154,7 @@ func (o *TokenizeRequest) UnsetUser() {
 }
 
 func (o TokenizeRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

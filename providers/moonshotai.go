@@ -15,7 +15,6 @@ import (
 
 	openai "github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/option"
-	"github.com/openai/openai-go/v3/packages/respjson"
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
 	"github.com/petmal/mindtrial/pkg/utils"
@@ -28,7 +27,7 @@ func NewMoonshotAI(cfg config.MoonshotAIClientConfig, availableTools []config.To
 		option.WithBaseURL(cfg.GetEndpoint()),
 	}
 	openaiProvider := newOpenAICompletionsProvider(availableTools, openAIV3Opts...)
-	openaiProvider.NewCompletionHandler = func() CompletionHandler {
+	openaiProvider.NewCompletionHandler = func(any) CompletionHandler {
 		return &moonshotAICompletionHandler{}
 	}
 
@@ -48,7 +47,8 @@ func (m MoonshotAI) Name() string {
 
 func (m *MoonshotAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
 	openAIV3Params := openAIV3ModelParams{
-		ExtraFields: map[string]any{},
+		ExtraFields:    map[string]any{},
+		PromptCacheKey: utils.Ptr(promptCacheKeyFor(cfg)),
 	}
 
 	// Kimi models from MoonshotAI prefer json-object response mode by default
@@ -75,6 +75,21 @@ func (m *MoonshotAI) Close(ctx context.Context) error {
 
 // copyToOpenAIV3Params copies relevant fields from MoonshotAIModelParams to openAIV3ModelParams.
 func (m *MoonshotAI) copyToOpenAIV3Params(moonshotAIParams config.MoonshotAIModelParams, openAIV3Params *openAIV3ModelParams) {
+	openAIV3Params.ReasoningEffort = moonshotAIParams.ReasoningEffort
+	if moonshotAIParams.MaxCompletionTokens != nil {
+		openAIV3Params.MaxCompletionTokens = utils.Ptr(int64(*moonshotAIParams.MaxCompletionTokens))
+	}
+	openAIV3Params.Stream = utils.Ptr(moonshotAIParams.Stream)
+	if moonshotAIParams.ResponseFormat != nil {
+		switch *moonshotAIParams.ResponseFormat {
+		case config.ModelResponseFormatText:
+			openAIV3Params.ResponseFormat = ResponseFormatText.Ptr()
+		case config.ModelResponseFormatJSONObject:
+			openAIV3Params.ResponseFormat = ResponseFormatJSONObject.Ptr()
+		case config.ModelResponseFormatJSONSchema:
+			openAIV3Params.ResponseFormat = ResponseFormatJSONSchema.Ptr()
+		}
+	}
 	if moonshotAIParams.Temperature != nil {
 		openAIV3Params.Temperature = utils.Ptr(float64(*moonshotAIParams.Temperature))
 	}
@@ -162,20 +177,26 @@ func (h *moonshotAICompletionHandler) ToParam(ctx context.Context, logger loggin
 	return param
 }
 
-// extractExtraFieldRaw returns the raw JSON string for a non-standard field if it is
-// present and non-null. The SDK's respjson.Field.Valid() returns false for ExtraFields,
-// so presence is checked via Raw() instead.
-func extractExtraFieldRaw(extraFields map[string]respjson.Field, key string) (string, bool) {
-	if field, ok := extraFields[key]; ok && field.Raw() != "" && field.Raw() != "null" {
-		return field.Raw(), true
-	}
-	return "", false
-}
-
 // setReasoningContent injects reasoning_content into an assistant message parameter
 // via SetExtraFields.
 func (h *moonshotAICompletionHandler) setReasoningContent(param *openai.ChatCompletionAssistantMessageParam, value string) {
 	param.SetExtraFields(map[string]any{
 		reasoningContentKey: value,
 	})
+}
+
+// InputCacheTokens reads Moonshot's cached_tokens count, which is a top-level
+// sibling of prompt_tokens/completion_tokens rather than nested under
+// prompt_tokens_details like the OpenAI-standard shape. Moonshot does not
+// report a distinct cache-write counter.
+// See: https://platform.kimi.ai/docs/api/chat#response-usage
+func (h *moonshotAICompletionHandler) InputCacheTokens(usage openai.CompletionUsage) (writeTokens *int64, readTokens *int64) {
+	if raw, ok := extractExtraFieldRaw(usage.JSON.ExtraFields, "cached_tokens"); ok {
+		var value int64
+		if err := json.Unmarshal([]byte(raw), &value); err != nil {
+			return nil, nil
+		}
+		readTokens = &value
+	}
+	return nil, readTokens
 }

@@ -20,7 +20,7 @@ var _ MappedNullable = &LogProbs{}
 // LogProbs struct for LogProbs
 type LogProbs struct {
 	// An array the log probabilities of each output token returned.
-	Content              []TokenLogProb `json:"content,omitempty"`
+	Content []TokenLogProb `json:"content,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -77,7 +77,7 @@ func (o *LogProbs) SetContent(v []TokenLogProb) {
 }
 
 func (o LogProbs) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

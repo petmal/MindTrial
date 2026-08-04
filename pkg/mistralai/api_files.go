@@ -16,36 +16,37 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"os"
 	"reflect"
-	"strings"
 )
+
 
 type FilesAPI interface {
 
 	/*
-		FilesApiRoutesDeleteFile Delete File
+	FilesApiRoutesDeleteFile Delete File
 
-		Delete a file.
+	Delete a file.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param fileId
-		@return ApiFilesApiRoutesDeleteFileRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param fileId
+	@return ApiFilesApiRoutesDeleteFileRequest
 	*/
 	FilesApiRoutesDeleteFile(ctx context.Context, fileId string) ApiFilesApiRoutesDeleteFileRequest
 
 	// FilesApiRoutesDeleteFileExecute executes the request
-	//  @return DeleteFileOut
-	FilesApiRoutesDeleteFileExecute(r ApiFilesApiRoutesDeleteFileRequest) (*DeleteFileOut, *http.Response, error)
+	//  @return DeleteFileResponse
+	FilesApiRoutesDeleteFileExecute(r ApiFilesApiRoutesDeleteFileRequest) (*DeleteFileResponse, *http.Response, error)
 
 	/*
-		FilesApiRoutesDownloadFile Download File
+	FilesApiRoutesDownloadFile Download File
 
-		Download a file
+	Download a file
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param fileId
-		@return ApiFilesApiRoutesDownloadFileRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param fileId
+	@return ApiFilesApiRoutesDownloadFileRequest
 	*/
 	FilesApiRoutesDownloadFile(ctx context.Context, fileId string) ApiFilesApiRoutesDownloadFileRequest
 
@@ -54,76 +55,78 @@ type FilesAPI interface {
 	FilesApiRoutesDownloadFileExecute(r ApiFilesApiRoutesDownloadFileRequest) (*os.File, *http.Response, error)
 
 	/*
-		FilesApiRoutesGetSignedUrl Get Signed Url
+	FilesApiRoutesGetSignedUrl Get Signed Url
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param fileId
-		@return ApiFilesApiRoutesGetSignedUrlRequest
+	Get Signed Url
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param fileId
+	@return ApiFilesApiRoutesGetSignedUrlRequest
 	*/
 	FilesApiRoutesGetSignedUrl(ctx context.Context, fileId string) ApiFilesApiRoutesGetSignedUrlRequest
 
 	// FilesApiRoutesGetSignedUrlExecute executes the request
-	//  @return FileSignedURL
-	FilesApiRoutesGetSignedUrlExecute(r ApiFilesApiRoutesGetSignedUrlRequest) (*FileSignedURL, *http.Response, error)
+	//  @return GetSignedUrlResponse
+	FilesApiRoutesGetSignedUrlExecute(r ApiFilesApiRoutesGetSignedUrlRequest) (*GetSignedUrlResponse, *http.Response, error)
 
 	/*
-		FilesApiRoutesListFiles List Files
+	FilesApiRoutesListFiles List Files
 
-		Returns a list of files that belong to the user's organization.
+	Returns a list of files that belong to the user's organization.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiFilesApiRoutesListFilesRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiFilesApiRoutesListFilesRequest
 	*/
 	FilesApiRoutesListFiles(ctx context.Context) ApiFilesApiRoutesListFilesRequest
 
 	// FilesApiRoutesListFilesExecute executes the request
-	//  @return ListFilesOut
-	FilesApiRoutesListFilesExecute(r ApiFilesApiRoutesListFilesRequest) (*ListFilesOut, *http.Response, error)
+	//  @return ListFilesResponse
+	FilesApiRoutesListFilesExecute(r ApiFilesApiRoutesListFilesRequest) (*ListFilesResponse, *http.Response, error)
 
 	/*
-		FilesApiRoutesRetrieveFile Retrieve File
+	FilesApiRoutesRetrieveFile Retrieve File
 
-		Returns information about a specific file.
+	Returns information about a specific file.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param fileId
-		@return ApiFilesApiRoutesRetrieveFileRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param fileId
+	@return ApiFilesApiRoutesRetrieveFileRequest
 	*/
 	FilesApiRoutesRetrieveFile(ctx context.Context, fileId string) ApiFilesApiRoutesRetrieveFileRequest
 
 	// FilesApiRoutesRetrieveFileExecute executes the request
-	//  @return RetrieveFileOut
-	FilesApiRoutesRetrieveFileExecute(r ApiFilesApiRoutesRetrieveFileRequest) (*RetrieveFileOut, *http.Response, error)
+	//  @return GetFileResponse
+	FilesApiRoutesRetrieveFileExecute(r ApiFilesApiRoutesRetrieveFileRequest) (*GetFileResponse, *http.Response, error)
 
 	/*
-			FilesApiRoutesUploadFile Upload File
+	FilesApiRoutesUploadFile Upload File
 
-			Upload a file that can be used across various endpoints.
+	Upload a file that can be used across various endpoints.
 
-		The size of individual files can be a maximum of 512 MB. The Fine-tuning API only supports .jsonl files.
+The size of individual files can be a maximum of 512 MB. The Fine-tuning API only supports .jsonl files.
 
-		Please contact us if you need to increase these storage limits.
+Please contact us if you need to increase these storage limits.
 
-			@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-			@return ApiFilesApiRoutesUploadFileRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiFilesApiRoutesUploadFileRequest
 	*/
 	FilesApiRoutesUploadFile(ctx context.Context) ApiFilesApiRoutesUploadFileRequest
 
 	// FilesApiRoutesUploadFileExecute executes the request
-	//  @return UploadFileOut
-	FilesApiRoutesUploadFileExecute(r ApiFilesApiRoutesUploadFileRequest) (*UploadFileOut, *http.Response, error)
+	//  @return CreateFileResponse
+	FilesApiRoutesUploadFileExecute(r ApiFilesApiRoutesUploadFileRequest) (*CreateFileResponse, *http.Response, error)
 }
 
 // FilesAPIService FilesAPI service
 type FilesAPIService service
 
 type ApiFilesApiRoutesDeleteFileRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService FilesAPI
-	fileId     string
+	fileId string
 }
 
-func (r ApiFilesApiRoutesDeleteFileRequest) Execute() (*DeleteFileOut, *http.Response, error) {
+func (r ApiFilesApiRoutesDeleteFileRequest) Execute() (*DeleteFileResponse, *http.Response, error) {
 	return r.ApiService.FilesApiRoutesDeleteFileExecute(r)
 }
 
@@ -132,27 +135,26 @@ FilesApiRoutesDeleteFile Delete File
 
 Delete a file.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param fileId
-	@return ApiFilesApiRoutesDeleteFileRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param fileId
+ @return ApiFilesApiRoutesDeleteFileRequest
 */
 func (a *FilesAPIService) FilesApiRoutesDeleteFile(ctx context.Context, fileId string) ApiFilesApiRoutesDeleteFileRequest {
 	return ApiFilesApiRoutesDeleteFileRequest{
 		ApiService: a,
-		ctx:        ctx,
-		fileId:     fileId,
+		ctx: ctx,
+		fileId: fileId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return DeleteFileOut
-func (a *FilesAPIService) FilesApiRoutesDeleteFileExecute(r ApiFilesApiRoutesDeleteFileRequest) (*DeleteFileOut, *http.Response, error) {
+//  @return DeleteFileResponse
+func (a *FilesAPIService) FilesApiRoutesDeleteFileExecute(r ApiFilesApiRoutesDeleteFileRequest) (*DeleteFileResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodDelete
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *DeleteFileOut
+		localVarHTTPMethod   = http.MethodDelete
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *DeleteFileResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "FilesAPIService.FilesApiRoutesDeleteFile")
@@ -222,9 +224,9 @@ func (a *FilesAPIService) FilesApiRoutesDeleteFileExecute(r ApiFilesApiRoutesDel
 }
 
 type ApiFilesApiRoutesDownloadFileRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService FilesAPI
-	fileId     string
+	fileId string
 }
 
 func (r ApiFilesApiRoutesDownloadFileRequest) Execute() (*os.File, *http.Response, error) {
@@ -236,27 +238,26 @@ FilesApiRoutesDownloadFile Download File
 
 Download a file
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param fileId
-	@return ApiFilesApiRoutesDownloadFileRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param fileId
+ @return ApiFilesApiRoutesDownloadFileRequest
 */
 func (a *FilesAPIService) FilesApiRoutesDownloadFile(ctx context.Context, fileId string) ApiFilesApiRoutesDownloadFileRequest {
 	return ApiFilesApiRoutesDownloadFileRequest{
 		ApiService: a,
-		ctx:        ctx,
-		fileId:     fileId,
+		ctx: ctx,
+		fileId: fileId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return *os.File
+//  @return *os.File
 func (a *FilesAPIService) FilesApiRoutesDownloadFileExecute(r ApiFilesApiRoutesDownloadFileRequest) (*os.File, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *os.File
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *os.File
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "FilesAPIService.FilesApiRoutesDownloadFile")
@@ -326,46 +327,47 @@ func (a *FilesAPIService) FilesApiRoutesDownloadFileExecute(r ApiFilesApiRoutesD
 }
 
 type ApiFilesApiRoutesGetSignedUrlRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService FilesAPI
-	fileId     string
-	expiry     *int32
+	fileId string
+	expiry *int32
 }
 
-// Number of hours before the url becomes invalid. Defaults to 24h
+// Number of hours before the URL becomes invalid. Defaults to 24h. Must be between 1h and 168h.
 func (r ApiFilesApiRoutesGetSignedUrlRequest) Expiry(expiry int32) ApiFilesApiRoutesGetSignedUrlRequest {
 	r.expiry = &expiry
 	return r
 }
 
-func (r ApiFilesApiRoutesGetSignedUrlRequest) Execute() (*FileSignedURL, *http.Response, error) {
+func (r ApiFilesApiRoutesGetSignedUrlRequest) Execute() (*GetSignedUrlResponse, *http.Response, error) {
 	return r.ApiService.FilesApiRoutesGetSignedUrlExecute(r)
 }
 
 /*
 FilesApiRoutesGetSignedUrl Get Signed Url
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param fileId
-	@return ApiFilesApiRoutesGetSignedUrlRequest
+Get Signed Url
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param fileId
+ @return ApiFilesApiRoutesGetSignedUrlRequest
 */
 func (a *FilesAPIService) FilesApiRoutesGetSignedUrl(ctx context.Context, fileId string) ApiFilesApiRoutesGetSignedUrlRequest {
 	return ApiFilesApiRoutesGetSignedUrlRequest{
 		ApiService: a,
-		ctx:        ctx,
-		fileId:     fileId,
+		ctx: ctx,
+		fileId: fileId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return FileSignedURL
-func (a *FilesAPIService) FilesApiRoutesGetSignedUrlExecute(r ApiFilesApiRoutesGetSignedUrlRequest) (*FileSignedURL, *http.Response, error) {
+//  @return GetSignedUrlResponse
+func (a *FilesAPIService) FilesApiRoutesGetSignedUrlExecute(r ApiFilesApiRoutesGetSignedUrlRequest) (*GetSignedUrlResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *FileSignedURL
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *GetSignedUrlResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "FilesAPIService.FilesApiRoutesGetSignedUrl")
@@ -442,16 +444,16 @@ func (a *FilesAPIService) FilesApiRoutesGetSignedUrlExecute(r ApiFilesApiRoutesG
 }
 
 type ApiFilesApiRoutesListFilesRequest struct {
-	ctx          context.Context
-	ApiService   FilesAPI
-	page         *int32
-	pageSize     *int32
+	ctx context.Context
+	ApiService FilesAPI
+	page *int32
+	pageSize *int32
 	includeTotal *bool
-	sampleType   *[]SampleType
-	source       *[]Source
-	search       *string
-	purpose      *FilePurpose
-	mimetypes    *[]string
+	sampleType *[]SampleType
+	source *[]Source
+	search *string
+	purpose *FilePurpose
+	mimetypes *[]string
 }
 
 func (r ApiFilesApiRoutesListFilesRequest) Page(page int32) ApiFilesApiRoutesListFilesRequest {
@@ -494,7 +496,7 @@ func (r ApiFilesApiRoutesListFilesRequest) Mimetypes(mimetypes []string) ApiFile
 	return r
 }
 
-func (r ApiFilesApiRoutesListFilesRequest) Execute() (*ListFilesOut, *http.Response, error) {
+func (r ApiFilesApiRoutesListFilesRequest) Execute() (*ListFilesResponse, *http.Response, error) {
 	return r.ApiService.FilesApiRoutesListFilesExecute(r)
 }
 
@@ -503,25 +505,24 @@ FilesApiRoutesListFiles List Files
 
 Returns a list of files that belong to the user's organization.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiFilesApiRoutesListFilesRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiFilesApiRoutesListFilesRequest
 */
 func (a *FilesAPIService) FilesApiRoutesListFiles(ctx context.Context) ApiFilesApiRoutesListFilesRequest {
 	return ApiFilesApiRoutesListFilesRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ListFilesOut
-func (a *FilesAPIService) FilesApiRoutesListFilesExecute(r ApiFilesApiRoutesListFilesRequest) (*ListFilesOut, *http.Response, error) {
+//  @return ListFilesResponse
+func (a *FilesAPIService) FilesApiRoutesListFilesExecute(r ApiFilesApiRoutesListFilesRequest) (*ListFilesResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ListFilesOut
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ListFilesResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "FilesAPIService.FilesApiRoutesListFiles")
@@ -650,12 +651,12 @@ func (a *FilesAPIService) FilesApiRoutesListFilesExecute(r ApiFilesApiRoutesList
 }
 
 type ApiFilesApiRoutesRetrieveFileRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService FilesAPI
-	fileId     string
+	fileId string
 }
 
-func (r ApiFilesApiRoutesRetrieveFileRequest) Execute() (*RetrieveFileOut, *http.Response, error) {
+func (r ApiFilesApiRoutesRetrieveFileRequest) Execute() (*GetFileResponse, *http.Response, error) {
 	return r.ApiService.FilesApiRoutesRetrieveFileExecute(r)
 }
 
@@ -664,27 +665,26 @@ FilesApiRoutesRetrieveFile Retrieve File
 
 Returns information about a specific file.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param fileId
-	@return ApiFilesApiRoutesRetrieveFileRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param fileId
+ @return ApiFilesApiRoutesRetrieveFileRequest
 */
 func (a *FilesAPIService) FilesApiRoutesRetrieveFile(ctx context.Context, fileId string) ApiFilesApiRoutesRetrieveFileRequest {
 	return ApiFilesApiRoutesRetrieveFileRequest{
 		ApiService: a,
-		ctx:        ctx,
-		fileId:     fileId,
+		ctx: ctx,
+		fileId: fileId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return RetrieveFileOut
-func (a *FilesAPIService) FilesApiRoutesRetrieveFileExecute(r ApiFilesApiRoutesRetrieveFileRequest) (*RetrieveFileOut, *http.Response, error) {
+//  @return GetFileResponse
+func (a *FilesAPIService) FilesApiRoutesRetrieveFileExecute(r ApiFilesApiRoutesRetrieveFileRequest) (*GetFileResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *RetrieveFileOut
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *GetFileResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "FilesAPIService.FilesApiRoutesRetrieveFile")
@@ -754,10 +754,12 @@ func (a *FilesAPIService) FilesApiRoutesRetrieveFileExecute(r ApiFilesApiRoutesR
 }
 
 type ApiFilesApiRoutesUploadFileRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService FilesAPI
-	file       *os.File
-	purpose    *FilePurpose
+	file *os.File
+	expiry *int32
+	purpose *FilePurpose
+	visibility *string
 }
 
 // The File object (not file name) to be uploaded.  To upload a file and specify a custom file name you should format your request as such:  &#x60;&#x60;&#x60;bash  file&#x3D;@path/to/your/file.jsonl;filename&#x3D;custom_name.jsonl  &#x60;&#x60;&#x60;  Otherwise, you can just keep the original file name:  &#x60;&#x60;&#x60;bash  file&#x3D;@path/to/your/file.jsonl  &#x60;&#x60;&#x60;
@@ -766,12 +768,22 @@ func (r ApiFilesApiRoutesUploadFileRequest) File(file *os.File) ApiFilesApiRoute
 	return r
 }
 
+func (r ApiFilesApiRoutesUploadFileRequest) Expiry(expiry int32) ApiFilesApiRoutesUploadFileRequest {
+	r.expiry = &expiry
+	return r
+}
+
 func (r ApiFilesApiRoutesUploadFileRequest) Purpose(purpose FilePurpose) ApiFilesApiRoutesUploadFileRequest {
 	r.purpose = &purpose
 	return r
 }
 
-func (r ApiFilesApiRoutesUploadFileRequest) Execute() (*UploadFileOut, *http.Response, error) {
+func (r ApiFilesApiRoutesUploadFileRequest) Visibility(visibility string) ApiFilesApiRoutesUploadFileRequest {
+	r.visibility = &visibility
+	return r
+}
+
+func (r ApiFilesApiRoutesUploadFileRequest) Execute() (*CreateFileResponse, *http.Response, error) {
 	return r.ApiService.FilesApiRoutesUploadFileExecute(r)
 }
 
@@ -784,25 +796,24 @@ The size of individual files can be a maximum of 512 MB. The Fine-tuning API onl
 
 Please contact us if you need to increase these storage limits.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiFilesApiRoutesUploadFileRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiFilesApiRoutesUploadFileRequest
 */
 func (a *FilesAPIService) FilesApiRoutesUploadFile(ctx context.Context) ApiFilesApiRoutesUploadFileRequest {
 	return ApiFilesApiRoutesUploadFileRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return UploadFileOut
-func (a *FilesAPIService) FilesApiRoutesUploadFileExecute(r ApiFilesApiRoutesUploadFileRequest) (*UploadFileOut, *http.Response, error) {
+//  @return CreateFileResponse
+func (a *FilesAPIService) FilesApiRoutesUploadFileExecute(r ApiFilesApiRoutesUploadFileRequest) (*CreateFileResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *UploadFileOut
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *CreateFileResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "FilesAPIService.FilesApiRoutesUploadFile")
@@ -836,12 +847,12 @@ func (a *FilesAPIService) FilesApiRoutesUploadFileExecute(r ApiFilesApiRoutesUpl
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
-	if r.purpose != nil {
-		parameterAddToHeaderOrQuery(localVarFormParams, "purpose", r.purpose, "", "")
+	if r.expiry != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "expiry", r.expiry, "", "")
 	}
 	var fileLocalVarFormFileName string
-	var fileLocalVarFileName string
-	var fileLocalVarFileBytes []byte
+	var fileLocalVarFileName     string
+	var fileLocalVarFileBytes    []byte
 
 	fileLocalVarFormFileName = "file"
 	fileLocalVarFile := r.file
@@ -853,6 +864,12 @@ func (a *FilesAPIService) FilesApiRoutesUploadFileExecute(r ApiFilesApiRoutesUpl
 		fileLocalVarFileName = fileLocalVarFile.Name()
 		fileLocalVarFile.Close()
 		formFiles = append(formFiles, formFile{fileBytes: fileLocalVarFileBytes, fileName: fileLocalVarFileName, formFileName: fileLocalVarFormFileName})
+	}
+	if r.purpose != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "purpose", r.purpose, "", "")
+	}
+	if r.visibility != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "visibility", r.visibility, "", "")
 	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {

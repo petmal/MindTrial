@@ -20,11 +20,11 @@ type SampleType string
 
 // List of SampleType
 const (
-	SAMPLETYPE_PRETRAIN      SampleType = "pretrain"
-	SAMPLETYPE_INSTRUCT      SampleType = "instruct"
+	SAMPLETYPE_PRETRAIN SampleType = "pretrain"
+	SAMPLETYPE_INSTRUCT SampleType = "instruct"
 	SAMPLETYPE_BATCH_REQUEST SampleType = "batch_request"
-	SAMPLETYPE_BATCH_RESULT  SampleType = "batch_result"
-	SAMPLETYPE_BATCH_ERROR   SampleType = "batch_error"
+	SAMPLETYPE_BATCH_RESULT SampleType = "batch_result"
+	SAMPLETYPE_BATCH_ERROR SampleType = "batch_error"
 )
 
 // All allowed values of SampleType enum

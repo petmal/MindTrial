@@ -11,7 +11,6 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -21,14 +20,21 @@ var _ MappedNullable = &OCRImageObject{}
 
 // OCRImageObject struct for OCRImageObject
 type OCRImageObject struct {
+	// X coordinate of bottom-right corner of the extracted image
+	BottomRightX NullableInt32 `json:"bottom_right_x"`
+	// Y coordinate of bottom-right corner of the extracted image
+	BottomRightY NullableInt32 `json:"bottom_right_y"`
 	// Image ID for extracted image in a page
-	Id              string         `json:"id"`
-	TopLeftX        NullableInt32  `json:"top_left_x"`
-	TopLeftY        NullableInt32  `json:"top_left_y"`
-	BottomRightX    NullableInt32  `json:"bottom_right_x"`
-	BottomRightY    NullableInt32  `json:"bottom_right_y"`
-	ImageBase64     NullableString `json:"image_base64,omitempty"`
+	Id string `json:"id"`
+	// Annotation of the extracted image in json str
 	ImageAnnotation NullableString `json:"image_annotation,omitempty"`
+	// Base64 string of the extracted image
+	ImageBase64 NullableString `json:"image_base64,omitempty"`
+	// X coordinate of top-left corner of the extracted image
+	TopLeftX NullableInt32 `json:"top_left_x"`
+	// Y coordinate of top-left corner of the extracted image
+	TopLeftY NullableInt32 `json:"top_left_y"`
+	AdditionalProperties map[string]interface{}
 }
 
 type _OCRImageObject OCRImageObject
@@ -37,13 +43,13 @@ type _OCRImageObject OCRImageObject
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewOCRImageObject(id string, topLeftX NullableInt32, topLeftY NullableInt32, bottomRightX NullableInt32, bottomRightY NullableInt32) *OCRImageObject {
+func NewOCRImageObject(bottomRightX NullableInt32, bottomRightY NullableInt32, id string, topLeftX NullableInt32, topLeftY NullableInt32) *OCRImageObject {
 	this := OCRImageObject{}
+	this.BottomRightX = bottomRightX
+	this.BottomRightY = bottomRightY
 	this.Id = id
 	this.TopLeftX = topLeftX
 	this.TopLeftY = topLeftY
-	this.BottomRightX = bottomRightX
-	this.BottomRightY = bottomRightY
 	return &this
 }
 
@@ -53,82 +59,6 @@ func NewOCRImageObject(id string, topLeftX NullableInt32, topLeftY NullableInt32
 func NewOCRImageObjectWithDefaults() *OCRImageObject {
 	this := OCRImageObject{}
 	return &this
-}
-
-// GetId returns the Id field value
-func (o *OCRImageObject) GetId() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Id
-}
-
-// GetIdOk returns a tuple with the Id field value
-// and a boolean to check if the value has been set.
-func (o *OCRImageObject) GetIdOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Id, true
-}
-
-// SetId sets field value
-func (o *OCRImageObject) SetId(v string) {
-	o.Id = v
-}
-
-// GetTopLeftX returns the TopLeftX field value
-// If the value is explicit nil, the zero value for int32 will be returned
-func (o *OCRImageObject) GetTopLeftX() int32 {
-	if o == nil || o.TopLeftX.Get() == nil {
-		var ret int32
-		return ret
-	}
-
-	return *o.TopLeftX.Get()
-}
-
-// GetTopLeftXOk returns a tuple with the TopLeftX field value
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *OCRImageObject) GetTopLeftXOk() (*int32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.TopLeftX.Get(), o.TopLeftX.IsSet()
-}
-
-// SetTopLeftX sets field value
-func (o *OCRImageObject) SetTopLeftX(v int32) {
-	o.TopLeftX.Set(&v)
-}
-
-// GetTopLeftY returns the TopLeftY field value
-// If the value is explicit nil, the zero value for int32 will be returned
-func (o *OCRImageObject) GetTopLeftY() int32 {
-	if o == nil || o.TopLeftY.Get() == nil {
-		var ret int32
-		return ret
-	}
-
-	return *o.TopLeftY.Get()
-}
-
-// GetTopLeftYOk returns a tuple with the TopLeftY field value
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *OCRImageObject) GetTopLeftYOk() (*int32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.TopLeftY.Get(), o.TopLeftY.IsSet()
-}
-
-// SetTopLeftY sets field value
-func (o *OCRImageObject) SetTopLeftY(v int32) {
-	o.TopLeftY.Set(&v)
 }
 
 // GetBottomRightX returns the BottomRightX field value
@@ -183,47 +113,28 @@ func (o *OCRImageObject) SetBottomRightY(v int32) {
 	o.BottomRightY.Set(&v)
 }
 
-// GetImageBase64 returns the ImageBase64 field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *OCRImageObject) GetImageBase64() string {
-	if o == nil || IsNil(o.ImageBase64.Get()) {
+// GetId returns the Id field value
+func (o *OCRImageObject) GetId() string {
+	if o == nil {
 		var ret string
 		return ret
 	}
-	return *o.ImageBase64.Get()
+
+	return o.Id
 }
 
-// GetImageBase64Ok returns a tuple with the ImageBase64 field value if set, nil otherwise
+// GetIdOk returns a tuple with the Id field value
 // and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *OCRImageObject) GetImageBase64Ok() (*string, bool) {
+func (o *OCRImageObject) GetIdOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return o.ImageBase64.Get(), o.ImageBase64.IsSet()
+	return &o.Id, true
 }
 
-// HasImageBase64 returns a boolean if a field has been set.
-func (o *OCRImageObject) HasImageBase64() bool {
-	if o != nil && o.ImageBase64.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetImageBase64 gets a reference to the given NullableString and assigns it to the ImageBase64 field.
-func (o *OCRImageObject) SetImageBase64(v string) {
-	o.ImageBase64.Set(&v)
-}
-
-// SetImageBase64Nil sets the value for ImageBase64 to be an explicit nil
-func (o *OCRImageObject) SetImageBase64Nil() {
-	o.ImageBase64.Set(nil)
-}
-
-// UnsetImageBase64 ensures that no value is present for ImageBase64, not even an explicit nil
-func (o *OCRImageObject) UnsetImageBase64() {
-	o.ImageBase64.Unset()
+// SetId sets field value
+func (o *OCRImageObject) SetId(v string) {
+	o.Id = v
 }
 
 // GetImageAnnotation returns the ImageAnnotation field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -258,7 +169,6 @@ func (o *OCRImageObject) HasImageAnnotation() bool {
 func (o *OCRImageObject) SetImageAnnotation(v string) {
 	o.ImageAnnotation.Set(&v)
 }
-
 // SetImageAnnotationNil sets the value for ImageAnnotation to be an explicit nil
 func (o *OCRImageObject) SetImageAnnotationNil() {
 	o.ImageAnnotation.Set(nil)
@@ -269,8 +179,102 @@ func (o *OCRImageObject) UnsetImageAnnotation() {
 	o.ImageAnnotation.Unset()
 }
 
+// GetImageBase64 returns the ImageBase64 field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *OCRImageObject) GetImageBase64() string {
+	if o == nil || IsNil(o.ImageBase64.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.ImageBase64.Get()
+}
+
+// GetImageBase64Ok returns a tuple with the ImageBase64 field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OCRImageObject) GetImageBase64Ok() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ImageBase64.Get(), o.ImageBase64.IsSet()
+}
+
+// HasImageBase64 returns a boolean if a field has been set.
+func (o *OCRImageObject) HasImageBase64() bool {
+	if o != nil && o.ImageBase64.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetImageBase64 gets a reference to the given NullableString and assigns it to the ImageBase64 field.
+func (o *OCRImageObject) SetImageBase64(v string) {
+	o.ImageBase64.Set(&v)
+}
+// SetImageBase64Nil sets the value for ImageBase64 to be an explicit nil
+func (o *OCRImageObject) SetImageBase64Nil() {
+	o.ImageBase64.Set(nil)
+}
+
+// UnsetImageBase64 ensures that no value is present for ImageBase64, not even an explicit nil
+func (o *OCRImageObject) UnsetImageBase64() {
+	o.ImageBase64.Unset()
+}
+
+// GetTopLeftX returns the TopLeftX field value
+// If the value is explicit nil, the zero value for int32 will be returned
+func (o *OCRImageObject) GetTopLeftX() int32 {
+	if o == nil || o.TopLeftX.Get() == nil {
+		var ret int32
+		return ret
+	}
+
+	return *o.TopLeftX.Get()
+}
+
+// GetTopLeftXOk returns a tuple with the TopLeftX field value
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OCRImageObject) GetTopLeftXOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.TopLeftX.Get(), o.TopLeftX.IsSet()
+}
+
+// SetTopLeftX sets field value
+func (o *OCRImageObject) SetTopLeftX(v int32) {
+	o.TopLeftX.Set(&v)
+}
+
+// GetTopLeftY returns the TopLeftY field value
+// If the value is explicit nil, the zero value for int32 will be returned
+func (o *OCRImageObject) GetTopLeftY() int32 {
+	if o == nil || o.TopLeftY.Get() == nil {
+		var ret int32
+		return ret
+	}
+
+	return *o.TopLeftY.Get()
+}
+
+// GetTopLeftYOk returns a tuple with the TopLeftY field value
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OCRImageObject) GetTopLeftYOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.TopLeftY.Get(), o.TopLeftY.IsSet()
+}
+
+// SetTopLeftY sets field value
+func (o *OCRImageObject) SetTopLeftY(v int32) {
+	o.TopLeftY.Set(&v)
+}
+
 func (o OCRImageObject) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -279,17 +283,22 @@ func (o OCRImageObject) MarshalJSON() ([]byte, error) {
 
 func (o OCRImageObject) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["id"] = o.Id
-	toSerialize["top_left_x"] = o.TopLeftX.Get()
-	toSerialize["top_left_y"] = o.TopLeftY.Get()
 	toSerialize["bottom_right_x"] = o.BottomRightX.Get()
 	toSerialize["bottom_right_y"] = o.BottomRightY.Get()
-	if o.ImageBase64.IsSet() {
-		toSerialize["image_base64"] = o.ImageBase64.Get()
-	}
+	toSerialize["id"] = o.Id
 	if o.ImageAnnotation.IsSet() {
 		toSerialize["image_annotation"] = o.ImageAnnotation.Get()
 	}
+	if o.ImageBase64.IsSet() {
+		toSerialize["image_base64"] = o.ImageBase64.Get()
+	}
+	toSerialize["top_left_x"] = o.TopLeftX.Get()
+	toSerialize["top_left_y"] = o.TopLeftY.Get()
+
+	for key, value := range o.AdditionalProperties {
+		toSerialize[key] = value
+	}
+
 	return toSerialize, nil
 }
 
@@ -298,11 +307,11 @@ func (o *OCRImageObject) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
+		"bottom_right_x",
+		"bottom_right_y",
 		"id",
 		"top_left_x",
 		"top_left_y",
-		"bottom_right_x",
-		"bottom_right_y",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -310,10 +319,10 @@ func (o *OCRImageObject) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -321,15 +330,26 @@ func (o *OCRImageObject) UnmarshalJSON(data []byte) (err error) {
 
 	varOCRImageObject := _OCRImageObject{}
 
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varOCRImageObject)
+	err = json.Unmarshal(data, &varOCRImageObject)
 
 	if err != nil {
 		return err
 	}
 
 	*o = OCRImageObject(varOCRImageObject)
+
+	additionalProperties := make(map[string]interface{})
+
+	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "bottom_right_x")
+		delete(additionalProperties, "bottom_right_y")
+		delete(additionalProperties, "id")
+		delete(additionalProperties, "image_annotation")
+		delete(additionalProperties, "image_base64")
+		delete(additionalProperties, "top_left_x")
+		delete(additionalProperties, "top_left_y")
+		o.AdditionalProperties = additionalProperties
+	}
 
 	return err
 }

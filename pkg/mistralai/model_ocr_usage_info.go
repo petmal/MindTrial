@@ -11,7 +11,6 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -21,9 +20,11 @@ var _ MappedNullable = &OCRUsageInfo{}
 
 // OCRUsageInfo struct for OCRUsageInfo
 type OCRUsageInfo struct {
+	// Document size in bytes
+	DocSizeBytes NullableInt32 `json:"doc_size_bytes,omitempty"`
 	// Number of pages processed
-	PagesProcessed int32         `json:"pages_processed"`
-	DocSizeBytes   NullableInt32 `json:"doc_size_bytes,omitempty"`
+	PagesProcessed int32 `json:"pages_processed"`
+	AdditionalProperties map[string]interface{}
 }
 
 type _OCRUsageInfo OCRUsageInfo
@@ -44,30 +45,6 @@ func NewOCRUsageInfo(pagesProcessed int32) *OCRUsageInfo {
 func NewOCRUsageInfoWithDefaults() *OCRUsageInfo {
 	this := OCRUsageInfo{}
 	return &this
-}
-
-// GetPagesProcessed returns the PagesProcessed field value
-func (o *OCRUsageInfo) GetPagesProcessed() int32 {
-	if o == nil {
-		var ret int32
-		return ret
-	}
-
-	return o.PagesProcessed
-}
-
-// GetPagesProcessedOk returns a tuple with the PagesProcessed field value
-// and a boolean to check if the value has been set.
-func (o *OCRUsageInfo) GetPagesProcessedOk() (*int32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.PagesProcessed, true
-}
-
-// SetPagesProcessed sets field value
-func (o *OCRUsageInfo) SetPagesProcessed(v int32) {
-	o.PagesProcessed = v
 }
 
 // GetDocSizeBytes returns the DocSizeBytes field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -102,7 +79,6 @@ func (o *OCRUsageInfo) HasDocSizeBytes() bool {
 func (o *OCRUsageInfo) SetDocSizeBytes(v int32) {
 	o.DocSizeBytes.Set(&v)
 }
-
 // SetDocSizeBytesNil sets the value for DocSizeBytes to be an explicit nil
 func (o *OCRUsageInfo) SetDocSizeBytesNil() {
 	o.DocSizeBytes.Set(nil)
@@ -113,8 +89,32 @@ func (o *OCRUsageInfo) UnsetDocSizeBytes() {
 	o.DocSizeBytes.Unset()
 }
 
+// GetPagesProcessed returns the PagesProcessed field value
+func (o *OCRUsageInfo) GetPagesProcessed() int32 {
+	if o == nil {
+		var ret int32
+		return ret
+	}
+
+	return o.PagesProcessed
+}
+
+// GetPagesProcessedOk returns a tuple with the PagesProcessed field value
+// and a boolean to check if the value has been set.
+func (o *OCRUsageInfo) GetPagesProcessedOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.PagesProcessed, true
+}
+
+// SetPagesProcessed sets field value
+func (o *OCRUsageInfo) SetPagesProcessed(v int32) {
+	o.PagesProcessed = v
+}
+
 func (o OCRUsageInfo) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -123,10 +123,15 @@ func (o OCRUsageInfo) MarshalJSON() ([]byte, error) {
 
 func (o OCRUsageInfo) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["pages_processed"] = o.PagesProcessed
 	if o.DocSizeBytes.IsSet() {
 		toSerialize["doc_size_bytes"] = o.DocSizeBytes.Get()
 	}
+	toSerialize["pages_processed"] = o.PagesProcessed
+
+	for key, value := range o.AdditionalProperties {
+		toSerialize[key] = value
+	}
+
 	return toSerialize, nil
 }
 
@@ -143,10 +148,10 @@ func (o *OCRUsageInfo) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -154,15 +159,21 @@ func (o *OCRUsageInfo) UnmarshalJSON(data []byte) (err error) {
 
 	varOCRUsageInfo := _OCRUsageInfo{}
 
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varOCRUsageInfo)
+	err = json.Unmarshal(data, &varOCRUsageInfo)
 
 	if err != nil {
 		return err
 	}
 
 	*o = OCRUsageInfo(varOCRUsageInfo)
+
+	additionalProperties := make(map[string]interface{})
+
+	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "doc_size_bytes")
+		delete(additionalProperties, "pages_processed")
+		o.AdditionalProperties = additionalProperties
+	}
 
 	return err
 }

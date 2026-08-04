@@ -50,7 +50,7 @@ type Model struct {
 	PromptTextTokenPrice NullableInt64 `json:"prompt_text_token_price,omitempty"`
 	// Price of the prompt text token for long context requests (USD cents per 100 million tokens).
 	PromptTextTokenPriceLongContext NullableInt64 `json:"prompt_text_token_price_long_context,omitempty"`
-	AdditionalProperties            map[string]interface{}
+	AdditionalProperties map[string]interface{}
 }
 
 type _Model Model
@@ -133,7 +133,6 @@ func (o *Model) HasCachedPromptTextTokenPrice() bool {
 func (o *Model) SetCachedPromptTextTokenPrice(v int64) {
 	o.CachedPromptTextTokenPrice.Set(&v)
 }
-
 // SetCachedPromptTextTokenPriceNil sets the value for CachedPromptTextTokenPrice to be an explicit nil
 func (o *Model) SetCachedPromptTextTokenPriceNil() {
 	o.CachedPromptTextTokenPrice.Set(nil)
@@ -176,7 +175,6 @@ func (o *Model) HasCachedPromptTextTokenPriceLongContext() bool {
 func (o *Model) SetCachedPromptTextTokenPriceLongContext(v int64) {
 	o.CachedPromptTextTokenPriceLongContext.Set(&v)
 }
-
 // SetCachedPromptTextTokenPriceLongContextNil sets the value for CachedPromptTextTokenPriceLongContext to be an explicit nil
 func (o *Model) SetCachedPromptTextTokenPriceLongContextNil() {
 	o.CachedPromptTextTokenPriceLongContext.Set(nil)
@@ -219,7 +217,6 @@ func (o *Model) HasCompletionTextTokenPrice() bool {
 func (o *Model) SetCompletionTextTokenPrice(v int64) {
 	o.CompletionTextTokenPrice.Set(&v)
 }
-
 // SetCompletionTextTokenPriceNil sets the value for CompletionTextTokenPrice to be an explicit nil
 func (o *Model) SetCompletionTextTokenPriceNil() {
 	o.CompletionTextTokenPrice.Set(nil)
@@ -262,7 +259,6 @@ func (o *Model) HasCompletionTextTokenPriceLongContext() bool {
 func (o *Model) SetCompletionTextTokenPriceLongContext(v int64) {
 	o.CompletionTextTokenPriceLongContext.Set(&v)
 }
-
 // SetCompletionTextTokenPriceLongContextNil sets the value for CompletionTextTokenPriceLongContext to be an explicit nil
 func (o *Model) SetCompletionTextTokenPriceLongContextNil() {
 	o.CompletionTextTokenPriceLongContext.Set(nil)
@@ -305,7 +301,6 @@ func (o *Model) HasContextLength() bool {
 func (o *Model) SetContextLength(v int64) {
 	o.ContextLength.Set(&v)
 }
-
 // SetContextLengthNil sets the value for ContextLength to be an explicit nil
 func (o *Model) SetContextLengthNil() {
 	o.ContextLength.Set(nil)
@@ -396,7 +391,6 @@ func (o *Model) HasImagePrice() bool {
 func (o *Model) SetImagePrice(v int64) {
 	o.ImagePrice.Set(&v)
 }
-
 // SetImagePriceNil sets the value for ImagePrice to be an explicit nil
 func (o *Model) SetImagePriceNil() {
 	o.ImagePrice.Set(nil)
@@ -439,7 +433,6 @@ func (o *Model) HasLongContextThreshold() bool {
 func (o *Model) SetLongContextThreshold(v int64) {
 	o.LongContextThreshold.Set(&v)
 }
-
 // SetLongContextThresholdNil sets the value for LongContextThreshold to be an explicit nil
 func (o *Model) SetLongContextThresholdNil() {
 	o.LongContextThreshold.Set(nil)
@@ -530,7 +523,6 @@ func (o *Model) HasPromptImageTokenPrice() bool {
 func (o *Model) SetPromptImageTokenPrice(v int64) {
 	o.PromptImageTokenPrice.Set(&v)
 }
-
 // SetPromptImageTokenPriceNil sets the value for PromptImageTokenPrice to be an explicit nil
 func (o *Model) SetPromptImageTokenPriceNil() {
 	o.PromptImageTokenPrice.Set(nil)
@@ -573,7 +565,6 @@ func (o *Model) HasPromptTextTokenPrice() bool {
 func (o *Model) SetPromptTextTokenPrice(v int64) {
 	o.PromptTextTokenPrice.Set(&v)
 }
-
 // SetPromptTextTokenPriceNil sets the value for PromptTextTokenPrice to be an explicit nil
 func (o *Model) SetPromptTextTokenPriceNil() {
 	o.PromptTextTokenPrice.Set(nil)
@@ -616,7 +607,6 @@ func (o *Model) HasPromptTextTokenPriceLongContext() bool {
 func (o *Model) SetPromptTextTokenPriceLongContext(v int64) {
 	o.PromptTextTokenPriceLongContext.Set(&v)
 }
-
 // SetPromptTextTokenPriceLongContextNil sets the value for PromptTextTokenPriceLongContext to be an explicit nil
 func (o *Model) SetPromptTextTokenPriceLongContextNil() {
 	o.PromptTextTokenPriceLongContext.Set(nil)
@@ -628,7 +618,7 @@ func (o *Model) UnsetPromptTextTokenPriceLongContext() {
 }
 
 func (o Model) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -697,10 +687,10 @@ func (o *Model) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

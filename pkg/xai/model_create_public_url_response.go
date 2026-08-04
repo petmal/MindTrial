@@ -23,7 +23,7 @@ type CreatePublicUrlResponse struct {
 	// Unix timestamp (seconds) when the public URL expires. Present when the public URL has an expiry, either from an explicit `expires_after` in the request or inherited from the file's TTL. Absent when the public URL is valid indefinitely.
 	ExpiresAt NullableInt64 `json:"expires_at,omitempty"`
 	// The full public URL.
-	PublicUrl            string `json:"public_url"`
+	PublicUrl string `json:"public_url"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -79,7 +79,6 @@ func (o *CreatePublicUrlResponse) HasExpiresAt() bool {
 func (o *CreatePublicUrlResponse) SetExpiresAt(v int64) {
 	o.ExpiresAt.Set(&v)
 }
-
 // SetExpiresAtNil sets the value for ExpiresAt to be an explicit nil
 func (o *CreatePublicUrlResponse) SetExpiresAtNil() {
 	o.ExpiresAt.Set(nil)
@@ -115,7 +114,7 @@ func (o *CreatePublicUrlResponse) SetPublicUrl(v string) {
 }
 
 func (o CreatePublicUrlResponse) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -149,10 +148,10 @@ func (o *CreatePublicUrlResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

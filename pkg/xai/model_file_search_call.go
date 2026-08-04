@@ -29,7 +29,7 @@ type FileSearchCall struct {
 	// The status of the file search tool call.
 	Status *string `json:"status,omitempty"`
 	// The type of the file search tool call. Always `file_search_call`.
-	Type                 string `json:"type"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -192,7 +192,7 @@ func (o *FileSearchCall) SetType(v string) {
 }
 
 func (o FileSearchCall) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -233,10 +233,10 @@ func (o *FileSearchCall) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

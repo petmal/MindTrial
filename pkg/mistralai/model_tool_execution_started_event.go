@@ -11,10 +11,10 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"time"
+	"bytes"
+	"fmt"
 )
 
 // checks if the ToolExecutionStartedEvent type satisfies the MappedNullable interface at compile time
@@ -22,12 +22,14 @@ var _ MappedNullable = &ToolExecutionStartedEvent{}
 
 // ToolExecutionStartedEvent struct for ToolExecutionStartedEvent
 type ToolExecutionStartedEvent struct {
-	Type        *string    `json:"type,omitempty"`
-	CreatedAt   *time.Time `json:"created_at,omitempty"`
-	OutputIndex *int32     `json:"output_index,omitempty"`
-	Id          string     `json:"id"`
-	Name        Name       `json:"name"`
-	Arguments   string     `json:"arguments"`
+	AgentId NullableString `json:"agent_id,omitempty"`
+	Arguments string `json:"arguments"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	Id string `json:"id"`
+	Model NullableString `json:"model,omitempty"`
+	Name Name `json:"name"`
+	OutputIndex *int32 `json:"output_index,omitempty"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _ToolExecutionStartedEvent ToolExecutionStartedEvent
@@ -36,15 +38,15 @@ type _ToolExecutionStartedEvent ToolExecutionStartedEvent
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewToolExecutionStartedEvent(id string, name Name, arguments string) *ToolExecutionStartedEvent {
+func NewToolExecutionStartedEvent(arguments string, id string, name Name) *ToolExecutionStartedEvent {
 	this := ToolExecutionStartedEvent{}
-	var type_ string = "tool.execution.started"
-	this.Type = &type_
-	var outputIndex int32 = 0
-	this.OutputIndex = &outputIndex
+	this.Arguments = arguments
 	this.Id = id
 	this.Name = name
-	this.Arguments = arguments
+	var outputIndex int32 = 0
+	this.OutputIndex = &outputIndex
+	var type_ string = "tool.execution.started"
+	this.Type = &type_
 	return &this
 }
 
@@ -53,43 +55,77 @@ func NewToolExecutionStartedEvent(id string, name Name, arguments string) *ToolE
 // but it doesn't guarantee that properties required by API are set
 func NewToolExecutionStartedEventWithDefaults() *ToolExecutionStartedEvent {
 	this := ToolExecutionStartedEvent{}
-	var type_ string = "tool.execution.started"
-	this.Type = &type_
 	var outputIndex int32 = 0
 	this.OutputIndex = &outputIndex
+	var type_ string = "tool.execution.started"
+	this.Type = &type_
 	return &this
 }
 
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *ToolExecutionStartedEvent) GetType() string {
-	if o == nil || IsNil(o.Type) {
+// GetAgentId returns the AgentId field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ToolExecutionStartedEvent) GetAgentId() string {
+	if o == nil || IsNil(o.AgentId.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.Type
+	return *o.AgentId.Get()
 }
 
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
+// GetAgentIdOk returns a tuple with the AgentId field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ToolExecutionStartedEvent) GetTypeOk() (*string, bool) {
-	if o == nil || IsNil(o.Type) {
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ToolExecutionStartedEvent) GetAgentIdOk() (*string, bool) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Type, true
+	return o.AgentId.Get(), o.AgentId.IsSet()
 }
 
-// HasType returns a boolean if a field has been set.
-func (o *ToolExecutionStartedEvent) HasType() bool {
-	if o != nil && !IsNil(o.Type) {
+// HasAgentId returns a boolean if a field has been set.
+func (o *ToolExecutionStartedEvent) HasAgentId() bool {
+	if o != nil && o.AgentId.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetType gets a reference to the given string and assigns it to the Type field.
-func (o *ToolExecutionStartedEvent) SetType(v string) {
-	o.Type = &v
+// SetAgentId gets a reference to the given NullableString and assigns it to the AgentId field.
+func (o *ToolExecutionStartedEvent) SetAgentId(v string) {
+	o.AgentId.Set(&v)
+}
+// SetAgentIdNil sets the value for AgentId to be an explicit nil
+func (o *ToolExecutionStartedEvent) SetAgentIdNil() {
+	o.AgentId.Set(nil)
+}
+
+// UnsetAgentId ensures that no value is present for AgentId, not even an explicit nil
+func (o *ToolExecutionStartedEvent) UnsetAgentId() {
+	o.AgentId.Unset()
+}
+
+// GetArguments returns the Arguments field value
+func (o *ToolExecutionStartedEvent) GetArguments() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Arguments
+}
+
+// GetArgumentsOk returns a tuple with the Arguments field value
+// and a boolean to check if the value has been set.
+func (o *ToolExecutionStartedEvent) GetArgumentsOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Arguments, true
+}
+
+// SetArguments sets field value
+func (o *ToolExecutionStartedEvent) SetArguments(v string) {
+	o.Arguments = v
 }
 
 // GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
@@ -124,6 +160,96 @@ func (o *ToolExecutionStartedEvent) SetCreatedAt(v time.Time) {
 	o.CreatedAt = &v
 }
 
+// GetId returns the Id field value
+func (o *ToolExecutionStartedEvent) GetId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Id
+}
+
+// GetIdOk returns a tuple with the Id field value
+// and a boolean to check if the value has been set.
+func (o *ToolExecutionStartedEvent) GetIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Id, true
+}
+
+// SetId sets field value
+func (o *ToolExecutionStartedEvent) SetId(v string) {
+	o.Id = v
+}
+
+// GetModel returns the Model field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ToolExecutionStartedEvent) GetModel() string {
+	if o == nil || IsNil(o.Model.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Model.Get()
+}
+
+// GetModelOk returns a tuple with the Model field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ToolExecutionStartedEvent) GetModelOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Model.Get(), o.Model.IsSet()
+}
+
+// HasModel returns a boolean if a field has been set.
+func (o *ToolExecutionStartedEvent) HasModel() bool {
+	if o != nil && o.Model.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetModel gets a reference to the given NullableString and assigns it to the Model field.
+func (o *ToolExecutionStartedEvent) SetModel(v string) {
+	o.Model.Set(&v)
+}
+// SetModelNil sets the value for Model to be an explicit nil
+func (o *ToolExecutionStartedEvent) SetModelNil() {
+	o.Model.Set(nil)
+}
+
+// UnsetModel ensures that no value is present for Model, not even an explicit nil
+func (o *ToolExecutionStartedEvent) UnsetModel() {
+	o.Model.Unset()
+}
+
+// GetName returns the Name field value
+func (o *ToolExecutionStartedEvent) GetName() Name {
+	if o == nil {
+		var ret Name
+		return ret
+	}
+
+	return o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value
+// and a boolean to check if the value has been set.
+func (o *ToolExecutionStartedEvent) GetNameOk() (*Name, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Name, true
+}
+
+// SetName sets field value
+func (o *ToolExecutionStartedEvent) SetName(v Name) {
+	o.Name = v
+}
+
 // GetOutputIndex returns the OutputIndex field value if set, zero value otherwise.
 func (o *ToolExecutionStartedEvent) GetOutputIndex() int32 {
 	if o == nil || IsNil(o.OutputIndex) {
@@ -156,80 +282,40 @@ func (o *ToolExecutionStartedEvent) SetOutputIndex(v int32) {
 	o.OutputIndex = &v
 }
 
-// GetId returns the Id field value
-func (o *ToolExecutionStartedEvent) GetId() string {
-	if o == nil {
+// GetType returns the Type field value if set, zero value otherwise.
+func (o *ToolExecutionStartedEvent) GetType() string {
+	if o == nil || IsNil(o.Type) {
 		var ret string
 		return ret
 	}
-
-	return o.Id
+	return *o.Type
 }
 
-// GetIdOk returns a tuple with the Id field value
+// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ToolExecutionStartedEvent) GetIdOk() (*string, bool) {
-	if o == nil {
+func (o *ToolExecutionStartedEvent) GetTypeOk() (*string, bool) {
+	if o == nil || IsNil(o.Type) {
 		return nil, false
 	}
-	return &o.Id, true
+	return o.Type, true
 }
 
-// SetId sets field value
-func (o *ToolExecutionStartedEvent) SetId(v string) {
-	o.Id = v
-}
-
-// GetName returns the Name field value
-func (o *ToolExecutionStartedEvent) GetName() Name {
-	if o == nil {
-		var ret Name
-		return ret
+// HasType returns a boolean if a field has been set.
+func (o *ToolExecutionStartedEvent) HasType() bool {
+	if o != nil && !IsNil(o.Type) {
+		return true
 	}
 
-	return o.Name
+	return false
 }
 
-// GetNameOk returns a tuple with the Name field value
-// and a boolean to check if the value has been set.
-func (o *ToolExecutionStartedEvent) GetNameOk() (*Name, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Name, true
-}
-
-// SetName sets field value
-func (o *ToolExecutionStartedEvent) SetName(v Name) {
-	o.Name = v
-}
-
-// GetArguments returns the Arguments field value
-func (o *ToolExecutionStartedEvent) GetArguments() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Arguments
-}
-
-// GetArgumentsOk returns a tuple with the Arguments field value
-// and a boolean to check if the value has been set.
-func (o *ToolExecutionStartedEvent) GetArgumentsOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Arguments, true
-}
-
-// SetArguments sets field value
-func (o *ToolExecutionStartedEvent) SetArguments(v string) {
-	o.Arguments = v
+// SetType gets a reference to the given string and assigns it to the Type field.
+func (o *ToolExecutionStartedEvent) SetType(v string) {
+	o.Type = &v
 }
 
 func (o ToolExecutionStartedEvent) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -238,18 +324,24 @@ func (o ToolExecutionStartedEvent) MarshalJSON() ([]byte, error) {
 
 func (o ToolExecutionStartedEvent) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Type) {
-		toSerialize["type"] = o.Type
+	if o.AgentId.IsSet() {
+		toSerialize["agent_id"] = o.AgentId.Get()
 	}
+	toSerialize["arguments"] = o.Arguments
 	if !IsNil(o.CreatedAt) {
 		toSerialize["created_at"] = o.CreatedAt
 	}
+	toSerialize["id"] = o.Id
+	if o.Model.IsSet() {
+		toSerialize["model"] = o.Model.Get()
+	}
+	toSerialize["name"] = o.Name
 	if !IsNil(o.OutputIndex) {
 		toSerialize["output_index"] = o.OutputIndex
 	}
-	toSerialize["id"] = o.Id
-	toSerialize["name"] = o.Name
-	toSerialize["arguments"] = o.Arguments
+	if !IsNil(o.Type) {
+		toSerialize["type"] = o.Type
+	}
 	return toSerialize, nil
 }
 
@@ -258,9 +350,9 @@ func (o *ToolExecutionStartedEvent) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
+		"arguments",
 		"id",
 		"name",
-		"arguments",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -268,10 +360,10 @@ func (o *ToolExecutionStartedEvent) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

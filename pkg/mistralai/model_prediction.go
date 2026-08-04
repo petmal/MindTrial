@@ -19,8 +19,8 @@ var _ MappedNullable = &Prediction{}
 
 // Prediction Enable users to specify an expected completion, optimizing response times by leveraging known or predictable content.
 type Prediction struct {
-	Type    *string `json:"type,omitempty"`
 	Content *string `json:"content,omitempty"`
+	Type *string `json:"type,omitempty"`
 }
 
 // NewPrediction instantiates a new Prediction object
@@ -29,10 +29,10 @@ type Prediction struct {
 // will change when the set of required properties is changed
 func NewPrediction() *Prediction {
 	this := Prediction{}
-	var type_ string = "content"
-	this.Type = &type_
 	var content string = ""
 	this.Content = &content
+	var type_ string = "content"
+	this.Type = &type_
 	return &this
 }
 
@@ -41,43 +41,11 @@ func NewPrediction() *Prediction {
 // but it doesn't guarantee that properties required by API are set
 func NewPredictionWithDefaults() *Prediction {
 	this := Prediction{}
-	var type_ string = "content"
-	this.Type = &type_
 	var content string = ""
 	this.Content = &content
+	var type_ string = "content"
+	this.Type = &type_
 	return &this
-}
-
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *Prediction) GetType() string {
-	if o == nil || IsNil(o.Type) {
-		var ret string
-		return ret
-	}
-	return *o.Type
-}
-
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *Prediction) GetTypeOk() (*string, bool) {
-	if o == nil || IsNil(o.Type) {
-		return nil, false
-	}
-	return o.Type, true
-}
-
-// HasType returns a boolean if a field has been set.
-func (o *Prediction) HasType() bool {
-	if o != nil && !IsNil(o.Type) {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given string and assigns it to the Type field.
-func (o *Prediction) SetType(v string) {
-	o.Type = &v
 }
 
 // GetContent returns the Content field value if set, zero value otherwise.
@@ -112,8 +80,40 @@ func (o *Prediction) SetContent(v string) {
 	o.Content = &v
 }
 
+// GetType returns the Type field value if set, zero value otherwise.
+func (o *Prediction) GetType() string {
+	if o == nil || IsNil(o.Type) {
+		var ret string
+		return ret
+	}
+	return *o.Type
+}
+
+// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *Prediction) GetTypeOk() (*string, bool) {
+	if o == nil || IsNil(o.Type) {
+		return nil, false
+	}
+	return o.Type, true
+}
+
+// HasType returns a boolean if a field has been set.
+func (o *Prediction) HasType() bool {
+	if o != nil && !IsNil(o.Type) {
+		return true
+	}
+
+	return false
+}
+
+// SetType gets a reference to the given string and assigns it to the Type field.
+func (o *Prediction) SetType(v string) {
+	o.Type = &v
+}
+
 func (o Prediction) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -122,11 +122,11 @@ func (o Prediction) MarshalJSON() ([]byte, error) {
 
 func (o Prediction) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Type) {
-		toSerialize["type"] = o.Type
-	}
 	if !IsNil(o.Content) {
 		toSerialize["content"] = o.Content
+	}
+	if !IsNil(o.Type) {
+		toSerialize["type"] = o.Type
 	}
 	return toSerialize, nil
 }

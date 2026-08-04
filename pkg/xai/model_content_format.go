@@ -21,7 +21,7 @@ type ContentFormat string
 // List of ContentFormat
 const (
 	CONTENTFORMAT_ORIGINAL ContentFormat = "original"
-	CONTENTFORMAT_TEXT     ContentFormat = "text"
+	CONTENTFORMAT_TEXT ContentFormat = "text"
 )
 
 // All allowed values of ContentFormat enum

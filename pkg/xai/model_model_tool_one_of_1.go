@@ -35,8 +35,8 @@ type ModelToolOneOf1 struct {
 	// List of website domains to exclude from the search results without protocol specification or subdomains. A maximum of 5 websites can be excluded.  Note: This parameter cannot be set with `allowed_domains`
 	ExcludedDomains []string `json:"excluded_domains,omitempty"`
 	// Control whether the web search tool fetches live content or uses only cached content. For OpenAI API compatibility ONLY. Request will be rejected if this field is set.
-	ExternalWebAccess    NullableBool `json:"external_web_access,omitempty"`
-	Type                 string       `json:"type"`
+	ExternalWebAccess NullableBool `json:"external_web_access,omitempty"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -92,7 +92,6 @@ func (o *ModelToolOneOf1) HasFilters() bool {
 func (o *ModelToolOneOf1) SetFilters(v WebSearchFilters) {
 	o.Filters.Set(&v)
 }
-
 // SetFiltersNil sets the value for Filters to be an explicit nil
 func (o *ModelToolOneOf1) SetFiltersNil() {
 	o.Filters.Set(nil)
@@ -135,7 +134,6 @@ func (o *ModelToolOneOf1) HasSearchContextSize() bool {
 func (o *ModelToolOneOf1) SetSearchContextSize(v string) {
 	o.SearchContextSize.Set(&v)
 }
-
 // SetSearchContextSizeNil sets the value for SearchContextSize to be an explicit nil
 func (o *ModelToolOneOf1) SetSearchContextSizeNil() {
 	o.SearchContextSize.Set(nil)
@@ -178,7 +176,6 @@ func (o *ModelToolOneOf1) HasUserLocation() bool {
 func (o *ModelToolOneOf1) SetUserLocation(v WebSearchUserLocation) {
 	o.UserLocation.Set(&v)
 }
-
 // SetUserLocationNil sets the value for UserLocation to be an explicit nil
 func (o *ModelToolOneOf1) SetUserLocationNil() {
 	o.UserLocation.Set(nil)
@@ -254,7 +251,6 @@ func (o *ModelToolOneOf1) HasEnableImageSearch() bool {
 func (o *ModelToolOneOf1) SetEnableImageSearch(v bool) {
 	o.EnableImageSearch.Set(&v)
 }
-
 // SetEnableImageSearchNil sets the value for EnableImageSearch to be an explicit nil
 func (o *ModelToolOneOf1) SetEnableImageSearchNil() {
 	o.EnableImageSearch.Set(nil)
@@ -297,7 +293,6 @@ func (o *ModelToolOneOf1) HasEnableImageUnderstanding() bool {
 func (o *ModelToolOneOf1) SetEnableImageUnderstanding(v bool) {
 	o.EnableImageUnderstanding.Set(&v)
 }
-
 // SetEnableImageUnderstandingNil sets the value for EnableImageUnderstanding to be an explicit nil
 func (o *ModelToolOneOf1) SetEnableImageUnderstandingNil() {
 	o.EnableImageUnderstanding.Set(nil)
@@ -373,7 +368,6 @@ func (o *ModelToolOneOf1) HasExternalWebAccess() bool {
 func (o *ModelToolOneOf1) SetExternalWebAccess(v bool) {
 	o.ExternalWebAccess.Set(&v)
 }
-
 // SetExternalWebAccessNil sets the value for ExternalWebAccess to be an explicit nil
 func (o *ModelToolOneOf1) SetExternalWebAccessNil() {
 	o.ExternalWebAccess.Set(nil)
@@ -409,7 +403,7 @@ func (o *ModelToolOneOf1) SetType(v string) {
 }
 
 func (o ModelToolOneOf1) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -464,10 +458,10 @@ func (o *ModelToolOneOf1) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

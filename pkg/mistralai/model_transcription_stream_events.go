@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,8 +21,8 @@ var _ MappedNullable = &TranscriptionStreamEvents{}
 
 // TranscriptionStreamEvents struct for TranscriptionStreamEvents
 type TranscriptionStreamEvents struct {
+	Data Data2 `json:"data"`
 	Event TranscriptionStreamEventTypes `json:"event"`
-	Data  Data1                         `json:"data"`
 }
 
 type _TranscriptionStreamEvents TranscriptionStreamEvents
@@ -31,10 +31,10 @@ type _TranscriptionStreamEvents TranscriptionStreamEvents
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewTranscriptionStreamEvents(event TranscriptionStreamEventTypes, data Data1) *TranscriptionStreamEvents {
+func NewTranscriptionStreamEvents(data Data2, event TranscriptionStreamEventTypes) *TranscriptionStreamEvents {
 	this := TranscriptionStreamEvents{}
-	this.Event = event
 	this.Data = data
+	this.Event = event
 	return &this
 }
 
@@ -44,6 +44,30 @@ func NewTranscriptionStreamEvents(event TranscriptionStreamEventTypes, data Data
 func NewTranscriptionStreamEventsWithDefaults() *TranscriptionStreamEvents {
 	this := TranscriptionStreamEvents{}
 	return &this
+}
+
+// GetData returns the Data field value
+func (o *TranscriptionStreamEvents) GetData() Data2 {
+	if o == nil {
+		var ret Data2
+		return ret
+	}
+
+	return o.Data
+}
+
+// GetDataOk returns a tuple with the Data field value
+// and a boolean to check if the value has been set.
+func (o *TranscriptionStreamEvents) GetDataOk() (*Data2, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Data, true
+}
+
+// SetData sets field value
+func (o *TranscriptionStreamEvents) SetData(v Data2) {
+	o.Data = v
 }
 
 // GetEvent returns the Event field value
@@ -70,32 +94,8 @@ func (o *TranscriptionStreamEvents) SetEvent(v TranscriptionStreamEventTypes) {
 	o.Event = v
 }
 
-// GetData returns the Data field value
-func (o *TranscriptionStreamEvents) GetData() Data1 {
-	if o == nil {
-		var ret Data1
-		return ret
-	}
-
-	return o.Data
-}
-
-// GetDataOk returns a tuple with the Data field value
-// and a boolean to check if the value has been set.
-func (o *TranscriptionStreamEvents) GetDataOk() (*Data1, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Data, true
-}
-
-// SetData sets field value
-func (o *TranscriptionStreamEvents) SetData(v Data1) {
-	o.Data = v
-}
-
 func (o TranscriptionStreamEvents) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -104,8 +104,8 @@ func (o TranscriptionStreamEvents) MarshalJSON() ([]byte, error) {
 
 func (o TranscriptionStreamEvents) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["event"] = o.Event
 	toSerialize["data"] = o.Data
+	toSerialize["event"] = o.Event
 	return toSerialize, nil
 }
 
@@ -114,8 +114,8 @@ func (o *TranscriptionStreamEvents) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"event",
 		"data",
+		"event",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -123,10 +123,10 @@ func (o *TranscriptionStreamEvents) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

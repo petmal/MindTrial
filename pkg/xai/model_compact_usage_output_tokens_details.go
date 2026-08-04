@@ -21,7 +21,7 @@ var _ MappedNullable = &CompactUsageOutputTokensDetails{}
 // CompactUsageOutputTokensDetails Breakdown of output tokens for a compaction call.
 type CompactUsageOutputTokensDetails struct {
 	// Number of reasoning tokens generated during compaction.
-	ReasoningTokens      int32 `json:"reasoning_tokens"`
+	ReasoningTokens int32 `json:"reasoning_tokens"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -70,7 +70,7 @@ func (o *CompactUsageOutputTokensDetails) SetReasoningTokens(v int32) {
 }
 
 func (o CompactUsageOutputTokensDetails) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -101,10 +101,10 @@ func (o *CompactUsageOutputTokensDetails) UnmarshalJSON(data []byte) (err error)
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

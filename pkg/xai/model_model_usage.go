@@ -41,7 +41,7 @@ type ModelUsage struct {
 	// Details about the server side tool usage.
 	ServerSideToolUsageDetails NullableServerSideToolUsageDetails `json:"server_side_tool_usage_details,omitempty"`
 	// Total tokens used.
-	TotalTokens          int32 `json:"total_tokens"`
+	TotalTokens int32 `json:"total_tokens"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -103,7 +103,6 @@ func (o *ModelUsage) HasContextDetails() bool {
 func (o *ModelUsage) SetContextDetails(v ContextDetails) {
 	o.ContextDetails.Set(&v)
 }
-
 // SetContextDetailsNil sets the value for ContextDetails to be an explicit nil
 func (o *ModelUsage) SetContextDetailsNil() {
 	o.ContextDetails.Set(nil)
@@ -146,7 +145,6 @@ func (o *ModelUsage) HasCostInNanoUsd() bool {
 func (o *ModelUsage) SetCostInNanoUsd(v int64) {
 	o.CostInNanoUsd.Set(&v)
 }
-
 // SetCostInNanoUsdNil sets the value for CostInNanoUsd to be an explicit nil
 func (o *ModelUsage) SetCostInNanoUsdNil() {
 	o.CostInNanoUsd.Set(nil)
@@ -189,7 +187,6 @@ func (o *ModelUsage) HasCostInUsdTicks() bool {
 func (o *ModelUsage) SetCostInUsdTicks(v int64) {
 	o.CostInUsdTicks.Set(&v)
 }
-
 // SetCostInUsdTicksNil sets the value for CostInUsdTicks to be an explicit nil
 func (o *ModelUsage) SetCostInUsdTicksNil() {
 	o.CostInUsdTicks.Set(nil)
@@ -376,7 +373,6 @@ func (o *ModelUsage) HasServerSideToolUsageDetails() bool {
 func (o *ModelUsage) SetServerSideToolUsageDetails(v ServerSideToolUsageDetails) {
 	o.ServerSideToolUsageDetails.Set(&v)
 }
-
 // SetServerSideToolUsageDetailsNil sets the value for ServerSideToolUsageDetails to be an explicit nil
 func (o *ModelUsage) SetServerSideToolUsageDetailsNil() {
 	o.ServerSideToolUsageDetails.Set(nil)
@@ -412,7 +408,7 @@ func (o *ModelUsage) SetTotalTokens(v int32) {
 }
 
 func (o ModelUsage) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -467,10 +463,10 @@ func (o *ModelUsage) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

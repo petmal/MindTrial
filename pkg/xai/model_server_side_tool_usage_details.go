@@ -26,12 +26,14 @@ type ServerSideToolUsageDetails struct {
 	DocumentSearchCalls int32 `json:"document_search_calls"`
 	// Number of file search calls.
 	FileSearchCalls int32 `json:"file_search_calls"`
+	// Number of image generation calls.
+	ImageGenerationCalls int32 `json:"image_generation_calls"`
 	// Number of MCP calls.
 	McpCalls int32 `json:"mcp_calls"`
 	// Number of web search calls.
 	WebSearchCalls int32 `json:"web_search_calls"`
 	// Number of X search calls.
-	XSearchCalls         int32 `json:"x_search_calls"`
+	XSearchCalls int32 `json:"x_search_calls"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -41,11 +43,12 @@ type _ServerSideToolUsageDetails ServerSideToolUsageDetails
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewServerSideToolUsageDetails(codeInterpreterCalls int32, documentSearchCalls int32, fileSearchCalls int32, mcpCalls int32, webSearchCalls int32, xSearchCalls int32) *ServerSideToolUsageDetails {
+func NewServerSideToolUsageDetails(codeInterpreterCalls int32, documentSearchCalls int32, fileSearchCalls int32, imageGenerationCalls int32, mcpCalls int32, webSearchCalls int32, xSearchCalls int32) *ServerSideToolUsageDetails {
 	this := ServerSideToolUsageDetails{}
 	this.CodeInterpreterCalls = codeInterpreterCalls
 	this.DocumentSearchCalls = documentSearchCalls
 	this.FileSearchCalls = fileSearchCalls
+	this.ImageGenerationCalls = imageGenerationCalls
 	this.McpCalls = mcpCalls
 	this.WebSearchCalls = webSearchCalls
 	this.XSearchCalls = xSearchCalls
@@ -132,6 +135,30 @@ func (o *ServerSideToolUsageDetails) SetFileSearchCalls(v int32) {
 	o.FileSearchCalls = v
 }
 
+// GetImageGenerationCalls returns the ImageGenerationCalls field value
+func (o *ServerSideToolUsageDetails) GetImageGenerationCalls() int32 {
+	if o == nil {
+		var ret int32
+		return ret
+	}
+
+	return o.ImageGenerationCalls
+}
+
+// GetImageGenerationCallsOk returns a tuple with the ImageGenerationCalls field value
+// and a boolean to check if the value has been set.
+func (o *ServerSideToolUsageDetails) GetImageGenerationCallsOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.ImageGenerationCalls, true
+}
+
+// SetImageGenerationCalls sets field value
+func (o *ServerSideToolUsageDetails) SetImageGenerationCalls(v int32) {
+	o.ImageGenerationCalls = v
+}
+
 // GetMcpCalls returns the McpCalls field value
 func (o *ServerSideToolUsageDetails) GetMcpCalls() int32 {
 	if o == nil {
@@ -205,7 +232,7 @@ func (o *ServerSideToolUsageDetails) SetXSearchCalls(v int32) {
 }
 
 func (o ServerSideToolUsageDetails) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -217,6 +244,7 @@ func (o ServerSideToolUsageDetails) ToMap() (map[string]interface{}, error) {
 	toSerialize["code_interpreter_calls"] = o.CodeInterpreterCalls
 	toSerialize["document_search_calls"] = o.DocumentSearchCalls
 	toSerialize["file_search_calls"] = o.FileSearchCalls
+	toSerialize["image_generation_calls"] = o.ImageGenerationCalls
 	toSerialize["mcp_calls"] = o.McpCalls
 	toSerialize["web_search_calls"] = o.WebSearchCalls
 	toSerialize["x_search_calls"] = o.XSearchCalls
@@ -236,6 +264,7 @@ func (o *ServerSideToolUsageDetails) UnmarshalJSON(data []byte) (err error) {
 		"code_interpreter_calls",
 		"document_search_calls",
 		"file_search_calls",
+		"image_generation_calls",
 		"mcp_calls",
 		"web_search_calls",
 		"x_search_calls",
@@ -246,10 +275,10 @@ func (o *ServerSideToolUsageDetails) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -271,6 +300,7 @@ func (o *ServerSideToolUsageDetails) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "code_interpreter_calls")
 		delete(additionalProperties, "document_search_calls")
 		delete(additionalProperties, "file_search_calls")
+		delete(additionalProperties, "image_generation_calls")
 		delete(additionalProperties, "mcp_calls")
 		delete(additionalProperties, "web_search_calls")
 		delete(additionalProperties, "x_search_calls")

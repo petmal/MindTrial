@@ -27,7 +27,7 @@ type FileSearchResult struct {
 	// The score of the file search result. Proto3 omits float fields with value 0.0; default to 0.0 when absent.
 	Score *float64 `json:"score,omitempty"`
 	// The text of the file search result.
-	Text                 string `json:"text"`
+	Text string `json:"text"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -158,7 +158,7 @@ func (o *FileSearchResult) SetText(v string) {
 }
 
 func (o FileSearchResult) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -196,10 +196,10 @@ func (o *FileSearchResult) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

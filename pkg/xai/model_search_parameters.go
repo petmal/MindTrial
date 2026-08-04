@@ -30,7 +30,7 @@ type SearchParameters struct {
 	// List of sources to search in. If no sources specified, the model will look over the web and X by default.
 	Sources []SearchSource `json:"sources,omitempty"`
 	// Date up to which to consider the results in ISO-8601 YYYY-MM-DD. See <https://en.wikipedia.org/wiki/ISO_8601>.
-	ToDate               NullableString `json:"to_date,omitempty"`
+	ToDate NullableString `json:"to_date,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -97,7 +97,6 @@ func (o *SearchParameters) HasFromDate() bool {
 func (o *SearchParameters) SetFromDate(v string) {
 	o.FromDate.Set(&v)
 }
-
 // SetFromDateNil sets the value for FromDate to be an explicit nil
 func (o *SearchParameters) SetFromDateNil() {
 	o.FromDate.Set(nil)
@@ -140,7 +139,6 @@ func (o *SearchParameters) HasMaxSearchResults() bool {
 func (o *SearchParameters) SetMaxSearchResults(v int32) {
 	o.MaxSearchResults.Set(&v)
 }
-
 // SetMaxSearchResultsNil sets the value for MaxSearchResults to be an explicit nil
 func (o *SearchParameters) SetMaxSearchResultsNil() {
 	o.MaxSearchResults.Set(nil)
@@ -183,7 +181,6 @@ func (o *SearchParameters) HasMode() bool {
 func (o *SearchParameters) SetMode(v string) {
 	o.Mode.Set(&v)
 }
-
 // SetModeNil sets the value for Mode to be an explicit nil
 func (o *SearchParameters) SetModeNil() {
 	o.Mode.Set(nil)
@@ -226,7 +223,6 @@ func (o *SearchParameters) HasReturnCitations() bool {
 func (o *SearchParameters) SetReturnCitations(v bool) {
 	o.ReturnCitations.Set(&v)
 }
-
 // SetReturnCitationsNil sets the value for ReturnCitations to be an explicit nil
 func (o *SearchParameters) SetReturnCitationsNil() {
 	o.ReturnCitations.Set(nil)
@@ -302,7 +298,6 @@ func (o *SearchParameters) HasToDate() bool {
 func (o *SearchParameters) SetToDate(v string) {
 	o.ToDate.Set(&v)
 }
-
 // SetToDateNil sets the value for ToDate to be an explicit nil
 func (o *SearchParameters) SetToDateNil() {
 	o.ToDate.Set(nil)
@@ -314,7 +309,7 @@ func (o *SearchParameters) UnsetToDate() {
 }
 
 func (o SearchParameters) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

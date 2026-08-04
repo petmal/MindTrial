@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,8 +21,8 @@ var _ MappedNullable = &TranscriptionStreamLanguage{}
 
 // TranscriptionStreamLanguage struct for TranscriptionStreamLanguage
 type TranscriptionStreamLanguage struct {
-	AudioLanguage string  `json:"audio_language" validate:"regexp=^\\\\w{2}$"`
-	Type          *string `json:"type,omitempty"`
+	AudioLanguage string `json:"audio_language" validate:"regexp=^\\w{2}$"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _TranscriptionStreamLanguage TranscriptionStreamLanguage
@@ -106,7 +106,7 @@ func (o *TranscriptionStreamLanguage) SetType(v string) {
 }
 
 func (o TranscriptionStreamLanguage) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -135,10 +135,10 @@ func (o *TranscriptionStreamLanguage) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

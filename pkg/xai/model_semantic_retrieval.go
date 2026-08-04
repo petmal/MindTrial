@@ -20,7 +20,7 @@ var _ MappedNullable = &SemanticRetrieval{}
 // SemanticRetrieval Document search using semantic similarity (dense embeddings).
 type SemanticRetrieval struct {
 	// Optional, but always used when doing search across multiple collections.
-	Reranker             NullableRerankerModel `json:"reranker,omitempty"`
+	Reranker NullableRerankerModel `json:"reranker,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -75,7 +75,6 @@ func (o *SemanticRetrieval) HasReranker() bool {
 func (o *SemanticRetrieval) SetReranker(v RerankerModel) {
 	o.Reranker.Set(&v)
 }
-
 // SetRerankerNil sets the value for Reranker to be an explicit nil
 func (o *SemanticRetrieval) SetRerankerNil() {
 	o.Reranker.Set(nil)
@@ -87,7 +86,7 @@ func (o *SemanticRetrieval) UnsetReranker() {
 }
 
 func (o SemanticRetrieval) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

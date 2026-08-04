@@ -25,7 +25,7 @@ type StorageOptions struct {
 	// Filename for the stored file.
 	Filename string `json:"filename"`
 	// `true` = create public URL with default options (no independent expiry). Object = create public URL with explicit configuration. Omit = no public URL (file stored privately).
-	PublicUrl            NullablePublicUrlInput `json:"public_url,omitempty"`
+	PublicUrl NullablePublicUrlInput `json:"public_url,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -81,7 +81,6 @@ func (o *StorageOptions) HasExpiresAfter() bool {
 func (o *StorageOptions) SetExpiresAfter(v int64) {
 	o.ExpiresAfter.Set(&v)
 }
-
 // SetExpiresAfterNil sets the value for ExpiresAfter to be an explicit nil
 func (o *StorageOptions) SetExpiresAfterNil() {
 	o.ExpiresAfter.Set(nil)
@@ -148,7 +147,6 @@ func (o *StorageOptions) HasPublicUrl() bool {
 func (o *StorageOptions) SetPublicUrl(v PublicUrlInput) {
 	o.PublicUrl.Set(&v)
 }
-
 // SetPublicUrlNil sets the value for PublicUrl to be an explicit nil
 func (o *StorageOptions) SetPublicUrlNil() {
 	o.PublicUrl.Set(nil)
@@ -160,7 +158,7 @@ func (o *StorageOptions) UnsetPublicUrl() {
 }
 
 func (o StorageOptions) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -197,10 +195,10 @@ func (o *StorageOptions) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

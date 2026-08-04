@@ -19,8 +19,8 @@ var _ MappedNullable = &ResponseFormat{}
 
 // ResponseFormat Specify the format that the model must output. By default it will use `{ \"type\": \"text\" }`. Setting to `{ \"type\": \"json_object\" }` enables JSON mode, which guarantees the message the model generates is in JSON. When using JSON mode you MUST also instruct the model to produce JSON yourself with a system or a user message. Setting to `{ \"type\": \"json_schema\" }` enables JSON schema mode, which guarantees the message the model generates is in JSON and follows the schema you provide.
 type ResponseFormat struct {
-	Type       *ResponseFormats   `json:"type,omitempty"`
 	JsonSchema NullableJsonSchema `json:"json_schema,omitempty"`
+	Type *ResponseFormats `json:"type,omitempty"`
 }
 
 // NewResponseFormat instantiates a new ResponseFormat object
@@ -42,38 +42,6 @@ func NewResponseFormatWithDefaults() *ResponseFormat {
 	var type_ ResponseFormats = RESPONSEFORMATS_TEXT
 	this.Type = &type_
 	return &this
-}
-
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *ResponseFormat) GetType() ResponseFormats {
-	if o == nil || IsNil(o.Type) {
-		var ret ResponseFormats
-		return ret
-	}
-	return *o.Type
-}
-
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ResponseFormat) GetTypeOk() (*ResponseFormats, bool) {
-	if o == nil || IsNil(o.Type) {
-		return nil, false
-	}
-	return o.Type, true
-}
-
-// HasType returns a boolean if a field has been set.
-func (o *ResponseFormat) HasType() bool {
-	if o != nil && !IsNil(o.Type) {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given ResponseFormats and assigns it to the Type field.
-func (o *ResponseFormat) SetType(v ResponseFormats) {
-	o.Type = &v
 }
 
 // GetJsonSchema returns the JsonSchema field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -108,7 +76,6 @@ func (o *ResponseFormat) HasJsonSchema() bool {
 func (o *ResponseFormat) SetJsonSchema(v JsonSchema) {
 	o.JsonSchema.Set(&v)
 }
-
 // SetJsonSchemaNil sets the value for JsonSchema to be an explicit nil
 func (o *ResponseFormat) SetJsonSchemaNil() {
 	o.JsonSchema.Set(nil)
@@ -119,8 +86,40 @@ func (o *ResponseFormat) UnsetJsonSchema() {
 	o.JsonSchema.Unset()
 }
 
+// GetType returns the Type field value if set, zero value otherwise.
+func (o *ResponseFormat) GetType() ResponseFormats {
+	if o == nil || IsNil(o.Type) {
+		var ret ResponseFormats
+		return ret
+	}
+	return *o.Type
+}
+
+// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ResponseFormat) GetTypeOk() (*ResponseFormats, bool) {
+	if o == nil || IsNil(o.Type) {
+		return nil, false
+	}
+	return o.Type, true
+}
+
+// HasType returns a boolean if a field has been set.
+func (o *ResponseFormat) HasType() bool {
+	if o != nil && !IsNil(o.Type) {
+		return true
+	}
+
+	return false
+}
+
+// SetType gets a reference to the given ResponseFormats and assigns it to the Type field.
+func (o *ResponseFormat) SetType(v ResponseFormats) {
+	o.Type = &v
+}
+
 func (o ResponseFormat) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -129,11 +128,11 @@ func (o ResponseFormat) MarshalJSON() ([]byte, error) {
 
 func (o ResponseFormat) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Type) {
-		toSerialize["type"] = o.Type
-	}
 	if o.JsonSchema.IsSet() {
 		toSerialize["json_schema"] = o.JsonSchema.Get()
+	}
+	if !IsNil(o.Type) {
+		toSerialize["type"] = o.Type
 	}
 	return toSerialize, nil
 }

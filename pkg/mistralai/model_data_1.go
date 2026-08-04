@@ -18,37 +18,141 @@ import (
 
 // Data1 - struct for Data1
 type Data1 struct {
-	TranscriptionStreamDone         *TranscriptionStreamDone
-	TranscriptionStreamLanguage     *TranscriptionStreamLanguage
-	TranscriptionStreamSegmentDelta *TranscriptionStreamSegmentDelta
-	TranscriptionStreamTextDelta    *TranscriptionStreamTextDelta
+	ActivityTaskCompletedResponse           *ActivityTaskCompletedResponse
+	ActivityTaskFailedResponse              *ActivityTaskFailedResponse
+	ActivityTaskRetryingResponse            *ActivityTaskRetryingResponse
+	ActivityTaskStartedResponse             *ActivityTaskStartedResponse
+	CustomTaskCanceledResponse              *CustomTaskCanceledResponse
+	CustomTaskCompletedResponse             *CustomTaskCompletedResponse
+	CustomTaskFailedResponse                *CustomTaskFailedResponse
+	CustomTaskInProgressResponse            *CustomTaskInProgressResponse
+	CustomTaskStartedResponse               *CustomTaskStartedResponse
+	CustomTaskTimedOutResponse              *CustomTaskTimedOutResponse
+	WorkflowExecutionCanceledResponse       *WorkflowExecutionCanceledResponse
+	WorkflowExecutionCompletedResponse      *WorkflowExecutionCompletedResponse
+	WorkflowExecutionContinuedAsNewResponse *WorkflowExecutionContinuedAsNewResponse
+	WorkflowExecutionFailedResponse         *WorkflowExecutionFailedResponse
+	WorkflowExecutionStartedResponse        *WorkflowExecutionStartedResponse
+	WorkflowTaskFailedResponse              *WorkflowTaskFailedResponse
+	WorkflowTaskTimedOutResponse            *WorkflowTaskTimedOutResponse
 }
 
-// TranscriptionStreamDoneAsData1 is a convenience function that returns TranscriptionStreamDone wrapped in Data1
-func TranscriptionStreamDoneAsData1(v *TranscriptionStreamDone) Data1 {
+// ActivityTaskCompletedResponseAsData1 is a convenience function that returns ActivityTaskCompletedResponse wrapped in Data1
+func ActivityTaskCompletedResponseAsData1(v *ActivityTaskCompletedResponse) Data1 {
 	return Data1{
-		TranscriptionStreamDone: v,
+		ActivityTaskCompletedResponse: v,
 	}
 }
 
-// TranscriptionStreamLanguageAsData1 is a convenience function that returns TranscriptionStreamLanguage wrapped in Data1
-func TranscriptionStreamLanguageAsData1(v *TranscriptionStreamLanguage) Data1 {
+// ActivityTaskFailedResponseAsData1 is a convenience function that returns ActivityTaskFailedResponse wrapped in Data1
+func ActivityTaskFailedResponseAsData1(v *ActivityTaskFailedResponse) Data1 {
 	return Data1{
-		TranscriptionStreamLanguage: v,
+		ActivityTaskFailedResponse: v,
 	}
 }
 
-// TranscriptionStreamSegmentDeltaAsData1 is a convenience function that returns TranscriptionStreamSegmentDelta wrapped in Data1
-func TranscriptionStreamSegmentDeltaAsData1(v *TranscriptionStreamSegmentDelta) Data1 {
+// ActivityTaskRetryingResponseAsData1 is a convenience function that returns ActivityTaskRetryingResponse wrapped in Data1
+func ActivityTaskRetryingResponseAsData1(v *ActivityTaskRetryingResponse) Data1 {
 	return Data1{
-		TranscriptionStreamSegmentDelta: v,
+		ActivityTaskRetryingResponse: v,
 	}
 }
 
-// TranscriptionStreamTextDeltaAsData1 is a convenience function that returns TranscriptionStreamTextDelta wrapped in Data1
-func TranscriptionStreamTextDeltaAsData1(v *TranscriptionStreamTextDelta) Data1 {
+// ActivityTaskStartedResponseAsData1 is a convenience function that returns ActivityTaskStartedResponse wrapped in Data1
+func ActivityTaskStartedResponseAsData1(v *ActivityTaskStartedResponse) Data1 {
 	return Data1{
-		TranscriptionStreamTextDelta: v,
+		ActivityTaskStartedResponse: v,
+	}
+}
+
+// CustomTaskCanceledResponseAsData1 is a convenience function that returns CustomTaskCanceledResponse wrapped in Data1
+func CustomTaskCanceledResponseAsData1(v *CustomTaskCanceledResponse) Data1 {
+	return Data1{
+		CustomTaskCanceledResponse: v,
+	}
+}
+
+// CustomTaskCompletedResponseAsData1 is a convenience function that returns CustomTaskCompletedResponse wrapped in Data1
+func CustomTaskCompletedResponseAsData1(v *CustomTaskCompletedResponse) Data1 {
+	return Data1{
+		CustomTaskCompletedResponse: v,
+	}
+}
+
+// CustomTaskFailedResponseAsData1 is a convenience function that returns CustomTaskFailedResponse wrapped in Data1
+func CustomTaskFailedResponseAsData1(v *CustomTaskFailedResponse) Data1 {
+	return Data1{
+		CustomTaskFailedResponse: v,
+	}
+}
+
+// CustomTaskInProgressResponseAsData1 is a convenience function that returns CustomTaskInProgressResponse wrapped in Data1
+func CustomTaskInProgressResponseAsData1(v *CustomTaskInProgressResponse) Data1 {
+	return Data1{
+		CustomTaskInProgressResponse: v,
+	}
+}
+
+// CustomTaskStartedResponseAsData1 is a convenience function that returns CustomTaskStartedResponse wrapped in Data1
+func CustomTaskStartedResponseAsData1(v *CustomTaskStartedResponse) Data1 {
+	return Data1{
+		CustomTaskStartedResponse: v,
+	}
+}
+
+// CustomTaskTimedOutResponseAsData1 is a convenience function that returns CustomTaskTimedOutResponse wrapped in Data1
+func CustomTaskTimedOutResponseAsData1(v *CustomTaskTimedOutResponse) Data1 {
+	return Data1{
+		CustomTaskTimedOutResponse: v,
+	}
+}
+
+// WorkflowExecutionCanceledResponseAsData1 is a convenience function that returns WorkflowExecutionCanceledResponse wrapped in Data1
+func WorkflowExecutionCanceledResponseAsData1(v *WorkflowExecutionCanceledResponse) Data1 {
+	return Data1{
+		WorkflowExecutionCanceledResponse: v,
+	}
+}
+
+// WorkflowExecutionCompletedResponseAsData1 is a convenience function that returns WorkflowExecutionCompletedResponse wrapped in Data1
+func WorkflowExecutionCompletedResponseAsData1(v *WorkflowExecutionCompletedResponse) Data1 {
+	return Data1{
+		WorkflowExecutionCompletedResponse: v,
+	}
+}
+
+// WorkflowExecutionContinuedAsNewResponseAsData1 is a convenience function that returns WorkflowExecutionContinuedAsNewResponse wrapped in Data1
+func WorkflowExecutionContinuedAsNewResponseAsData1(v *WorkflowExecutionContinuedAsNewResponse) Data1 {
+	return Data1{
+		WorkflowExecutionContinuedAsNewResponse: v,
+	}
+}
+
+// WorkflowExecutionFailedResponseAsData1 is a convenience function that returns WorkflowExecutionFailedResponse wrapped in Data1
+func WorkflowExecutionFailedResponseAsData1(v *WorkflowExecutionFailedResponse) Data1 {
+	return Data1{
+		WorkflowExecutionFailedResponse: v,
+	}
+}
+
+// WorkflowExecutionStartedResponseAsData1 is a convenience function that returns WorkflowExecutionStartedResponse wrapped in Data1
+func WorkflowExecutionStartedResponseAsData1(v *WorkflowExecutionStartedResponse) Data1 {
+	return Data1{
+		WorkflowExecutionStartedResponse: v,
+	}
+}
+
+// WorkflowTaskFailedResponseAsData1 is a convenience function that returns WorkflowTaskFailedResponse wrapped in Data1
+func WorkflowTaskFailedResponseAsData1(v *WorkflowTaskFailedResponse) Data1 {
+	return Data1{
+		WorkflowTaskFailedResponse: v,
+	}
+}
+
+// WorkflowTaskTimedOutResponseAsData1 is a convenience function that returns WorkflowTaskTimedOutResponse wrapped in Data1
+func WorkflowTaskTimedOutResponseAsData1(v *WorkflowTaskTimedOutResponse) Data1 {
+	return Data1{
+		WorkflowTaskTimedOutResponse: v,
 	}
 }
 
@@ -56,105 +160,396 @@ func TranscriptionStreamTextDeltaAsData1(v *TranscriptionStreamTextDelta) Data1 
 func (dst *Data1) UnmarshalJSON(data []byte) error {
 	var err error
 	match := 0
-	// try to unmarshal data into TranscriptionStreamDone
-	err = newStrictDecoder(data).Decode(&dst.TranscriptionStreamDone)
+	// try to unmarshal data into ActivityTaskCompletedResponse
+	err = newStrictDecoder(data).Decode(&dst.ActivityTaskCompletedResponse)
 	if err == nil {
-		jsonTranscriptionStreamDone, _ := json.Marshal(dst.TranscriptionStreamDone)
-		if string(jsonTranscriptionStreamDone) == "{}" { // empty struct
-			dst.TranscriptionStreamDone = nil
+		jsonActivityTaskCompletedResponse, _ := json.Marshal(dst.ActivityTaskCompletedResponse)
+		if string(jsonActivityTaskCompletedResponse) == "{}" { // empty struct
+			dst.ActivityTaskCompletedResponse = nil
 		} else {
-			if err = validator.Validate(dst.TranscriptionStreamDone); err != nil {
-				dst.TranscriptionStreamDone = nil
+			if err = validator.Validate(dst.ActivityTaskCompletedResponse); err != nil {
+				dst.ActivityTaskCompletedResponse = nil
 			} else {
 				match++
 			}
 		}
 	} else {
-		dst.TranscriptionStreamDone = nil
+		dst.ActivityTaskCompletedResponse = nil
 	}
 
-	// try to unmarshal data into TranscriptionStreamLanguage
-	err = newStrictDecoder(data).Decode(&dst.TranscriptionStreamLanguage)
+	// try to unmarshal data into ActivityTaskFailedResponse
+	err = newStrictDecoder(data).Decode(&dst.ActivityTaskFailedResponse)
 	if err == nil {
-		jsonTranscriptionStreamLanguage, _ := json.Marshal(dst.TranscriptionStreamLanguage)
-		if string(jsonTranscriptionStreamLanguage) == "{}" { // empty struct
-			dst.TranscriptionStreamLanguage = nil
+		jsonActivityTaskFailedResponse, _ := json.Marshal(dst.ActivityTaskFailedResponse)
+		if string(jsonActivityTaskFailedResponse) == "{}" { // empty struct
+			dst.ActivityTaskFailedResponse = nil
 		} else {
-			if err = validator.Validate(dst.TranscriptionStreamLanguage); err != nil {
-				dst.TranscriptionStreamLanguage = nil
+			if err = validator.Validate(dst.ActivityTaskFailedResponse); err != nil {
+				dst.ActivityTaskFailedResponse = nil
 			} else {
 				match++
 			}
 		}
 	} else {
-		dst.TranscriptionStreamLanguage = nil
+		dst.ActivityTaskFailedResponse = nil
 	}
 
-	// try to unmarshal data into TranscriptionStreamSegmentDelta
-	err = newStrictDecoder(data).Decode(&dst.TranscriptionStreamSegmentDelta)
+	// try to unmarshal data into ActivityTaskRetryingResponse
+	err = newStrictDecoder(data).Decode(&dst.ActivityTaskRetryingResponse)
 	if err == nil {
-		jsonTranscriptionStreamSegmentDelta, _ := json.Marshal(dst.TranscriptionStreamSegmentDelta)
-		if string(jsonTranscriptionStreamSegmentDelta) == "{}" { // empty struct
-			dst.TranscriptionStreamSegmentDelta = nil
+		jsonActivityTaskRetryingResponse, _ := json.Marshal(dst.ActivityTaskRetryingResponse)
+		if string(jsonActivityTaskRetryingResponse) == "{}" { // empty struct
+			dst.ActivityTaskRetryingResponse = nil
 		} else {
-			if err = validator.Validate(dst.TranscriptionStreamSegmentDelta); err != nil {
-				dst.TranscriptionStreamSegmentDelta = nil
+			if err = validator.Validate(dst.ActivityTaskRetryingResponse); err != nil {
+				dst.ActivityTaskRetryingResponse = nil
 			} else {
 				match++
 			}
 		}
 	} else {
-		dst.TranscriptionStreamSegmentDelta = nil
+		dst.ActivityTaskRetryingResponse = nil
 	}
 
-	// try to unmarshal data into TranscriptionStreamTextDelta
-	err = newStrictDecoder(data).Decode(&dst.TranscriptionStreamTextDelta)
+	// try to unmarshal data into ActivityTaskStartedResponse
+	err = newStrictDecoder(data).Decode(&dst.ActivityTaskStartedResponse)
 	if err == nil {
-		jsonTranscriptionStreamTextDelta, _ := json.Marshal(dst.TranscriptionStreamTextDelta)
-		if string(jsonTranscriptionStreamTextDelta) == "{}" { // empty struct
-			dst.TranscriptionStreamTextDelta = nil
+		jsonActivityTaskStartedResponse, _ := json.Marshal(dst.ActivityTaskStartedResponse)
+		if string(jsonActivityTaskStartedResponse) == "{}" { // empty struct
+			dst.ActivityTaskStartedResponse = nil
 		} else {
-			if err = validator.Validate(dst.TranscriptionStreamTextDelta); err != nil {
-				dst.TranscriptionStreamTextDelta = nil
+			if err = validator.Validate(dst.ActivityTaskStartedResponse); err != nil {
+				dst.ActivityTaskStartedResponse = nil
 			} else {
 				match++
 			}
 		}
 	} else {
-		dst.TranscriptionStreamTextDelta = nil
+		dst.ActivityTaskStartedResponse = nil
+	}
+
+	// try to unmarshal data into CustomTaskCanceledResponse
+	err = newStrictDecoder(data).Decode(&dst.CustomTaskCanceledResponse)
+	if err == nil {
+		jsonCustomTaskCanceledResponse, _ := json.Marshal(dst.CustomTaskCanceledResponse)
+		if string(jsonCustomTaskCanceledResponse) == "{}" { // empty struct
+			dst.CustomTaskCanceledResponse = nil
+		} else {
+			if err = validator.Validate(dst.CustomTaskCanceledResponse); err != nil {
+				dst.CustomTaskCanceledResponse = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.CustomTaskCanceledResponse = nil
+	}
+
+	// try to unmarshal data into CustomTaskCompletedResponse
+	err = newStrictDecoder(data).Decode(&dst.CustomTaskCompletedResponse)
+	if err == nil {
+		jsonCustomTaskCompletedResponse, _ := json.Marshal(dst.CustomTaskCompletedResponse)
+		if string(jsonCustomTaskCompletedResponse) == "{}" { // empty struct
+			dst.CustomTaskCompletedResponse = nil
+		} else {
+			if err = validator.Validate(dst.CustomTaskCompletedResponse); err != nil {
+				dst.CustomTaskCompletedResponse = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.CustomTaskCompletedResponse = nil
+	}
+
+	// try to unmarshal data into CustomTaskFailedResponse
+	err = newStrictDecoder(data).Decode(&dst.CustomTaskFailedResponse)
+	if err == nil {
+		jsonCustomTaskFailedResponse, _ := json.Marshal(dst.CustomTaskFailedResponse)
+		if string(jsonCustomTaskFailedResponse) == "{}" { // empty struct
+			dst.CustomTaskFailedResponse = nil
+		} else {
+			if err = validator.Validate(dst.CustomTaskFailedResponse); err != nil {
+				dst.CustomTaskFailedResponse = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.CustomTaskFailedResponse = nil
+	}
+
+	// try to unmarshal data into CustomTaskInProgressResponse
+	err = newStrictDecoder(data).Decode(&dst.CustomTaskInProgressResponse)
+	if err == nil {
+		jsonCustomTaskInProgressResponse, _ := json.Marshal(dst.CustomTaskInProgressResponse)
+		if string(jsonCustomTaskInProgressResponse) == "{}" { // empty struct
+			dst.CustomTaskInProgressResponse = nil
+		} else {
+			if err = validator.Validate(dst.CustomTaskInProgressResponse); err != nil {
+				dst.CustomTaskInProgressResponse = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.CustomTaskInProgressResponse = nil
+	}
+
+	// try to unmarshal data into CustomTaskStartedResponse
+	err = newStrictDecoder(data).Decode(&dst.CustomTaskStartedResponse)
+	if err == nil {
+		jsonCustomTaskStartedResponse, _ := json.Marshal(dst.CustomTaskStartedResponse)
+		if string(jsonCustomTaskStartedResponse) == "{}" { // empty struct
+			dst.CustomTaskStartedResponse = nil
+		} else {
+			if err = validator.Validate(dst.CustomTaskStartedResponse); err != nil {
+				dst.CustomTaskStartedResponse = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.CustomTaskStartedResponse = nil
+	}
+
+	// try to unmarshal data into CustomTaskTimedOutResponse
+	err = newStrictDecoder(data).Decode(&dst.CustomTaskTimedOutResponse)
+	if err == nil {
+		jsonCustomTaskTimedOutResponse, _ := json.Marshal(dst.CustomTaskTimedOutResponse)
+		if string(jsonCustomTaskTimedOutResponse) == "{}" { // empty struct
+			dst.CustomTaskTimedOutResponse = nil
+		} else {
+			if err = validator.Validate(dst.CustomTaskTimedOutResponse); err != nil {
+				dst.CustomTaskTimedOutResponse = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.CustomTaskTimedOutResponse = nil
+	}
+
+	// try to unmarshal data into WorkflowExecutionCanceledResponse
+	err = newStrictDecoder(data).Decode(&dst.WorkflowExecutionCanceledResponse)
+	if err == nil {
+		jsonWorkflowExecutionCanceledResponse, _ := json.Marshal(dst.WorkflowExecutionCanceledResponse)
+		if string(jsonWorkflowExecutionCanceledResponse) == "{}" { // empty struct
+			dst.WorkflowExecutionCanceledResponse = nil
+		} else {
+			if err = validator.Validate(dst.WorkflowExecutionCanceledResponse); err != nil {
+				dst.WorkflowExecutionCanceledResponse = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.WorkflowExecutionCanceledResponse = nil
+	}
+
+	// try to unmarshal data into WorkflowExecutionCompletedResponse
+	err = newStrictDecoder(data).Decode(&dst.WorkflowExecutionCompletedResponse)
+	if err == nil {
+		jsonWorkflowExecutionCompletedResponse, _ := json.Marshal(dst.WorkflowExecutionCompletedResponse)
+		if string(jsonWorkflowExecutionCompletedResponse) == "{}" { // empty struct
+			dst.WorkflowExecutionCompletedResponse = nil
+		} else {
+			if err = validator.Validate(dst.WorkflowExecutionCompletedResponse); err != nil {
+				dst.WorkflowExecutionCompletedResponse = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.WorkflowExecutionCompletedResponse = nil
+	}
+
+	// try to unmarshal data into WorkflowExecutionContinuedAsNewResponse
+	err = newStrictDecoder(data).Decode(&dst.WorkflowExecutionContinuedAsNewResponse)
+	if err == nil {
+		jsonWorkflowExecutionContinuedAsNewResponse, _ := json.Marshal(dst.WorkflowExecutionContinuedAsNewResponse)
+		if string(jsonWorkflowExecutionContinuedAsNewResponse) == "{}" { // empty struct
+			dst.WorkflowExecutionContinuedAsNewResponse = nil
+		} else {
+			if err = validator.Validate(dst.WorkflowExecutionContinuedAsNewResponse); err != nil {
+				dst.WorkflowExecutionContinuedAsNewResponse = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.WorkflowExecutionContinuedAsNewResponse = nil
+	}
+
+	// try to unmarshal data into WorkflowExecutionFailedResponse
+	err = newStrictDecoder(data).Decode(&dst.WorkflowExecutionFailedResponse)
+	if err == nil {
+		jsonWorkflowExecutionFailedResponse, _ := json.Marshal(dst.WorkflowExecutionFailedResponse)
+		if string(jsonWorkflowExecutionFailedResponse) == "{}" { // empty struct
+			dst.WorkflowExecutionFailedResponse = nil
+		} else {
+			if err = validator.Validate(dst.WorkflowExecutionFailedResponse); err != nil {
+				dst.WorkflowExecutionFailedResponse = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.WorkflowExecutionFailedResponse = nil
+	}
+
+	// try to unmarshal data into WorkflowExecutionStartedResponse
+	err = newStrictDecoder(data).Decode(&dst.WorkflowExecutionStartedResponse)
+	if err == nil {
+		jsonWorkflowExecutionStartedResponse, _ := json.Marshal(dst.WorkflowExecutionStartedResponse)
+		if string(jsonWorkflowExecutionStartedResponse) == "{}" { // empty struct
+			dst.WorkflowExecutionStartedResponse = nil
+		} else {
+			if err = validator.Validate(dst.WorkflowExecutionStartedResponse); err != nil {
+				dst.WorkflowExecutionStartedResponse = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.WorkflowExecutionStartedResponse = nil
+	}
+
+	// try to unmarshal data into WorkflowTaskFailedResponse
+	err = newStrictDecoder(data).Decode(&dst.WorkflowTaskFailedResponse)
+	if err == nil {
+		jsonWorkflowTaskFailedResponse, _ := json.Marshal(dst.WorkflowTaskFailedResponse)
+		if string(jsonWorkflowTaskFailedResponse) == "{}" { // empty struct
+			dst.WorkflowTaskFailedResponse = nil
+		} else {
+			if err = validator.Validate(dst.WorkflowTaskFailedResponse); err != nil {
+				dst.WorkflowTaskFailedResponse = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.WorkflowTaskFailedResponse = nil
+	}
+
+	// try to unmarshal data into WorkflowTaskTimedOutResponse
+	err = newStrictDecoder(data).Decode(&dst.WorkflowTaskTimedOutResponse)
+	if err == nil {
+		jsonWorkflowTaskTimedOutResponse, _ := json.Marshal(dst.WorkflowTaskTimedOutResponse)
+		if string(jsonWorkflowTaskTimedOutResponse) == "{}" { // empty struct
+			dst.WorkflowTaskTimedOutResponse = nil
+		} else {
+			if err = validator.Validate(dst.WorkflowTaskTimedOutResponse); err != nil {
+				dst.WorkflowTaskTimedOutResponse = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.WorkflowTaskTimedOutResponse = nil
 	}
 
 	if match > 1 { // more than 1 match
 		// reset to nil
-		dst.TranscriptionStreamDone = nil
-		dst.TranscriptionStreamLanguage = nil
-		dst.TranscriptionStreamSegmentDelta = nil
-		dst.TranscriptionStreamTextDelta = nil
+		dst.ActivityTaskCompletedResponse = nil
+		dst.ActivityTaskFailedResponse = nil
+		dst.ActivityTaskRetryingResponse = nil
+		dst.ActivityTaskStartedResponse = nil
+		dst.CustomTaskCanceledResponse = nil
+		dst.CustomTaskCompletedResponse = nil
+		dst.CustomTaskFailedResponse = nil
+		dst.CustomTaskInProgressResponse = nil
+		dst.CustomTaskStartedResponse = nil
+		dst.CustomTaskTimedOutResponse = nil
+		dst.WorkflowExecutionCanceledResponse = nil
+		dst.WorkflowExecutionCompletedResponse = nil
+		dst.WorkflowExecutionContinuedAsNewResponse = nil
+		dst.WorkflowExecutionFailedResponse = nil
+		dst.WorkflowExecutionStartedResponse = nil
+		dst.WorkflowTaskFailedResponse = nil
+		dst.WorkflowTaskTimedOutResponse = nil
 
 		return fmt.Errorf("data matches more than one schema in oneOf(Data1)")
 	} else if match == 1 {
 		return nil // exactly one match
 	} else { // no match
-		return fmt.Errorf("data failed to match schemas in oneOf(Data1)")
+		if err != nil {
+			return fmt.Errorf("data failed to match schemas in oneOf(Data1): %v", err)
+		} else {
+			return fmt.Errorf("data failed to match schemas in oneOf(Data1)")
+		}
+
 	}
 }
 
 // Marshal data from the first non-nil pointers in the struct to JSON
 func (src Data1) MarshalJSON() ([]byte, error) {
-	if src.TranscriptionStreamDone != nil {
-		return json.Marshal(&src.TranscriptionStreamDone)
+	if src.ActivityTaskCompletedResponse != nil {
+		return json.Marshal(&src.ActivityTaskCompletedResponse)
 	}
 
-	if src.TranscriptionStreamLanguage != nil {
-		return json.Marshal(&src.TranscriptionStreamLanguage)
+	if src.ActivityTaskFailedResponse != nil {
+		return json.Marshal(&src.ActivityTaskFailedResponse)
 	}
 
-	if src.TranscriptionStreamSegmentDelta != nil {
-		return json.Marshal(&src.TranscriptionStreamSegmentDelta)
+	if src.ActivityTaskRetryingResponse != nil {
+		return json.Marshal(&src.ActivityTaskRetryingResponse)
 	}
 
-	if src.TranscriptionStreamTextDelta != nil {
-		return json.Marshal(&src.TranscriptionStreamTextDelta)
+	if src.ActivityTaskStartedResponse != nil {
+		return json.Marshal(&src.ActivityTaskStartedResponse)
+	}
+
+	if src.CustomTaskCanceledResponse != nil {
+		return json.Marshal(&src.CustomTaskCanceledResponse)
+	}
+
+	if src.CustomTaskCompletedResponse != nil {
+		return json.Marshal(&src.CustomTaskCompletedResponse)
+	}
+
+	if src.CustomTaskFailedResponse != nil {
+		return json.Marshal(&src.CustomTaskFailedResponse)
+	}
+
+	if src.CustomTaskInProgressResponse != nil {
+		return json.Marshal(&src.CustomTaskInProgressResponse)
+	}
+
+	if src.CustomTaskStartedResponse != nil {
+		return json.Marshal(&src.CustomTaskStartedResponse)
+	}
+
+	if src.CustomTaskTimedOutResponse != nil {
+		return json.Marshal(&src.CustomTaskTimedOutResponse)
+	}
+
+	if src.WorkflowExecutionCanceledResponse != nil {
+		return json.Marshal(&src.WorkflowExecutionCanceledResponse)
+	}
+
+	if src.WorkflowExecutionCompletedResponse != nil {
+		return json.Marshal(&src.WorkflowExecutionCompletedResponse)
+	}
+
+	if src.WorkflowExecutionContinuedAsNewResponse != nil {
+		return json.Marshal(&src.WorkflowExecutionContinuedAsNewResponse)
+	}
+
+	if src.WorkflowExecutionFailedResponse != nil {
+		return json.Marshal(&src.WorkflowExecutionFailedResponse)
+	}
+
+	if src.WorkflowExecutionStartedResponse != nil {
+		return json.Marshal(&src.WorkflowExecutionStartedResponse)
+	}
+
+	if src.WorkflowTaskFailedResponse != nil {
+		return json.Marshal(&src.WorkflowTaskFailedResponse)
+	}
+
+	if src.WorkflowTaskTimedOutResponse != nil {
+		return json.Marshal(&src.WorkflowTaskTimedOutResponse)
 	}
 
 	return nil, nil // no data in oneOf schemas
@@ -165,20 +560,72 @@ func (obj *Data1) GetActualInstance() interface{} {
 	if obj == nil {
 		return nil
 	}
-	if obj.TranscriptionStreamDone != nil {
-		return obj.TranscriptionStreamDone
+	if obj.ActivityTaskCompletedResponse != nil {
+		return obj.ActivityTaskCompletedResponse
 	}
 
-	if obj.TranscriptionStreamLanguage != nil {
-		return obj.TranscriptionStreamLanguage
+	if obj.ActivityTaskFailedResponse != nil {
+		return obj.ActivityTaskFailedResponse
 	}
 
-	if obj.TranscriptionStreamSegmentDelta != nil {
-		return obj.TranscriptionStreamSegmentDelta
+	if obj.ActivityTaskRetryingResponse != nil {
+		return obj.ActivityTaskRetryingResponse
 	}
 
-	if obj.TranscriptionStreamTextDelta != nil {
-		return obj.TranscriptionStreamTextDelta
+	if obj.ActivityTaskStartedResponse != nil {
+		return obj.ActivityTaskStartedResponse
+	}
+
+	if obj.CustomTaskCanceledResponse != nil {
+		return obj.CustomTaskCanceledResponse
+	}
+
+	if obj.CustomTaskCompletedResponse != nil {
+		return obj.CustomTaskCompletedResponse
+	}
+
+	if obj.CustomTaskFailedResponse != nil {
+		return obj.CustomTaskFailedResponse
+	}
+
+	if obj.CustomTaskInProgressResponse != nil {
+		return obj.CustomTaskInProgressResponse
+	}
+
+	if obj.CustomTaskStartedResponse != nil {
+		return obj.CustomTaskStartedResponse
+	}
+
+	if obj.CustomTaskTimedOutResponse != nil {
+		return obj.CustomTaskTimedOutResponse
+	}
+
+	if obj.WorkflowExecutionCanceledResponse != nil {
+		return obj.WorkflowExecutionCanceledResponse
+	}
+
+	if obj.WorkflowExecutionCompletedResponse != nil {
+		return obj.WorkflowExecutionCompletedResponse
+	}
+
+	if obj.WorkflowExecutionContinuedAsNewResponse != nil {
+		return obj.WorkflowExecutionContinuedAsNewResponse
+	}
+
+	if obj.WorkflowExecutionFailedResponse != nil {
+		return obj.WorkflowExecutionFailedResponse
+	}
+
+	if obj.WorkflowExecutionStartedResponse != nil {
+		return obj.WorkflowExecutionStartedResponse
+	}
+
+	if obj.WorkflowTaskFailedResponse != nil {
+		return obj.WorkflowTaskFailedResponse
+	}
+
+	if obj.WorkflowTaskTimedOutResponse != nil {
+		return obj.WorkflowTaskTimedOutResponse
 	}
 
 	// all schemas are nil
@@ -187,20 +634,72 @@ func (obj *Data1) GetActualInstance() interface{} {
 
 // Get the actual instance value
 func (obj Data1) GetActualInstanceValue() interface{} {
-	if obj.TranscriptionStreamDone != nil {
-		return *obj.TranscriptionStreamDone
+	if obj.ActivityTaskCompletedResponse != nil {
+		return *obj.ActivityTaskCompletedResponse
 	}
 
-	if obj.TranscriptionStreamLanguage != nil {
-		return *obj.TranscriptionStreamLanguage
+	if obj.ActivityTaskFailedResponse != nil {
+		return *obj.ActivityTaskFailedResponse
 	}
 
-	if obj.TranscriptionStreamSegmentDelta != nil {
-		return *obj.TranscriptionStreamSegmentDelta
+	if obj.ActivityTaskRetryingResponse != nil {
+		return *obj.ActivityTaskRetryingResponse
 	}
 
-	if obj.TranscriptionStreamTextDelta != nil {
-		return *obj.TranscriptionStreamTextDelta
+	if obj.ActivityTaskStartedResponse != nil {
+		return *obj.ActivityTaskStartedResponse
+	}
+
+	if obj.CustomTaskCanceledResponse != nil {
+		return *obj.CustomTaskCanceledResponse
+	}
+
+	if obj.CustomTaskCompletedResponse != nil {
+		return *obj.CustomTaskCompletedResponse
+	}
+
+	if obj.CustomTaskFailedResponse != nil {
+		return *obj.CustomTaskFailedResponse
+	}
+
+	if obj.CustomTaskInProgressResponse != nil {
+		return *obj.CustomTaskInProgressResponse
+	}
+
+	if obj.CustomTaskStartedResponse != nil {
+		return *obj.CustomTaskStartedResponse
+	}
+
+	if obj.CustomTaskTimedOutResponse != nil {
+		return *obj.CustomTaskTimedOutResponse
+	}
+
+	if obj.WorkflowExecutionCanceledResponse != nil {
+		return *obj.WorkflowExecutionCanceledResponse
+	}
+
+	if obj.WorkflowExecutionCompletedResponse != nil {
+		return *obj.WorkflowExecutionCompletedResponse
+	}
+
+	if obj.WorkflowExecutionContinuedAsNewResponse != nil {
+		return *obj.WorkflowExecutionContinuedAsNewResponse
+	}
+
+	if obj.WorkflowExecutionFailedResponse != nil {
+		return *obj.WorkflowExecutionFailedResponse
+	}
+
+	if obj.WorkflowExecutionStartedResponse != nil {
+		return *obj.WorkflowExecutionStartedResponse
+	}
+
+	if obj.WorkflowTaskFailedResponse != nil {
+		return *obj.WorkflowTaskFailedResponse
+	}
+
+	if obj.WorkflowTaskTimedOutResponse != nil {
+		return *obj.WorkflowTaskTimedOutResponse
 	}
 
 	// all schemas are nil

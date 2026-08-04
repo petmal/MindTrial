@@ -76,6 +76,7 @@ func TestResultGetPrompts(t *testing.T) {
 func TestResultGetUsage(t *testing.T) {
 	tests := []struct {
 		name                  string
+		inputTokenAccounting  InputTokenAccounting
 		init                  Usage
 		inputTokens           *int64
 		outputTokens          *int64
@@ -84,43 +85,50 @@ func TestResultGetUsage(t *testing.T) {
 		want                  Usage
 	}{
 		{
-			name: "zero usage",
-			want: Usage{},
+			name:                 "zero usage",
+			inputTokenAccounting: InputTokenAccountingCacheTokensIncluded,
+			want:                 Usage{InputTokenAccounting: InputTokenAccountingCacheTokensIncluded},
 		},
 		{
-			name:        "input tokens only",
-			inputTokens: testutils.Ptr(int64(100)),
-			want:        Usage{InputTokens: testutils.Ptr(int64(100))},
+			name:                 "input tokens only",
+			inputTokenAccounting: InputTokenAccountingCacheTokensIncluded,
+			inputTokens:          testutils.Ptr(int64(100)),
+			want:                 Usage{InputTokens: testutils.Ptr(int64(100)), InputTokenAccounting: InputTokenAccountingCacheTokensIncluded},
 		},
 		{
-			name:         "output tokens only",
-			outputTokens: testutils.Ptr(int64(200)),
-			want:         Usage{OutputTokens: testutils.Ptr(int64(200))},
+			name:                 "output tokens only",
+			inputTokenAccounting: InputTokenAccountingCacheTokensIncluded,
+			outputTokens:         testutils.Ptr(int64(200)),
+			want:                 Usage{OutputTokens: testutils.Ptr(int64(200)), InputTokenAccounting: InputTokenAccountingCacheTokensIncluded},
 		},
 		{
-			name:         "both input and output tokens",
-			inputTokens:  testutils.Ptr(int64(300)),
-			outputTokens: testutils.Ptr(int64(400)),
-			want:         Usage{InputTokens: testutils.Ptr(int64(300)), OutputTokens: testutils.Ptr(int64(400))},
+			name:                 "both input and output tokens",
+			inputTokenAccounting: InputTokenAccountingCacheTokensIncluded,
+			inputTokens:          testutils.Ptr(int64(300)),
+			outputTokens:         testutils.Ptr(int64(400)),
+			want:                 Usage{InputTokens: testutils.Ptr(int64(300)), OutputTokens: testutils.Ptr(int64(400)), InputTokenAccounting: InputTokenAccountingCacheTokensIncluded},
 		},
 		{
-			name:         "both input and output tokens with initial values",
-			init:         Usage{InputTokens: testutils.Ptr(int64(50)), OutputTokens: testutils.Ptr(int64(75))},
-			inputTokens:  testutils.Ptr(int64(500)),
-			outputTokens: testutils.Ptr(int64(600)),
-			want:         Usage{InputTokens: testutils.Ptr(int64(550)), OutputTokens: testutils.Ptr(int64(675))},
+			name:                 "both input and output tokens with initial values",
+			inputTokenAccounting: InputTokenAccountingCacheTokensIncluded,
+			init:                 Usage{InputTokens: testutils.Ptr(int64(50)), OutputTokens: testutils.Ptr(int64(75))},
+			inputTokens:          testutils.Ptr(int64(500)),
+			outputTokens:         testutils.Ptr(int64(600)),
+			want:                 Usage{InputTokens: testutils.Ptr(int64(550)), OutputTokens: testutils.Ptr(int64(675)), InputTokenAccounting: InputTokenAccountingCacheTokensIncluded},
 		},
 		{
-			name:         "large tokens",
-			inputTokens:  testutils.Ptr(int64(9313009999906870)),
-			outputTokens: testutils.Ptr(int64(6440809999935592)),
-			want:         Usage{InputTokens: testutils.Ptr(int64(9313009999906870)), OutputTokens: testutils.Ptr(int64(6440809999935592))},
+			name:                 "large tokens",
+			inputTokenAccounting: InputTokenAccountingCacheTokensIncluded,
+			inputTokens:          testutils.Ptr(int64(9313009999906870)),
+			outputTokens:         testutils.Ptr(int64(6440809999935592)),
+			want:                 Usage{InputTokens: testutils.Ptr(int64(9313009999906870)), OutputTokens: testutils.Ptr(int64(6440809999935592)), InputTokenAccounting: InputTokenAccountingCacheTokensIncluded},
 		},
 		{
 			name:                  "cache tokens only",
+			inputTokenAccounting:  InputTokenAccountingCacheTokensSeparate,
 			inputCacheWriteTokens: testutils.Ptr(int64(37)),
 			inputCacheReadTokens:  testutils.Ptr(int64(77)),
-			want:                  Usage{InputCacheWriteTokens: testutils.Ptr(int64(37)), InputCacheReadTokens: testutils.Ptr(int64(77))},
+			want:                  Usage{InputCacheWriteTokens: testutils.Ptr(int64(37)), InputCacheReadTokens: testutils.Ptr(int64(77)), InputTokenAccounting: InputTokenAccountingCacheTokensSeparate},
 		},
 		{
 			name:                  "all tokens",
@@ -131,14 +139,16 @@ func TestResultGetUsage(t *testing.T) {
 			want: Usage{
 				InputTokens: testutils.Ptr(int64(5147809999948522)), OutputTokens: testutils.Ptr(int64(3763809999962362)),
 				InputCacheWriteTokens: testutils.Ptr(int64(4500109999954999)), InputCacheReadTokens: testutils.Ptr(int64(6304309999936957)),
+				InputTokenAccounting: InputTokenAccountingCacheTokensIncluded,
 			},
+			inputTokenAccounting: InputTokenAccountingCacheTokensIncluded,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := Result{usage: tt.init}
-			recordUsage(tt.inputTokens, tt.outputTokens, tt.inputCacheWriteTokens, tt.inputCacheReadTokens, &result.usage)
+			recordUsage(tt.inputTokenAccounting, tt.inputTokens, tt.outputTokens, tt.inputCacheWriteTokens, tt.inputCacheReadTokens, &result.usage)
 			assert.Equal(t, tt.want, result.GetUsage())
 		})
 	}

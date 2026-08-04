@@ -20,8 +20,8 @@ type ZdrStatus string
 
 // List of ZdrStatus
 const (
-	ZDRSTATUS_NO_ZDR        ZdrStatus = "no_zdr"
-	ZDRSTATUS_ZDR           ZdrStatus = "zdr"
+	ZDRSTATUS_NO_ZDR ZdrStatus = "no_zdr"
+	ZDRSTATUS_ZDR ZdrStatus = "zdr"
 	ZDRSTATUS_PII_SCRUBBING ZdrStatus = "pii_scrubbing"
 )
 

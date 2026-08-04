@@ -23,8 +23,8 @@ type MessageOneOf struct {
 	// System prompt content.
 	Content Content `json:"content"`
 	// A unique identifier representing your end-user, which can help xAI to monitor and detect abuse.
-	Name                 NullableString `json:"name,omitempty"`
-	Role                 string         `json:"role"`
+	Name NullableString `json:"name,omitempty"`
+	Role string `json:"role"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -105,7 +105,6 @@ func (o *MessageOneOf) HasName() bool {
 func (o *MessageOneOf) SetName(v string) {
 	o.Name.Set(&v)
 }
-
 // SetNameNil sets the value for Name to be an explicit nil
 func (o *MessageOneOf) SetNameNil() {
 	o.Name.Set(nil)
@@ -141,7 +140,7 @@ func (o *MessageOneOf) SetRole(v string) {
 }
 
 func (o MessageOneOf) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -177,10 +176,10 @@ func (o *MessageOneOf) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

@@ -25,7 +25,7 @@ type ShellCallOutputResult struct {
 	// The standard error output that was captured.
 	Stderr *string `json:"stderr,omitempty"`
 	// The standard output that was captured.
-	Stdout               *string `json:"stdout,omitempty"`
+	Stdout *string `json:"stdout,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -138,7 +138,7 @@ func (o *ShellCallOutputResult) SetStdout(v string) {
 }
 
 func (o ShellCallOutputResult) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -175,10 +175,10 @@ func (o *ShellCallOutputResult) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

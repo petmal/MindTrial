@@ -11,10 +11,10 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"time"
+	"bytes"
+	"fmt"
 )
 
 // checks if the Agent type satisfies the MappedNullable interface at compile time
@@ -22,25 +22,28 @@ var _ MappedNullable = &Agent{}
 
 // Agent struct for Agent
 type Agent struct {
-	Instructions NullableString `json:"instructions,omitempty"`
-	// List of tools which are available to the model during the conversation.
-	Tools []ToolsInner `json:"tools,omitempty"`
 	// Completion arguments that will be used to generate assistant responses. Can be overridden at each message request.
 	CompletionArgs *CompletionArgs `json:"completion_args,omitempty"`
-	Model          string          `json:"model"`
-	Name           string          `json:"name"`
-	Description    NullableString  `json:"description,omitempty"`
-	Handoffs       []string        `json:"handoffs,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
+	DeploymentChat bool `json:"deployment_chat"`
+	Description NullableString `json:"description,omitempty"`
+	Guardrails []GuardrailConfig `json:"guardrails,omitempty"`
+	Handoffs []string `json:"handoffs,omitempty"`
+	Id string `json:"id"`
+	// Instruction prompt the model will follow during the conversation.
+	Instructions NullableString `json:"instructions,omitempty"`
 	// Custom type for metadata with embedded validation.
-	Metadata       map[string]interface{} `json:"metadata,omitempty"`
-	Object         *string                `json:"object,omitempty"`
-	Id             string                 `json:"id"`
-	Version        int32                  `json:"version"`
-	Versions       []int32                `json:"versions"`
-	CreatedAt      time.Time              `json:"created_at"`
-	UpdatedAt      time.Time              `json:"updated_at"`
-	DeploymentChat bool                   `json:"deployment_chat"`
-	Source         string                 `json:"source"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Model string `json:"model"`
+	Name string `json:"name"`
+	Object *string `json:"object,omitempty"`
+	Source string `json:"source"`
+	// List of tools which are available to the model during the conversation.
+	Tools []ToolsInner `json:"tools,omitempty"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Version int32 `json:"version"`
+	VersionMessage NullableString `json:"version_message,omitempty"`
+	Versions []int32 `json:"versions"`
 }
 
 type _Agent Agent
@@ -49,19 +52,19 @@ type _Agent Agent
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewAgent(model string, name string, id string, version int32, versions []int32, createdAt time.Time, updatedAt time.Time, deploymentChat bool, source string) *Agent {
+func NewAgent(createdAt time.Time, deploymentChat bool, id string, model string, name string, source string, updatedAt time.Time, version int32, versions []int32) *Agent {
 	this := Agent{}
+	this.CreatedAt = createdAt
+	this.DeploymentChat = deploymentChat
+	this.Id = id
 	this.Model = model
 	this.Name = name
 	var object string = "agent"
 	this.Object = &object
-	this.Id = id
+	this.Source = source
+	this.UpdatedAt = updatedAt
 	this.Version = version
 	this.Versions = versions
-	this.CreatedAt = createdAt
-	this.UpdatedAt = updatedAt
-	this.DeploymentChat = deploymentChat
-	this.Source = source
 	return &this
 }
 
@@ -73,6 +76,218 @@ func NewAgentWithDefaults() *Agent {
 	var object string = "agent"
 	this.Object = &object
 	return &this
+}
+
+// GetCompletionArgs returns the CompletionArgs field value if set, zero value otherwise.
+func (o *Agent) GetCompletionArgs() CompletionArgs {
+	if o == nil || IsNil(o.CompletionArgs) {
+		var ret CompletionArgs
+		return ret
+	}
+	return *o.CompletionArgs
+}
+
+// GetCompletionArgsOk returns a tuple with the CompletionArgs field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *Agent) GetCompletionArgsOk() (*CompletionArgs, bool) {
+	if o == nil || IsNil(o.CompletionArgs) {
+		return nil, false
+	}
+	return o.CompletionArgs, true
+}
+
+// HasCompletionArgs returns a boolean if a field has been set.
+func (o *Agent) HasCompletionArgs() bool {
+	if o != nil && !IsNil(o.CompletionArgs) {
+		return true
+	}
+
+	return false
+}
+
+// SetCompletionArgs gets a reference to the given CompletionArgs and assigns it to the CompletionArgs field.
+func (o *Agent) SetCompletionArgs(v CompletionArgs) {
+	o.CompletionArgs = &v
+}
+
+// GetCreatedAt returns the CreatedAt field value
+func (o *Agent) GetCreatedAt() time.Time {
+	if o == nil {
+		var ret time.Time
+		return ret
+	}
+
+	return o.CreatedAt
+}
+
+// GetCreatedAtOk returns a tuple with the CreatedAt field value
+// and a boolean to check if the value has been set.
+func (o *Agent) GetCreatedAtOk() (*time.Time, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.CreatedAt, true
+}
+
+// SetCreatedAt sets field value
+func (o *Agent) SetCreatedAt(v time.Time) {
+	o.CreatedAt = v
+}
+
+// GetDeploymentChat returns the DeploymentChat field value
+func (o *Agent) GetDeploymentChat() bool {
+	if o == nil {
+		var ret bool
+		return ret
+	}
+
+	return o.DeploymentChat
+}
+
+// GetDeploymentChatOk returns a tuple with the DeploymentChat field value
+// and a boolean to check if the value has been set.
+func (o *Agent) GetDeploymentChatOk() (*bool, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.DeploymentChat, true
+}
+
+// SetDeploymentChat sets field value
+func (o *Agent) SetDeploymentChat(v bool) {
+	o.DeploymentChat = v
+}
+
+// GetDescription returns the Description field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Agent) GetDescription() string {
+	if o == nil || IsNil(o.Description.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Description.Get()
+}
+
+// GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Agent) GetDescriptionOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Description.Get(), o.Description.IsSet()
+}
+
+// HasDescription returns a boolean if a field has been set.
+func (o *Agent) HasDescription() bool {
+	if o != nil && o.Description.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetDescription gets a reference to the given NullableString and assigns it to the Description field.
+func (o *Agent) SetDescription(v string) {
+	o.Description.Set(&v)
+}
+// SetDescriptionNil sets the value for Description to be an explicit nil
+func (o *Agent) SetDescriptionNil() {
+	o.Description.Set(nil)
+}
+
+// UnsetDescription ensures that no value is present for Description, not even an explicit nil
+func (o *Agent) UnsetDescription() {
+	o.Description.Unset()
+}
+
+// GetGuardrails returns the Guardrails field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Agent) GetGuardrails() []GuardrailConfig {
+	if o == nil {
+		var ret []GuardrailConfig
+		return ret
+	}
+	return o.Guardrails
+}
+
+// GetGuardrailsOk returns a tuple with the Guardrails field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Agent) GetGuardrailsOk() ([]GuardrailConfig, bool) {
+	if o == nil || IsNil(o.Guardrails) {
+		return nil, false
+	}
+	return o.Guardrails, true
+}
+
+// HasGuardrails returns a boolean if a field has been set.
+func (o *Agent) HasGuardrails() bool {
+	if o != nil && !IsNil(o.Guardrails) {
+		return true
+	}
+
+	return false
+}
+
+// SetGuardrails gets a reference to the given []GuardrailConfig and assigns it to the Guardrails field.
+func (o *Agent) SetGuardrails(v []GuardrailConfig) {
+	o.Guardrails = v
+}
+
+// GetHandoffs returns the Handoffs field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Agent) GetHandoffs() []string {
+	if o == nil {
+		var ret []string
+		return ret
+	}
+	return o.Handoffs
+}
+
+// GetHandoffsOk returns a tuple with the Handoffs field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Agent) GetHandoffsOk() ([]string, bool) {
+	if o == nil || IsNil(o.Handoffs) {
+		return nil, false
+	}
+	return o.Handoffs, true
+}
+
+// HasHandoffs returns a boolean if a field has been set.
+func (o *Agent) HasHandoffs() bool {
+	if o != nil && !IsNil(o.Handoffs) {
+		return true
+	}
+
+	return false
+}
+
+// SetHandoffs gets a reference to the given []string and assigns it to the Handoffs field.
+func (o *Agent) SetHandoffs(v []string) {
+	o.Handoffs = v
+}
+
+// GetId returns the Id field value
+func (o *Agent) GetId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Id
+}
+
+// GetIdOk returns a tuple with the Id field value
+// and a boolean to check if the value has been set.
+func (o *Agent) GetIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Id, true
+}
+
+// SetId sets field value
+func (o *Agent) SetId(v string) {
+	o.Id = v
 }
 
 // GetInstructions returns the Instructions field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -107,7 +322,6 @@ func (o *Agent) HasInstructions() bool {
 func (o *Agent) SetInstructions(v string) {
 	o.Instructions.Set(&v)
 }
-
 // SetInstructionsNil sets the value for Instructions to be an explicit nil
 func (o *Agent) SetInstructionsNil() {
 	o.Instructions.Set(nil)
@@ -118,68 +332,37 @@ func (o *Agent) UnsetInstructions() {
 	o.Instructions.Unset()
 }
 
-// GetTools returns the Tools field value if set, zero value otherwise.
-func (o *Agent) GetTools() []ToolsInner {
-	if o == nil || IsNil(o.Tools) {
-		var ret []ToolsInner
+// GetMetadata returns the Metadata field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Agent) GetMetadata() map[string]interface{} {
+	if o == nil {
+		var ret map[string]interface{}
 		return ret
 	}
-	return o.Tools
+	return o.Metadata
 }
 
-// GetToolsOk returns a tuple with the Tools field value if set, nil otherwise
+// GetMetadataOk returns a tuple with the Metadata field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *Agent) GetToolsOk() ([]ToolsInner, bool) {
-	if o == nil || IsNil(o.Tools) {
-		return nil, false
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Agent) GetMetadataOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Metadata) {
+		return map[string]interface{}{}, false
 	}
-	return o.Tools, true
+	return o.Metadata, true
 }
 
-// HasTools returns a boolean if a field has been set.
-func (o *Agent) HasTools() bool {
-	if o != nil && !IsNil(o.Tools) {
+// HasMetadata returns a boolean if a field has been set.
+func (o *Agent) HasMetadata() bool {
+	if o != nil && !IsNil(o.Metadata) {
 		return true
 	}
 
 	return false
 }
 
-// SetTools gets a reference to the given []ToolsInner and assigns it to the Tools field.
-func (o *Agent) SetTools(v []ToolsInner) {
-	o.Tools = v
-}
-
-// GetCompletionArgs returns the CompletionArgs field value if set, zero value otherwise.
-func (o *Agent) GetCompletionArgs() CompletionArgs {
-	if o == nil || IsNil(o.CompletionArgs) {
-		var ret CompletionArgs
-		return ret
-	}
-	return *o.CompletionArgs
-}
-
-// GetCompletionArgsOk returns a tuple with the CompletionArgs field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *Agent) GetCompletionArgsOk() (*CompletionArgs, bool) {
-	if o == nil || IsNil(o.CompletionArgs) {
-		return nil, false
-	}
-	return o.CompletionArgs, true
-}
-
-// HasCompletionArgs returns a boolean if a field has been set.
-func (o *Agent) HasCompletionArgs() bool {
-	if o != nil && !IsNil(o.CompletionArgs) {
-		return true
-	}
-
-	return false
-}
-
-// SetCompletionArgs gets a reference to the given CompletionArgs and assigns it to the CompletionArgs field.
-func (o *Agent) SetCompletionArgs(v CompletionArgs) {
-	o.CompletionArgs = &v
+// SetMetadata gets a reference to the given map[string]interface{} and assigns it to the Metadata field.
+func (o *Agent) SetMetadata(v map[string]interface{}) {
+	o.Metadata = v
 }
 
 // GetModel returns the Model field value
@@ -230,115 +413,6 @@ func (o *Agent) SetName(v string) {
 	o.Name = v
 }
 
-// GetDescription returns the Description field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *Agent) GetDescription() string {
-	if o == nil || IsNil(o.Description.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.Description.Get()
-}
-
-// GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *Agent) GetDescriptionOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Description.Get(), o.Description.IsSet()
-}
-
-// HasDescription returns a boolean if a field has been set.
-func (o *Agent) HasDescription() bool {
-	if o != nil && o.Description.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetDescription gets a reference to the given NullableString and assigns it to the Description field.
-func (o *Agent) SetDescription(v string) {
-	o.Description.Set(&v)
-}
-
-// SetDescriptionNil sets the value for Description to be an explicit nil
-func (o *Agent) SetDescriptionNil() {
-	o.Description.Set(nil)
-}
-
-// UnsetDescription ensures that no value is present for Description, not even an explicit nil
-func (o *Agent) UnsetDescription() {
-	o.Description.Unset()
-}
-
-// GetHandoffs returns the Handoffs field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *Agent) GetHandoffs() []string {
-	if o == nil {
-		var ret []string
-		return ret
-	}
-	return o.Handoffs
-}
-
-// GetHandoffsOk returns a tuple with the Handoffs field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *Agent) GetHandoffsOk() ([]string, bool) {
-	if o == nil || IsNil(o.Handoffs) {
-		return nil, false
-	}
-	return o.Handoffs, true
-}
-
-// HasHandoffs returns a boolean if a field has been set.
-func (o *Agent) HasHandoffs() bool {
-	if o != nil && !IsNil(o.Handoffs) {
-		return true
-	}
-
-	return false
-}
-
-// SetHandoffs gets a reference to the given []string and assigns it to the Handoffs field.
-func (o *Agent) SetHandoffs(v []string) {
-	o.Handoffs = v
-}
-
-// GetMetadata returns the Metadata field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *Agent) GetMetadata() map[string]interface{} {
-	if o == nil {
-		var ret map[string]interface{}
-		return ret
-	}
-	return o.Metadata
-}
-
-// GetMetadataOk returns a tuple with the Metadata field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *Agent) GetMetadataOk() (map[string]interface{}, bool) {
-	if o == nil || IsNil(o.Metadata) {
-		return map[string]interface{}{}, false
-	}
-	return o.Metadata, true
-}
-
-// HasMetadata returns a boolean if a field has been set.
-func (o *Agent) HasMetadata() bool {
-	if o != nil && !IsNil(o.Metadata) {
-		return true
-	}
-
-	return false
-}
-
-// SetMetadata gets a reference to the given map[string]interface{} and assigns it to the Metadata field.
-func (o *Agent) SetMetadata(v map[string]interface{}) {
-	o.Metadata = v
-}
-
 // GetObject returns the Object field value if set, zero value otherwise.
 func (o *Agent) GetObject() string {
 	if o == nil || IsNil(o.Object) {
@@ -371,100 +445,60 @@ func (o *Agent) SetObject(v string) {
 	o.Object = &v
 }
 
-// GetId returns the Id field value
-func (o *Agent) GetId() string {
+// GetSource returns the Source field value
+func (o *Agent) GetSource() string {
 	if o == nil {
 		var ret string
 		return ret
 	}
 
-	return o.Id
+	return o.Source
 }
 
-// GetIdOk returns a tuple with the Id field value
+// GetSourceOk returns a tuple with the Source field value
 // and a boolean to check if the value has been set.
-func (o *Agent) GetIdOk() (*string, bool) {
+func (o *Agent) GetSourceOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Id, true
+	return &o.Source, true
 }
 
-// SetId sets field value
-func (o *Agent) SetId(v string) {
-	o.Id = v
+// SetSource sets field value
+func (o *Agent) SetSource(v string) {
+	o.Source = v
 }
 
-// GetVersion returns the Version field value
-func (o *Agent) GetVersion() int32 {
-	if o == nil {
-		var ret int32
+// GetTools returns the Tools field value if set, zero value otherwise.
+func (o *Agent) GetTools() []ToolsInner {
+	if o == nil || IsNil(o.Tools) {
+		var ret []ToolsInner
 		return ret
 	}
-
-	return o.Version
+	return o.Tools
 }
 
-// GetVersionOk returns a tuple with the Version field value
+// GetToolsOk returns a tuple with the Tools field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *Agent) GetVersionOk() (*int32, bool) {
-	if o == nil {
+func (o *Agent) GetToolsOk() ([]ToolsInner, bool) {
+	if o == nil || IsNil(o.Tools) {
 		return nil, false
 	}
-	return &o.Version, true
+	return o.Tools, true
 }
 
-// SetVersion sets field value
-func (o *Agent) SetVersion(v int32) {
-	o.Version = v
-}
-
-// GetVersions returns the Versions field value
-func (o *Agent) GetVersions() []int32 {
-	if o == nil {
-		var ret []int32
-		return ret
+// HasTools returns a boolean if a field has been set.
+func (o *Agent) HasTools() bool {
+	if o != nil && !IsNil(o.Tools) {
+		return true
 	}
 
-	return o.Versions
+	return false
 }
 
-// GetVersionsOk returns a tuple with the Versions field value
-// and a boolean to check if the value has been set.
-func (o *Agent) GetVersionsOk() ([]int32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Versions, true
-}
-
-// SetVersions sets field value
-func (o *Agent) SetVersions(v []int32) {
-	o.Versions = v
-}
-
-// GetCreatedAt returns the CreatedAt field value
-func (o *Agent) GetCreatedAt() time.Time {
-	if o == nil {
-		var ret time.Time
-		return ret
-	}
-
-	return o.CreatedAt
-}
-
-// GetCreatedAtOk returns a tuple with the CreatedAt field value
-// and a boolean to check if the value has been set.
-func (o *Agent) GetCreatedAtOk() (*time.Time, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.CreatedAt, true
-}
-
-// SetCreatedAt sets field value
-func (o *Agent) SetCreatedAt(v time.Time) {
-	o.CreatedAt = v
+// SetTools gets a reference to the given []ToolsInner and assigns it to the Tools field.
+func (o *Agent) SetTools(v []ToolsInner) {
+	o.Tools = v
 }
 
 // GetUpdatedAt returns the UpdatedAt field value
@@ -491,56 +525,98 @@ func (o *Agent) SetUpdatedAt(v time.Time) {
 	o.UpdatedAt = v
 }
 
-// GetDeploymentChat returns the DeploymentChat field value
-func (o *Agent) GetDeploymentChat() bool {
+// GetVersion returns the Version field value
+func (o *Agent) GetVersion() int32 {
 	if o == nil {
-		var ret bool
+		var ret int32
 		return ret
 	}
 
-	return o.DeploymentChat
+	return o.Version
 }
 
-// GetDeploymentChatOk returns a tuple with the DeploymentChat field value
+// GetVersionOk returns a tuple with the Version field value
 // and a boolean to check if the value has been set.
-func (o *Agent) GetDeploymentChatOk() (*bool, bool) {
+func (o *Agent) GetVersionOk() (*int32, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.DeploymentChat, true
+	return &o.Version, true
 }
 
-// SetDeploymentChat sets field value
-func (o *Agent) SetDeploymentChat(v bool) {
-	o.DeploymentChat = v
+// SetVersion sets field value
+func (o *Agent) SetVersion(v int32) {
+	o.Version = v
 }
 
-// GetSource returns the Source field value
-func (o *Agent) GetSource() string {
-	if o == nil {
+// GetVersionMessage returns the VersionMessage field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Agent) GetVersionMessage() string {
+	if o == nil || IsNil(o.VersionMessage.Get()) {
 		var ret string
 		return ret
 	}
-
-	return o.Source
+	return *o.VersionMessage.Get()
 }
 
-// GetSourceOk returns a tuple with the Source field value
+// GetVersionMessageOk returns a tuple with the VersionMessage field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *Agent) GetSourceOk() (*string, bool) {
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Agent) GetVersionMessageOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Source, true
+	return o.VersionMessage.Get(), o.VersionMessage.IsSet()
 }
 
-// SetSource sets field value
-func (o *Agent) SetSource(v string) {
-	o.Source = v
+// HasVersionMessage returns a boolean if a field has been set.
+func (o *Agent) HasVersionMessage() bool {
+	if o != nil && o.VersionMessage.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetVersionMessage gets a reference to the given NullableString and assigns it to the VersionMessage field.
+func (o *Agent) SetVersionMessage(v string) {
+	o.VersionMessage.Set(&v)
+}
+// SetVersionMessageNil sets the value for VersionMessage to be an explicit nil
+func (o *Agent) SetVersionMessageNil() {
+	o.VersionMessage.Set(nil)
+}
+
+// UnsetVersionMessage ensures that no value is present for VersionMessage, not even an explicit nil
+func (o *Agent) UnsetVersionMessage() {
+	o.VersionMessage.Unset()
+}
+
+// GetVersions returns the Versions field value
+func (o *Agent) GetVersions() []int32 {
+	if o == nil {
+		var ret []int32
+		return ret
+	}
+
+	return o.Versions
+}
+
+// GetVersionsOk returns a tuple with the Versions field value
+// and a boolean to check if the value has been set.
+func (o *Agent) GetVersionsOk() ([]int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Versions, true
+}
+
+// SetVersions sets field value
+func (o *Agent) SetVersions(v []int32) {
+	o.Versions = v
 }
 
 func (o Agent) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -549,36 +625,42 @@ func (o Agent) MarshalJSON() ([]byte, error) {
 
 func (o Agent) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if o.Instructions.IsSet() {
-		toSerialize["instructions"] = o.Instructions.Get()
-	}
-	if !IsNil(o.Tools) {
-		toSerialize["tools"] = o.Tools
-	}
 	if !IsNil(o.CompletionArgs) {
 		toSerialize["completion_args"] = o.CompletionArgs
 	}
-	toSerialize["model"] = o.Model
-	toSerialize["name"] = o.Name
+	toSerialize["created_at"] = o.CreatedAt
+	toSerialize["deployment_chat"] = o.DeploymentChat
 	if o.Description.IsSet() {
 		toSerialize["description"] = o.Description.Get()
+	}
+	if o.Guardrails != nil {
+		toSerialize["guardrails"] = o.Guardrails
 	}
 	if o.Handoffs != nil {
 		toSerialize["handoffs"] = o.Handoffs
 	}
+	toSerialize["id"] = o.Id
+	if o.Instructions.IsSet() {
+		toSerialize["instructions"] = o.Instructions.Get()
+	}
 	if o.Metadata != nil {
 		toSerialize["metadata"] = o.Metadata
 	}
+	toSerialize["model"] = o.Model
+	toSerialize["name"] = o.Name
 	if !IsNil(o.Object) {
 		toSerialize["object"] = o.Object
 	}
-	toSerialize["id"] = o.Id
-	toSerialize["version"] = o.Version
-	toSerialize["versions"] = o.Versions
-	toSerialize["created_at"] = o.CreatedAt
-	toSerialize["updated_at"] = o.UpdatedAt
-	toSerialize["deployment_chat"] = o.DeploymentChat
 	toSerialize["source"] = o.Source
+	if !IsNil(o.Tools) {
+		toSerialize["tools"] = o.Tools
+	}
+	toSerialize["updated_at"] = o.UpdatedAt
+	toSerialize["version"] = o.Version
+	if o.VersionMessage.IsSet() {
+		toSerialize["version_message"] = o.VersionMessage.Get()
+	}
+	toSerialize["versions"] = o.Versions
 	return toSerialize, nil
 }
 
@@ -587,15 +669,15 @@ func (o *Agent) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
+		"created_at",
+		"deployment_chat",
+		"id",
 		"model",
 		"name",
-		"id",
+		"source",
+		"updated_at",
 		"version",
 		"versions",
-		"created_at",
-		"updated_at",
-		"deployment_chat",
-		"source",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -603,10 +685,10 @@ func (o *Agent) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

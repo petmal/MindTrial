@@ -178,6 +178,12 @@ config:
           model-parameters:
             thinking-level: "high"
             media-resolution: "high"
+        - name: "Gemini 3.6 Flash - latest (high thinking)"
+          model: "gemini-3.6-flash"
+          max-requests-per-minute: 3
+          model-parameters:
+            thinking-level: "high"
+            media-resolution: "high"
     - name: anthropic
       client-config:
         api-key: ""
@@ -287,6 +293,12 @@ config:
         - name: "Pixtral Large - latest (vision)"
           model: "pixtral-large-latest"
           max-requests-per-minute: 5
+        - name: "Mistral Medium 3.5 - latest (high reasoning)"
+          model: "mistral-medium-3-5"
+          max-requests-per-minute: 5
+          model-parameters:
+            max-tokens: 65536
+            reasoning-effort: "high"
     - name: xai
       retry-policy:
         max-retry-attempts: 5
@@ -345,6 +357,14 @@ config:
           max-requests-per-minute: 30
           model-parameters:
             stream: true
+        - name: "Qwen3.7 Plus - latest (thinking)"
+          model: "qwen3.7-plus"
+          max-requests-per-minute: 30
+          model-parameters:
+            enable-thinking: true
+            preserve-thinking: true
+            max-tokens: 65536
+            stream: true
     - name: moonshotai
       retry-policy:
         max-retry-attempts: 5
@@ -372,6 +392,14 @@ config:
             max-tokens: 32000
             thinking: enabled
             preserve-thinking: all
+        - name: "Kimi K3 - latest (max reasoning)"
+          model: "kimi-k3"
+          max-requests-per-minute: 3
+          model-parameters:
+            reasoning-effort: "max"
+            max-completion-tokens: 65536
+            response-format: "json-schema"
+            stream: true
   judges:
     - name: "default"
       provider:

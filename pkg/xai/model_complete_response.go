@@ -29,7 +29,7 @@ type CompleteResponse struct {
 	// The reason to stop completion. `\"stop_sequence\"` means the inference has reached a model-defined or user-supplied stop sequence in `stop`. `\"length\"` means the inference result has reached models' maximum allowed token length or user defined value in `max_tokens`. `\"end_turn\"` or `null` in streaming mode when the chunk is not the last.
 	StopReason NullableString `json:"stop_reason,omitempty"`
 	// Completion response object type. This is always `\"completion\"`.
-	Type                 string `json:"type"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -160,7 +160,6 @@ func (o *CompleteResponse) HasStopReason() bool {
 func (o *CompleteResponse) SetStopReason(v string) {
 	o.StopReason.Set(&v)
 }
-
 // SetStopReasonNil sets the value for StopReason to be an explicit nil
 func (o *CompleteResponse) SetStopReasonNil() {
 	o.StopReason.Set(nil)
@@ -196,7 +195,7 @@ func (o *CompleteResponse) SetType(v string) {
 }
 
 func (o CompleteResponse) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -236,10 +235,10 @@ func (o *CompleteResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

@@ -15,17 +15,18 @@ import (
 	"fmt"
 )
 
+
 // Tool1 struct for Tool1
 type Tool1 struct {
 	BuiltInConnectors *BuiltInConnectors
-	String            *string
+	String *string
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
 func (dst *Tool1) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into BuiltInConnectors
-	err = json.Unmarshal(data, &dst.BuiltInConnectors)
+	err = json.Unmarshal(data, &dst.BuiltInConnectors);
 	if err == nil {
 		jsonBuiltInConnectors, _ := json.Marshal(dst.BuiltInConnectors)
 		if string(jsonBuiltInConnectors) == "{}" { // empty struct
@@ -38,7 +39,7 @@ func (dst *Tool1) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into String
-	err = json.Unmarshal(data, &dst.String)
+	err = json.Unmarshal(data, &dst.String);
 	if err == nil {
 		jsonString, _ := json.Marshal(dst.String)
 		if string(jsonString) == "{}" { // empty struct
@@ -65,6 +66,7 @@ func (src Tool1) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
+
 
 type NullableTool1 struct {
 	value *Tool1

@@ -20,7 +20,7 @@ var _ MappedNullable = &GroupByAggregateOneOf{}
 
 // GroupByAggregateOneOf Keep the k records with the smallest values (best scores).
 type GroupByAggregateOneOf struct {
-	MinK                 GroupByAggregateOneOfMinK `json:"min_k"`
+	MinK GroupByAggregateOneOfMinK `json:"min_k"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -69,7 +69,7 @@ func (o *GroupByAggregateOneOf) SetMinK(v GroupByAggregateOneOfMinK) {
 }
 
 func (o GroupByAggregateOneOf) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -100,10 +100,10 @@ func (o *GroupByAggregateOneOf) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

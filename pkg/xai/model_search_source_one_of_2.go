@@ -25,8 +25,8 @@ type SearchSourceOneOf2 struct {
 	// List of website to exclude from the search results without protocol specification or subdomains. A maximum of 5 websites can be excluded.
 	ExcludedWebsites []string `json:"excluded_websites,omitempty"`
 	// If set to true, mature content won't be considered during the search. Default to `true`.
-	SafeSearch           NullableBool `json:"safe_search,omitempty"`
-	Type                 string       `json:"type"`
+	SafeSearch NullableBool `json:"safe_search,omitempty"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -82,7 +82,6 @@ func (o *SearchSourceOneOf2) HasCountry() bool {
 func (o *SearchSourceOneOf2) SetCountry(v string) {
 	o.Country.Set(&v)
 }
-
 // SetCountryNil sets the value for Country to be an explicit nil
 func (o *SearchSourceOneOf2) SetCountryNil() {
 	o.Country.Set(nil)
@@ -158,7 +157,6 @@ func (o *SearchSourceOneOf2) HasSafeSearch() bool {
 func (o *SearchSourceOneOf2) SetSafeSearch(v bool) {
 	o.SafeSearch.Set(&v)
 }
-
 // SetSafeSearchNil sets the value for SafeSearch to be an explicit nil
 func (o *SearchSourceOneOf2) SetSafeSearchNil() {
 	o.SafeSearch.Set(nil)
@@ -194,7 +192,7 @@ func (o *SearchSourceOneOf2) SetType(v string) {
 }
 
 func (o SearchSourceOneOf2) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -234,10 +232,10 @@ func (o *SearchSourceOneOf2) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

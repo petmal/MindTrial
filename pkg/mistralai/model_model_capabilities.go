@@ -17,18 +17,22 @@ import (
 // checks if the ModelCapabilities type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &ModelCapabilities{}
 
-// ModelCapabilities struct for ModelCapabilities
+// ModelCapabilities This is populated by Harmattan, but some fields have a name that we don't want to expose in the API.
 type ModelCapabilities struct {
-	CompletionChat       *bool `json:"completion_chat,omitempty"`
-	FunctionCalling      *bool `json:"function_calling,omitempty"`
-	CompletionFim        *bool `json:"completion_fim,omitempty"`
-	FineTuning           *bool `json:"fine_tuning,omitempty"`
-	Vision               *bool `json:"vision,omitempty"`
-	Ocr                  *bool `json:"ocr,omitempty"`
-	Classification       *bool `json:"classification,omitempty"`
-	Moderation           *bool `json:"moderation,omitempty"`
-	Audio                *bool `json:"audio,omitempty"`
-	AudioTranscription   *bool `json:"audio_transcription,omitempty"`
+	Audio *bool `json:"audio,omitempty"`
+	AudioSpeech *bool `json:"audio_speech,omitempty"`
+	AudioTranscription *bool `json:"audio_transcription,omitempty"`
+	AudioTranscriptionRealtime *bool `json:"audio_transcription_realtime,omitempty"`
+	Classification *bool `json:"classification,omitempty"`
+	CompletionChat *bool `json:"completion_chat,omitempty"`
+	CompletionFim *bool `json:"completion_fim,omitempty"`
+	FineTuning *bool `json:"fine_tuning,omitempty"`
+	FunctionCalling *bool `json:"function_calling,omitempty"`
+	Moderation *bool `json:"moderation,omitempty"`
+	Ocr *bool `json:"ocr,omitempty"`
+	Reasoning *bool `json:"reasoning,omitempty"`
+	UnifiedResources *bool `json:"unified_resources,omitempty"`
+	Vision *bool `json:"vision,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -40,26 +44,34 @@ type _ModelCapabilities ModelCapabilities
 // will change when the set of required properties is changed
 func NewModelCapabilities() *ModelCapabilities {
 	this := ModelCapabilities{}
+	var audio bool = false
+	this.Audio = &audio
+	var audioSpeech bool = false
+	this.AudioSpeech = &audioSpeech
+	var audioTranscription bool = false
+	this.AudioTranscription = &audioTranscription
+	var audioTranscriptionRealtime bool = false
+	this.AudioTranscriptionRealtime = &audioTranscriptionRealtime
+	var classification bool = false
+	this.Classification = &classification
 	var completionChat bool = false
 	this.CompletionChat = &completionChat
-	var functionCalling bool = false
-	this.FunctionCalling = &functionCalling
 	var completionFim bool = false
 	this.CompletionFim = &completionFim
 	var fineTuning bool = false
 	this.FineTuning = &fineTuning
-	var vision bool = false
-	this.Vision = &vision
-	var ocr bool = false
-	this.Ocr = &ocr
-	var classification bool = false
-	this.Classification = &classification
+	var functionCalling bool = false
+	this.FunctionCalling = &functionCalling
 	var moderation bool = false
 	this.Moderation = &moderation
-	var audio bool = false
-	this.Audio = &audio
-	var audioTranscription bool = false
-	this.AudioTranscription = &audioTranscription
+	var ocr bool = false
+	this.Ocr = &ocr
+	var reasoning bool = false
+	this.Reasoning = &reasoning
+	var unifiedResources bool = false
+	this.UnifiedResources = &unifiedResources
+	var vision bool = false
+	this.Vision = &vision
 	return &this
 }
 
@@ -68,27 +80,195 @@ func NewModelCapabilities() *ModelCapabilities {
 // but it doesn't guarantee that properties required by API are set
 func NewModelCapabilitiesWithDefaults() *ModelCapabilities {
 	this := ModelCapabilities{}
+	var audio bool = false
+	this.Audio = &audio
+	var audioSpeech bool = false
+	this.AudioSpeech = &audioSpeech
+	var audioTranscription bool = false
+	this.AudioTranscription = &audioTranscription
+	var audioTranscriptionRealtime bool = false
+	this.AudioTranscriptionRealtime = &audioTranscriptionRealtime
+	var classification bool = false
+	this.Classification = &classification
 	var completionChat bool = false
 	this.CompletionChat = &completionChat
-	var functionCalling bool = false
-	this.FunctionCalling = &functionCalling
 	var completionFim bool = false
 	this.CompletionFim = &completionFim
 	var fineTuning bool = false
 	this.FineTuning = &fineTuning
-	var vision bool = false
-	this.Vision = &vision
-	var ocr bool = false
-	this.Ocr = &ocr
-	var classification bool = false
-	this.Classification = &classification
+	var functionCalling bool = false
+	this.FunctionCalling = &functionCalling
 	var moderation bool = false
 	this.Moderation = &moderation
-	var audio bool = false
-	this.Audio = &audio
-	var audioTranscription bool = false
-	this.AudioTranscription = &audioTranscription
+	var ocr bool = false
+	this.Ocr = &ocr
+	var reasoning bool = false
+	this.Reasoning = &reasoning
+	var unifiedResources bool = false
+	this.UnifiedResources = &unifiedResources
+	var vision bool = false
+	this.Vision = &vision
 	return &this
+}
+
+// GetAudio returns the Audio field value if set, zero value otherwise.
+func (o *ModelCapabilities) GetAudio() bool {
+	if o == nil || IsNil(o.Audio) {
+		var ret bool
+		return ret
+	}
+	return *o.Audio
+}
+
+// GetAudioOk returns a tuple with the Audio field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelCapabilities) GetAudioOk() (*bool, bool) {
+	if o == nil || IsNil(o.Audio) {
+		return nil, false
+	}
+	return o.Audio, true
+}
+
+// HasAudio returns a boolean if a field has been set.
+func (o *ModelCapabilities) HasAudio() bool {
+	if o != nil && !IsNil(o.Audio) {
+		return true
+	}
+
+	return false
+}
+
+// SetAudio gets a reference to the given bool and assigns it to the Audio field.
+func (o *ModelCapabilities) SetAudio(v bool) {
+	o.Audio = &v
+}
+
+// GetAudioSpeech returns the AudioSpeech field value if set, zero value otherwise.
+func (o *ModelCapabilities) GetAudioSpeech() bool {
+	if o == nil || IsNil(o.AudioSpeech) {
+		var ret bool
+		return ret
+	}
+	return *o.AudioSpeech
+}
+
+// GetAudioSpeechOk returns a tuple with the AudioSpeech field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelCapabilities) GetAudioSpeechOk() (*bool, bool) {
+	if o == nil || IsNil(o.AudioSpeech) {
+		return nil, false
+	}
+	return o.AudioSpeech, true
+}
+
+// HasAudioSpeech returns a boolean if a field has been set.
+func (o *ModelCapabilities) HasAudioSpeech() bool {
+	if o != nil && !IsNil(o.AudioSpeech) {
+		return true
+	}
+
+	return false
+}
+
+// SetAudioSpeech gets a reference to the given bool and assigns it to the AudioSpeech field.
+func (o *ModelCapabilities) SetAudioSpeech(v bool) {
+	o.AudioSpeech = &v
+}
+
+// GetAudioTranscription returns the AudioTranscription field value if set, zero value otherwise.
+func (o *ModelCapabilities) GetAudioTranscription() bool {
+	if o == nil || IsNil(o.AudioTranscription) {
+		var ret bool
+		return ret
+	}
+	return *o.AudioTranscription
+}
+
+// GetAudioTranscriptionOk returns a tuple with the AudioTranscription field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelCapabilities) GetAudioTranscriptionOk() (*bool, bool) {
+	if o == nil || IsNil(o.AudioTranscription) {
+		return nil, false
+	}
+	return o.AudioTranscription, true
+}
+
+// HasAudioTranscription returns a boolean if a field has been set.
+func (o *ModelCapabilities) HasAudioTranscription() bool {
+	if o != nil && !IsNil(o.AudioTranscription) {
+		return true
+	}
+
+	return false
+}
+
+// SetAudioTranscription gets a reference to the given bool and assigns it to the AudioTranscription field.
+func (o *ModelCapabilities) SetAudioTranscription(v bool) {
+	o.AudioTranscription = &v
+}
+
+// GetAudioTranscriptionRealtime returns the AudioTranscriptionRealtime field value if set, zero value otherwise.
+func (o *ModelCapabilities) GetAudioTranscriptionRealtime() bool {
+	if o == nil || IsNil(o.AudioTranscriptionRealtime) {
+		var ret bool
+		return ret
+	}
+	return *o.AudioTranscriptionRealtime
+}
+
+// GetAudioTranscriptionRealtimeOk returns a tuple with the AudioTranscriptionRealtime field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelCapabilities) GetAudioTranscriptionRealtimeOk() (*bool, bool) {
+	if o == nil || IsNil(o.AudioTranscriptionRealtime) {
+		return nil, false
+	}
+	return o.AudioTranscriptionRealtime, true
+}
+
+// HasAudioTranscriptionRealtime returns a boolean if a field has been set.
+func (o *ModelCapabilities) HasAudioTranscriptionRealtime() bool {
+	if o != nil && !IsNil(o.AudioTranscriptionRealtime) {
+		return true
+	}
+
+	return false
+}
+
+// SetAudioTranscriptionRealtime gets a reference to the given bool and assigns it to the AudioTranscriptionRealtime field.
+func (o *ModelCapabilities) SetAudioTranscriptionRealtime(v bool) {
+	o.AudioTranscriptionRealtime = &v
+}
+
+// GetClassification returns the Classification field value if set, zero value otherwise.
+func (o *ModelCapabilities) GetClassification() bool {
+	if o == nil || IsNil(o.Classification) {
+		var ret bool
+		return ret
+	}
+	return *o.Classification
+}
+
+// GetClassificationOk returns a tuple with the Classification field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelCapabilities) GetClassificationOk() (*bool, bool) {
+	if o == nil || IsNil(o.Classification) {
+		return nil, false
+	}
+	return o.Classification, true
+}
+
+// HasClassification returns a boolean if a field has been set.
+func (o *ModelCapabilities) HasClassification() bool {
+	if o != nil && !IsNil(o.Classification) {
+		return true
+	}
+
+	return false
+}
+
+// SetClassification gets a reference to the given bool and assigns it to the Classification field.
+func (o *ModelCapabilities) SetClassification(v bool) {
+	o.Classification = &v
 }
 
 // GetCompletionChat returns the CompletionChat field value if set, zero value otherwise.
@@ -121,38 +301,6 @@ func (o *ModelCapabilities) HasCompletionChat() bool {
 // SetCompletionChat gets a reference to the given bool and assigns it to the CompletionChat field.
 func (o *ModelCapabilities) SetCompletionChat(v bool) {
 	o.CompletionChat = &v
-}
-
-// GetFunctionCalling returns the FunctionCalling field value if set, zero value otherwise.
-func (o *ModelCapabilities) GetFunctionCalling() bool {
-	if o == nil || IsNil(o.FunctionCalling) {
-		var ret bool
-		return ret
-	}
-	return *o.FunctionCalling
-}
-
-// GetFunctionCallingOk returns a tuple with the FunctionCalling field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ModelCapabilities) GetFunctionCallingOk() (*bool, bool) {
-	if o == nil || IsNil(o.FunctionCalling) {
-		return nil, false
-	}
-	return o.FunctionCalling, true
-}
-
-// HasFunctionCalling returns a boolean if a field has been set.
-func (o *ModelCapabilities) HasFunctionCalling() bool {
-	if o != nil && !IsNil(o.FunctionCalling) {
-		return true
-	}
-
-	return false
-}
-
-// SetFunctionCalling gets a reference to the given bool and assigns it to the FunctionCalling field.
-func (o *ModelCapabilities) SetFunctionCalling(v bool) {
-	o.FunctionCalling = &v
 }
 
 // GetCompletionFim returns the CompletionFim field value if set, zero value otherwise.
@@ -219,100 +367,36 @@ func (o *ModelCapabilities) SetFineTuning(v bool) {
 	o.FineTuning = &v
 }
 
-// GetVision returns the Vision field value if set, zero value otherwise.
-func (o *ModelCapabilities) GetVision() bool {
-	if o == nil || IsNil(o.Vision) {
+// GetFunctionCalling returns the FunctionCalling field value if set, zero value otherwise.
+func (o *ModelCapabilities) GetFunctionCalling() bool {
+	if o == nil || IsNil(o.FunctionCalling) {
 		var ret bool
 		return ret
 	}
-	return *o.Vision
+	return *o.FunctionCalling
 }
 
-// GetVisionOk returns a tuple with the Vision field value if set, nil otherwise
+// GetFunctionCallingOk returns a tuple with the FunctionCalling field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ModelCapabilities) GetVisionOk() (*bool, bool) {
-	if o == nil || IsNil(o.Vision) {
+func (o *ModelCapabilities) GetFunctionCallingOk() (*bool, bool) {
+	if o == nil || IsNil(o.FunctionCalling) {
 		return nil, false
 	}
-	return o.Vision, true
+	return o.FunctionCalling, true
 }
 
-// HasVision returns a boolean if a field has been set.
-func (o *ModelCapabilities) HasVision() bool {
-	if o != nil && !IsNil(o.Vision) {
+// HasFunctionCalling returns a boolean if a field has been set.
+func (o *ModelCapabilities) HasFunctionCalling() bool {
+	if o != nil && !IsNil(o.FunctionCalling) {
 		return true
 	}
 
 	return false
 }
 
-// SetVision gets a reference to the given bool and assigns it to the Vision field.
-func (o *ModelCapabilities) SetVision(v bool) {
-	o.Vision = &v
-}
-
-// GetOcr returns the Ocr field value if set, zero value otherwise.
-func (o *ModelCapabilities) GetOcr() bool {
-	if o == nil || IsNil(o.Ocr) {
-		var ret bool
-		return ret
-	}
-	return *o.Ocr
-}
-
-// GetOcrOk returns a tuple with the Ocr field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ModelCapabilities) GetOcrOk() (*bool, bool) {
-	if o == nil || IsNil(o.Ocr) {
-		return nil, false
-	}
-	return o.Ocr, true
-}
-
-// HasOcr returns a boolean if a field has been set.
-func (o *ModelCapabilities) HasOcr() bool {
-	if o != nil && !IsNil(o.Ocr) {
-		return true
-	}
-
-	return false
-}
-
-// SetOcr gets a reference to the given bool and assigns it to the Ocr field.
-func (o *ModelCapabilities) SetOcr(v bool) {
-	o.Ocr = &v
-}
-
-// GetClassification returns the Classification field value if set, zero value otherwise.
-func (o *ModelCapabilities) GetClassification() bool {
-	if o == nil || IsNil(o.Classification) {
-		var ret bool
-		return ret
-	}
-	return *o.Classification
-}
-
-// GetClassificationOk returns a tuple with the Classification field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ModelCapabilities) GetClassificationOk() (*bool, bool) {
-	if o == nil || IsNil(o.Classification) {
-		return nil, false
-	}
-	return o.Classification, true
-}
-
-// HasClassification returns a boolean if a field has been set.
-func (o *ModelCapabilities) HasClassification() bool {
-	if o != nil && !IsNil(o.Classification) {
-		return true
-	}
-
-	return false
-}
-
-// SetClassification gets a reference to the given bool and assigns it to the Classification field.
-func (o *ModelCapabilities) SetClassification(v bool) {
-	o.Classification = &v
+// SetFunctionCalling gets a reference to the given bool and assigns it to the FunctionCalling field.
+func (o *ModelCapabilities) SetFunctionCalling(v bool) {
+	o.FunctionCalling = &v
 }
 
 // GetModeration returns the Moderation field value if set, zero value otherwise.
@@ -347,72 +431,136 @@ func (o *ModelCapabilities) SetModeration(v bool) {
 	o.Moderation = &v
 }
 
-// GetAudio returns the Audio field value if set, zero value otherwise.
-func (o *ModelCapabilities) GetAudio() bool {
-	if o == nil || IsNil(o.Audio) {
+// GetOcr returns the Ocr field value if set, zero value otherwise.
+func (o *ModelCapabilities) GetOcr() bool {
+	if o == nil || IsNil(o.Ocr) {
 		var ret bool
 		return ret
 	}
-	return *o.Audio
+	return *o.Ocr
 }
 
-// GetAudioOk returns a tuple with the Audio field value if set, nil otherwise
+// GetOcrOk returns a tuple with the Ocr field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ModelCapabilities) GetAudioOk() (*bool, bool) {
-	if o == nil || IsNil(o.Audio) {
+func (o *ModelCapabilities) GetOcrOk() (*bool, bool) {
+	if o == nil || IsNil(o.Ocr) {
 		return nil, false
 	}
-	return o.Audio, true
+	return o.Ocr, true
 }
 
-// HasAudio returns a boolean if a field has been set.
-func (o *ModelCapabilities) HasAudio() bool {
-	if o != nil && !IsNil(o.Audio) {
+// HasOcr returns a boolean if a field has been set.
+func (o *ModelCapabilities) HasOcr() bool {
+	if o != nil && !IsNil(o.Ocr) {
 		return true
 	}
 
 	return false
 }
 
-// SetAudio gets a reference to the given bool and assigns it to the Audio field.
-func (o *ModelCapabilities) SetAudio(v bool) {
-	o.Audio = &v
+// SetOcr gets a reference to the given bool and assigns it to the Ocr field.
+func (o *ModelCapabilities) SetOcr(v bool) {
+	o.Ocr = &v
 }
 
-// GetAudioTranscription returns the AudioTranscription field value if set, zero value otherwise.
-func (o *ModelCapabilities) GetAudioTranscription() bool {
-	if o == nil || IsNil(o.AudioTranscription) {
+// GetReasoning returns the Reasoning field value if set, zero value otherwise.
+func (o *ModelCapabilities) GetReasoning() bool {
+	if o == nil || IsNil(o.Reasoning) {
 		var ret bool
 		return ret
 	}
-	return *o.AudioTranscription
+	return *o.Reasoning
 }
 
-// GetAudioTranscriptionOk returns a tuple with the AudioTranscription field value if set, nil otherwise
+// GetReasoningOk returns a tuple with the Reasoning field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ModelCapabilities) GetAudioTranscriptionOk() (*bool, bool) {
-	if o == nil || IsNil(o.AudioTranscription) {
+func (o *ModelCapabilities) GetReasoningOk() (*bool, bool) {
+	if o == nil || IsNil(o.Reasoning) {
 		return nil, false
 	}
-	return o.AudioTranscription, true
+	return o.Reasoning, true
 }
 
-// HasAudioTranscription returns a boolean if a field has been set.
-func (o *ModelCapabilities) HasAudioTranscription() bool {
-	if o != nil && !IsNil(o.AudioTranscription) {
+// HasReasoning returns a boolean if a field has been set.
+func (o *ModelCapabilities) HasReasoning() bool {
+	if o != nil && !IsNil(o.Reasoning) {
 		return true
 	}
 
 	return false
 }
 
-// SetAudioTranscription gets a reference to the given bool and assigns it to the AudioTranscription field.
-func (o *ModelCapabilities) SetAudioTranscription(v bool) {
-	o.AudioTranscription = &v
+// SetReasoning gets a reference to the given bool and assigns it to the Reasoning field.
+func (o *ModelCapabilities) SetReasoning(v bool) {
+	o.Reasoning = &v
+}
+
+// GetUnifiedResources returns the UnifiedResources field value if set, zero value otherwise.
+func (o *ModelCapabilities) GetUnifiedResources() bool {
+	if o == nil || IsNil(o.UnifiedResources) {
+		var ret bool
+		return ret
+	}
+	return *o.UnifiedResources
+}
+
+// GetUnifiedResourcesOk returns a tuple with the UnifiedResources field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelCapabilities) GetUnifiedResourcesOk() (*bool, bool) {
+	if o == nil || IsNil(o.UnifiedResources) {
+		return nil, false
+	}
+	return o.UnifiedResources, true
+}
+
+// HasUnifiedResources returns a boolean if a field has been set.
+func (o *ModelCapabilities) HasUnifiedResources() bool {
+	if o != nil && !IsNil(o.UnifiedResources) {
+		return true
+	}
+
+	return false
+}
+
+// SetUnifiedResources gets a reference to the given bool and assigns it to the UnifiedResources field.
+func (o *ModelCapabilities) SetUnifiedResources(v bool) {
+	o.UnifiedResources = &v
+}
+
+// GetVision returns the Vision field value if set, zero value otherwise.
+func (o *ModelCapabilities) GetVision() bool {
+	if o == nil || IsNil(o.Vision) {
+		var ret bool
+		return ret
+	}
+	return *o.Vision
+}
+
+// GetVisionOk returns a tuple with the Vision field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelCapabilities) GetVisionOk() (*bool, bool) {
+	if o == nil || IsNil(o.Vision) {
+		return nil, false
+	}
+	return o.Vision, true
+}
+
+// HasVision returns a boolean if a field has been set.
+func (o *ModelCapabilities) HasVision() bool {
+	if o != nil && !IsNil(o.Vision) {
+		return true
+	}
+
+	return false
+}
+
+// SetVision gets a reference to the given bool and assigns it to the Vision field.
+func (o *ModelCapabilities) SetVision(v bool) {
+	o.Vision = &v
 }
 
 func (o ModelCapabilities) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -421,11 +569,23 @@ func (o ModelCapabilities) MarshalJSON() ([]byte, error) {
 
 func (o ModelCapabilities) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if !IsNil(o.Audio) {
+		toSerialize["audio"] = o.Audio
+	}
+	if !IsNil(o.AudioSpeech) {
+		toSerialize["audio_speech"] = o.AudioSpeech
+	}
+	if !IsNil(o.AudioTranscription) {
+		toSerialize["audio_transcription"] = o.AudioTranscription
+	}
+	if !IsNil(o.AudioTranscriptionRealtime) {
+		toSerialize["audio_transcription_realtime"] = o.AudioTranscriptionRealtime
+	}
+	if !IsNil(o.Classification) {
+		toSerialize["classification"] = o.Classification
+	}
 	if !IsNil(o.CompletionChat) {
 		toSerialize["completion_chat"] = o.CompletionChat
-	}
-	if !IsNil(o.FunctionCalling) {
-		toSerialize["function_calling"] = o.FunctionCalling
 	}
 	if !IsNil(o.CompletionFim) {
 		toSerialize["completion_fim"] = o.CompletionFim
@@ -433,23 +593,23 @@ func (o ModelCapabilities) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.FineTuning) {
 		toSerialize["fine_tuning"] = o.FineTuning
 	}
-	if !IsNil(o.Vision) {
-		toSerialize["vision"] = o.Vision
-	}
-	if !IsNil(o.Ocr) {
-		toSerialize["ocr"] = o.Ocr
-	}
-	if !IsNil(o.Classification) {
-		toSerialize["classification"] = o.Classification
+	if !IsNil(o.FunctionCalling) {
+		toSerialize["function_calling"] = o.FunctionCalling
 	}
 	if !IsNil(o.Moderation) {
 		toSerialize["moderation"] = o.Moderation
 	}
-	if !IsNil(o.Audio) {
-		toSerialize["audio"] = o.Audio
+	if !IsNil(o.Ocr) {
+		toSerialize["ocr"] = o.Ocr
 	}
-	if !IsNil(o.AudioTranscription) {
-		toSerialize["audio_transcription"] = o.AudioTranscription
+	if !IsNil(o.Reasoning) {
+		toSerialize["reasoning"] = o.Reasoning
+	}
+	if !IsNil(o.UnifiedResources) {
+		toSerialize["unified_resources"] = o.UnifiedResources
+	}
+	if !IsNil(o.Vision) {
+		toSerialize["vision"] = o.Vision
 	}
 
 	for key, value := range o.AdditionalProperties {
@@ -473,16 +633,20 @@ func (o *ModelCapabilities) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "audio")
+		delete(additionalProperties, "audio_speech")
+		delete(additionalProperties, "audio_transcription")
+		delete(additionalProperties, "audio_transcription_realtime")
+		delete(additionalProperties, "classification")
 		delete(additionalProperties, "completion_chat")
-		delete(additionalProperties, "function_calling")
 		delete(additionalProperties, "completion_fim")
 		delete(additionalProperties, "fine_tuning")
-		delete(additionalProperties, "vision")
-		delete(additionalProperties, "ocr")
-		delete(additionalProperties, "classification")
+		delete(additionalProperties, "function_calling")
 		delete(additionalProperties, "moderation")
-		delete(additionalProperties, "audio")
-		delete(additionalProperties, "audio_transcription")
+		delete(additionalProperties, "ocr")
+		delete(additionalProperties, "reasoning")
+		delete(additionalProperties, "unified_resources")
+		delete(additionalProperties, "vision")
 		o.AdditionalProperties = additionalProperties
 	}
 

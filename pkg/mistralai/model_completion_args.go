@@ -19,16 +19,17 @@ var _ MappedNullable = &CompletionArgs{}
 
 // CompletionArgs White-listed arguments from the completion API
 type CompletionArgs struct {
-	Stop             NullableCompletionArgsStop `json:"stop,omitempty"`
-	PresencePenalty  NullableFloat32            `json:"presence_penalty,omitempty"`
-	FrequencyPenalty NullableFloat32            `json:"frequency_penalty,omitempty"`
-	Temperature      NullableFloat32            `json:"temperature,omitempty"`
-	TopP             NullableFloat32            `json:"top_p,omitempty"`
-	MaxTokens        NullableInt32              `json:"max_tokens,omitempty"`
-	RandomSeed       NullableInt32              `json:"random_seed,omitempty"`
-	Prediction       NullablePrediction         `json:"prediction,omitempty"`
-	ResponseFormat   NullableResponseFormat     `json:"response_format,omitempty"`
-	ToolChoice       *ToolChoiceEnum            `json:"tool_choice,omitempty"`
+	FrequencyPenalty NullableFloat32 `json:"frequency_penalty,omitempty"`
+	MaxTokens NullableInt32 `json:"max_tokens,omitempty"`
+	Prediction NullablePrediction `json:"prediction,omitempty"`
+	PresencePenalty NullableFloat32 `json:"presence_penalty,omitempty"`
+	RandomSeed NullableInt32 `json:"random_seed,omitempty"`
+	ReasoningEffort NullableReasoningEffort `json:"reasoning_effort,omitempty"`
+	ResponseFormat NullableResponseFormat `json:"response_format,omitempty"`
+	Stop NullableCompletionArgsStop `json:"stop,omitempty"`
+	Temperature NullableFloat32 `json:"temperature,omitempty"`
+	ToolChoice *ToolChoiceEnum `json:"tool_choice,omitempty"`
+	TopP NullableFloat32 `json:"top_p,omitempty"`
 }
 
 // NewCompletionArgs instantiates a new CompletionArgs object
@@ -50,92 +51,6 @@ func NewCompletionArgsWithDefaults() *CompletionArgs {
 	var toolChoice ToolChoiceEnum = TOOLCHOICEENUM_auto
 	this.ToolChoice = &toolChoice
 	return &this
-}
-
-// GetStop returns the Stop field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *CompletionArgs) GetStop() CompletionArgsStop {
-	if o == nil || IsNil(o.Stop.Get()) {
-		var ret CompletionArgsStop
-		return ret
-	}
-	return *o.Stop.Get()
-}
-
-// GetStopOk returns a tuple with the Stop field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *CompletionArgs) GetStopOk() (*CompletionArgsStop, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Stop.Get(), o.Stop.IsSet()
-}
-
-// HasStop returns a boolean if a field has been set.
-func (o *CompletionArgs) HasStop() bool {
-	if o != nil && o.Stop.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetStop gets a reference to the given NullableCompletionArgsStop and assigns it to the Stop field.
-func (o *CompletionArgs) SetStop(v CompletionArgsStop) {
-	o.Stop.Set(&v)
-}
-
-// SetStopNil sets the value for Stop to be an explicit nil
-func (o *CompletionArgs) SetStopNil() {
-	o.Stop.Set(nil)
-}
-
-// UnsetStop ensures that no value is present for Stop, not even an explicit nil
-func (o *CompletionArgs) UnsetStop() {
-	o.Stop.Unset()
-}
-
-// GetPresencePenalty returns the PresencePenalty field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *CompletionArgs) GetPresencePenalty() float32 {
-	if o == nil || IsNil(o.PresencePenalty.Get()) {
-		var ret float32
-		return ret
-	}
-	return *o.PresencePenalty.Get()
-}
-
-// GetPresencePenaltyOk returns a tuple with the PresencePenalty field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *CompletionArgs) GetPresencePenaltyOk() (*float32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.PresencePenalty.Get(), o.PresencePenalty.IsSet()
-}
-
-// HasPresencePenalty returns a boolean if a field has been set.
-func (o *CompletionArgs) HasPresencePenalty() bool {
-	if o != nil && o.PresencePenalty.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetPresencePenalty gets a reference to the given NullableFloat32 and assigns it to the PresencePenalty field.
-func (o *CompletionArgs) SetPresencePenalty(v float32) {
-	o.PresencePenalty.Set(&v)
-}
-
-// SetPresencePenaltyNil sets the value for PresencePenalty to be an explicit nil
-func (o *CompletionArgs) SetPresencePenaltyNil() {
-	o.PresencePenalty.Set(nil)
-}
-
-// UnsetPresencePenalty ensures that no value is present for PresencePenalty, not even an explicit nil
-func (o *CompletionArgs) UnsetPresencePenalty() {
-	o.PresencePenalty.Unset()
 }
 
 // GetFrequencyPenalty returns the FrequencyPenalty field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -170,7 +85,6 @@ func (o *CompletionArgs) HasFrequencyPenalty() bool {
 func (o *CompletionArgs) SetFrequencyPenalty(v float32) {
 	o.FrequencyPenalty.Set(&v)
 }
-
 // SetFrequencyPenaltyNil sets the value for FrequencyPenalty to be an explicit nil
 func (o *CompletionArgs) SetFrequencyPenaltyNil() {
 	o.FrequencyPenalty.Set(nil)
@@ -179,92 +93,6 @@ func (o *CompletionArgs) SetFrequencyPenaltyNil() {
 // UnsetFrequencyPenalty ensures that no value is present for FrequencyPenalty, not even an explicit nil
 func (o *CompletionArgs) UnsetFrequencyPenalty() {
 	o.FrequencyPenalty.Unset()
-}
-
-// GetTemperature returns the Temperature field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *CompletionArgs) GetTemperature() float32 {
-	if o == nil || IsNil(o.Temperature.Get()) {
-		var ret float32
-		return ret
-	}
-	return *o.Temperature.Get()
-}
-
-// GetTemperatureOk returns a tuple with the Temperature field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *CompletionArgs) GetTemperatureOk() (*float32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Temperature.Get(), o.Temperature.IsSet()
-}
-
-// HasTemperature returns a boolean if a field has been set.
-func (o *CompletionArgs) HasTemperature() bool {
-	if o != nil && o.Temperature.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetTemperature gets a reference to the given NullableFloat32 and assigns it to the Temperature field.
-func (o *CompletionArgs) SetTemperature(v float32) {
-	o.Temperature.Set(&v)
-}
-
-// SetTemperatureNil sets the value for Temperature to be an explicit nil
-func (o *CompletionArgs) SetTemperatureNil() {
-	o.Temperature.Set(nil)
-}
-
-// UnsetTemperature ensures that no value is present for Temperature, not even an explicit nil
-func (o *CompletionArgs) UnsetTemperature() {
-	o.Temperature.Unset()
-}
-
-// GetTopP returns the TopP field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *CompletionArgs) GetTopP() float32 {
-	if o == nil || IsNil(o.TopP.Get()) {
-		var ret float32
-		return ret
-	}
-	return *o.TopP.Get()
-}
-
-// GetTopPOk returns a tuple with the TopP field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *CompletionArgs) GetTopPOk() (*float32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.TopP.Get(), o.TopP.IsSet()
-}
-
-// HasTopP returns a boolean if a field has been set.
-func (o *CompletionArgs) HasTopP() bool {
-	if o != nil && o.TopP.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetTopP gets a reference to the given NullableFloat32 and assigns it to the TopP field.
-func (o *CompletionArgs) SetTopP(v float32) {
-	o.TopP.Set(&v)
-}
-
-// SetTopPNil sets the value for TopP to be an explicit nil
-func (o *CompletionArgs) SetTopPNil() {
-	o.TopP.Set(nil)
-}
-
-// UnsetTopP ensures that no value is present for TopP, not even an explicit nil
-func (o *CompletionArgs) UnsetTopP() {
-	o.TopP.Unset()
 }
 
 // GetMaxTokens returns the MaxTokens field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -299,7 +127,6 @@ func (o *CompletionArgs) HasMaxTokens() bool {
 func (o *CompletionArgs) SetMaxTokens(v int32) {
 	o.MaxTokens.Set(&v)
 }
-
 // SetMaxTokensNil sets the value for MaxTokens to be an explicit nil
 func (o *CompletionArgs) SetMaxTokensNil() {
 	o.MaxTokens.Set(nil)
@@ -308,49 +135,6 @@ func (o *CompletionArgs) SetMaxTokensNil() {
 // UnsetMaxTokens ensures that no value is present for MaxTokens, not even an explicit nil
 func (o *CompletionArgs) UnsetMaxTokens() {
 	o.MaxTokens.Unset()
-}
-
-// GetRandomSeed returns the RandomSeed field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *CompletionArgs) GetRandomSeed() int32 {
-	if o == nil || IsNil(o.RandomSeed.Get()) {
-		var ret int32
-		return ret
-	}
-	return *o.RandomSeed.Get()
-}
-
-// GetRandomSeedOk returns a tuple with the RandomSeed field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *CompletionArgs) GetRandomSeedOk() (*int32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.RandomSeed.Get(), o.RandomSeed.IsSet()
-}
-
-// HasRandomSeed returns a boolean if a field has been set.
-func (o *CompletionArgs) HasRandomSeed() bool {
-	if o != nil && o.RandomSeed.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetRandomSeed gets a reference to the given NullableInt32 and assigns it to the RandomSeed field.
-func (o *CompletionArgs) SetRandomSeed(v int32) {
-	o.RandomSeed.Set(&v)
-}
-
-// SetRandomSeedNil sets the value for RandomSeed to be an explicit nil
-func (o *CompletionArgs) SetRandomSeedNil() {
-	o.RandomSeed.Set(nil)
-}
-
-// UnsetRandomSeed ensures that no value is present for RandomSeed, not even an explicit nil
-func (o *CompletionArgs) UnsetRandomSeed() {
-	o.RandomSeed.Unset()
 }
 
 // GetPrediction returns the Prediction field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -385,7 +169,6 @@ func (o *CompletionArgs) HasPrediction() bool {
 func (o *CompletionArgs) SetPrediction(v Prediction) {
 	o.Prediction.Set(&v)
 }
-
 // SetPredictionNil sets the value for Prediction to be an explicit nil
 func (o *CompletionArgs) SetPredictionNil() {
 	o.Prediction.Set(nil)
@@ -394,6 +177,132 @@ func (o *CompletionArgs) SetPredictionNil() {
 // UnsetPrediction ensures that no value is present for Prediction, not even an explicit nil
 func (o *CompletionArgs) UnsetPrediction() {
 	o.Prediction.Unset()
+}
+
+// GetPresencePenalty returns the PresencePenalty field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *CompletionArgs) GetPresencePenalty() float32 {
+	if o == nil || IsNil(o.PresencePenalty.Get()) {
+		var ret float32
+		return ret
+	}
+	return *o.PresencePenalty.Get()
+}
+
+// GetPresencePenaltyOk returns a tuple with the PresencePenalty field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *CompletionArgs) GetPresencePenaltyOk() (*float32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.PresencePenalty.Get(), o.PresencePenalty.IsSet()
+}
+
+// HasPresencePenalty returns a boolean if a field has been set.
+func (o *CompletionArgs) HasPresencePenalty() bool {
+	if o != nil && o.PresencePenalty.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetPresencePenalty gets a reference to the given NullableFloat32 and assigns it to the PresencePenalty field.
+func (o *CompletionArgs) SetPresencePenalty(v float32) {
+	o.PresencePenalty.Set(&v)
+}
+// SetPresencePenaltyNil sets the value for PresencePenalty to be an explicit nil
+func (o *CompletionArgs) SetPresencePenaltyNil() {
+	o.PresencePenalty.Set(nil)
+}
+
+// UnsetPresencePenalty ensures that no value is present for PresencePenalty, not even an explicit nil
+func (o *CompletionArgs) UnsetPresencePenalty() {
+	o.PresencePenalty.Unset()
+}
+
+// GetRandomSeed returns the RandomSeed field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *CompletionArgs) GetRandomSeed() int32 {
+	if o == nil || IsNil(o.RandomSeed.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.RandomSeed.Get()
+}
+
+// GetRandomSeedOk returns a tuple with the RandomSeed field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *CompletionArgs) GetRandomSeedOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.RandomSeed.Get(), o.RandomSeed.IsSet()
+}
+
+// HasRandomSeed returns a boolean if a field has been set.
+func (o *CompletionArgs) HasRandomSeed() bool {
+	if o != nil && o.RandomSeed.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetRandomSeed gets a reference to the given NullableInt32 and assigns it to the RandomSeed field.
+func (o *CompletionArgs) SetRandomSeed(v int32) {
+	o.RandomSeed.Set(&v)
+}
+// SetRandomSeedNil sets the value for RandomSeed to be an explicit nil
+func (o *CompletionArgs) SetRandomSeedNil() {
+	o.RandomSeed.Set(nil)
+}
+
+// UnsetRandomSeed ensures that no value is present for RandomSeed, not even an explicit nil
+func (o *CompletionArgs) UnsetRandomSeed() {
+	o.RandomSeed.Unset()
+}
+
+// GetReasoningEffort returns the ReasoningEffort field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *CompletionArgs) GetReasoningEffort() ReasoningEffort {
+	if o == nil || IsNil(o.ReasoningEffort.Get()) {
+		var ret ReasoningEffort
+		return ret
+	}
+	return *o.ReasoningEffort.Get()
+}
+
+// GetReasoningEffortOk returns a tuple with the ReasoningEffort field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *CompletionArgs) GetReasoningEffortOk() (*ReasoningEffort, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ReasoningEffort.Get(), o.ReasoningEffort.IsSet()
+}
+
+// HasReasoningEffort returns a boolean if a field has been set.
+func (o *CompletionArgs) HasReasoningEffort() bool {
+	if o != nil && o.ReasoningEffort.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetReasoningEffort gets a reference to the given NullableReasoningEffort and assigns it to the ReasoningEffort field.
+func (o *CompletionArgs) SetReasoningEffort(v ReasoningEffort) {
+	o.ReasoningEffort.Set(&v)
+}
+// SetReasoningEffortNil sets the value for ReasoningEffort to be an explicit nil
+func (o *CompletionArgs) SetReasoningEffortNil() {
+	o.ReasoningEffort.Set(nil)
+}
+
+// UnsetReasoningEffort ensures that no value is present for ReasoningEffort, not even an explicit nil
+func (o *CompletionArgs) UnsetReasoningEffort() {
+	o.ReasoningEffort.Unset()
 }
 
 // GetResponseFormat returns the ResponseFormat field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -428,7 +337,6 @@ func (o *CompletionArgs) HasResponseFormat() bool {
 func (o *CompletionArgs) SetResponseFormat(v ResponseFormat) {
 	o.ResponseFormat.Set(&v)
 }
-
 // SetResponseFormatNil sets the value for ResponseFormat to be an explicit nil
 func (o *CompletionArgs) SetResponseFormatNil() {
 	o.ResponseFormat.Set(nil)
@@ -437,6 +345,90 @@ func (o *CompletionArgs) SetResponseFormatNil() {
 // UnsetResponseFormat ensures that no value is present for ResponseFormat, not even an explicit nil
 func (o *CompletionArgs) UnsetResponseFormat() {
 	o.ResponseFormat.Unset()
+}
+
+// GetStop returns the Stop field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *CompletionArgs) GetStop() CompletionArgsStop {
+	if o == nil || IsNil(o.Stop.Get()) {
+		var ret CompletionArgsStop
+		return ret
+	}
+	return *o.Stop.Get()
+}
+
+// GetStopOk returns a tuple with the Stop field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *CompletionArgs) GetStopOk() (*CompletionArgsStop, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Stop.Get(), o.Stop.IsSet()
+}
+
+// HasStop returns a boolean if a field has been set.
+func (o *CompletionArgs) HasStop() bool {
+	if o != nil && o.Stop.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetStop gets a reference to the given NullableCompletionArgsStop and assigns it to the Stop field.
+func (o *CompletionArgs) SetStop(v CompletionArgsStop) {
+	o.Stop.Set(&v)
+}
+// SetStopNil sets the value for Stop to be an explicit nil
+func (o *CompletionArgs) SetStopNil() {
+	o.Stop.Set(nil)
+}
+
+// UnsetStop ensures that no value is present for Stop, not even an explicit nil
+func (o *CompletionArgs) UnsetStop() {
+	o.Stop.Unset()
+}
+
+// GetTemperature returns the Temperature field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *CompletionArgs) GetTemperature() float32 {
+	if o == nil || IsNil(o.Temperature.Get()) {
+		var ret float32
+		return ret
+	}
+	return *o.Temperature.Get()
+}
+
+// GetTemperatureOk returns a tuple with the Temperature field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *CompletionArgs) GetTemperatureOk() (*float32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Temperature.Get(), o.Temperature.IsSet()
+}
+
+// HasTemperature returns a boolean if a field has been set.
+func (o *CompletionArgs) HasTemperature() bool {
+	if o != nil && o.Temperature.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetTemperature gets a reference to the given NullableFloat32 and assigns it to the Temperature field.
+func (o *CompletionArgs) SetTemperature(v float32) {
+	o.Temperature.Set(&v)
+}
+// SetTemperatureNil sets the value for Temperature to be an explicit nil
+func (o *CompletionArgs) SetTemperatureNil() {
+	o.Temperature.Set(nil)
+}
+
+// UnsetTemperature ensures that no value is present for Temperature, not even an explicit nil
+func (o *CompletionArgs) UnsetTemperature() {
+	o.Temperature.Unset()
 }
 
 // GetToolChoice returns the ToolChoice field value if set, zero value otherwise.
@@ -471,8 +463,50 @@ func (o *CompletionArgs) SetToolChoice(v ToolChoiceEnum) {
 	o.ToolChoice = &v
 }
 
+// GetTopP returns the TopP field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *CompletionArgs) GetTopP() float32 {
+	if o == nil || IsNil(o.TopP.Get()) {
+		var ret float32
+		return ret
+	}
+	return *o.TopP.Get()
+}
+
+// GetTopPOk returns a tuple with the TopP field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *CompletionArgs) GetTopPOk() (*float32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.TopP.Get(), o.TopP.IsSet()
+}
+
+// HasTopP returns a boolean if a field has been set.
+func (o *CompletionArgs) HasTopP() bool {
+	if o != nil && o.TopP.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetTopP gets a reference to the given NullableFloat32 and assigns it to the TopP field.
+func (o *CompletionArgs) SetTopP(v float32) {
+	o.TopP.Set(&v)
+}
+// SetTopPNil sets the value for TopP to be an explicit nil
+func (o *CompletionArgs) SetTopPNil() {
+	o.TopP.Set(nil)
+}
+
+// UnsetTopP ensures that no value is present for TopP, not even an explicit nil
+func (o *CompletionArgs) UnsetTopP() {
+	o.TopP.Unset()
+}
+
 func (o CompletionArgs) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -481,35 +515,38 @@ func (o CompletionArgs) MarshalJSON() ([]byte, error) {
 
 func (o CompletionArgs) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if o.Stop.IsSet() {
-		toSerialize["stop"] = o.Stop.Get()
-	}
-	if o.PresencePenalty.IsSet() {
-		toSerialize["presence_penalty"] = o.PresencePenalty.Get()
-	}
 	if o.FrequencyPenalty.IsSet() {
 		toSerialize["frequency_penalty"] = o.FrequencyPenalty.Get()
-	}
-	if o.Temperature.IsSet() {
-		toSerialize["temperature"] = o.Temperature.Get()
-	}
-	if o.TopP.IsSet() {
-		toSerialize["top_p"] = o.TopP.Get()
 	}
 	if o.MaxTokens.IsSet() {
 		toSerialize["max_tokens"] = o.MaxTokens.Get()
 	}
+	if o.Prediction.IsSet() {
+		toSerialize["prediction"] = o.Prediction.Get()
+	}
+	if o.PresencePenalty.IsSet() {
+		toSerialize["presence_penalty"] = o.PresencePenalty.Get()
+	}
 	if o.RandomSeed.IsSet() {
 		toSerialize["random_seed"] = o.RandomSeed.Get()
 	}
-	if o.Prediction.IsSet() {
-		toSerialize["prediction"] = o.Prediction.Get()
+	if o.ReasoningEffort.IsSet() {
+		toSerialize["reasoning_effort"] = o.ReasoningEffort.Get()
 	}
 	if o.ResponseFormat.IsSet() {
 		toSerialize["response_format"] = o.ResponseFormat.Get()
 	}
+	if o.Stop.IsSet() {
+		toSerialize["stop"] = o.Stop.Get()
+	}
+	if o.Temperature.IsSet() {
+		toSerialize["temperature"] = o.Temperature.Get()
+	}
 	if !IsNil(o.ToolChoice) {
 		toSerialize["tool_choice"] = o.ToolChoice
+	}
+	if o.TopP.IsSet() {
+		toSerialize["top_p"] = o.TopP.Get()
 	}
 	return toSerialize, nil
 }

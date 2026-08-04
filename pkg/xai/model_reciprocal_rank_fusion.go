@@ -24,7 +24,7 @@ type ReciprocalRankFusion struct {
 	// The RRF constant k used in the reciprocal rank fusion formula. Defaults to 60.
 	K NullableInt32 `json:"k,omitempty"`
 	// Weight for keyword (sparse) search results. Should be between 0 and 1. Defaults to 0.5.
-	TextWeight           *float32 `json:"text_weight,omitempty"`
+	TextWeight *float32 `json:"text_weight,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -111,7 +111,6 @@ func (o *ReciprocalRankFusion) HasK() bool {
 func (o *ReciprocalRankFusion) SetK(v int32) {
 	o.K.Set(&v)
 }
-
 // SetKNil sets the value for K to be an explicit nil
 func (o *ReciprocalRankFusion) SetKNil() {
 	o.K.Set(nil)
@@ -155,7 +154,7 @@ func (o *ReciprocalRankFusion) SetTextWeight(v float32) {
 }
 
 func (o ReciprocalRankFusion) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

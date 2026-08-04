@@ -19,13 +19,16 @@ import (
 	"os"
 )
 
+
 type AudioTranscriptionsAPI interface {
 
 	/*
-		AudioApiV1TranscriptionsPost Create Transcription
+	AudioApiV1TranscriptionsPost Create Transcription
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiAudioApiV1TranscriptionsPostRequest
+	Create Transcription
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiAudioApiV1TranscriptionsPostRequest
 	*/
 	AudioApiV1TranscriptionsPost(ctx context.Context) ApiAudioApiV1TranscriptionsPostRequest
 
@@ -34,10 +37,12 @@ type AudioTranscriptionsAPI interface {
 	AudioApiV1TranscriptionsPostExecute(r ApiAudioApiV1TranscriptionsPostRequest) (*TranscriptionResponse, *http.Response, error)
 
 	/*
-		AudioApiV1TranscriptionsPostStream Create Streaming Transcription (SSE)
+	AudioApiV1TranscriptionsPostStream Create Streaming Transcription (SSE)
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiAudioApiV1TranscriptionsPostStreamRequest
+	Create Streaming Transcription (SSE)
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiAudioApiV1TranscriptionsPostStreamRequest
 	*/
 	AudioApiV1TranscriptionsPostStream(ctx context.Context) ApiAudioApiV1TranscriptionsPostStreamRequest
 
@@ -50,17 +55,17 @@ type AudioTranscriptionsAPI interface {
 type AudioTranscriptionsAPIService service
 
 type ApiAudioApiV1TranscriptionsPostRequest struct {
-	ctx                    context.Context
-	ApiService             AudioTranscriptionsAPI
-	model                  *string
-	file                   **os.File
-	fileUrl                *string
-	fileId                 *string
-	language               *string
-	temperature            *float32
-	stream                 *bool
-	diarize                *bool
-	contextBias            *[]string
+	ctx context.Context
+	ApiService AudioTranscriptionsAPI
+	model *string
+	contextBias *[]string
+	diarize *bool
+	file **os.File
+	fileId *string
+	fileUrl *string
+	language *string
+	stream *bool
+	temperature *float32
 	timestampGranularities *[]TimestampGranularity
 }
 
@@ -70,34 +75,8 @@ func (r ApiAudioApiV1TranscriptionsPostRequest) Model(model string) ApiAudioApiV
 	return r
 }
 
-// The File object (not file name) to be uploaded.  To upload a file and specify a custom file name you should format your request as such:  &#x60;&#x60;&#x60;bash  file&#x3D;@path/to/your/file.jsonl;filename&#x3D;custom_name.jsonl  &#x60;&#x60;&#x60;  Otherwise, you can just keep the original file name:  &#x60;&#x60;&#x60;bash  file&#x3D;@path/to/your/file.jsonl  &#x60;&#x60;&#x60;
-func (r ApiAudioApiV1TranscriptionsPostRequest) File(file *os.File) ApiAudioApiV1TranscriptionsPostRequest {
-	r.file = &file
-	return r
-}
-
-func (r ApiAudioApiV1TranscriptionsPostRequest) FileUrl(fileUrl string) ApiAudioApiV1TranscriptionsPostRequest {
-	r.fileUrl = &fileUrl
-	return r
-}
-
-func (r ApiAudioApiV1TranscriptionsPostRequest) FileId(fileId string) ApiAudioApiV1TranscriptionsPostRequest {
-	r.fileId = &fileId
-	return r
-}
-
-func (r ApiAudioApiV1TranscriptionsPostRequest) Language(language string) ApiAudioApiV1TranscriptionsPostRequest {
-	r.language = &language
-	return r
-}
-
-func (r ApiAudioApiV1TranscriptionsPostRequest) Temperature(temperature float32) ApiAudioApiV1TranscriptionsPostRequest {
-	r.temperature = &temperature
-	return r
-}
-
-func (r ApiAudioApiV1TranscriptionsPostRequest) Stream(stream bool) ApiAudioApiV1TranscriptionsPostRequest {
-	r.stream = &stream
+func (r ApiAudioApiV1TranscriptionsPostRequest) ContextBias(contextBias []string) ApiAudioApiV1TranscriptionsPostRequest {
+	r.contextBias = &contextBias
 	return r
 }
 
@@ -106,8 +85,37 @@ func (r ApiAudioApiV1TranscriptionsPostRequest) Diarize(diarize bool) ApiAudioAp
 	return r
 }
 
-func (r ApiAudioApiV1TranscriptionsPostRequest) ContextBias(contextBias []string) ApiAudioApiV1TranscriptionsPostRequest {
-	r.contextBias = &contextBias
+// The File object (not file name) to be uploaded.  To upload a file and specify a custom file name you should format your request as such:  &#x60;&#x60;&#x60;bash  file&#x3D;@path/to/your/file.jsonl;filename&#x3D;custom_name.jsonl  &#x60;&#x60;&#x60;  Otherwise, you can just keep the original file name:  &#x60;&#x60;&#x60;bash  file&#x3D;@path/to/your/file.jsonl  &#x60;&#x60;&#x60;
+func (r ApiAudioApiV1TranscriptionsPostRequest) File(file *os.File) ApiAudioApiV1TranscriptionsPostRequest {
+	r.file = &file
+	return r
+}
+
+// ID of a file uploaded to /v1/files
+func (r ApiAudioApiV1TranscriptionsPostRequest) FileId(fileId string) ApiAudioApiV1TranscriptionsPostRequest {
+	r.fileId = &fileId
+	return r
+}
+
+// Url of a file to be transcribed
+func (r ApiAudioApiV1TranscriptionsPostRequest) FileUrl(fileUrl string) ApiAudioApiV1TranscriptionsPostRequest {
+	r.fileUrl = &fileUrl
+	return r
+}
+
+// Language of the audio, e.g. &#39;en&#39;. Providing the language can boost accuracy.
+func (r ApiAudioApiV1TranscriptionsPostRequest) Language(language string) ApiAudioApiV1TranscriptionsPostRequest {
+	r.language = &language
+	return r
+}
+
+func (r ApiAudioApiV1TranscriptionsPostRequest) Stream(stream bool) ApiAudioApiV1TranscriptionsPostRequest {
+	r.stream = &stream
+	return r
+}
+
+func (r ApiAudioApiV1TranscriptionsPostRequest) Temperature(temperature float32) ApiAudioApiV1TranscriptionsPostRequest {
+	r.temperature = &temperature
 	return r
 }
 
@@ -124,25 +132,26 @@ func (r ApiAudioApiV1TranscriptionsPostRequest) Execute() (*TranscriptionRespons
 /*
 AudioApiV1TranscriptionsPost Create Transcription
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiAudioApiV1TranscriptionsPostRequest
+Create Transcription
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiAudioApiV1TranscriptionsPostRequest
 */
 func (a *AudioTranscriptionsAPIService) AudioApiV1TranscriptionsPost(ctx context.Context) ApiAudioApiV1TranscriptionsPostRequest {
 	return ApiAudioApiV1TranscriptionsPostRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return TranscriptionResponse
+//  @return TranscriptionResponse
 func (a *AudioTranscriptionsAPIService) AudioApiV1TranscriptionsPostExecute(r ApiAudioApiV1TranscriptionsPostRequest) (*TranscriptionResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *TranscriptionResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *TranscriptionResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AudioTranscriptionsAPIService.AudioApiV1TranscriptionsPost")
@@ -176,30 +185,30 @@ func (a *AudioTranscriptionsAPIService) AudioApiV1TranscriptionsPostExecute(r Ap
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
-	parameterAddToHeaderOrQuery(localVarFormParams, "model", r.model, "", "")
-	if r.file != nil {
-		parameterAddToHeaderOrQuery(localVarFormParams, "file", r.file, "", "")
-	}
-	if r.fileUrl != nil {
-		parameterAddToHeaderOrQuery(localVarFormParams, "file_url", r.fileUrl, "", "")
-	}
-	if r.fileId != nil {
-		parameterAddToHeaderOrQuery(localVarFormParams, "file_id", r.fileId, "", "")
-	}
-	if r.language != nil {
-		parameterAddToHeaderOrQuery(localVarFormParams, "language", r.language, "", "")
-	}
-	if r.temperature != nil {
-		parameterAddToHeaderOrQuery(localVarFormParams, "temperature", r.temperature, "", "")
-	}
-	if r.stream != nil {
-		parameterAddToHeaderOrQuery(localVarFormParams, "stream", r.stream, "", "")
+	if r.contextBias != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "context_bias", r.contextBias, "", "csv")
 	}
 	if r.diarize != nil {
 		parameterAddToHeaderOrQuery(localVarFormParams, "diarize", r.diarize, "", "")
 	}
-	if r.contextBias != nil {
-		parameterAddToHeaderOrQuery(localVarFormParams, "context_bias", r.contextBias, "", "csv")
+	if r.file != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "file", r.file, "", "")
+	}
+	if r.fileId != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "file_id", r.fileId, "", "")
+	}
+	if r.fileUrl != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "file_url", r.fileUrl, "", "")
+	}
+	if r.language != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "language", r.language, "", "")
+	}
+	parameterAddToHeaderOrQuery(localVarFormParams, "model", r.model, "", "")
+	if r.stream != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "stream", r.stream, "", "")
+	}
+	if r.temperature != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "temperature", r.temperature, "", "")
 	}
 	if r.timestampGranularities != nil {
 		parameterAddToHeaderOrQuery(localVarFormParams, "timestamp_granularities", r.timestampGranularities, "", "csv")
@@ -242,22 +251,32 @@ func (a *AudioTranscriptionsAPIService) AudioApiV1TranscriptionsPostExecute(r Ap
 }
 
 type ApiAudioApiV1TranscriptionsPostStreamRequest struct {
-	ctx                    context.Context
-	ApiService             AudioTranscriptionsAPI
-	model                  *string
-	file                   **os.File
-	fileUrl                *string
-	fileId                 *string
-	language               *string
-	temperature            *float32
-	stream                 *bool
-	diarize                *bool
-	contextBias            *[]string
+	ctx context.Context
+	ApiService AudioTranscriptionsAPI
+	model *string
+	contextBias *[]string
+	diarize *bool
+	file **os.File
+	fileId *string
+	fileUrl *string
+	language *string
+	stream *bool
+	temperature *float32
 	timestampGranularities *[]TimestampGranularity
 }
 
 func (r ApiAudioApiV1TranscriptionsPostStreamRequest) Model(model string) ApiAudioApiV1TranscriptionsPostStreamRequest {
 	r.model = &model
+	return r
+}
+
+func (r ApiAudioApiV1TranscriptionsPostStreamRequest) ContextBias(contextBias []string) ApiAudioApiV1TranscriptionsPostStreamRequest {
+	r.contextBias = &contextBias
+	return r
+}
+
+func (r ApiAudioApiV1TranscriptionsPostStreamRequest) Diarize(diarize bool) ApiAudioApiV1TranscriptionsPostStreamRequest {
+	r.diarize = &diarize
 	return r
 }
 
@@ -267,23 +286,21 @@ func (r ApiAudioApiV1TranscriptionsPostStreamRequest) File(file *os.File) ApiAud
 	return r
 }
 
-func (r ApiAudioApiV1TranscriptionsPostStreamRequest) FileUrl(fileUrl string) ApiAudioApiV1TranscriptionsPostStreamRequest {
-	r.fileUrl = &fileUrl
-	return r
-}
-
+// ID of a file uploaded to /v1/files
 func (r ApiAudioApiV1TranscriptionsPostStreamRequest) FileId(fileId string) ApiAudioApiV1TranscriptionsPostStreamRequest {
 	r.fileId = &fileId
 	return r
 }
 
-func (r ApiAudioApiV1TranscriptionsPostStreamRequest) Language(language string) ApiAudioApiV1TranscriptionsPostStreamRequest {
-	r.language = &language
+// Url of a file to be transcribed
+func (r ApiAudioApiV1TranscriptionsPostStreamRequest) FileUrl(fileUrl string) ApiAudioApiV1TranscriptionsPostStreamRequest {
+	r.fileUrl = &fileUrl
 	return r
 }
 
-func (r ApiAudioApiV1TranscriptionsPostStreamRequest) Temperature(temperature float32) ApiAudioApiV1TranscriptionsPostStreamRequest {
-	r.temperature = &temperature
+// Language of the audio, e.g. &#39;en&#39;. Providing the language can boost accuracy.
+func (r ApiAudioApiV1TranscriptionsPostStreamRequest) Language(language string) ApiAudioApiV1TranscriptionsPostStreamRequest {
+	r.language = &language
 	return r
 }
 
@@ -292,13 +309,8 @@ func (r ApiAudioApiV1TranscriptionsPostStreamRequest) Stream(stream bool) ApiAud
 	return r
 }
 
-func (r ApiAudioApiV1TranscriptionsPostStreamRequest) Diarize(diarize bool) ApiAudioApiV1TranscriptionsPostStreamRequest {
-	r.diarize = &diarize
-	return r
-}
-
-func (r ApiAudioApiV1TranscriptionsPostStreamRequest) ContextBias(contextBias []string) ApiAudioApiV1TranscriptionsPostStreamRequest {
-	r.contextBias = &contextBias
+func (r ApiAudioApiV1TranscriptionsPostStreamRequest) Temperature(temperature float32) ApiAudioApiV1TranscriptionsPostStreamRequest {
+	r.temperature = &temperature
 	return r
 }
 
@@ -315,25 +327,26 @@ func (r ApiAudioApiV1TranscriptionsPostStreamRequest) Execute() (*TranscriptionS
 /*
 AudioApiV1TranscriptionsPostStream Create Streaming Transcription (SSE)
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiAudioApiV1TranscriptionsPostStreamRequest
+Create Streaming Transcription (SSE)
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiAudioApiV1TranscriptionsPostStreamRequest
 */
 func (a *AudioTranscriptionsAPIService) AudioApiV1TranscriptionsPostStream(ctx context.Context) ApiAudioApiV1TranscriptionsPostStreamRequest {
 	return ApiAudioApiV1TranscriptionsPostStreamRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return TranscriptionStreamEvents
+//  @return TranscriptionStreamEvents
 func (a *AudioTranscriptionsAPIService) AudioApiV1TranscriptionsPostStreamExecute(r ApiAudioApiV1TranscriptionsPostStreamRequest) (*TranscriptionStreamEvents, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *TranscriptionStreamEvents
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *TranscriptionStreamEvents
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AudioTranscriptionsAPIService.AudioApiV1TranscriptionsPostStream")
@@ -367,30 +380,30 @@ func (a *AudioTranscriptionsAPIService) AudioApiV1TranscriptionsPostStreamExecut
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
-	parameterAddToHeaderOrQuery(localVarFormParams, "model", r.model, "", "")
-	if r.file != nil {
-		parameterAddToHeaderOrQuery(localVarFormParams, "file", r.file, "", "")
-	}
-	if r.fileUrl != nil {
-		parameterAddToHeaderOrQuery(localVarFormParams, "file_url", r.fileUrl, "", "")
-	}
-	if r.fileId != nil {
-		parameterAddToHeaderOrQuery(localVarFormParams, "file_id", r.fileId, "", "")
-	}
-	if r.language != nil {
-		parameterAddToHeaderOrQuery(localVarFormParams, "language", r.language, "", "")
-	}
-	if r.temperature != nil {
-		parameterAddToHeaderOrQuery(localVarFormParams, "temperature", r.temperature, "", "")
-	}
-	if r.stream != nil {
-		parameterAddToHeaderOrQuery(localVarFormParams, "stream", r.stream, "", "")
+	if r.contextBias != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "context_bias", r.contextBias, "", "csv")
 	}
 	if r.diarize != nil {
 		parameterAddToHeaderOrQuery(localVarFormParams, "diarize", r.diarize, "", "")
 	}
-	if r.contextBias != nil {
-		parameterAddToHeaderOrQuery(localVarFormParams, "context_bias", r.contextBias, "", "csv")
+	if r.file != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "file", r.file, "", "")
+	}
+	if r.fileId != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "file_id", r.fileId, "", "")
+	}
+	if r.fileUrl != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "file_url", r.fileUrl, "", "")
+	}
+	if r.language != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "language", r.language, "", "")
+	}
+	parameterAddToHeaderOrQuery(localVarFormParams, "model", r.model, "", "")
+	if r.stream != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "stream", r.stream, "", "")
+	}
+	if r.temperature != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "temperature", r.temperature, "", "")
 	}
 	if r.timestampGranularities != nil {
 		parameterAddToHeaderOrQuery(localVarFormParams, "timestamp_granularities", r.timestampGranularities, "", "csv")

@@ -23,8 +23,8 @@ type RetrievalModeOneOf struct {
 	// Which reranker to use to limit results to the desired value.
 	Reranker NullableHybridReranker `json:"reranker,omitempty"`
 	// Additional multiplier to requested search limit. Valid range is [1, 100]. Defaults to 1 when unset.
-	SearchMultiplier     NullableInt32 `json:"search_multiplier,omitempty"`
-	Type                 string        `json:"type"`
+	SearchMultiplier NullableInt32 `json:"search_multiplier,omitempty"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -80,7 +80,6 @@ func (o *RetrievalModeOneOf) HasReranker() bool {
 func (o *RetrievalModeOneOf) SetReranker(v HybridReranker) {
 	o.Reranker.Set(&v)
 }
-
 // SetRerankerNil sets the value for Reranker to be an explicit nil
 func (o *RetrievalModeOneOf) SetRerankerNil() {
 	o.Reranker.Set(nil)
@@ -123,7 +122,6 @@ func (o *RetrievalModeOneOf) HasSearchMultiplier() bool {
 func (o *RetrievalModeOneOf) SetSearchMultiplier(v int32) {
 	o.SearchMultiplier.Set(&v)
 }
-
 // SetSearchMultiplierNil sets the value for SearchMultiplier to be an explicit nil
 func (o *RetrievalModeOneOf) SetSearchMultiplierNil() {
 	o.SearchMultiplier.Set(nil)
@@ -159,7 +157,7 @@ func (o *RetrievalModeOneOf) SetType(v string) {
 }
 
 func (o RetrievalModeOneOf) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -196,10 +194,10 @@ func (o *RetrievalModeOneOf) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

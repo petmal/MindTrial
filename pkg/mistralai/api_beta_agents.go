@@ -16,19 +16,20 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"reflect"
 	"strings"
+	"reflect"
 )
+
 
 type BetaAgentsAPI interface {
 
 	/*
-		AgentsApiV1AgentsCreate Create a agent that can be used within a conversation.
+	AgentsApiV1AgentsCreate Create a agent that can be used within a conversation.
 
-		Create a new agent giving it instructions, tools, description. The agent is then available to be used as a regular assistant in a conversation or as part of an agent pool from which it can be used.
+	Create a new agent giving it instructions, tools, description. The agent is then available to be used as a regular assistant in a conversation or as part of an agent pool from which it can be used.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiAgentsApiV1AgentsCreateRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiAgentsApiV1AgentsCreateRequest
 	*/
 	AgentsApiV1AgentsCreate(ctx context.Context) ApiAgentsApiV1AgentsCreateRequest
 
@@ -37,13 +38,13 @@ type BetaAgentsAPI interface {
 	AgentsApiV1AgentsCreateExecute(r ApiAgentsApiV1AgentsCreateRequest) (*Agent, *http.Response, error)
 
 	/*
-		AgentsApiV1AgentsCreateOrUpdateAlias Create or update an agent version alias.
+	AgentsApiV1AgentsCreateOrUpdateAlias Create or update an agent version alias.
 
-		Create a new alias or update an existing alias to point to a specific version. Aliases are unique per agent and can be reassigned to different versions.
+	Create a new alias or update an existing alias to point to a specific version. Aliases are unique per agent and can be reassigned to different versions.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param agentId
-		@return ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param agentId
+	@return ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest
 	*/
 	AgentsApiV1AgentsCreateOrUpdateAlias(ctx context.Context, agentId string) ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest
 
@@ -52,11 +53,13 @@ type BetaAgentsAPI interface {
 	AgentsApiV1AgentsCreateOrUpdateAliasExecute(r ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest) (*AgentAliasResponse, *http.Response, error)
 
 	/*
-		AgentsApiV1AgentsDelete Delete an agent entity.
+	AgentsApiV1AgentsDelete Delete an agent entity.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param agentId
-		@return ApiAgentsApiV1AgentsDeleteRequest
+	Delete an agent entity.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param agentId
+	@return ApiAgentsApiV1AgentsDeleteRequest
 	*/
 	AgentsApiV1AgentsDelete(ctx context.Context, agentId string) ApiAgentsApiV1AgentsDeleteRequest
 
@@ -64,13 +67,27 @@ type BetaAgentsAPI interface {
 	AgentsApiV1AgentsDeleteExecute(r ApiAgentsApiV1AgentsDeleteRequest) (*http.Response, error)
 
 	/*
-		AgentsApiV1AgentsGet Retrieve an agent entity.
+	AgentsApiV1AgentsDeleteAlias Delete an agent version alias.
 
-		Given an agent, retrieve an agent entity with its attributes. The agent_version parameter can be an integer version number or a string alias.
+	Delete an existing alias for an agent.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param agentId
-		@return ApiAgentsApiV1AgentsGetRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param agentId
+	@return ApiAgentsApiV1AgentsDeleteAliasRequest
+	*/
+	AgentsApiV1AgentsDeleteAlias(ctx context.Context, agentId string) ApiAgentsApiV1AgentsDeleteAliasRequest
+
+	// AgentsApiV1AgentsDeleteAliasExecute executes the request
+	AgentsApiV1AgentsDeleteAliasExecute(r ApiAgentsApiV1AgentsDeleteAliasRequest) (*http.Response, error)
+
+	/*
+	AgentsApiV1AgentsGet Retrieve an agent entity.
+
+	Given an agent, retrieve an agent entity with its attributes. The agent_version parameter can be an integer version number or a string alias.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param agentId
+	@return ApiAgentsApiV1AgentsGetRequest
 	*/
 	AgentsApiV1AgentsGet(ctx context.Context, agentId string) ApiAgentsApiV1AgentsGetRequest
 
@@ -79,14 +96,14 @@ type BetaAgentsAPI interface {
 	AgentsApiV1AgentsGetExecute(r ApiAgentsApiV1AgentsGetRequest) (*Agent, *http.Response, error)
 
 	/*
-		AgentsApiV1AgentsGetVersion Retrieve a specific version of an agent.
+	AgentsApiV1AgentsGetVersion Retrieve a specific version of an agent.
 
-		Get a specific agent version by version number.
+	Get a specific agent version by version number.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param agentId
-		@param version
-		@return ApiAgentsApiV1AgentsGetVersionRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param agentId
+	@param version
+	@return ApiAgentsApiV1AgentsGetVersionRequest
 	*/
 	AgentsApiV1AgentsGetVersion(ctx context.Context, agentId string, version string) ApiAgentsApiV1AgentsGetVersionRequest
 
@@ -95,27 +112,44 @@ type BetaAgentsAPI interface {
 	AgentsApiV1AgentsGetVersionExecute(r ApiAgentsApiV1AgentsGetVersionRequest) (*Agent, *http.Response, error)
 
 	/*
-		AgentsApiV1AgentsList List agent entities.
+	AgentsApiV1AgentsList List agent entities.
 
-		Retrieve a list of agent entities sorted by creation time.
+	Retrieve a list of agent entities sorted by creation time. Deprecated: some features such as agent sharing are not supported by this endpoint. Use the cursor-paginated `GET /v1/agents/pages` instead.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiAgentsApiV1AgentsListRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiAgentsApiV1AgentsListRequest
+
+	Deprecated
 	*/
 	AgentsApiV1AgentsList(ctx context.Context) ApiAgentsApiV1AgentsListRequest
 
 	// AgentsApiV1AgentsListExecute executes the request
 	//  @return []Agent
+	// Deprecated
 	AgentsApiV1AgentsListExecute(r ApiAgentsApiV1AgentsListRequest) ([]Agent, *http.Response, error)
 
 	/*
-		AgentsApiV1AgentsListVersionAliases List all aliases for an agent.
+	AgentsApiV1AgentsListPages List agent entities, cursor-paginated.
 
-		Retrieve all version aliases for a specific agent.
+	Retrieve a page of agent entities. Unlike the deprecated `GET /v1/agents`, this endpoint paginates by opaque cursor and honors per-agent sharing, returning only agents the caller is authorized to see.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param agentId
-		@return ApiAgentsApiV1AgentsListVersionAliasesRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiAgentsApiV1AgentsListPagesRequest
+	*/
+	AgentsApiV1AgentsListPages(ctx context.Context) ApiAgentsApiV1AgentsListPagesRequest
+
+	// AgentsApiV1AgentsListPagesExecute executes the request
+	//  @return AgentListPage
+	AgentsApiV1AgentsListPagesExecute(r ApiAgentsApiV1AgentsListPagesRequest) (*AgentListPage, *http.Response, error)
+
+	/*
+	AgentsApiV1AgentsListVersionAliases List all aliases for an agent.
+
+	Retrieve all version aliases for a specific agent.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param agentId
+	@return ApiAgentsApiV1AgentsListVersionAliasesRequest
 	*/
 	AgentsApiV1AgentsListVersionAliases(ctx context.Context, agentId string) ApiAgentsApiV1AgentsListVersionAliasesRequest
 
@@ -124,13 +158,13 @@ type BetaAgentsAPI interface {
 	AgentsApiV1AgentsListVersionAliasesExecute(r ApiAgentsApiV1AgentsListVersionAliasesRequest) ([]AgentAliasResponse, *http.Response, error)
 
 	/*
-		AgentsApiV1AgentsListVersions List all versions of an agent.
+	AgentsApiV1AgentsListVersions List all versions of an agent.
 
-		Retrieve all versions for a specific agent with full agent context. Supports pagination.
+	Retrieve all versions for a specific agent with full agent context. Supports pagination.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param agentId
-		@return ApiAgentsApiV1AgentsListVersionsRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param agentId
+	@return ApiAgentsApiV1AgentsListVersionsRequest
 	*/
 	AgentsApiV1AgentsListVersions(ctx context.Context, agentId string) ApiAgentsApiV1AgentsListVersionsRequest
 
@@ -139,13 +173,13 @@ type BetaAgentsAPI interface {
 	AgentsApiV1AgentsListVersionsExecute(r ApiAgentsApiV1AgentsListVersionsRequest) ([]Agent, *http.Response, error)
 
 	/*
-		AgentsApiV1AgentsUpdate Update an agent entity.
+	AgentsApiV1AgentsUpdate Update an agent entity.
 
-		Update an agent attributes and create a new version.
+	Update an agent attributes and create a new version.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param agentId
-		@return ApiAgentsApiV1AgentsUpdateRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param agentId
+	@return ApiAgentsApiV1AgentsUpdateRequest
 	*/
 	AgentsApiV1AgentsUpdate(ctx context.Context, agentId string) ApiAgentsApiV1AgentsUpdateRequest
 
@@ -154,13 +188,13 @@ type BetaAgentsAPI interface {
 	AgentsApiV1AgentsUpdateExecute(r ApiAgentsApiV1AgentsUpdateRequest) (*Agent, *http.Response, error)
 
 	/*
-		AgentsApiV1AgentsUpdateVersion Update an agent version.
+	AgentsApiV1AgentsUpdateVersion Update an agent version.
 
-		Switch the version of an agent.
+	Switch the version of an agent.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param agentId
-		@return ApiAgentsApiV1AgentsUpdateVersionRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param agentId
+	@return ApiAgentsApiV1AgentsUpdateVersionRequest
 	*/
 	AgentsApiV1AgentsUpdateVersion(ctx context.Context, agentId string) ApiAgentsApiV1AgentsUpdateVersionRequest
 
@@ -173,13 +207,13 @@ type BetaAgentsAPI interface {
 type BetaAgentsAPIService service
 
 type ApiAgentsApiV1AgentsCreateRequest struct {
-	ctx                  context.Context
-	ApiService           BetaAgentsAPI
-	agentCreationRequest *AgentCreationRequest
+	ctx context.Context
+	ApiService BetaAgentsAPI
+	createAgentRequest *CreateAgentRequest
 }
 
-func (r ApiAgentsApiV1AgentsCreateRequest) AgentCreationRequest(agentCreationRequest AgentCreationRequest) ApiAgentsApiV1AgentsCreateRequest {
-	r.agentCreationRequest = &agentCreationRequest
+func (r ApiAgentsApiV1AgentsCreateRequest) CreateAgentRequest(createAgentRequest CreateAgentRequest) ApiAgentsApiV1AgentsCreateRequest {
+	r.createAgentRequest = &createAgentRequest
 	return r
 }
 
@@ -192,25 +226,24 @@ AgentsApiV1AgentsCreate Create a agent that can be used within a conversation.
 
 Create a new agent giving it instructions, tools, description. The agent is then available to be used as a regular assistant in a conversation or as part of an agent pool from which it can be used.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiAgentsApiV1AgentsCreateRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiAgentsApiV1AgentsCreateRequest
 */
 func (a *BetaAgentsAPIService) AgentsApiV1AgentsCreate(ctx context.Context) ApiAgentsApiV1AgentsCreateRequest {
 	return ApiAgentsApiV1AgentsCreateRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return Agent
+//  @return Agent
 func (a *BetaAgentsAPIService) AgentsApiV1AgentsCreateExecute(r ApiAgentsApiV1AgentsCreateRequest) (*Agent, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *Agent
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *Agent
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaAgentsAPIService.AgentsApiV1AgentsCreate")
@@ -223,8 +256,8 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsCreateExecute(r ApiAgentsApiV1Ag
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.agentCreationRequest == nil {
-		return localVarReturnValue, nil, reportError("agentCreationRequest is required and must be specified")
+	if r.createAgentRequest == nil {
+		return localVarReturnValue, nil, reportError("createAgentRequest is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -245,7 +278,7 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsCreateExecute(r ApiAgentsApiV1Ag
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.agentCreationRequest
+	localVarPostBody = r.createAgentRequest
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -275,8 +308,8 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsCreateExecute(r ApiAgentsApiV1Ag
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -294,11 +327,11 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsCreateExecute(r ApiAgentsApiV1Ag
 }
 
 type ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService BetaAgentsAPI
-	agentId    string
-	alias      *string
-	version    *int32
+	agentId string
+	alias *string
+	version *int32
 }
 
 func (r ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest) Alias(alias string) ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest {
@@ -320,27 +353,26 @@ AgentsApiV1AgentsCreateOrUpdateAlias Create or update an agent version alias.
 
 Create a new alias or update an existing alias to point to a specific version. Aliases are unique per agent and can be reassigned to different versions.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param agentId
-	@return ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param agentId
+ @return ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest
 */
 func (a *BetaAgentsAPIService) AgentsApiV1AgentsCreateOrUpdateAlias(ctx context.Context, agentId string) ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest {
 	return ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest{
 		ApiService: a,
-		ctx:        ctx,
-		agentId:    agentId,
+		ctx: ctx,
+		agentId: agentId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return AgentAliasResponse
+//  @return AgentAliasResponse
 func (a *BetaAgentsAPIService) AgentsApiV1AgentsCreateOrUpdateAliasExecute(r ApiAgentsApiV1AgentsCreateOrUpdateAliasRequest) (*AgentAliasResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPut
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *AgentAliasResponse
+		localVarHTTPMethod   = http.MethodPut
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *AgentAliasResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaAgentsAPIService.AgentsApiV1AgentsCreateOrUpdateAlias")
@@ -415,8 +447,8 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsCreateOrUpdateAliasExecute(r Api
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -434,9 +466,9 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsCreateOrUpdateAliasExecute(r Api
 }
 
 type ApiAgentsApiV1AgentsDeleteRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService BetaAgentsAPI
-	agentId    string
+	agentId string
 }
 
 func (r ApiAgentsApiV1AgentsDeleteRequest) Execute() (*http.Response, error) {
@@ -446,24 +478,26 @@ func (r ApiAgentsApiV1AgentsDeleteRequest) Execute() (*http.Response, error) {
 /*
 AgentsApiV1AgentsDelete Delete an agent entity.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param agentId
-	@return ApiAgentsApiV1AgentsDeleteRequest
+Delete an agent entity.
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param agentId
+ @return ApiAgentsApiV1AgentsDeleteRequest
 */
 func (a *BetaAgentsAPIService) AgentsApiV1AgentsDelete(ctx context.Context, agentId string) ApiAgentsApiV1AgentsDeleteRequest {
 	return ApiAgentsApiV1AgentsDeleteRequest{
 		ApiService: a,
-		ctx:        ctx,
-		agentId:    agentId,
+		ctx: ctx,
+		agentId: agentId,
 	}
 }
 
 // Execute executes the request
 func (a *BetaAgentsAPIService) AgentsApiV1AgentsDeleteExecute(r ApiAgentsApiV1AgentsDeleteRequest) (*http.Response, error) {
 	var (
-		localVarHTTPMethod = http.MethodDelete
-		localVarPostBody   interface{}
-		formFiles          []formFile
+		localVarHTTPMethod   = http.MethodDelete
+		localVarPostBody     interface{}
+		formFiles            []formFile
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaAgentsAPIService.AgentsApiV1AgentsDelete")
@@ -524,8 +558,126 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsDeleteExecute(r ApiAgentsApiV1Ag
 				newErr.error = err.Error()
 				return localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+		}
+		return localVarHTTPResponse, newErr
+	}
+
+	return localVarHTTPResponse, nil
+}
+
+type ApiAgentsApiV1AgentsDeleteAliasRequest struct {
+	ctx context.Context
+	ApiService BetaAgentsAPI
+	agentId string
+	alias *string
+}
+
+func (r ApiAgentsApiV1AgentsDeleteAliasRequest) Alias(alias string) ApiAgentsApiV1AgentsDeleteAliasRequest {
+	r.alias = &alias
+	return r
+}
+
+func (r ApiAgentsApiV1AgentsDeleteAliasRequest) Execute() (*http.Response, error) {
+	return r.ApiService.AgentsApiV1AgentsDeleteAliasExecute(r)
+}
+
+/*
+AgentsApiV1AgentsDeleteAlias Delete an agent version alias.
+
+Delete an existing alias for an agent.
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param agentId
+ @return ApiAgentsApiV1AgentsDeleteAliasRequest
+*/
+func (a *BetaAgentsAPIService) AgentsApiV1AgentsDeleteAlias(ctx context.Context, agentId string) ApiAgentsApiV1AgentsDeleteAliasRequest {
+	return ApiAgentsApiV1AgentsDeleteAliasRequest{
+		ApiService: a,
+		ctx: ctx,
+		agentId: agentId,
+	}
+}
+
+// Execute executes the request
+func (a *BetaAgentsAPIService) AgentsApiV1AgentsDeleteAliasExecute(r ApiAgentsApiV1AgentsDeleteAliasRequest) (*http.Response, error) {
+	var (
+		localVarHTTPMethod   = http.MethodDelete
+		localVarPostBody     interface{}
+		formFiles            []formFile
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaAgentsAPIService.AgentsApiV1AgentsDeleteAlias")
+	if err != nil {
+		return nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/agents/{agent_id}/aliases"
+	localVarPath = strings.Replace(localVarPath, "{"+"agent_id"+"}", url.PathEscape(parameterValueToString(r.agentId, "agentId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.alias == nil {
+		return nil, reportError("alias is required and must be specified")
+	}
+	if strlen(*r.alias) < 1 {
+		return nil, reportError("alias must have at least 1 elements")
+	}
+	if strlen(*r.alias) > 64 {
+		return nil, reportError("alias must have less than 64 elements")
+	}
+
+	parameterAddToHeaderOrQuery(localVarQueryParams, "alias", r.alias, "form", "")
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 422 {
+			var v HTTPValidationError
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarHTTPResponse, newErr
 	}
@@ -534,9 +686,9 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsDeleteExecute(r ApiAgentsApiV1Ag
 }
 
 type ApiAgentsApiV1AgentsGetRequest struct {
-	ctx          context.Context
-	ApiService   BetaAgentsAPI
-	agentId      string
+	ctx context.Context
+	ApiService BetaAgentsAPI
+	agentId string
 	agentVersion *AgentVersion
 }
 
@@ -554,27 +706,26 @@ AgentsApiV1AgentsGet Retrieve an agent entity.
 
 Given an agent, retrieve an agent entity with its attributes. The agent_version parameter can be an integer version number or a string alias.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param agentId
-	@return ApiAgentsApiV1AgentsGetRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param agentId
+ @return ApiAgentsApiV1AgentsGetRequest
 */
 func (a *BetaAgentsAPIService) AgentsApiV1AgentsGet(ctx context.Context, agentId string) ApiAgentsApiV1AgentsGetRequest {
 	return ApiAgentsApiV1AgentsGetRequest{
 		ApiService: a,
-		ctx:        ctx,
-		agentId:    agentId,
+		ctx: ctx,
+		agentId: agentId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return Agent
+//  @return Agent
 func (a *BetaAgentsAPIService) AgentsApiV1AgentsGetExecute(r ApiAgentsApiV1AgentsGetRequest) (*Agent, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *Agent
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *Agent
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaAgentsAPIService.AgentsApiV1AgentsGet")
@@ -638,8 +789,8 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsGetExecute(r ApiAgentsApiV1Agent
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -657,10 +808,10 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsGetExecute(r ApiAgentsApiV1Agent
 }
 
 type ApiAgentsApiV1AgentsGetVersionRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService BetaAgentsAPI
-	agentId    string
-	version    string
+	agentId string
+	version string
 }
 
 func (r ApiAgentsApiV1AgentsGetVersionRequest) Execute() (*Agent, *http.Response, error) {
@@ -672,29 +823,28 @@ AgentsApiV1AgentsGetVersion Retrieve a specific version of an agent.
 
 Get a specific agent version by version number.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param agentId
-	@param version
-	@return ApiAgentsApiV1AgentsGetVersionRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param agentId
+ @param version
+ @return ApiAgentsApiV1AgentsGetVersionRequest
 */
 func (a *BetaAgentsAPIService) AgentsApiV1AgentsGetVersion(ctx context.Context, agentId string, version string) ApiAgentsApiV1AgentsGetVersionRequest {
 	return ApiAgentsApiV1AgentsGetVersionRequest{
 		ApiService: a,
-		ctx:        ctx,
-		agentId:    agentId,
-		version:    version,
+		ctx: ctx,
+		agentId: agentId,
+		version: version,
 	}
 }
 
 // Execute executes the request
-//
-//	@return Agent
+//  @return Agent
 func (a *BetaAgentsAPIService) AgentsApiV1AgentsGetVersionExecute(r ApiAgentsApiV1AgentsGetVersionRequest) (*Agent, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *Agent
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *Agent
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaAgentsAPIService.AgentsApiV1AgentsGetVersion")
@@ -756,8 +906,8 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsGetVersionExecute(r ApiAgentsApi
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -775,15 +925,16 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsGetVersionExecute(r ApiAgentsApi
 }
 
 type ApiAgentsApiV1AgentsListRequest struct {
-	ctx            context.Context
-	ApiService     BetaAgentsAPI
-	page           *int32
-	pageSize       *int32
+	ctx context.Context
+	ApiService BetaAgentsAPI
+	page *int32
+	pageSize *int32
 	deploymentChat *bool
-	sources        *[]RequestSource
-	name           *string
-	id             *string
-	metadata       *AnyOfmapnull
+	sources *[]RequestSource
+	name *string
+	search *string
+	id *string
+	metadata *AnyOfmapnull
 }
 
 // Page number (0-indexed)
@@ -808,8 +959,15 @@ func (r ApiAgentsApiV1AgentsListRequest) Sources(sources []RequestSource) ApiAge
 	return r
 }
 
+// Filter by agent name
 func (r ApiAgentsApiV1AgentsListRequest) Name(name string) ApiAgentsApiV1AgentsListRequest {
 	r.name = &name
+	return r
+}
+
+// Search agents by name or ID
+func (r ApiAgentsApiV1AgentsListRequest) Search(search string) ApiAgentsApiV1AgentsListRequest {
+	r.search = &search
 	return r
 }
 
@@ -830,27 +988,29 @@ func (r ApiAgentsApiV1AgentsListRequest) Execute() ([]Agent, *http.Response, err
 /*
 AgentsApiV1AgentsList List agent entities.
 
-Retrieve a list of agent entities sorted by creation time.
+Retrieve a list of agent entities sorted by creation time. Deprecated: some features such as agent sharing are not supported by this endpoint. Use the cursor-paginated `GET /v1/agents/pages` instead.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiAgentsApiV1AgentsListRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiAgentsApiV1AgentsListRequest
+
+Deprecated
 */
 func (a *BetaAgentsAPIService) AgentsApiV1AgentsList(ctx context.Context) ApiAgentsApiV1AgentsListRequest {
 	return ApiAgentsApiV1AgentsListRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return []Agent
+//  @return []Agent
+// Deprecated
 func (a *BetaAgentsAPIService) AgentsApiV1AgentsListExecute(r ApiAgentsApiV1AgentsListRequest) ([]Agent, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue []Agent
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  []Agent
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaAgentsAPIService.AgentsApiV1AgentsList")
@@ -894,6 +1054,9 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsListExecute(r ApiAgentsApiV1Agen
 	}
 	if r.name != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
+	}
+	if r.search != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "search", r.search, "form", "")
 	}
 	if r.id != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "id", r.id, "form", "")
@@ -947,8 +1110,205 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsListExecute(r ApiAgentsApiV1Agen
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiAgentsApiV1AgentsListPagesRequest struct {
+	ctx context.Context
+	ApiService BetaAgentsAPI
+	pageSize *int32
+	deploymentChat *bool
+	sources *[]RequestSource
+	name *string
+	search *string
+	id *string
+	metadata *AnyOfmapnull
+	pageToken *string
+}
+
+// Number of agents per page
+func (r ApiAgentsApiV1AgentsListPagesRequest) PageSize(pageSize int32) ApiAgentsApiV1AgentsListPagesRequest {
+	r.pageSize = &pageSize
+	return r
+}
+
+func (r ApiAgentsApiV1AgentsListPagesRequest) DeploymentChat(deploymentChat bool) ApiAgentsApiV1AgentsListPagesRequest {
+	r.deploymentChat = &deploymentChat
+	return r
+}
+
+func (r ApiAgentsApiV1AgentsListPagesRequest) Sources(sources []RequestSource) ApiAgentsApiV1AgentsListPagesRequest {
+	r.sources = &sources
+	return r
+}
+
+// Filter by agent name
+func (r ApiAgentsApiV1AgentsListPagesRequest) Name(name string) ApiAgentsApiV1AgentsListPagesRequest {
+	r.name = &name
+	return r
+}
+
+// Search agents by name or ID
+func (r ApiAgentsApiV1AgentsListPagesRequest) Search(search string) ApiAgentsApiV1AgentsListPagesRequest {
+	r.search = &search
+	return r
+}
+
+func (r ApiAgentsApiV1AgentsListPagesRequest) Id(id string) ApiAgentsApiV1AgentsListPagesRequest {
+	r.id = &id
+	return r
+}
+
+func (r ApiAgentsApiV1AgentsListPagesRequest) Metadata(metadata AnyOfmapnull) ApiAgentsApiV1AgentsListPagesRequest {
+	r.metadata = &metadata
+	return r
+}
+
+// Opaque cursor from a previous response&#39;s next_page_token. When set, results page forward from the cursor.
+func (r ApiAgentsApiV1AgentsListPagesRequest) PageToken(pageToken string) ApiAgentsApiV1AgentsListPagesRequest {
+	r.pageToken = &pageToken
+	return r
+}
+
+func (r ApiAgentsApiV1AgentsListPagesRequest) Execute() (*AgentListPage, *http.Response, error) {
+	return r.ApiService.AgentsApiV1AgentsListPagesExecute(r)
+}
+
+/*
+AgentsApiV1AgentsListPages List agent entities, cursor-paginated.
+
+Retrieve a page of agent entities. Unlike the deprecated `GET /v1/agents`, this endpoint paginates by opaque cursor and honors per-agent sharing, returning only agents the caller is authorized to see.
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiAgentsApiV1AgentsListPagesRequest
+*/
+func (a *BetaAgentsAPIService) AgentsApiV1AgentsListPages(ctx context.Context) ApiAgentsApiV1AgentsListPagesRequest {
+	return ApiAgentsApiV1AgentsListPagesRequest{
+		ApiService: a,
+		ctx: ctx,
+	}
+}
+
+// Execute executes the request
+//  @return AgentListPage
+func (a *BetaAgentsAPIService) AgentsApiV1AgentsListPagesExecute(r ApiAgentsApiV1AgentsListPagesRequest) (*AgentListPage, *http.Response, error) {
+	var (
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *AgentListPage
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaAgentsAPIService.AgentsApiV1AgentsListPages")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/agents/pages"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.pageSize != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page_size", r.pageSize, "form", "")
+	} else {
+		var defaultValue int32 = 20
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page_size", defaultValue, "form", "")
+		r.pageSize = &defaultValue
+	}
+	if r.deploymentChat != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "deployment_chat", r.deploymentChat, "form", "")
+	}
+	if r.sources != nil {
+		t := *r.sources
+		if reflect.TypeOf(t).Kind() == reflect.Slice {
+			s := reflect.ValueOf(t)
+			for i := 0; i < s.Len(); i++ {
+				parameterAddToHeaderOrQuery(localVarQueryParams, "sources", s.Index(i).Interface(), "form", "multi")
+			}
+		} else {
+			parameterAddToHeaderOrQuery(localVarQueryParams, "sources", t, "form", "multi")
+		}
+	}
+	if r.name != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
+	}
+	if r.search != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "search", r.search, "form", "")
+	}
+	if r.id != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "id", r.id, "form", "")
+	}
+	if r.metadata != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "metadata", r.metadata, "", "")
+	}
+	if r.pageToken != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page_token", r.pageToken, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 422 {
+			var v HTTPValidationError
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -966,9 +1326,9 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsListExecute(r ApiAgentsApiV1Agen
 }
 
 type ApiAgentsApiV1AgentsListVersionAliasesRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService BetaAgentsAPI
-	agentId    string
+	agentId string
 }
 
 func (r ApiAgentsApiV1AgentsListVersionAliasesRequest) Execute() ([]AgentAliasResponse, *http.Response, error) {
@@ -980,27 +1340,26 @@ AgentsApiV1AgentsListVersionAliases List all aliases for an agent.
 
 Retrieve all version aliases for a specific agent.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param agentId
-	@return ApiAgentsApiV1AgentsListVersionAliasesRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param agentId
+ @return ApiAgentsApiV1AgentsListVersionAliasesRequest
 */
 func (a *BetaAgentsAPIService) AgentsApiV1AgentsListVersionAliases(ctx context.Context, agentId string) ApiAgentsApiV1AgentsListVersionAliasesRequest {
 	return ApiAgentsApiV1AgentsListVersionAliasesRequest{
 		ApiService: a,
-		ctx:        ctx,
-		agentId:    agentId,
+		ctx: ctx,
+		agentId: agentId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return []AgentAliasResponse
+//  @return []AgentAliasResponse
 func (a *BetaAgentsAPIService) AgentsApiV1AgentsListVersionAliasesExecute(r ApiAgentsApiV1AgentsListVersionAliasesRequest) ([]AgentAliasResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue []AgentAliasResponse
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  []AgentAliasResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaAgentsAPIService.AgentsApiV1AgentsListVersionAliases")
@@ -1061,8 +1420,8 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsListVersionAliasesExecute(r ApiA
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -1080,11 +1439,11 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsListVersionAliasesExecute(r ApiA
 }
 
 type ApiAgentsApiV1AgentsListVersionsRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService BetaAgentsAPI
-	agentId    string
-	page       *int32
-	pageSize   *int32
+	agentId string
+	page *int32
+	pageSize *int32
 }
 
 // Page number (0-indexed)
@@ -1108,27 +1467,26 @@ AgentsApiV1AgentsListVersions List all versions of an agent.
 
 Retrieve all versions for a specific agent with full agent context. Supports pagination.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param agentId
-	@return ApiAgentsApiV1AgentsListVersionsRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param agentId
+ @return ApiAgentsApiV1AgentsListVersionsRequest
 */
 func (a *BetaAgentsAPIService) AgentsApiV1AgentsListVersions(ctx context.Context, agentId string) ApiAgentsApiV1AgentsListVersionsRequest {
 	return ApiAgentsApiV1AgentsListVersionsRequest{
 		ApiService: a,
-		ctx:        ctx,
-		agentId:    agentId,
+		ctx: ctx,
+		agentId: agentId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return []Agent
+//  @return []Agent
 func (a *BetaAgentsAPIService) AgentsApiV1AgentsListVersionsExecute(r ApiAgentsApiV1AgentsListVersionsRequest) ([]Agent, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue []Agent
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  []Agent
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaAgentsAPIService.AgentsApiV1AgentsListVersions")
@@ -1203,8 +1561,8 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsListVersionsExecute(r ApiAgentsA
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -1222,14 +1580,14 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsListVersionsExecute(r ApiAgentsA
 }
 
 type ApiAgentsApiV1AgentsUpdateRequest struct {
-	ctx                context.Context
-	ApiService         BetaAgentsAPI
-	agentId            string
-	agentUpdateRequest *AgentUpdateRequest
+	ctx context.Context
+	ApiService BetaAgentsAPI
+	agentId string
+	updateAgentRequest *UpdateAgentRequest
 }
 
-func (r ApiAgentsApiV1AgentsUpdateRequest) AgentUpdateRequest(agentUpdateRequest AgentUpdateRequest) ApiAgentsApiV1AgentsUpdateRequest {
-	r.agentUpdateRequest = &agentUpdateRequest
+func (r ApiAgentsApiV1AgentsUpdateRequest) UpdateAgentRequest(updateAgentRequest UpdateAgentRequest) ApiAgentsApiV1AgentsUpdateRequest {
+	r.updateAgentRequest = &updateAgentRequest
 	return r
 }
 
@@ -1242,27 +1600,26 @@ AgentsApiV1AgentsUpdate Update an agent entity.
 
 Update an agent attributes and create a new version.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param agentId
-	@return ApiAgentsApiV1AgentsUpdateRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param agentId
+ @return ApiAgentsApiV1AgentsUpdateRequest
 */
 func (a *BetaAgentsAPIService) AgentsApiV1AgentsUpdate(ctx context.Context, agentId string) ApiAgentsApiV1AgentsUpdateRequest {
 	return ApiAgentsApiV1AgentsUpdateRequest{
 		ApiService: a,
-		ctx:        ctx,
-		agentId:    agentId,
+		ctx: ctx,
+		agentId: agentId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return Agent
+//  @return Agent
 func (a *BetaAgentsAPIService) AgentsApiV1AgentsUpdateExecute(r ApiAgentsApiV1AgentsUpdateRequest) (*Agent, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPatch
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *Agent
+		localVarHTTPMethod   = http.MethodPatch
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *Agent
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaAgentsAPIService.AgentsApiV1AgentsUpdate")
@@ -1276,8 +1633,8 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsUpdateExecute(r ApiAgentsApiV1Ag
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.agentUpdateRequest == nil {
-		return localVarReturnValue, nil, reportError("agentUpdateRequest is required and must be specified")
+	if r.updateAgentRequest == nil {
+		return localVarReturnValue, nil, reportError("updateAgentRequest is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -1298,7 +1655,7 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsUpdateExecute(r ApiAgentsApiV1Ag
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.agentUpdateRequest
+	localVarPostBody = r.updateAgentRequest
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -1328,8 +1685,8 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsUpdateExecute(r ApiAgentsApiV1Ag
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -1347,10 +1704,10 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsUpdateExecute(r ApiAgentsApiV1Ag
 }
 
 type ApiAgentsApiV1AgentsUpdateVersionRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService BetaAgentsAPI
-	agentId    string
-	version    *int32
+	agentId string
+	version *int32
 }
 
 func (r ApiAgentsApiV1AgentsUpdateVersionRequest) Version(version int32) ApiAgentsApiV1AgentsUpdateVersionRequest {
@@ -1367,27 +1724,26 @@ AgentsApiV1AgentsUpdateVersion Update an agent version.
 
 Switch the version of an agent.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param agentId
-	@return ApiAgentsApiV1AgentsUpdateVersionRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param agentId
+ @return ApiAgentsApiV1AgentsUpdateVersionRequest
 */
 func (a *BetaAgentsAPIService) AgentsApiV1AgentsUpdateVersion(ctx context.Context, agentId string) ApiAgentsApiV1AgentsUpdateVersionRequest {
 	return ApiAgentsApiV1AgentsUpdateVersionRequest{
 		ApiService: a,
-		ctx:        ctx,
-		agentId:    agentId,
+		ctx: ctx,
+		agentId: agentId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return Agent
+//  @return Agent
 func (a *BetaAgentsAPIService) AgentsApiV1AgentsUpdateVersionExecute(r ApiAgentsApiV1AgentsUpdateVersionRequest) (*Agent, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPatch
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *Agent
+		localVarHTTPMethod   = http.MethodPatch
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *Agent
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaAgentsAPIService.AgentsApiV1AgentsUpdateVersion")
@@ -1452,8 +1808,8 @@ func (a *BetaAgentsAPIService) AgentsApiV1AgentsUpdateVersionExecute(r ApiAgents
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

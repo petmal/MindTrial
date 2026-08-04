@@ -21,7 +21,7 @@ var _ MappedNullable = &GetDeferredVideoRequest{}
 // GetDeferredVideoRequest Request to get deferred video result with a request ID.
 type GetDeferredVideoRequest struct {
 	// The request ID returned by a previous video generation request.
-	RequestId            string `json:"request_id"`
+	RequestId string `json:"request_id"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -70,7 +70,7 @@ func (o *GetDeferredVideoRequest) SetRequestId(v string) {
 }
 
 func (o GetDeferredVideoRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -101,10 +101,10 @@ func (o *GetDeferredVideoRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

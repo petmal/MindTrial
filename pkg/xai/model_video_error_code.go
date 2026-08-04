@@ -20,11 +20,11 @@ type VideoErrorCode string
 
 // List of VideoErrorCode
 const (
-	VIDEOERRORCODE_INVALID_ARGUMENT    VideoErrorCode = "invalid_argument"
-	VIDEOERRORCODE_PERMISSION_DENIED   VideoErrorCode = "permission_denied"
+	VIDEOERRORCODE_INVALID_ARGUMENT VideoErrorCode = "invalid_argument"
+	VIDEOERRORCODE_PERMISSION_DENIED VideoErrorCode = "permission_denied"
 	VIDEOERRORCODE_FAILED_PRECONDITION VideoErrorCode = "failed_precondition"
 	VIDEOERRORCODE_SERVICE_UNAVAILABLE VideoErrorCode = "service_unavailable"
-	VIDEOERRORCODE_INTERNAL_ERROR      VideoErrorCode = "internal_error"
+	VIDEOERRORCODE_INTERNAL_ERROR VideoErrorCode = "internal_error"
 )
 
 // All allowed values of VideoErrorCode enum

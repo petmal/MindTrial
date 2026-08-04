@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,9 +21,10 @@ var _ MappedNullable = &DocumentLibraryTool{}
 
 // DocumentLibraryTool struct for DocumentLibraryTool
 type DocumentLibraryTool struct {
-	Type *string `json:"type,omitempty"`
 	// Ids of the library in which to search.
 	LibraryIds []string `json:"library_ids"`
+	ToolConfiguration NullableToolConfiguration `json:"tool_configuration,omitempty"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _DocumentLibraryTool DocumentLibraryTool
@@ -34,9 +35,9 @@ type _DocumentLibraryTool DocumentLibraryTool
 // will change when the set of required properties is changed
 func NewDocumentLibraryTool(libraryIds []string) *DocumentLibraryTool {
 	this := DocumentLibraryTool{}
+	this.LibraryIds = libraryIds
 	var type_ string = "document_library"
 	this.Type = &type_
-	this.LibraryIds = libraryIds
 	return &this
 }
 
@@ -48,6 +49,72 @@ func NewDocumentLibraryToolWithDefaults() *DocumentLibraryTool {
 	var type_ string = "document_library"
 	this.Type = &type_
 	return &this
+}
+
+// GetLibraryIds returns the LibraryIds field value
+func (o *DocumentLibraryTool) GetLibraryIds() []string {
+	if o == nil {
+		var ret []string
+		return ret
+	}
+
+	return o.LibraryIds
+}
+
+// GetLibraryIdsOk returns a tuple with the LibraryIds field value
+// and a boolean to check if the value has been set.
+func (o *DocumentLibraryTool) GetLibraryIdsOk() ([]string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.LibraryIds, true
+}
+
+// SetLibraryIds sets field value
+func (o *DocumentLibraryTool) SetLibraryIds(v []string) {
+	o.LibraryIds = v
+}
+
+// GetToolConfiguration returns the ToolConfiguration field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *DocumentLibraryTool) GetToolConfiguration() ToolConfiguration {
+	if o == nil || IsNil(o.ToolConfiguration.Get()) {
+		var ret ToolConfiguration
+		return ret
+	}
+	return *o.ToolConfiguration.Get()
+}
+
+// GetToolConfigurationOk returns a tuple with the ToolConfiguration field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *DocumentLibraryTool) GetToolConfigurationOk() (*ToolConfiguration, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ToolConfiguration.Get(), o.ToolConfiguration.IsSet()
+}
+
+// HasToolConfiguration returns a boolean if a field has been set.
+func (o *DocumentLibraryTool) HasToolConfiguration() bool {
+	if o != nil && o.ToolConfiguration.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetToolConfiguration gets a reference to the given NullableToolConfiguration and assigns it to the ToolConfiguration field.
+func (o *DocumentLibraryTool) SetToolConfiguration(v ToolConfiguration) {
+	o.ToolConfiguration.Set(&v)
+}
+// SetToolConfigurationNil sets the value for ToolConfiguration to be an explicit nil
+func (o *DocumentLibraryTool) SetToolConfigurationNil() {
+	o.ToolConfiguration.Set(nil)
+}
+
+// UnsetToolConfiguration ensures that no value is present for ToolConfiguration, not even an explicit nil
+func (o *DocumentLibraryTool) UnsetToolConfiguration() {
+	o.ToolConfiguration.Unset()
 }
 
 // GetType returns the Type field value if set, zero value otherwise.
@@ -82,32 +149,8 @@ func (o *DocumentLibraryTool) SetType(v string) {
 	o.Type = &v
 }
 
-// GetLibraryIds returns the LibraryIds field value
-func (o *DocumentLibraryTool) GetLibraryIds() []string {
-	if o == nil {
-		var ret []string
-		return ret
-	}
-
-	return o.LibraryIds
-}
-
-// GetLibraryIdsOk returns a tuple with the LibraryIds field value
-// and a boolean to check if the value has been set.
-func (o *DocumentLibraryTool) GetLibraryIdsOk() ([]string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.LibraryIds, true
-}
-
-// SetLibraryIds sets field value
-func (o *DocumentLibraryTool) SetLibraryIds(v []string) {
-	o.LibraryIds = v
-}
-
 func (o DocumentLibraryTool) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -116,10 +159,13 @@ func (o DocumentLibraryTool) MarshalJSON() ([]byte, error) {
 
 func (o DocumentLibraryTool) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["library_ids"] = o.LibraryIds
+	if o.ToolConfiguration.IsSet() {
+		toSerialize["tool_configuration"] = o.ToolConfiguration.Get()
+	}
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
 	}
-	toSerialize["library_ids"] = o.LibraryIds
 	return toSerialize, nil
 }
 
@@ -136,10 +182,10 @@ func (o *DocumentLibraryTool) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

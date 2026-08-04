@@ -11,7 +11,6 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -21,11 +20,12 @@ var _ MappedNullable = &TranscriptionStreamSegmentDelta{}
 
 // TranscriptionStreamSegmentDelta struct for TranscriptionStreamSegmentDelta
 type TranscriptionStreamSegmentDelta struct {
-	Text      string         `json:"text"`
-	Start     float32        `json:"start"`
-	End       float32        `json:"end"`
+	End float32 `json:"end"`
 	SpeakerId NullableString `json:"speaker_id,omitempty"`
-	Type      *string        `json:"type,omitempty"`
+	Start float32 `json:"start"`
+	Text string `json:"text"`
+	Type *string `json:"type,omitempty"`
+	AdditionalProperties map[string]interface{}
 }
 
 type _TranscriptionStreamSegmentDelta TranscriptionStreamSegmentDelta
@@ -34,11 +34,11 @@ type _TranscriptionStreamSegmentDelta TranscriptionStreamSegmentDelta
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewTranscriptionStreamSegmentDelta(text string, start float32, end float32) *TranscriptionStreamSegmentDelta {
+func NewTranscriptionStreamSegmentDelta(end float32, start float32, text string) *TranscriptionStreamSegmentDelta {
 	this := TranscriptionStreamSegmentDelta{}
-	this.Text = text
-	this.Start = start
 	this.End = end
+	this.Start = start
+	this.Text = text
 	var type_ string = "transcription.segment"
 	this.Type = &type_
 	return &this
@@ -52,54 +52,6 @@ func NewTranscriptionStreamSegmentDeltaWithDefaults() *TranscriptionStreamSegmen
 	var type_ string = "transcription.segment"
 	this.Type = &type_
 	return &this
-}
-
-// GetText returns the Text field value
-func (o *TranscriptionStreamSegmentDelta) GetText() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Text
-}
-
-// GetTextOk returns a tuple with the Text field value
-// and a boolean to check if the value has been set.
-func (o *TranscriptionStreamSegmentDelta) GetTextOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Text, true
-}
-
-// SetText sets field value
-func (o *TranscriptionStreamSegmentDelta) SetText(v string) {
-	o.Text = v
-}
-
-// GetStart returns the Start field value
-func (o *TranscriptionStreamSegmentDelta) GetStart() float32 {
-	if o == nil {
-		var ret float32
-		return ret
-	}
-
-	return o.Start
-}
-
-// GetStartOk returns a tuple with the Start field value
-// and a boolean to check if the value has been set.
-func (o *TranscriptionStreamSegmentDelta) GetStartOk() (*float32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Start, true
-}
-
-// SetStart sets field value
-func (o *TranscriptionStreamSegmentDelta) SetStart(v float32) {
-	o.Start = v
 }
 
 // GetEnd returns the End field value
@@ -158,7 +110,6 @@ func (o *TranscriptionStreamSegmentDelta) HasSpeakerId() bool {
 func (o *TranscriptionStreamSegmentDelta) SetSpeakerId(v string) {
 	o.SpeakerId.Set(&v)
 }
-
 // SetSpeakerIdNil sets the value for SpeakerId to be an explicit nil
 func (o *TranscriptionStreamSegmentDelta) SetSpeakerIdNil() {
 	o.SpeakerId.Set(nil)
@@ -167,6 +118,54 @@ func (o *TranscriptionStreamSegmentDelta) SetSpeakerIdNil() {
 // UnsetSpeakerId ensures that no value is present for SpeakerId, not even an explicit nil
 func (o *TranscriptionStreamSegmentDelta) UnsetSpeakerId() {
 	o.SpeakerId.Unset()
+}
+
+// GetStart returns the Start field value
+func (o *TranscriptionStreamSegmentDelta) GetStart() float32 {
+	if o == nil {
+		var ret float32
+		return ret
+	}
+
+	return o.Start
+}
+
+// GetStartOk returns a tuple with the Start field value
+// and a boolean to check if the value has been set.
+func (o *TranscriptionStreamSegmentDelta) GetStartOk() (*float32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Start, true
+}
+
+// SetStart sets field value
+func (o *TranscriptionStreamSegmentDelta) SetStart(v float32) {
+	o.Start = v
+}
+
+// GetText returns the Text field value
+func (o *TranscriptionStreamSegmentDelta) GetText() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Text
+}
+
+// GetTextOk returns a tuple with the Text field value
+// and a boolean to check if the value has been set.
+func (o *TranscriptionStreamSegmentDelta) GetTextOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Text, true
+}
+
+// SetText sets field value
+func (o *TranscriptionStreamSegmentDelta) SetText(v string) {
+	o.Text = v
 }
 
 // GetType returns the Type field value if set, zero value otherwise.
@@ -202,7 +201,7 @@ func (o *TranscriptionStreamSegmentDelta) SetType(v string) {
 }
 
 func (o TranscriptionStreamSegmentDelta) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -211,15 +210,20 @@ func (o TranscriptionStreamSegmentDelta) MarshalJSON() ([]byte, error) {
 
 func (o TranscriptionStreamSegmentDelta) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["text"] = o.Text
-	toSerialize["start"] = o.Start
 	toSerialize["end"] = o.End
 	if o.SpeakerId.IsSet() {
 		toSerialize["speaker_id"] = o.SpeakerId.Get()
 	}
+	toSerialize["start"] = o.Start
+	toSerialize["text"] = o.Text
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
 	}
+
+	for key, value := range o.AdditionalProperties {
+		toSerialize[key] = value
+	}
+
 	return toSerialize, nil
 }
 
@@ -228,9 +232,9 @@ func (o *TranscriptionStreamSegmentDelta) UnmarshalJSON(data []byte) (err error)
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"text",
-		"start",
 		"end",
+		"start",
+		"text",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -238,10 +242,10 @@ func (o *TranscriptionStreamSegmentDelta) UnmarshalJSON(data []byte) (err error)
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -249,15 +253,24 @@ func (o *TranscriptionStreamSegmentDelta) UnmarshalJSON(data []byte) (err error)
 
 	varTranscriptionStreamSegmentDelta := _TranscriptionStreamSegmentDelta{}
 
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varTranscriptionStreamSegmentDelta)
+	err = json.Unmarshal(data, &varTranscriptionStreamSegmentDelta)
 
 	if err != nil {
 		return err
 	}
 
 	*o = TranscriptionStreamSegmentDelta(varTranscriptionStreamSegmentDelta)
+
+	additionalProperties := make(map[string]interface{})
+
+	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "end")
+		delete(additionalProperties, "speaker_id")
+		delete(additionalProperties, "start")
+		delete(additionalProperties, "text")
+		delete(additionalProperties, "type")
+		o.AdditionalProperties = additionalProperties
+	}
 
 	return err
 }

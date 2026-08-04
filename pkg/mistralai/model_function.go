@@ -20,10 +20,10 @@ var _ MappedNullable = &Function{}
 
 // Function struct for Function
 type Function struct {
-	Name                 string                 `json:"name"`
-	Description          *string                `json:"description,omitempty"`
-	Strict               *bool                  `json:"strict,omitempty"`
-	Parameters           map[string]interface{} `json:"parameters"`
+	Description *string `json:"description,omitempty"`
+	Name string `json:"name"`
+	Parameters map[string]interface{} `json:"parameters"`
+	Strict *bool `json:"strict,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -35,12 +35,12 @@ type _Function Function
 // will change when the set of required properties is changed
 func NewFunction(name string, parameters map[string]interface{}) *Function {
 	this := Function{}
-	this.Name = name
 	var description string = ""
 	this.Description = &description
+	this.Name = name
+	this.Parameters = parameters
 	var strict bool = false
 	this.Strict = &strict
-	this.Parameters = parameters
 	return &this
 }
 
@@ -54,30 +54,6 @@ func NewFunctionWithDefaults() *Function {
 	var strict bool = false
 	this.Strict = &strict
 	return &this
-}
-
-// GetName returns the Name field value
-func (o *Function) GetName() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Name
-}
-
-// GetNameOk returns a tuple with the Name field value
-// and a boolean to check if the value has been set.
-func (o *Function) GetNameOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Name, true
-}
-
-// SetName sets field value
-func (o *Function) SetName(v string) {
-	o.Name = v
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise.
@@ -112,6 +88,54 @@ func (o *Function) SetDescription(v string) {
 	o.Description = &v
 }
 
+// GetName returns the Name field value
+func (o *Function) GetName() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value
+// and a boolean to check if the value has been set.
+func (o *Function) GetNameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Name, true
+}
+
+// SetName sets field value
+func (o *Function) SetName(v string) {
+	o.Name = v
+}
+
+// GetParameters returns the Parameters field value
+func (o *Function) GetParameters() map[string]interface{} {
+	if o == nil {
+		var ret map[string]interface{}
+		return ret
+	}
+
+	return o.Parameters
+}
+
+// GetParametersOk returns a tuple with the Parameters field value
+// and a boolean to check if the value has been set.
+func (o *Function) GetParametersOk() (map[string]interface{}, bool) {
+	if o == nil {
+		return map[string]interface{}{}, false
+	}
+	return o.Parameters, true
+}
+
+// SetParameters sets field value
+func (o *Function) SetParameters(v map[string]interface{}) {
+	o.Parameters = v
+}
+
 // GetStrict returns the Strict field value if set, zero value otherwise.
 func (o *Function) GetStrict() bool {
 	if o == nil || IsNil(o.Strict) {
@@ -144,32 +168,8 @@ func (o *Function) SetStrict(v bool) {
 	o.Strict = &v
 }
 
-// GetParameters returns the Parameters field value
-func (o *Function) GetParameters() map[string]interface{} {
-	if o == nil {
-		var ret map[string]interface{}
-		return ret
-	}
-
-	return o.Parameters
-}
-
-// GetParametersOk returns a tuple with the Parameters field value
-// and a boolean to check if the value has been set.
-func (o *Function) GetParametersOk() (map[string]interface{}, bool) {
-	if o == nil {
-		return map[string]interface{}{}, false
-	}
-	return o.Parameters, true
-}
-
-// SetParameters sets field value
-func (o *Function) SetParameters(v map[string]interface{}) {
-	o.Parameters = v
-}
-
 func (o Function) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -178,14 +178,14 @@ func (o Function) MarshalJSON() ([]byte, error) {
 
 func (o Function) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["name"] = o.Name
 	if !IsNil(o.Description) {
 		toSerialize["description"] = o.Description
 	}
+	toSerialize["name"] = o.Name
+	toSerialize["parameters"] = o.Parameters
 	if !IsNil(o.Strict) {
 		toSerialize["strict"] = o.Strict
 	}
-	toSerialize["parameters"] = o.Parameters
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -208,10 +208,10 @@ func (o *Function) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -230,10 +230,10 @@ func (o *Function) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "name")
 		delete(additionalProperties, "description")
-		delete(additionalProperties, "strict")
+		delete(additionalProperties, "name")
 		delete(additionalProperties, "parameters")
+		delete(additionalProperties, "strict")
 		o.AdditionalProperties = additionalProperties
 	}
 

@@ -11,10 +11,10 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"time"
+	"bytes"
+	"fmt"
 )
 
 // checks if the AgentHandoffDoneEvent type satisfies the MappedNullable interface at compile time
@@ -22,12 +22,12 @@ var _ MappedNullable = &AgentHandoffDoneEvent{}
 
 // AgentHandoffDoneEvent struct for AgentHandoffDoneEvent
 type AgentHandoffDoneEvent struct {
-	Type          *string    `json:"type,omitempty"`
-	CreatedAt     *time.Time `json:"created_at,omitempty"`
-	OutputIndex   *int32     `json:"output_index,omitempty"`
-	Id            string     `json:"id"`
-	NextAgentId   string     `json:"next_agent_id"`
-	NextAgentName string     `json:"next_agent_name"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	Id string `json:"id"`
+	NextAgentId string `json:"next_agent_id"`
+	NextAgentName string `json:"next_agent_name"`
+	OutputIndex *int32 `json:"output_index,omitempty"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _AgentHandoffDoneEvent AgentHandoffDoneEvent
@@ -38,13 +38,13 @@ type _AgentHandoffDoneEvent AgentHandoffDoneEvent
 // will change when the set of required properties is changed
 func NewAgentHandoffDoneEvent(id string, nextAgentId string, nextAgentName string) *AgentHandoffDoneEvent {
 	this := AgentHandoffDoneEvent{}
-	var type_ string = "agent.handoff.done"
-	this.Type = &type_
-	var outputIndex int32 = 0
-	this.OutputIndex = &outputIndex
 	this.Id = id
 	this.NextAgentId = nextAgentId
 	this.NextAgentName = nextAgentName
+	var outputIndex int32 = 0
+	this.OutputIndex = &outputIndex
+	var type_ string = "agent.handoff.done"
+	this.Type = &type_
 	return &this
 }
 
@@ -53,43 +53,11 @@ func NewAgentHandoffDoneEvent(id string, nextAgentId string, nextAgentName strin
 // but it doesn't guarantee that properties required by API are set
 func NewAgentHandoffDoneEventWithDefaults() *AgentHandoffDoneEvent {
 	this := AgentHandoffDoneEvent{}
-	var type_ string = "agent.handoff.done"
-	this.Type = &type_
 	var outputIndex int32 = 0
 	this.OutputIndex = &outputIndex
+	var type_ string = "agent.handoff.done"
+	this.Type = &type_
 	return &this
-}
-
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *AgentHandoffDoneEvent) GetType() string {
-	if o == nil || IsNil(o.Type) {
-		var ret string
-		return ret
-	}
-	return *o.Type
-}
-
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *AgentHandoffDoneEvent) GetTypeOk() (*string, bool) {
-	if o == nil || IsNil(o.Type) {
-		return nil, false
-	}
-	return o.Type, true
-}
-
-// HasType returns a boolean if a field has been set.
-func (o *AgentHandoffDoneEvent) HasType() bool {
-	if o != nil && !IsNil(o.Type) {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given string and assigns it to the Type field.
-func (o *AgentHandoffDoneEvent) SetType(v string) {
-	o.Type = &v
 }
 
 // GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
@@ -122,38 +90,6 @@ func (o *AgentHandoffDoneEvent) HasCreatedAt() bool {
 // SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
 func (o *AgentHandoffDoneEvent) SetCreatedAt(v time.Time) {
 	o.CreatedAt = &v
-}
-
-// GetOutputIndex returns the OutputIndex field value if set, zero value otherwise.
-func (o *AgentHandoffDoneEvent) GetOutputIndex() int32 {
-	if o == nil || IsNil(o.OutputIndex) {
-		var ret int32
-		return ret
-	}
-	return *o.OutputIndex
-}
-
-// GetOutputIndexOk returns a tuple with the OutputIndex field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *AgentHandoffDoneEvent) GetOutputIndexOk() (*int32, bool) {
-	if o == nil || IsNil(o.OutputIndex) {
-		return nil, false
-	}
-	return o.OutputIndex, true
-}
-
-// HasOutputIndex returns a boolean if a field has been set.
-func (o *AgentHandoffDoneEvent) HasOutputIndex() bool {
-	if o != nil && !IsNil(o.OutputIndex) {
-		return true
-	}
-
-	return false
-}
-
-// SetOutputIndex gets a reference to the given int32 and assigns it to the OutputIndex field.
-func (o *AgentHandoffDoneEvent) SetOutputIndex(v int32) {
-	o.OutputIndex = &v
 }
 
 // GetId returns the Id field value
@@ -228,8 +164,72 @@ func (o *AgentHandoffDoneEvent) SetNextAgentName(v string) {
 	o.NextAgentName = v
 }
 
+// GetOutputIndex returns the OutputIndex field value if set, zero value otherwise.
+func (o *AgentHandoffDoneEvent) GetOutputIndex() int32 {
+	if o == nil || IsNil(o.OutputIndex) {
+		var ret int32
+		return ret
+	}
+	return *o.OutputIndex
+}
+
+// GetOutputIndexOk returns a tuple with the OutputIndex field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *AgentHandoffDoneEvent) GetOutputIndexOk() (*int32, bool) {
+	if o == nil || IsNil(o.OutputIndex) {
+		return nil, false
+	}
+	return o.OutputIndex, true
+}
+
+// HasOutputIndex returns a boolean if a field has been set.
+func (o *AgentHandoffDoneEvent) HasOutputIndex() bool {
+	if o != nil && !IsNil(o.OutputIndex) {
+		return true
+	}
+
+	return false
+}
+
+// SetOutputIndex gets a reference to the given int32 and assigns it to the OutputIndex field.
+func (o *AgentHandoffDoneEvent) SetOutputIndex(v int32) {
+	o.OutputIndex = &v
+}
+
+// GetType returns the Type field value if set, zero value otherwise.
+func (o *AgentHandoffDoneEvent) GetType() string {
+	if o == nil || IsNil(o.Type) {
+		var ret string
+		return ret
+	}
+	return *o.Type
+}
+
+// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *AgentHandoffDoneEvent) GetTypeOk() (*string, bool) {
+	if o == nil || IsNil(o.Type) {
+		return nil, false
+	}
+	return o.Type, true
+}
+
+// HasType returns a boolean if a field has been set.
+func (o *AgentHandoffDoneEvent) HasType() bool {
+	if o != nil && !IsNil(o.Type) {
+		return true
+	}
+
+	return false
+}
+
+// SetType gets a reference to the given string and assigns it to the Type field.
+func (o *AgentHandoffDoneEvent) SetType(v string) {
+	o.Type = &v
+}
+
 func (o AgentHandoffDoneEvent) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -238,18 +238,18 @@ func (o AgentHandoffDoneEvent) MarshalJSON() ([]byte, error) {
 
 func (o AgentHandoffDoneEvent) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Type) {
-		toSerialize["type"] = o.Type
-	}
 	if !IsNil(o.CreatedAt) {
 		toSerialize["created_at"] = o.CreatedAt
-	}
-	if !IsNil(o.OutputIndex) {
-		toSerialize["output_index"] = o.OutputIndex
 	}
 	toSerialize["id"] = o.Id
 	toSerialize["next_agent_id"] = o.NextAgentId
 	toSerialize["next_agent_name"] = o.NextAgentName
+	if !IsNil(o.OutputIndex) {
+		toSerialize["output_index"] = o.OutputIndex
+	}
+	if !IsNil(o.Type) {
+		toSerialize["type"] = o.Type
+	}
 	return toSerialize, nil
 }
 
@@ -268,10 +268,10 @@ func (o *AgentHandoffDoneEvent) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

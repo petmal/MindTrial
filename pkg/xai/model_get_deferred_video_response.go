@@ -23,7 +23,7 @@ type GetDeferredVideoResponse struct {
 	// The generated video response. Only present if status is \"done\" or \"failed\". When failed, the `error` field in VideoResponse describes the failure.
 	Response NullableVideoResponse `json:"response,omitempty"`
 	// Status of the deferred request: \"pending\", \"done\", or \"failed\".
-	Status               string `json:"status"`
+	Status string `json:"status"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -79,7 +79,6 @@ func (o *GetDeferredVideoResponse) HasResponse() bool {
 func (o *GetDeferredVideoResponse) SetResponse(v VideoResponse) {
 	o.Response.Set(&v)
 }
-
 // SetResponseNil sets the value for Response to be an explicit nil
 func (o *GetDeferredVideoResponse) SetResponseNil() {
 	o.Response.Set(nil)
@@ -115,7 +114,7 @@ func (o *GetDeferredVideoResponse) SetStatus(v string) {
 }
 
 func (o GetDeferredVideoResponse) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -149,10 +148,10 @@ func (o *GetDeferredVideoResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

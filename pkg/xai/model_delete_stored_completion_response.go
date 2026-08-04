@@ -25,7 +25,7 @@ type DeleteStoredCompletionResponse struct {
 	// The response_id to be deleted.
 	Id string `json:"id"`
 	// The deleted object type, which is always `response`.
-	Object               string `json:"object"`
+	Object string `json:"object"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -124,7 +124,7 @@ func (o *DeleteStoredCompletionResponse) SetObject(v string) {
 }
 
 func (o DeleteStoredCompletionResponse) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -159,10 +159,10 @@ func (o *DeleteStoredCompletionResponse) UnmarshalJSON(data []byte) (err error) 
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

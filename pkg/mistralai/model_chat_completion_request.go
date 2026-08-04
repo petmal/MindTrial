@@ -12,6 +12,7 @@ package mistralai
 
 import (
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -20,35 +21,43 @@ var _ MappedNullable = &ChatCompletionRequest{}
 
 // ChatCompletionRequest struct for ChatCompletionRequest
 type ChatCompletionRequest struct {
-	// ID of the model to use. You can use the [List Available Models](/api/#tag/models/operation/list_models_v1_models_get) API to see all of your available models, or see our [Model overview](/models) for model descriptions.
-	Model       string          `json:"model"`
-	Temperature NullableFloat32 `json:"temperature,omitempty"`
-	// Nucleus sampling, where the model considers the results of the tokens with `top_p` probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. We generally recommend altering this or `temperature` but not both.
-	TopP      *float32      `json:"top_p,omitempty"`
-	MaxTokens NullableInt32 `json:"max_tokens,omitempty"`
-	// Whether to stream back partial progress. If set, tokens will be sent as data-only server-side events as they become available, with the stream terminated by a data: [DONE] message. Otherwise, the server will hold the request open until the timeout or until completion, with the response containing the full result as JSON.
-	Stream     *bool                  `json:"stream,omitempty"`
-	Stop       *Stop                  `json:"stop,omitempty"`
-	RandomSeed NullableInt32          `json:"random_seed,omitempty"`
-	Metadata   map[string]interface{} `json:"metadata,omitempty"`
-	// The prompt(s) to generate completions for, encoded as a list of dict with role and content.
-	Messages       []MessagesInner `json:"messages"`
-	ResponseFormat *ResponseFormat `json:"response_format,omitempty"`
-	Tools          []Tool          `json:"tools,omitempty"`
-	ToolChoice     *ToolChoiceEnum `json:"tool_choice,omitempty"`
-	// The `presence_penalty` determines how much the model penalizes the repetition of words or phrases. A higher presence penalty encourages the model to use a wider variety of words and phrases, making the output more diverse and creative.
-	PresencePenalty *float32 `json:"presence_penalty,omitempty"`
 	// The `frequency_penalty` penalizes the repetition of words based on their frequency in the generated text. A higher frequency penalty discourages the model from repeating words that have already appeared frequently in the output, promoting diversity and reducing repetition.
-	FrequencyPenalty *float32      `json:"frequency_penalty,omitempty"`
-	N                NullableInt32 `json:"n,omitempty"`
+	FrequencyPenalty NullableFloat32 `json:"frequency_penalty,omitempty"`
+	Guardrails []GuardrailConfig `json:"guardrails,omitempty"`
+	// The maximum number of tokens to generate in the completion. The token count of your prompt plus `max_tokens` cannot exceed the model's context length.
+	MaxTokens NullableInt32 `json:"max_tokens,omitempty"`
+	// The prompt(s) to generate completions for, encoded as a list of dict with role and content.
+	Messages []MessagesInner `json:"messages"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	// ID of the model to use. You can use the [List Available Models](/api/#tag/models/operation/list_models_v1_models_get) API to see all of your available models, or see our [Model overview](/models) for model descriptions.
+	Model string `json:"model"`
+	// Number of completions to return for each request, input tokens are only billed once.
+	N NullableInt32 `json:"n,omitempty"`
+	// Whether to enable parallel function calling during tool use, when enabled the model can call multiple tools in parallel.
+	ParallelToolCalls *bool `json:"parallel_tool_calls,omitempty"`
 	// Enable users to specify expected results, optimizing response times by leveraging known or predictable content. This approach is especially effective for updating text documents or code files with minimal changes, reducing latency while maintaining high-quality results.
 	Prediction *Prediction `json:"prediction,omitempty"`
-	// Whether to enable parallel function calling during tool use, when enabled the model can call multiple tools in parallel.
-	ParallelToolCalls *bool                     `json:"parallel_tool_calls,omitempty"`
-	PromptMode        NullableMistralPromptMode `json:"prompt_mode,omitempty"`
+	// The `presence_penalty` determines how much the model penalizes the repetition of words or phrases. A higher presence penalty encourages the model to use a wider variety of words and phrases, making the output more diverse and creative.
+	PresencePenalty NullableFloat32 `json:"presence_penalty,omitempty"`
+	PromptCacheKey NullableString `json:"prompt_cache_key,omitempty"`
+	// Allows toggling between the reasoning mode and no system prompt. When set to `reasoning` the system prompt for reasoning models will be used.
+	PromptMode NullableMistralPromptMode `json:"prompt_mode,omitempty"`
+	// The seed to use for random sampling. If set, different calls will generate deterministic results.
+	RandomSeed NullableInt32 `json:"random_seed,omitempty"`
+	ReasoningEffort NullableReasoningEffort `json:"reasoning_effort,omitempty"`
+	ResponseFormat *ResponseFormat `json:"response_format,omitempty"`
 	// Whether to inject a safety prompt before all conversations.
-	SafePrompt           *bool `json:"safe_prompt,omitempty"`
-	AdditionalProperties map[string]interface{}
+	SafePrompt *bool `json:"safe_prompt,omitempty"`
+	Stop NullableStop `json:"stop,omitempty"`
+	// Whether to stream back partial progress. If set, tokens will be sent as data-only server-side events as they become available, with the stream terminated by a data: [DONE] message. Otherwise, the server will hold the request open until the timeout or until completion, with the response containing the full result as JSON.
+	Stream *bool `json:"stream,omitempty"`
+	// What sampling temperature to use, we recommend between 0.0 and 0.7. Higher values like 0.7 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. We generally recommend altering this or `top_p` but not both. The default value varies depending on the model you are targeting. Call the `/models` endpoint to retrieve the appropriate value.
+	Temperature NullableFloat32 `json:"temperature,omitempty"`
+	ToolChoice *ToolChoiceEnum `json:"tool_choice,omitempty"`
+	// A list of tools the model may call. Use this to provide a list of functions the model may generate JSON inputs for.
+	Tools []AgentsCompletionRequestToolsInner `json:"tools,omitempty"`
+	// Nucleus sampling, where the model considers the results of the tokens with `top_p` probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. We generally recommend altering this or `temperature` but not both.
+	TopP NullableFloat32 `json:"top_p,omitempty"`
 }
 
 type _ChatCompletionRequest ChatCompletionRequest
@@ -57,26 +66,16 @@ type _ChatCompletionRequest ChatCompletionRequest
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewChatCompletionRequest(model string, messages []MessagesInner) *ChatCompletionRequest {
+func NewChatCompletionRequest(messages []MessagesInner, model string) *ChatCompletionRequest {
 	this := ChatCompletionRequest{}
-	this.Model = model
-	var topP float32 = 1.0
-	this.TopP = &topP
-	var stream bool = false
-	this.Stream = &stream
 	this.Messages = messages
-	toolChoice := ToolChoiceEnum("auto")
-	this.ToolChoice = &toolChoice
-	var presencePenalty float32 = 0.0
-	this.PresencePenalty = &presencePenalty
-	var frequencyPenalty float32 = 0.0
-	this.FrequencyPenalty = &frequencyPenalty
-	prediction := Prediction{}
-	this.Prediction = &prediction
+	this.Model = model
 	var parallelToolCalls bool = true
 	this.ParallelToolCalls = &parallelToolCalls
 	var safePrompt bool = false
 	this.SafePrompt = &safePrompt
+	var stream bool = false
+	this.Stream = &stream
 	return &this
 }
 
@@ -85,122 +84,88 @@ func NewChatCompletionRequest(model string, messages []MessagesInner) *ChatCompl
 // but it doesn't guarantee that properties required by API are set
 func NewChatCompletionRequestWithDefaults() *ChatCompletionRequest {
 	this := ChatCompletionRequest{}
-	var topP float32 = 1.0
-	this.TopP = &topP
-	var stream bool = false
-	this.Stream = &stream
-	toolChoice := ToolChoiceEnum("auto")
-	this.ToolChoice = &toolChoice
-	var presencePenalty float32 = 0.0
-	this.PresencePenalty = &presencePenalty
-	var frequencyPenalty float32 = 0.0
-	this.FrequencyPenalty = &frequencyPenalty
-	prediction := Prediction{}
-	this.Prediction = &prediction
 	var parallelToolCalls bool = true
 	this.ParallelToolCalls = &parallelToolCalls
 	var safePrompt bool = false
 	this.SafePrompt = &safePrompt
+	var stream bool = false
+	this.Stream = &stream
 	return &this
 }
 
-// GetModel returns the Model field value
-func (o *ChatCompletionRequest) GetModel() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Model
-}
-
-// GetModelOk returns a tuple with the Model field value
-// and a boolean to check if the value has been set.
-func (o *ChatCompletionRequest) GetModelOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Model, true
-}
-
-// SetModel sets field value
-func (o *ChatCompletionRequest) SetModel(v string) {
-	o.Model = v
-}
-
-// GetTemperature returns the Temperature field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ChatCompletionRequest) GetTemperature() float32 {
-	if o == nil || IsNil(o.Temperature.Get()) {
+// GetFrequencyPenalty returns the FrequencyPenalty field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ChatCompletionRequest) GetFrequencyPenalty() float32 {
+	if o == nil || IsNil(o.FrequencyPenalty.Get()) {
 		var ret float32
 		return ret
 	}
-	return *o.Temperature.Get()
+	return *o.FrequencyPenalty.Get()
 }
 
-// GetTemperatureOk returns a tuple with the Temperature field value if set, nil otherwise
+// GetFrequencyPenaltyOk returns a tuple with the FrequencyPenalty field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 // NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ChatCompletionRequest) GetTemperatureOk() (*float32, bool) {
+func (o *ChatCompletionRequest) GetFrequencyPenaltyOk() (*float32, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return o.Temperature.Get(), o.Temperature.IsSet()
+	return o.FrequencyPenalty.Get(), o.FrequencyPenalty.IsSet()
 }
 
-// HasTemperature returns a boolean if a field has been set.
-func (o *ChatCompletionRequest) HasTemperature() bool {
-	if o != nil && o.Temperature.IsSet() {
+// HasFrequencyPenalty returns a boolean if a field has been set.
+func (o *ChatCompletionRequest) HasFrequencyPenalty() bool {
+	if o != nil && o.FrequencyPenalty.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetTemperature gets a reference to the given NullableFloat32 and assigns it to the Temperature field.
-func (o *ChatCompletionRequest) SetTemperature(v float32) {
-	o.Temperature.Set(&v)
+// SetFrequencyPenalty gets a reference to the given NullableFloat32 and assigns it to the FrequencyPenalty field.
+func (o *ChatCompletionRequest) SetFrequencyPenalty(v float32) {
+	o.FrequencyPenalty.Set(&v)
+}
+// SetFrequencyPenaltyNil sets the value for FrequencyPenalty to be an explicit nil
+func (o *ChatCompletionRequest) SetFrequencyPenaltyNil() {
+	o.FrequencyPenalty.Set(nil)
 }
 
-// SetTemperatureNil sets the value for Temperature to be an explicit nil
-func (o *ChatCompletionRequest) SetTemperatureNil() {
-	o.Temperature.Set(nil)
+// UnsetFrequencyPenalty ensures that no value is present for FrequencyPenalty, not even an explicit nil
+func (o *ChatCompletionRequest) UnsetFrequencyPenalty() {
+	o.FrequencyPenalty.Unset()
 }
 
-// UnsetTemperature ensures that no value is present for Temperature, not even an explicit nil
-func (o *ChatCompletionRequest) UnsetTemperature() {
-	o.Temperature.Unset()
-}
-
-// GetTopP returns the TopP field value if set, zero value otherwise.
-func (o *ChatCompletionRequest) GetTopP() float32 {
-	if o == nil || IsNil(o.TopP) {
-		var ret float32
+// GetGuardrails returns the Guardrails field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ChatCompletionRequest) GetGuardrails() []GuardrailConfig {
+	if o == nil {
+		var ret []GuardrailConfig
 		return ret
 	}
-	return *o.TopP
+	return o.Guardrails
 }
 
-// GetTopPOk returns a tuple with the TopP field value if set, nil otherwise
+// GetGuardrailsOk returns a tuple with the Guardrails field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ChatCompletionRequest) GetTopPOk() (*float32, bool) {
-	if o == nil || IsNil(o.TopP) {
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ChatCompletionRequest) GetGuardrailsOk() ([]GuardrailConfig, bool) {
+	if o == nil || IsNil(o.Guardrails) {
 		return nil, false
 	}
-	return o.TopP, true
+	return o.Guardrails, true
 }
 
-// HasTopP returns a boolean if a field has been set.
-func (o *ChatCompletionRequest) HasTopP() bool {
-	if o != nil && !IsNil(o.TopP) {
+// HasGuardrails returns a boolean if a field has been set.
+func (o *ChatCompletionRequest) HasGuardrails() bool {
+	if o != nil && !IsNil(o.Guardrails) {
 		return true
 	}
 
 	return false
 }
 
-// SetTopP gets a reference to the given float32 and assigns it to the TopP field.
-func (o *ChatCompletionRequest) SetTopP(v float32) {
-	o.TopP = &v
+// SetGuardrails gets a reference to the given []GuardrailConfig and assigns it to the Guardrails field.
+func (o *ChatCompletionRequest) SetGuardrails(v []GuardrailConfig) {
+	o.Guardrails = v
 }
 
 // GetMaxTokens returns the MaxTokens field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -235,7 +200,6 @@ func (o *ChatCompletionRequest) HasMaxTokens() bool {
 func (o *ChatCompletionRequest) SetMaxTokens(v int32) {
 	o.MaxTokens.Set(&v)
 }
-
 // SetMaxTokensNil sets the value for MaxTokens to be an explicit nil
 func (o *ChatCompletionRequest) SetMaxTokensNil() {
 	o.MaxTokens.Set(nil)
@@ -246,111 +210,28 @@ func (o *ChatCompletionRequest) UnsetMaxTokens() {
 	o.MaxTokens.Unset()
 }
 
-// GetStream returns the Stream field value if set, zero value otherwise.
-func (o *ChatCompletionRequest) GetStream() bool {
-	if o == nil || IsNil(o.Stream) {
-		var ret bool
+// GetMessages returns the Messages field value
+func (o *ChatCompletionRequest) GetMessages() []MessagesInner {
+	if o == nil {
+		var ret []MessagesInner
 		return ret
 	}
-	return *o.Stream
+
+	return o.Messages
 }
 
-// GetStreamOk returns a tuple with the Stream field value if set, nil otherwise
+// GetMessagesOk returns a tuple with the Messages field value
 // and a boolean to check if the value has been set.
-func (o *ChatCompletionRequest) GetStreamOk() (*bool, bool) {
-	if o == nil || IsNil(o.Stream) {
-		return nil, false
-	}
-	return o.Stream, true
-}
-
-// HasStream returns a boolean if a field has been set.
-func (o *ChatCompletionRequest) HasStream() bool {
-	if o != nil && !IsNil(o.Stream) {
-		return true
-	}
-
-	return false
-}
-
-// SetStream gets a reference to the given bool and assigns it to the Stream field.
-func (o *ChatCompletionRequest) SetStream(v bool) {
-	o.Stream = &v
-}
-
-// GetStop returns the Stop field value if set, zero value otherwise.
-func (o *ChatCompletionRequest) GetStop() Stop {
-	if o == nil || IsNil(o.Stop) {
-		var ret Stop
-		return ret
-	}
-	return *o.Stop
-}
-
-// GetStopOk returns a tuple with the Stop field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ChatCompletionRequest) GetStopOk() (*Stop, bool) {
-	if o == nil || IsNil(o.Stop) {
-		return nil, false
-	}
-	return o.Stop, true
-}
-
-// HasStop returns a boolean if a field has been set.
-func (o *ChatCompletionRequest) HasStop() bool {
-	if o != nil && !IsNil(o.Stop) {
-		return true
-	}
-
-	return false
-}
-
-// SetStop gets a reference to the given Stop and assigns it to the Stop field.
-func (o *ChatCompletionRequest) SetStop(v Stop) {
-	o.Stop = &v
-}
-
-// GetRandomSeed returns the RandomSeed field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ChatCompletionRequest) GetRandomSeed() int32 {
-	if o == nil || IsNil(o.RandomSeed.Get()) {
-		var ret int32
-		return ret
-	}
-	return *o.RandomSeed.Get()
-}
-
-// GetRandomSeedOk returns a tuple with the RandomSeed field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ChatCompletionRequest) GetRandomSeedOk() (*int32, bool) {
+func (o *ChatCompletionRequest) GetMessagesOk() ([]MessagesInner, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return o.RandomSeed.Get(), o.RandomSeed.IsSet()
+	return o.Messages, true
 }
 
-// HasRandomSeed returns a boolean if a field has been set.
-func (o *ChatCompletionRequest) HasRandomSeed() bool {
-	if o != nil && o.RandomSeed.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetRandomSeed gets a reference to the given NullableInt32 and assigns it to the RandomSeed field.
-func (o *ChatCompletionRequest) SetRandomSeed(v int32) {
-	o.RandomSeed.Set(&v)
-}
-
-// SetRandomSeedNil sets the value for RandomSeed to be an explicit nil
-func (o *ChatCompletionRequest) SetRandomSeedNil() {
-	o.RandomSeed.Set(nil)
-}
-
-// UnsetRandomSeed ensures that no value is present for RandomSeed, not even an explicit nil
-func (o *ChatCompletionRequest) UnsetRandomSeed() {
-	o.RandomSeed.Unset()
+// SetMessages sets field value
+func (o *ChatCompletionRequest) SetMessages(v []MessagesInner) {
+	o.Messages = v
 }
 
 // GetMetadata returns the Metadata field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -386,189 +267,28 @@ func (o *ChatCompletionRequest) SetMetadata(v map[string]interface{}) {
 	o.Metadata = v
 }
 
-// GetMessages returns the Messages field value
-func (o *ChatCompletionRequest) GetMessages() []MessagesInner {
+// GetModel returns the Model field value
+func (o *ChatCompletionRequest) GetModel() string {
 	if o == nil {
-		var ret []MessagesInner
+		var ret string
 		return ret
 	}
 
-	return o.Messages
+	return o.Model
 }
 
-// GetMessagesOk returns a tuple with the Messages field value
+// GetModelOk returns a tuple with the Model field value
 // and a boolean to check if the value has been set.
-func (o *ChatCompletionRequest) GetMessagesOk() ([]MessagesInner, bool) {
+func (o *ChatCompletionRequest) GetModelOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return o.Messages, true
+	return &o.Model, true
 }
 
-// SetMessages sets field value
-func (o *ChatCompletionRequest) SetMessages(v []MessagesInner) {
-	o.Messages = v
-}
-
-// GetResponseFormat returns the ResponseFormat field value if set, zero value otherwise.
-func (o *ChatCompletionRequest) GetResponseFormat() ResponseFormat {
-	if o == nil || IsNil(o.ResponseFormat) {
-		var ret ResponseFormat
-		return ret
-	}
-	return *o.ResponseFormat
-}
-
-// GetResponseFormatOk returns a tuple with the ResponseFormat field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ChatCompletionRequest) GetResponseFormatOk() (*ResponseFormat, bool) {
-	if o == nil || IsNil(o.ResponseFormat) {
-		return nil, false
-	}
-	return o.ResponseFormat, true
-}
-
-// HasResponseFormat returns a boolean if a field has been set.
-func (o *ChatCompletionRequest) HasResponseFormat() bool {
-	if o != nil && !IsNil(o.ResponseFormat) {
-		return true
-	}
-
-	return false
-}
-
-// SetResponseFormat gets a reference to the given ResponseFormat and assigns it to the ResponseFormat field.
-func (o *ChatCompletionRequest) SetResponseFormat(v ResponseFormat) {
-	o.ResponseFormat = &v
-}
-
-// GetTools returns the Tools field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ChatCompletionRequest) GetTools() []Tool {
-	if o == nil {
-		var ret []Tool
-		return ret
-	}
-	return o.Tools
-}
-
-// GetToolsOk returns a tuple with the Tools field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ChatCompletionRequest) GetToolsOk() ([]Tool, bool) {
-	if o == nil || IsNil(o.Tools) {
-		return nil, false
-	}
-	return o.Tools, true
-}
-
-// HasTools returns a boolean if a field has been set.
-func (o *ChatCompletionRequest) HasTools() bool {
-	if o != nil && !IsNil(o.Tools) {
-		return true
-	}
-
-	return false
-}
-
-// SetTools gets a reference to the given []Tool and assigns it to the Tools field.
-func (o *ChatCompletionRequest) SetTools(v []Tool) {
-	o.Tools = v
-}
-
-// GetToolChoice returns the ToolChoice field value if set, zero value otherwise.
-func (o *ChatCompletionRequest) GetToolChoice() ToolChoiceEnum {
-	if o == nil || IsNil(o.ToolChoice) {
-		var ret ToolChoiceEnum
-		return ret
-	}
-	return *o.ToolChoice
-}
-
-// GetToolChoiceOk returns a tuple with the ToolChoice field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ChatCompletionRequest) GetToolChoiceOk() (*ToolChoiceEnum, bool) {
-	if o == nil || IsNil(o.ToolChoice) {
-		return nil, false
-	}
-	return o.ToolChoice, true
-}
-
-// HasToolChoice returns a boolean if a field has been set.
-func (o *ChatCompletionRequest) HasToolChoice() bool {
-	if o != nil && !IsNil(o.ToolChoice) {
-		return true
-	}
-
-	return false
-}
-
-// SetToolChoice gets a reference to the given ToolChoiceEnum and assigns it to the ToolChoice field.
-func (o *ChatCompletionRequest) SetToolChoice(v ToolChoiceEnum) {
-	o.ToolChoice = &v
-}
-
-// GetPresencePenalty returns the PresencePenalty field value if set, zero value otherwise.
-func (o *ChatCompletionRequest) GetPresencePenalty() float32 {
-	if o == nil || IsNil(o.PresencePenalty) {
-		var ret float32
-		return ret
-	}
-	return *o.PresencePenalty
-}
-
-// GetPresencePenaltyOk returns a tuple with the PresencePenalty field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ChatCompletionRequest) GetPresencePenaltyOk() (*float32, bool) {
-	if o == nil || IsNil(o.PresencePenalty) {
-		return nil, false
-	}
-	return o.PresencePenalty, true
-}
-
-// HasPresencePenalty returns a boolean if a field has been set.
-func (o *ChatCompletionRequest) HasPresencePenalty() bool {
-	if o != nil && !IsNil(o.PresencePenalty) {
-		return true
-	}
-
-	return false
-}
-
-// SetPresencePenalty gets a reference to the given float32 and assigns it to the PresencePenalty field.
-func (o *ChatCompletionRequest) SetPresencePenalty(v float32) {
-	o.PresencePenalty = &v
-}
-
-// GetFrequencyPenalty returns the FrequencyPenalty field value if set, zero value otherwise.
-func (o *ChatCompletionRequest) GetFrequencyPenalty() float32 {
-	if o == nil || IsNil(o.FrequencyPenalty) {
-		var ret float32
-		return ret
-	}
-	return *o.FrequencyPenalty
-}
-
-// GetFrequencyPenaltyOk returns a tuple with the FrequencyPenalty field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ChatCompletionRequest) GetFrequencyPenaltyOk() (*float32, bool) {
-	if o == nil || IsNil(o.FrequencyPenalty) {
-		return nil, false
-	}
-	return o.FrequencyPenalty, true
-}
-
-// HasFrequencyPenalty returns a boolean if a field has been set.
-func (o *ChatCompletionRequest) HasFrequencyPenalty() bool {
-	if o != nil && !IsNil(o.FrequencyPenalty) {
-		return true
-	}
-
-	return false
-}
-
-// SetFrequencyPenalty gets a reference to the given float32 and assigns it to the FrequencyPenalty field.
-func (o *ChatCompletionRequest) SetFrequencyPenalty(v float32) {
-	o.FrequencyPenalty = &v
+// SetModel sets field value
+func (o *ChatCompletionRequest) SetModel(v string) {
+	o.Model = v
 }
 
 // GetN returns the N field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -603,7 +323,6 @@ func (o *ChatCompletionRequest) HasN() bool {
 func (o *ChatCompletionRequest) SetN(v int32) {
 	o.N.Set(&v)
 }
-
 // SetNNil sets the value for N to be an explicit nil
 func (o *ChatCompletionRequest) SetNNil() {
 	o.N.Set(nil)
@@ -612,38 +331,6 @@ func (o *ChatCompletionRequest) SetNNil() {
 // UnsetN ensures that no value is present for N, not even an explicit nil
 func (o *ChatCompletionRequest) UnsetN() {
 	o.N.Unset()
-}
-
-// GetPrediction returns the Prediction field value if set, zero value otherwise.
-func (o *ChatCompletionRequest) GetPrediction() Prediction {
-	if o == nil || IsNil(o.Prediction) {
-		var ret Prediction
-		return ret
-	}
-	return *o.Prediction
-}
-
-// GetPredictionOk returns a tuple with the Prediction field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ChatCompletionRequest) GetPredictionOk() (*Prediction, bool) {
-	if o == nil || IsNil(o.Prediction) {
-		return nil, false
-	}
-	return o.Prediction, true
-}
-
-// HasPrediction returns a boolean if a field has been set.
-func (o *ChatCompletionRequest) HasPrediction() bool {
-	if o != nil && !IsNil(o.Prediction) {
-		return true
-	}
-
-	return false
-}
-
-// SetPrediction gets a reference to the given Prediction and assigns it to the Prediction field.
-func (o *ChatCompletionRequest) SetPrediction(v Prediction) {
-	o.Prediction = &v
 }
 
 // GetParallelToolCalls returns the ParallelToolCalls field value if set, zero value otherwise.
@@ -678,6 +365,122 @@ func (o *ChatCompletionRequest) SetParallelToolCalls(v bool) {
 	o.ParallelToolCalls = &v
 }
 
+// GetPrediction returns the Prediction field value if set, zero value otherwise.
+func (o *ChatCompletionRequest) GetPrediction() Prediction {
+	if o == nil || IsNil(o.Prediction) {
+		var ret Prediction
+		return ret
+	}
+	return *o.Prediction
+}
+
+// GetPredictionOk returns a tuple with the Prediction field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ChatCompletionRequest) GetPredictionOk() (*Prediction, bool) {
+	if o == nil || IsNil(o.Prediction) {
+		return nil, false
+	}
+	return o.Prediction, true
+}
+
+// HasPrediction returns a boolean if a field has been set.
+func (o *ChatCompletionRequest) HasPrediction() bool {
+	if o != nil && !IsNil(o.Prediction) {
+		return true
+	}
+
+	return false
+}
+
+// SetPrediction gets a reference to the given Prediction and assigns it to the Prediction field.
+func (o *ChatCompletionRequest) SetPrediction(v Prediction) {
+	o.Prediction = &v
+}
+
+// GetPresencePenalty returns the PresencePenalty field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ChatCompletionRequest) GetPresencePenalty() float32 {
+	if o == nil || IsNil(o.PresencePenalty.Get()) {
+		var ret float32
+		return ret
+	}
+	return *o.PresencePenalty.Get()
+}
+
+// GetPresencePenaltyOk returns a tuple with the PresencePenalty field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ChatCompletionRequest) GetPresencePenaltyOk() (*float32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.PresencePenalty.Get(), o.PresencePenalty.IsSet()
+}
+
+// HasPresencePenalty returns a boolean if a field has been set.
+func (o *ChatCompletionRequest) HasPresencePenalty() bool {
+	if o != nil && o.PresencePenalty.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetPresencePenalty gets a reference to the given NullableFloat32 and assigns it to the PresencePenalty field.
+func (o *ChatCompletionRequest) SetPresencePenalty(v float32) {
+	o.PresencePenalty.Set(&v)
+}
+// SetPresencePenaltyNil sets the value for PresencePenalty to be an explicit nil
+func (o *ChatCompletionRequest) SetPresencePenaltyNil() {
+	o.PresencePenalty.Set(nil)
+}
+
+// UnsetPresencePenalty ensures that no value is present for PresencePenalty, not even an explicit nil
+func (o *ChatCompletionRequest) UnsetPresencePenalty() {
+	o.PresencePenalty.Unset()
+}
+
+// GetPromptCacheKey returns the PromptCacheKey field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ChatCompletionRequest) GetPromptCacheKey() string {
+	if o == nil || IsNil(o.PromptCacheKey.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.PromptCacheKey.Get()
+}
+
+// GetPromptCacheKeyOk returns a tuple with the PromptCacheKey field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ChatCompletionRequest) GetPromptCacheKeyOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.PromptCacheKey.Get(), o.PromptCacheKey.IsSet()
+}
+
+// HasPromptCacheKey returns a boolean if a field has been set.
+func (o *ChatCompletionRequest) HasPromptCacheKey() bool {
+	if o != nil && o.PromptCacheKey.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetPromptCacheKey gets a reference to the given NullableString and assigns it to the PromptCacheKey field.
+func (o *ChatCompletionRequest) SetPromptCacheKey(v string) {
+	o.PromptCacheKey.Set(&v)
+}
+// SetPromptCacheKeyNil sets the value for PromptCacheKey to be an explicit nil
+func (o *ChatCompletionRequest) SetPromptCacheKeyNil() {
+	o.PromptCacheKey.Set(nil)
+}
+
+// UnsetPromptCacheKey ensures that no value is present for PromptCacheKey, not even an explicit nil
+func (o *ChatCompletionRequest) UnsetPromptCacheKey() {
+	o.PromptCacheKey.Unset()
+}
+
 // GetPromptMode returns the PromptMode field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *ChatCompletionRequest) GetPromptMode() MistralPromptMode {
 	if o == nil || IsNil(o.PromptMode.Get()) {
@@ -710,7 +513,6 @@ func (o *ChatCompletionRequest) HasPromptMode() bool {
 func (o *ChatCompletionRequest) SetPromptMode(v MistralPromptMode) {
 	o.PromptMode.Set(&v)
 }
-
 // SetPromptModeNil sets the value for PromptMode to be an explicit nil
 func (o *ChatCompletionRequest) SetPromptModeNil() {
 	o.PromptMode.Set(nil)
@@ -719,6 +521,122 @@ func (o *ChatCompletionRequest) SetPromptModeNil() {
 // UnsetPromptMode ensures that no value is present for PromptMode, not even an explicit nil
 func (o *ChatCompletionRequest) UnsetPromptMode() {
 	o.PromptMode.Unset()
+}
+
+// GetRandomSeed returns the RandomSeed field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ChatCompletionRequest) GetRandomSeed() int32 {
+	if o == nil || IsNil(o.RandomSeed.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.RandomSeed.Get()
+}
+
+// GetRandomSeedOk returns a tuple with the RandomSeed field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ChatCompletionRequest) GetRandomSeedOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.RandomSeed.Get(), o.RandomSeed.IsSet()
+}
+
+// HasRandomSeed returns a boolean if a field has been set.
+func (o *ChatCompletionRequest) HasRandomSeed() bool {
+	if o != nil && o.RandomSeed.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetRandomSeed gets a reference to the given NullableInt32 and assigns it to the RandomSeed field.
+func (o *ChatCompletionRequest) SetRandomSeed(v int32) {
+	o.RandomSeed.Set(&v)
+}
+// SetRandomSeedNil sets the value for RandomSeed to be an explicit nil
+func (o *ChatCompletionRequest) SetRandomSeedNil() {
+	o.RandomSeed.Set(nil)
+}
+
+// UnsetRandomSeed ensures that no value is present for RandomSeed, not even an explicit nil
+func (o *ChatCompletionRequest) UnsetRandomSeed() {
+	o.RandomSeed.Unset()
+}
+
+// GetReasoningEffort returns the ReasoningEffort field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ChatCompletionRequest) GetReasoningEffort() ReasoningEffort {
+	if o == nil || IsNil(o.ReasoningEffort.Get()) {
+		var ret ReasoningEffort
+		return ret
+	}
+	return *o.ReasoningEffort.Get()
+}
+
+// GetReasoningEffortOk returns a tuple with the ReasoningEffort field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ChatCompletionRequest) GetReasoningEffortOk() (*ReasoningEffort, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ReasoningEffort.Get(), o.ReasoningEffort.IsSet()
+}
+
+// HasReasoningEffort returns a boolean if a field has been set.
+func (o *ChatCompletionRequest) HasReasoningEffort() bool {
+	if o != nil && o.ReasoningEffort.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetReasoningEffort gets a reference to the given NullableReasoningEffort and assigns it to the ReasoningEffort field.
+func (o *ChatCompletionRequest) SetReasoningEffort(v ReasoningEffort) {
+	o.ReasoningEffort.Set(&v)
+}
+// SetReasoningEffortNil sets the value for ReasoningEffort to be an explicit nil
+func (o *ChatCompletionRequest) SetReasoningEffortNil() {
+	o.ReasoningEffort.Set(nil)
+}
+
+// UnsetReasoningEffort ensures that no value is present for ReasoningEffort, not even an explicit nil
+func (o *ChatCompletionRequest) UnsetReasoningEffort() {
+	o.ReasoningEffort.Unset()
+}
+
+// GetResponseFormat returns the ResponseFormat field value if set, zero value otherwise.
+func (o *ChatCompletionRequest) GetResponseFormat() ResponseFormat {
+	if o == nil || IsNil(o.ResponseFormat) {
+		var ret ResponseFormat
+		return ret
+	}
+	return *o.ResponseFormat
+}
+
+// GetResponseFormatOk returns a tuple with the ResponseFormat field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ChatCompletionRequest) GetResponseFormatOk() (*ResponseFormat, bool) {
+	if o == nil || IsNil(o.ResponseFormat) {
+		return nil, false
+	}
+	return o.ResponseFormat, true
+}
+
+// HasResponseFormat returns a boolean if a field has been set.
+func (o *ChatCompletionRequest) HasResponseFormat() bool {
+	if o != nil && !IsNil(o.ResponseFormat) {
+		return true
+	}
+
+	return false
+}
+
+// SetResponseFormat gets a reference to the given ResponseFormat and assigns it to the ResponseFormat field.
+func (o *ChatCompletionRequest) SetResponseFormat(v ResponseFormat) {
+	o.ResponseFormat = &v
 }
 
 // GetSafePrompt returns the SafePrompt field value if set, zero value otherwise.
@@ -753,8 +671,231 @@ func (o *ChatCompletionRequest) SetSafePrompt(v bool) {
 	o.SafePrompt = &v
 }
 
+// GetStop returns the Stop field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ChatCompletionRequest) GetStop() Stop {
+	if o == nil || IsNil(o.Stop.Get()) {
+		var ret Stop
+		return ret
+	}
+	return *o.Stop.Get()
+}
+
+// GetStopOk returns a tuple with the Stop field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ChatCompletionRequest) GetStopOk() (*Stop, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Stop.Get(), o.Stop.IsSet()
+}
+
+// HasStop returns a boolean if a field has been set.
+func (o *ChatCompletionRequest) HasStop() bool {
+	if o != nil && o.Stop.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetStop gets a reference to the given NullableStop and assigns it to the Stop field.
+func (o *ChatCompletionRequest) SetStop(v Stop) {
+	o.Stop.Set(&v)
+}
+// SetStopNil sets the value for Stop to be an explicit nil
+func (o *ChatCompletionRequest) SetStopNil() {
+	o.Stop.Set(nil)
+}
+
+// UnsetStop ensures that no value is present for Stop, not even an explicit nil
+func (o *ChatCompletionRequest) UnsetStop() {
+	o.Stop.Unset()
+}
+
+// GetStream returns the Stream field value if set, zero value otherwise.
+func (o *ChatCompletionRequest) GetStream() bool {
+	if o == nil || IsNil(o.Stream) {
+		var ret bool
+		return ret
+	}
+	return *o.Stream
+}
+
+// GetStreamOk returns a tuple with the Stream field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ChatCompletionRequest) GetStreamOk() (*bool, bool) {
+	if o == nil || IsNil(o.Stream) {
+		return nil, false
+	}
+	return o.Stream, true
+}
+
+// HasStream returns a boolean if a field has been set.
+func (o *ChatCompletionRequest) HasStream() bool {
+	if o != nil && !IsNil(o.Stream) {
+		return true
+	}
+
+	return false
+}
+
+// SetStream gets a reference to the given bool and assigns it to the Stream field.
+func (o *ChatCompletionRequest) SetStream(v bool) {
+	o.Stream = &v
+}
+
+// GetTemperature returns the Temperature field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ChatCompletionRequest) GetTemperature() float32 {
+	if o == nil || IsNil(o.Temperature.Get()) {
+		var ret float32
+		return ret
+	}
+	return *o.Temperature.Get()
+}
+
+// GetTemperatureOk returns a tuple with the Temperature field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ChatCompletionRequest) GetTemperatureOk() (*float32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Temperature.Get(), o.Temperature.IsSet()
+}
+
+// HasTemperature returns a boolean if a field has been set.
+func (o *ChatCompletionRequest) HasTemperature() bool {
+	if o != nil && o.Temperature.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetTemperature gets a reference to the given NullableFloat32 and assigns it to the Temperature field.
+func (o *ChatCompletionRequest) SetTemperature(v float32) {
+	o.Temperature.Set(&v)
+}
+// SetTemperatureNil sets the value for Temperature to be an explicit nil
+func (o *ChatCompletionRequest) SetTemperatureNil() {
+	o.Temperature.Set(nil)
+}
+
+// UnsetTemperature ensures that no value is present for Temperature, not even an explicit nil
+func (o *ChatCompletionRequest) UnsetTemperature() {
+	o.Temperature.Unset()
+}
+
+// GetToolChoice returns the ToolChoice field value if set, zero value otherwise.
+func (o *ChatCompletionRequest) GetToolChoice() ToolChoiceEnum {
+	if o == nil || IsNil(o.ToolChoice) {
+		var ret ToolChoiceEnum
+		return ret
+	}
+	return *o.ToolChoice
+}
+
+// GetToolChoiceOk returns a tuple with the ToolChoice field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ChatCompletionRequest) GetToolChoiceOk() (*ToolChoiceEnum, bool) {
+	if o == nil || IsNil(o.ToolChoice) {
+		return nil, false
+	}
+	return o.ToolChoice, true
+}
+
+// HasToolChoice returns a boolean if a field has been set.
+func (o *ChatCompletionRequest) HasToolChoice() bool {
+	if o != nil && !IsNil(o.ToolChoice) {
+		return true
+	}
+
+	return false
+}
+
+// SetToolChoice gets a reference to the given ToolChoiceEnum and assigns it to the ToolChoice field.
+func (o *ChatCompletionRequest) SetToolChoice(v ToolChoiceEnum) {
+	o.ToolChoice = &v
+}
+
+// GetTools returns the Tools field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ChatCompletionRequest) GetTools() []AgentsCompletionRequestToolsInner {
+	if o == nil {
+		var ret []AgentsCompletionRequestToolsInner
+		return ret
+	}
+	return o.Tools
+}
+
+// GetToolsOk returns a tuple with the Tools field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ChatCompletionRequest) GetToolsOk() ([]AgentsCompletionRequestToolsInner, bool) {
+	if o == nil || IsNil(o.Tools) {
+		return nil, false
+	}
+	return o.Tools, true
+}
+
+// HasTools returns a boolean if a field has been set.
+func (o *ChatCompletionRequest) HasTools() bool {
+	if o != nil && !IsNil(o.Tools) {
+		return true
+	}
+
+	return false
+}
+
+// SetTools gets a reference to the given []AgentsCompletionRequestToolsInner and assigns it to the Tools field.
+func (o *ChatCompletionRequest) SetTools(v []AgentsCompletionRequestToolsInner) {
+	o.Tools = v
+}
+
+// GetTopP returns the TopP field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ChatCompletionRequest) GetTopP() float32 {
+	if o == nil || IsNil(o.TopP.Get()) {
+		var ret float32
+		return ret
+	}
+	return *o.TopP.Get()
+}
+
+// GetTopPOk returns a tuple with the TopP field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ChatCompletionRequest) GetTopPOk() (*float32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.TopP.Get(), o.TopP.IsSet()
+}
+
+// HasTopP returns a boolean if a field has been set.
+func (o *ChatCompletionRequest) HasTopP() bool {
+	if o != nil && o.TopP.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetTopP gets a reference to the given NullableFloat32 and assigns it to the TopP field.
+func (o *ChatCompletionRequest) SetTopP(v float32) {
+	o.TopP.Set(&v)
+}
+// SetTopPNil sets the value for TopP to be an explicit nil
+func (o *ChatCompletionRequest) SetTopPNil() {
+	o.TopP.Set(nil)
+}
+
+// UnsetTopP ensures that no value is present for TopP, not even an explicit nil
+func (o *ChatCompletionRequest) UnsetTopP() {
+	o.TopP.Unset()
+}
+
 func (o ChatCompletionRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -763,64 +904,68 @@ func (o ChatCompletionRequest) MarshalJSON() ([]byte, error) {
 
 func (o ChatCompletionRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["model"] = o.Model
-	if o.Temperature.IsSet() {
-		toSerialize["temperature"] = o.Temperature.Get()
+	if o.FrequencyPenalty.IsSet() {
+		toSerialize["frequency_penalty"] = o.FrequencyPenalty.Get()
 	}
-	if !IsNil(o.TopP) {
-		toSerialize["top_p"] = o.TopP
+	if o.Guardrails != nil {
+		toSerialize["guardrails"] = o.Guardrails
 	}
 	if o.MaxTokens.IsSet() {
 		toSerialize["max_tokens"] = o.MaxTokens.Get()
 	}
-	if !IsNil(o.Stream) {
-		toSerialize["stream"] = o.Stream
-	}
-	if !IsNil(o.Stop) {
-		toSerialize["stop"] = o.Stop
-	}
-	if o.RandomSeed.IsSet() {
-		toSerialize["random_seed"] = o.RandomSeed.Get()
-	}
+	toSerialize["messages"] = o.Messages
 	if o.Metadata != nil {
 		toSerialize["metadata"] = o.Metadata
 	}
-	toSerialize["messages"] = o.Messages
-	if !IsNil(o.ResponseFormat) {
-		toSerialize["response_format"] = o.ResponseFormat
-	}
-	if o.Tools != nil {
-		toSerialize["tools"] = o.Tools
-	}
-	if !IsNil(o.ToolChoice) {
-		toSerialize["tool_choice"] = o.ToolChoice
-	}
-	if !IsNil(o.PresencePenalty) {
-		toSerialize["presence_penalty"] = o.PresencePenalty
-	}
-	if !IsNil(o.FrequencyPenalty) {
-		toSerialize["frequency_penalty"] = o.FrequencyPenalty
-	}
+	toSerialize["model"] = o.Model
 	if o.N.IsSet() {
 		toSerialize["n"] = o.N.Get()
-	}
-	if !IsNil(o.Prediction) {
-		toSerialize["prediction"] = o.Prediction
 	}
 	if !IsNil(o.ParallelToolCalls) {
 		toSerialize["parallel_tool_calls"] = o.ParallelToolCalls
 	}
+	if !IsNil(o.Prediction) {
+		toSerialize["prediction"] = o.Prediction
+	}
+	if o.PresencePenalty.IsSet() {
+		toSerialize["presence_penalty"] = o.PresencePenalty.Get()
+	}
+	if o.PromptCacheKey.IsSet() {
+		toSerialize["prompt_cache_key"] = o.PromptCacheKey.Get()
+	}
 	if o.PromptMode.IsSet() {
 		toSerialize["prompt_mode"] = o.PromptMode.Get()
+	}
+	if o.RandomSeed.IsSet() {
+		toSerialize["random_seed"] = o.RandomSeed.Get()
+	}
+	if o.ReasoningEffort.IsSet() {
+		toSerialize["reasoning_effort"] = o.ReasoningEffort.Get()
+	}
+	if !IsNil(o.ResponseFormat) {
+		toSerialize["response_format"] = o.ResponseFormat
 	}
 	if !IsNil(o.SafePrompt) {
 		toSerialize["safe_prompt"] = o.SafePrompt
 	}
-
-	for key, value := range o.AdditionalProperties {
-		toSerialize[key] = value
+	if o.Stop.IsSet() {
+		toSerialize["stop"] = o.Stop.Get()
 	}
-
+	if !IsNil(o.Stream) {
+		toSerialize["stream"] = o.Stream
+	}
+	if o.Temperature.IsSet() {
+		toSerialize["temperature"] = o.Temperature.Get()
+	}
+	if !IsNil(o.ToolChoice) {
+		toSerialize["tool_choice"] = o.ToolChoice
+	}
+	if o.Tools != nil {
+		toSerialize["tools"] = o.Tools
+	}
+	if o.TopP.IsSet() {
+		toSerialize["top_p"] = o.TopP.Get()
+	}
 	return toSerialize, nil
 }
 
@@ -829,8 +974,8 @@ func (o *ChatCompletionRequest) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"model",
 		"messages",
+		"model",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -838,10 +983,10 @@ func (o *ChatCompletionRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -849,38 +994,15 @@ func (o *ChatCompletionRequest) UnmarshalJSON(data []byte) (err error) {
 
 	varChatCompletionRequest := _ChatCompletionRequest{}
 
-	err = json.Unmarshal(data, &varChatCompletionRequest)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varChatCompletionRequest)
 
 	if err != nil {
 		return err
 	}
 
 	*o = ChatCompletionRequest(varChatCompletionRequest)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "model")
-		delete(additionalProperties, "temperature")
-		delete(additionalProperties, "top_p")
-		delete(additionalProperties, "max_tokens")
-		delete(additionalProperties, "stream")
-		delete(additionalProperties, "stop")
-		delete(additionalProperties, "random_seed")
-		delete(additionalProperties, "metadata")
-		delete(additionalProperties, "messages")
-		delete(additionalProperties, "response_format")
-		delete(additionalProperties, "tools")
-		delete(additionalProperties, "tool_choice")
-		delete(additionalProperties, "presence_penalty")
-		delete(additionalProperties, "frequency_penalty")
-		delete(additionalProperties, "n")
-		delete(additionalProperties, "prediction")
-		delete(additionalProperties, "parallel_tool_calls")
-		delete(additionalProperties, "prompt_mode")
-		delete(additionalProperties, "safe_prompt")
-		o.AdditionalProperties = additionalProperties
-	}
 
 	return err
 }

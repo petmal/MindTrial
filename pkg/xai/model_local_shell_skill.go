@@ -25,7 +25,7 @@ type LocalShellSkill struct {
 	// The name of the skill.
 	Name string `json:"name"`
 	// The path to the directory containing the skill (with a SKILL.md file).
-	Path                 string `json:"path"`
+	Path string `json:"path"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -124,7 +124,7 @@ func (o *LocalShellSkill) SetPath(v string) {
 }
 
 func (o LocalShellSkill) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -159,10 +159,10 @@ func (o *LocalShellSkill) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

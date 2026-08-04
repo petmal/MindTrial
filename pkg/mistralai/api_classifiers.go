@@ -18,13 +18,16 @@ import (
 	"net/url"
 )
 
+
 type ClassifiersAPI interface {
 
 	/*
-		ChatClassificationsV1ChatClassificationsPost Chat Classifications
+	ChatClassificationsV1ChatClassificationsPost Chat Classifications
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiChatClassificationsV1ChatClassificationsPostRequest
+	Chat Classifications
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiChatClassificationsV1ChatClassificationsPostRequest
 	*/
 	ChatClassificationsV1ChatClassificationsPost(ctx context.Context) ApiChatClassificationsV1ChatClassificationsPostRequest
 
@@ -33,10 +36,12 @@ type ClassifiersAPI interface {
 	ChatClassificationsV1ChatClassificationsPostExecute(r ApiChatClassificationsV1ChatClassificationsPostRequest) (*ClassificationResponse, *http.Response, error)
 
 	/*
-		ChatModerationsV1ChatModerationsPost Chat Moderations
+	ChatModerationsV1ChatModerationsPost Chat Moderations
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiChatModerationsV1ChatModerationsPostRequest
+	Chat Moderations
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiChatModerationsV1ChatModerationsPostRequest
 	*/
 	ChatModerationsV1ChatModerationsPost(ctx context.Context) ApiChatModerationsV1ChatModerationsPostRequest
 
@@ -45,10 +50,12 @@ type ClassifiersAPI interface {
 	ChatModerationsV1ChatModerationsPostExecute(r ApiChatModerationsV1ChatModerationsPostRequest) (*ModerationResponse, *http.Response, error)
 
 	/*
-		ClassificationsV1ClassificationsPost Classifications
+	ClassificationsV1ClassificationsPost Classifications
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiClassificationsV1ClassificationsPostRequest
+	Classifications
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiClassificationsV1ClassificationsPostRequest
 	*/
 	ClassificationsV1ClassificationsPost(ctx context.Context) ApiClassificationsV1ClassificationsPostRequest
 
@@ -57,10 +64,12 @@ type ClassifiersAPI interface {
 	ClassificationsV1ClassificationsPostExecute(r ApiClassificationsV1ClassificationsPostRequest) (*ClassificationResponse, *http.Response, error)
 
 	/*
-		ModerationsV1ModerationsPost Moderations
+	ModerationsV1ModerationsPost Moderations
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiModerationsV1ModerationsPostRequest
+	Moderations
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiModerationsV1ModerationsPostRequest
 	*/
 	ModerationsV1ModerationsPost(ctx context.Context) ApiModerationsV1ModerationsPostRequest
 
@@ -73,8 +82,8 @@ type ClassifiersAPI interface {
 type ClassifiersAPIService service
 
 type ApiChatClassificationsV1ChatClassificationsPostRequest struct {
-	ctx                       context.Context
-	ApiService                ClassifiersAPI
+	ctx context.Context
+	ApiService ClassifiersAPI
 	chatClassificationRequest *ChatClassificationRequest
 }
 
@@ -90,25 +99,26 @@ func (r ApiChatClassificationsV1ChatClassificationsPostRequest) Execute() (*Clas
 /*
 ChatClassificationsV1ChatClassificationsPost Chat Classifications
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiChatClassificationsV1ChatClassificationsPostRequest
+Chat Classifications
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiChatClassificationsV1ChatClassificationsPostRequest
 */
 func (a *ClassifiersAPIService) ChatClassificationsV1ChatClassificationsPost(ctx context.Context) ApiChatClassificationsV1ChatClassificationsPostRequest {
 	return ApiChatClassificationsV1ChatClassificationsPostRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ClassificationResponse
+//  @return ClassificationResponse
 func (a *ClassifiersAPIService) ChatClassificationsV1ChatClassificationsPostExecute(r ApiChatClassificationsV1ChatClassificationsPostRequest) (*ClassificationResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ClassificationResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ClassificationResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ClassifiersAPIService.ChatClassificationsV1ChatClassificationsPost")
@@ -173,8 +183,8 @@ func (a *ClassifiersAPIService) ChatClassificationsV1ChatClassificationsPostExec
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -192,8 +202,8 @@ func (a *ClassifiersAPIService) ChatClassificationsV1ChatClassificationsPostExec
 }
 
 type ApiChatModerationsV1ChatModerationsPostRequest struct {
-	ctx                   context.Context
-	ApiService            ClassifiersAPI
+	ctx context.Context
+	ApiService ClassifiersAPI
 	chatModerationRequest *ChatModerationRequest
 }
 
@@ -209,25 +219,26 @@ func (r ApiChatModerationsV1ChatModerationsPostRequest) Execute() (*ModerationRe
 /*
 ChatModerationsV1ChatModerationsPost Chat Moderations
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiChatModerationsV1ChatModerationsPostRequest
+Chat Moderations
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiChatModerationsV1ChatModerationsPostRequest
 */
 func (a *ClassifiersAPIService) ChatModerationsV1ChatModerationsPost(ctx context.Context) ApiChatModerationsV1ChatModerationsPostRequest {
 	return ApiChatModerationsV1ChatModerationsPostRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ModerationResponse
+//  @return ModerationResponse
 func (a *ClassifiersAPIService) ChatModerationsV1ChatModerationsPostExecute(r ApiChatModerationsV1ChatModerationsPostRequest) (*ModerationResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ModerationResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ModerationResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ClassifiersAPIService.ChatModerationsV1ChatModerationsPost")
@@ -292,8 +303,8 @@ func (a *ClassifiersAPIService) ChatModerationsV1ChatModerationsPostExecute(r Ap
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -311,8 +322,8 @@ func (a *ClassifiersAPIService) ChatModerationsV1ChatModerationsPostExecute(r Ap
 }
 
 type ApiClassificationsV1ClassificationsPostRequest struct {
-	ctx                   context.Context
-	ApiService            ClassifiersAPI
+	ctx context.Context
+	ApiService ClassifiersAPI
 	classificationRequest *ClassificationRequest
 }
 
@@ -328,25 +339,26 @@ func (r ApiClassificationsV1ClassificationsPostRequest) Execute() (*Classificati
 /*
 ClassificationsV1ClassificationsPost Classifications
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiClassificationsV1ClassificationsPostRequest
+Classifications
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiClassificationsV1ClassificationsPostRequest
 */
 func (a *ClassifiersAPIService) ClassificationsV1ClassificationsPost(ctx context.Context) ApiClassificationsV1ClassificationsPostRequest {
 	return ApiClassificationsV1ClassificationsPostRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ClassificationResponse
+//  @return ClassificationResponse
 func (a *ClassifiersAPIService) ClassificationsV1ClassificationsPostExecute(r ApiClassificationsV1ClassificationsPostRequest) (*ClassificationResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ClassificationResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ClassificationResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ClassifiersAPIService.ClassificationsV1ClassificationsPost")
@@ -411,8 +423,8 @@ func (a *ClassifiersAPIService) ClassificationsV1ClassificationsPostExecute(r Ap
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -430,8 +442,8 @@ func (a *ClassifiersAPIService) ClassificationsV1ClassificationsPostExecute(r Ap
 }
 
 type ApiModerationsV1ModerationsPostRequest struct {
-	ctx                   context.Context
-	ApiService            ClassifiersAPI
+	ctx context.Context
+	ApiService ClassifiersAPI
 	classificationRequest *ClassificationRequest
 }
 
@@ -447,25 +459,26 @@ func (r ApiModerationsV1ModerationsPostRequest) Execute() (*ModerationResponse, 
 /*
 ModerationsV1ModerationsPost Moderations
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiModerationsV1ModerationsPostRequest
+Moderations
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiModerationsV1ModerationsPostRequest
 */
 func (a *ClassifiersAPIService) ModerationsV1ModerationsPost(ctx context.Context) ApiModerationsV1ModerationsPostRequest {
 	return ApiModerationsV1ModerationsPostRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ModerationResponse
+//  @return ModerationResponse
 func (a *ClassifiersAPIService) ModerationsV1ModerationsPostExecute(r ApiModerationsV1ModerationsPostRequest) (*ModerationResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ModerationResponse
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ModerationResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ClassifiersAPIService.ModerationsV1ModerationsPost")
@@ -530,8 +543,8 @@ func (a *ClassifiersAPIService) ModerationsV1ModerationsPostExecute(r ApiModerat
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

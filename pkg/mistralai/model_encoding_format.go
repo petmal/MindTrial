@@ -20,7 +20,7 @@ type EncodingFormat string
 
 // List of EncodingFormat
 const (
-	ENCODINGFORMAT_FLOAT  EncodingFormat = "float"
+	ENCODINGFORMAT_FLOAT EncodingFormat = "float"
 	ENCODINGFORMAT_BASE64 EncodingFormat = "base64"
 )
 

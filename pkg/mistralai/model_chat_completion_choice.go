@@ -20,9 +20,10 @@ var _ MappedNullable = &ChatCompletionChoice{}
 
 // ChatCompletionChoice struct for ChatCompletionChoice
 type ChatCompletionChoice struct {
-	Index                int32            `json:"index"`
-	Message              AssistantMessage `json:"message"`
-	FinishReason         string           `json:"finish_reason"`
+	FinishReason string `json:"finish_reason"`
+	Index int32 `json:"index"`
+	Message *AssistantMessage `json:"message,omitempty"`
+	Messages []DeltaMessage `json:"messages,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -32,11 +33,10 @@ type _ChatCompletionChoice ChatCompletionChoice
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewChatCompletionChoice(index int32, message AssistantMessage, finishReason string) *ChatCompletionChoice {
+func NewChatCompletionChoice(finishReason string, index int32) *ChatCompletionChoice {
 	this := ChatCompletionChoice{}
-	this.Index = index
-	this.Message = message
 	this.FinishReason = finishReason
+	this.Index = index
 	return &this
 }
 
@@ -46,54 +46,6 @@ func NewChatCompletionChoice(index int32, message AssistantMessage, finishReason
 func NewChatCompletionChoiceWithDefaults() *ChatCompletionChoice {
 	this := ChatCompletionChoice{}
 	return &this
-}
-
-// GetIndex returns the Index field value
-func (o *ChatCompletionChoice) GetIndex() int32 {
-	if o == nil {
-		var ret int32
-		return ret
-	}
-
-	return o.Index
-}
-
-// GetIndexOk returns a tuple with the Index field value
-// and a boolean to check if the value has been set.
-func (o *ChatCompletionChoice) GetIndexOk() (*int32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Index, true
-}
-
-// SetIndex sets field value
-func (o *ChatCompletionChoice) SetIndex(v int32) {
-	o.Index = v
-}
-
-// GetMessage returns the Message field value
-func (o *ChatCompletionChoice) GetMessage() AssistantMessage {
-	if o == nil {
-		var ret AssistantMessage
-		return ret
-	}
-
-	return o.Message
-}
-
-// GetMessageOk returns a tuple with the Message field value
-// and a boolean to check if the value has been set.
-func (o *ChatCompletionChoice) GetMessageOk() (*AssistantMessage, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Message, true
-}
-
-// SetMessage sets field value
-func (o *ChatCompletionChoice) SetMessage(v AssistantMessage) {
-	o.Message = v
 }
 
 // GetFinishReason returns the FinishReason field value
@@ -120,8 +72,96 @@ func (o *ChatCompletionChoice) SetFinishReason(v string) {
 	o.FinishReason = v
 }
 
+// GetIndex returns the Index field value
+func (o *ChatCompletionChoice) GetIndex() int32 {
+	if o == nil {
+		var ret int32
+		return ret
+	}
+
+	return o.Index
+}
+
+// GetIndexOk returns a tuple with the Index field value
+// and a boolean to check if the value has been set.
+func (o *ChatCompletionChoice) GetIndexOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Index, true
+}
+
+// SetIndex sets field value
+func (o *ChatCompletionChoice) SetIndex(v int32) {
+	o.Index = v
+}
+
+// GetMessage returns the Message field value if set, zero value otherwise.
+func (o *ChatCompletionChoice) GetMessage() AssistantMessage {
+	if o == nil || IsNil(o.Message) {
+		var ret AssistantMessage
+		return ret
+	}
+	return *o.Message
+}
+
+// GetMessageOk returns a tuple with the Message field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ChatCompletionChoice) GetMessageOk() (*AssistantMessage, bool) {
+	if o == nil || IsNil(o.Message) {
+		return nil, false
+	}
+	return o.Message, true
+}
+
+// HasMessage returns a boolean if a field has been set.
+func (o *ChatCompletionChoice) HasMessage() bool {
+	if o != nil && !IsNil(o.Message) {
+		return true
+	}
+
+	return false
+}
+
+// SetMessage gets a reference to the given AssistantMessage and assigns it to the Message field.
+func (o *ChatCompletionChoice) SetMessage(v AssistantMessage) {
+	o.Message = &v
+}
+
+// GetMessages returns the Messages field value if set, zero value otherwise.
+func (o *ChatCompletionChoice) GetMessages() []DeltaMessage {
+	if o == nil || IsNil(o.Messages) {
+		var ret []DeltaMessage
+		return ret
+	}
+	return o.Messages
+}
+
+// GetMessagesOk returns a tuple with the Messages field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ChatCompletionChoice) GetMessagesOk() ([]DeltaMessage, bool) {
+	if o == nil || IsNil(o.Messages) {
+		return nil, false
+	}
+	return o.Messages, true
+}
+
+// HasMessages returns a boolean if a field has been set.
+func (o *ChatCompletionChoice) HasMessages() bool {
+	if o != nil && !IsNil(o.Messages) {
+		return true
+	}
+
+	return false
+}
+
+// SetMessages gets a reference to the given []DeltaMessage and assigns it to the Messages field.
+func (o *ChatCompletionChoice) SetMessages(v []DeltaMessage) {
+	o.Messages = v
+}
+
 func (o ChatCompletionChoice) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -130,9 +170,14 @@ func (o ChatCompletionChoice) MarshalJSON() ([]byte, error) {
 
 func (o ChatCompletionChoice) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["index"] = o.Index
-	toSerialize["message"] = o.Message
 	toSerialize["finish_reason"] = o.FinishReason
+	toSerialize["index"] = o.Index
+	if !IsNil(o.Message) {
+		toSerialize["message"] = o.Message
+	}
+	if !IsNil(o.Messages) {
+		toSerialize["messages"] = o.Messages
+	}
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -146,9 +191,8 @@ func (o *ChatCompletionChoice) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"index",
-		"message",
 		"finish_reason",
+		"index",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -156,10 +200,10 @@ func (o *ChatCompletionChoice) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -178,9 +222,10 @@ func (o *ChatCompletionChoice) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "finish_reason")
 		delete(additionalProperties, "index")
 		delete(additionalProperties, "message")
-		delete(additionalProperties, "finish_reason")
+		delete(additionalProperties, "messages")
 		o.AdditionalProperties = additionalProperties
 	}
 

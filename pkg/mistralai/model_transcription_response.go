@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,11 +21,11 @@ var _ MappedNullable = &TranscriptionResponse{}
 
 // TranscriptionResponse struct for TranscriptionResponse
 type TranscriptionResponse struct {
-	Model    string                      `json:"model"`
-	Text     string                      `json:"text"`
-	Language NullableString              `json:"language" validate:"regexp=^\\\\w{2}$"`
+	Language NullableString `json:"language" validate:"regexp=^\\w{2}$"`
+	Model string `json:"model"`
 	Segments []TranscriptionSegmentChunk `json:"segments,omitempty"`
-	Usage    UsageInfo                   `json:"usage"`
+	Text string `json:"text"`
+	Usage UsageInfo `json:"usage"`
 }
 
 type _TranscriptionResponse TranscriptionResponse
@@ -34,11 +34,11 @@ type _TranscriptionResponse TranscriptionResponse
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewTranscriptionResponse(model string, text string, language NullableString, usage UsageInfo) *TranscriptionResponse {
+func NewTranscriptionResponse(language NullableString, model string, text string, usage UsageInfo) *TranscriptionResponse {
 	this := TranscriptionResponse{}
+	this.Language = language
 	this.Model = model
 	this.Text = text
-	this.Language = language
 	this.Usage = usage
 	return &this
 }
@@ -49,54 +49,6 @@ func NewTranscriptionResponse(model string, text string, language NullableString
 func NewTranscriptionResponseWithDefaults() *TranscriptionResponse {
 	this := TranscriptionResponse{}
 	return &this
-}
-
-// GetModel returns the Model field value
-func (o *TranscriptionResponse) GetModel() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Model
-}
-
-// GetModelOk returns a tuple with the Model field value
-// and a boolean to check if the value has been set.
-func (o *TranscriptionResponse) GetModelOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Model, true
-}
-
-// SetModel sets field value
-func (o *TranscriptionResponse) SetModel(v string) {
-	o.Model = v
-}
-
-// GetText returns the Text field value
-func (o *TranscriptionResponse) GetText() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Text
-}
-
-// GetTextOk returns a tuple with the Text field value
-// and a boolean to check if the value has been set.
-func (o *TranscriptionResponse) GetTextOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Text, true
-}
-
-// SetText sets field value
-func (o *TranscriptionResponse) SetText(v string) {
-	o.Text = v
 }
 
 // GetLanguage returns the Language field value
@@ -123,6 +75,30 @@ func (o *TranscriptionResponse) GetLanguageOk() (*string, bool) {
 // SetLanguage sets field value
 func (o *TranscriptionResponse) SetLanguage(v string) {
 	o.Language.Set(&v)
+}
+
+// GetModel returns the Model field value
+func (o *TranscriptionResponse) GetModel() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Model
+}
+
+// GetModelOk returns a tuple with the Model field value
+// and a boolean to check if the value has been set.
+func (o *TranscriptionResponse) GetModelOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Model, true
+}
+
+// SetModel sets field value
+func (o *TranscriptionResponse) SetModel(v string) {
+	o.Model = v
 }
 
 // GetSegments returns the Segments field value if set, zero value otherwise.
@@ -157,6 +133,30 @@ func (o *TranscriptionResponse) SetSegments(v []TranscriptionSegmentChunk) {
 	o.Segments = v
 }
 
+// GetText returns the Text field value
+func (o *TranscriptionResponse) GetText() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Text
+}
+
+// GetTextOk returns a tuple with the Text field value
+// and a boolean to check if the value has been set.
+func (o *TranscriptionResponse) GetTextOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Text, true
+}
+
+// SetText sets field value
+func (o *TranscriptionResponse) SetText(v string) {
+	o.Text = v
+}
+
 // GetUsage returns the Usage field value
 func (o *TranscriptionResponse) GetUsage() UsageInfo {
 	if o == nil {
@@ -182,7 +182,7 @@ func (o *TranscriptionResponse) SetUsage(v UsageInfo) {
 }
 
 func (o TranscriptionResponse) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -191,12 +191,12 @@ func (o TranscriptionResponse) MarshalJSON() ([]byte, error) {
 
 func (o TranscriptionResponse) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["model"] = o.Model
-	toSerialize["text"] = o.Text
 	toSerialize["language"] = o.Language.Get()
+	toSerialize["model"] = o.Model
 	if !IsNil(o.Segments) {
 		toSerialize["segments"] = o.Segments
 	}
+	toSerialize["text"] = o.Text
 	toSerialize["usage"] = o.Usage
 	return toSerialize, nil
 }
@@ -206,9 +206,9 @@ func (o *TranscriptionResponse) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
+		"language",
 		"model",
 		"text",
-		"language",
 		"usage",
 	}
 
@@ -217,10 +217,10 @@ func (o *TranscriptionResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

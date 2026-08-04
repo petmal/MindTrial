@@ -28,10 +28,10 @@ type SearchSourceOneOf struct {
 	PostFavoriteCount NullableInt32 `json:"post_favorite_count,omitempty"`
 	// The minimum view count of the X posts to consider.
 	PostViewCount NullableInt32 `json:"post_view_count,omitempty"`
-	Type          string        `json:"type"`
+	Type string `json:"type"`
 	// DEPRECATED in favor of `included_x_handles`. Use `included_x_handles` instead. X Handles of the users from whom to consider the posts. Only available if mode is `auto`, `on` or `x`.
 	// Deprecated
-	XHandles             []string `json:"x_handles,omitempty"`
+	XHandles []string `json:"x_handles,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -153,7 +153,6 @@ func (o *SearchSourceOneOf) HasPostFavoriteCount() bool {
 func (o *SearchSourceOneOf) SetPostFavoriteCount(v int32) {
 	o.PostFavoriteCount.Set(&v)
 }
-
 // SetPostFavoriteCountNil sets the value for PostFavoriteCount to be an explicit nil
 func (o *SearchSourceOneOf) SetPostFavoriteCountNil() {
 	o.PostFavoriteCount.Set(nil)
@@ -196,7 +195,6 @@ func (o *SearchSourceOneOf) HasPostViewCount() bool {
 func (o *SearchSourceOneOf) SetPostViewCount(v int32) {
 	o.PostViewCount.Set(&v)
 }
-
 // SetPostViewCountNil sets the value for PostViewCount to be an explicit nil
 func (o *SearchSourceOneOf) SetPostViewCountNil() {
 	o.PostViewCount.Set(nil)
@@ -268,7 +266,7 @@ func (o *SearchSourceOneOf) SetXHandles(v []string) {
 }
 
 func (o SearchSourceOneOf) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -314,10 +312,10 @@ func (o *SearchSourceOneOf) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

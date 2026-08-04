@@ -11,7 +11,6 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -21,13 +20,15 @@ var _ MappedNullable = &OCRResponse{}
 
 // OCRResponse struct for OCRResponse
 type OCRResponse struct {
+	// Formatted response in the request_format if provided in json str
+	DocumentAnnotation NullableString `json:"document_annotation,omitempty"`
+	// The model used to generate the OCR.
+	Model string `json:"model"`
 	// List of OCR info for pages.
 	Pages []OCRPageObject `json:"pages"`
-	// The model used to generate the OCR.
-	Model              string         `json:"model"`
-	DocumentAnnotation NullableString `json:"document_annotation,omitempty"`
 	// Usage info for the OCR request.
 	UsageInfo OCRUsageInfo `json:"usage_info"`
+	AdditionalProperties map[string]interface{}
 }
 
 type _OCRResponse OCRResponse
@@ -36,10 +37,10 @@ type _OCRResponse OCRResponse
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewOCRResponse(pages []OCRPageObject, model string, usageInfo OCRUsageInfo) *OCRResponse {
+func NewOCRResponse(model string, pages []OCRPageObject, usageInfo OCRUsageInfo) *OCRResponse {
 	this := OCRResponse{}
-	this.Pages = pages
 	this.Model = model
+	this.Pages = pages
 	this.UsageInfo = usageInfo
 	return &this
 }
@@ -50,54 +51,6 @@ func NewOCRResponse(pages []OCRPageObject, model string, usageInfo OCRUsageInfo)
 func NewOCRResponseWithDefaults() *OCRResponse {
 	this := OCRResponse{}
 	return &this
-}
-
-// GetPages returns the Pages field value
-func (o *OCRResponse) GetPages() []OCRPageObject {
-	if o == nil {
-		var ret []OCRPageObject
-		return ret
-	}
-
-	return o.Pages
-}
-
-// GetPagesOk returns a tuple with the Pages field value
-// and a boolean to check if the value has been set.
-func (o *OCRResponse) GetPagesOk() ([]OCRPageObject, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Pages, true
-}
-
-// SetPages sets field value
-func (o *OCRResponse) SetPages(v []OCRPageObject) {
-	o.Pages = v
-}
-
-// GetModel returns the Model field value
-func (o *OCRResponse) GetModel() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Model
-}
-
-// GetModelOk returns a tuple with the Model field value
-// and a boolean to check if the value has been set.
-func (o *OCRResponse) GetModelOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Model, true
-}
-
-// SetModel sets field value
-func (o *OCRResponse) SetModel(v string) {
-	o.Model = v
 }
 
 // GetDocumentAnnotation returns the DocumentAnnotation field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -132,7 +85,6 @@ func (o *OCRResponse) HasDocumentAnnotation() bool {
 func (o *OCRResponse) SetDocumentAnnotation(v string) {
 	o.DocumentAnnotation.Set(&v)
 }
-
 // SetDocumentAnnotationNil sets the value for DocumentAnnotation to be an explicit nil
 func (o *OCRResponse) SetDocumentAnnotationNil() {
 	o.DocumentAnnotation.Set(nil)
@@ -141,6 +93,54 @@ func (o *OCRResponse) SetDocumentAnnotationNil() {
 // UnsetDocumentAnnotation ensures that no value is present for DocumentAnnotation, not even an explicit nil
 func (o *OCRResponse) UnsetDocumentAnnotation() {
 	o.DocumentAnnotation.Unset()
+}
+
+// GetModel returns the Model field value
+func (o *OCRResponse) GetModel() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Model
+}
+
+// GetModelOk returns a tuple with the Model field value
+// and a boolean to check if the value has been set.
+func (o *OCRResponse) GetModelOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Model, true
+}
+
+// SetModel sets field value
+func (o *OCRResponse) SetModel(v string) {
+	o.Model = v
+}
+
+// GetPages returns the Pages field value
+func (o *OCRResponse) GetPages() []OCRPageObject {
+	if o == nil {
+		var ret []OCRPageObject
+		return ret
+	}
+
+	return o.Pages
+}
+
+// GetPagesOk returns a tuple with the Pages field value
+// and a boolean to check if the value has been set.
+func (o *OCRResponse) GetPagesOk() ([]OCRPageObject, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Pages, true
+}
+
+// SetPages sets field value
+func (o *OCRResponse) SetPages(v []OCRPageObject) {
+	o.Pages = v
 }
 
 // GetUsageInfo returns the UsageInfo field value
@@ -168,7 +168,7 @@ func (o *OCRResponse) SetUsageInfo(v OCRUsageInfo) {
 }
 
 func (o OCRResponse) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -177,12 +177,17 @@ func (o OCRResponse) MarshalJSON() ([]byte, error) {
 
 func (o OCRResponse) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["pages"] = o.Pages
-	toSerialize["model"] = o.Model
 	if o.DocumentAnnotation.IsSet() {
 		toSerialize["document_annotation"] = o.DocumentAnnotation.Get()
 	}
+	toSerialize["model"] = o.Model
+	toSerialize["pages"] = o.Pages
 	toSerialize["usage_info"] = o.UsageInfo
+
+	for key, value := range o.AdditionalProperties {
+		toSerialize[key] = value
+	}
+
 	return toSerialize, nil
 }
 
@@ -191,8 +196,8 @@ func (o *OCRResponse) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"pages",
 		"model",
+		"pages",
 		"usage_info",
 	}
 
@@ -201,10 +206,10 @@ func (o *OCRResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -212,15 +217,23 @@ func (o *OCRResponse) UnmarshalJSON(data []byte) (err error) {
 
 	varOCRResponse := _OCRResponse{}
 
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varOCRResponse)
+	err = json.Unmarshal(data, &varOCRResponse)
 
 	if err != nil {
 		return err
 	}
 
 	*o = OCRResponse(varOCRResponse)
+
+	additionalProperties := make(map[string]interface{})
+
+	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "document_annotation")
+		delete(additionalProperties, "model")
+		delete(additionalProperties, "pages")
+		delete(additionalProperties, "usage_info")
+		o.AdditionalProperties = additionalProperties
+	}
 
 	return err
 }

@@ -18,17 +18,10 @@ import (
 
 // MessageResponseContent - struct for MessageResponseContent
 type MessageResponseContent struct {
-	MessageContentPartOneOf4     *MessageContentPartOneOf4
 	MessageResponseContentOneOf  *MessageResponseContentOneOf
 	MessageResponseContentOneOf1 *MessageResponseContentOneOf1
 	MessageResponseContentOneOf2 *MessageResponseContentOneOf2
-}
-
-// MessageContentPartOneOf4AsMessageResponseContent is a convenience function that returns MessageContentPartOneOf4 wrapped in MessageResponseContent
-func MessageContentPartOneOf4AsMessageResponseContent(v *MessageContentPartOneOf4) MessageResponseContent {
-	return MessageResponseContent{
-		MessageContentPartOneOf4: v,
-	}
+	MessageResponseContentOneOf3 *MessageResponseContentOneOf3
 }
 
 // MessageResponseContentOneOfAsMessageResponseContent is a convenience function that returns MessageResponseContentOneOf wrapped in MessageResponseContent
@@ -52,27 +45,17 @@ func MessageResponseContentOneOf2AsMessageResponseContent(v *MessageResponseCont
 	}
 }
 
+// MessageResponseContentOneOf3AsMessageResponseContent is a convenience function that returns MessageResponseContentOneOf3 wrapped in MessageResponseContent
+func MessageResponseContentOneOf3AsMessageResponseContent(v *MessageResponseContentOneOf3) MessageResponseContent {
+	return MessageResponseContent{
+		MessageResponseContentOneOf3: v,
+	}
+}
+
 // Unmarshal JSON data into one of the pointers in the struct
 func (dst *MessageResponseContent) UnmarshalJSON(data []byte) error {
 	var err error
 	match := 0
-	// try to unmarshal data into MessageContentPartOneOf4
-	err = newStrictDecoder(data).Decode(&dst.MessageContentPartOneOf4)
-	if err == nil {
-		jsonMessageContentPartOneOf4, _ := json.Marshal(dst.MessageContentPartOneOf4)
-		if string(jsonMessageContentPartOneOf4) == "{}" { // empty struct
-			dst.MessageContentPartOneOf4 = nil
-		} else {
-			if err = validator.Validate(dst.MessageContentPartOneOf4); err != nil {
-				dst.MessageContentPartOneOf4 = nil
-			} else {
-				match++
-			}
-		}
-	} else {
-		dst.MessageContentPartOneOf4 = nil
-	}
-
 	// try to unmarshal data into MessageResponseContentOneOf
 	err = newStrictDecoder(data).Decode(&dst.MessageResponseContentOneOf)
 	if err == nil {
@@ -124,27 +107,45 @@ func (dst *MessageResponseContent) UnmarshalJSON(data []byte) error {
 		dst.MessageResponseContentOneOf2 = nil
 	}
 
+	// try to unmarshal data into MessageResponseContentOneOf3
+	err = newStrictDecoder(data).Decode(&dst.MessageResponseContentOneOf3)
+	if err == nil {
+		jsonMessageResponseContentOneOf3, _ := json.Marshal(dst.MessageResponseContentOneOf3)
+		if string(jsonMessageResponseContentOneOf3) == "{}" { // empty struct
+			dst.MessageResponseContentOneOf3 = nil
+		} else {
+			if err = validator.Validate(dst.MessageResponseContentOneOf3); err != nil {
+				dst.MessageResponseContentOneOf3 = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.MessageResponseContentOneOf3 = nil
+	}
+
 	if match > 1 { // more than 1 match
 		// reset to nil
-		dst.MessageContentPartOneOf4 = nil
 		dst.MessageResponseContentOneOf = nil
 		dst.MessageResponseContentOneOf1 = nil
 		dst.MessageResponseContentOneOf2 = nil
+		dst.MessageResponseContentOneOf3 = nil
 
 		return fmt.Errorf("data matches more than one schema in oneOf(MessageResponseContent)")
 	} else if match == 1 {
 		return nil // exactly one match
 	} else { // no match
-		return fmt.Errorf("data failed to match schemas in oneOf(MessageResponseContent)")
+		if err != nil {
+			return fmt.Errorf("data failed to match schemas in oneOf(MessageResponseContent): %v", err)
+		} else {
+			return fmt.Errorf("data failed to match schemas in oneOf(MessageResponseContent)")
+		}
+
 	}
 }
 
 // Marshal data from the first non-nil pointers in the struct to JSON
 func (src MessageResponseContent) MarshalJSON() ([]byte, error) {
-	if src.MessageContentPartOneOf4 != nil {
-		return json.Marshal(&src.MessageContentPartOneOf4)
-	}
-
 	if src.MessageResponseContentOneOf != nil {
 		return json.Marshal(&src.MessageResponseContentOneOf)
 	}
@@ -157,6 +158,10 @@ func (src MessageResponseContent) MarshalJSON() ([]byte, error) {
 		return json.Marshal(&src.MessageResponseContentOneOf2)
 	}
 
+	if src.MessageResponseContentOneOf3 != nil {
+		return json.Marshal(&src.MessageResponseContentOneOf3)
+	}
+
 	return nil, nil // no data in oneOf schemas
 }
 
@@ -165,10 +170,6 @@ func (obj *MessageResponseContent) GetActualInstance() interface{} {
 	if obj == nil {
 		return nil
 	}
-	if obj.MessageContentPartOneOf4 != nil {
-		return obj.MessageContentPartOneOf4
-	}
-
 	if obj.MessageResponseContentOneOf != nil {
 		return obj.MessageResponseContentOneOf
 	}
@@ -181,16 +182,16 @@ func (obj *MessageResponseContent) GetActualInstance() interface{} {
 		return obj.MessageResponseContentOneOf2
 	}
 
+	if obj.MessageResponseContentOneOf3 != nil {
+		return obj.MessageResponseContentOneOf3
+	}
+
 	// all schemas are nil
 	return nil
 }
 
 // Get the actual instance value
 func (obj MessageResponseContent) GetActualInstanceValue() interface{} {
-	if obj.MessageContentPartOneOf4 != nil {
-		return *obj.MessageContentPartOneOf4
-	}
-
 	if obj.MessageResponseContentOneOf != nil {
 		return *obj.MessageResponseContentOneOf
 	}
@@ -201,6 +202,10 @@ func (obj MessageResponseContent) GetActualInstanceValue() interface{} {
 
 	if obj.MessageResponseContentOneOf2 != nil {
 		return *obj.MessageResponseContentOneOf2
+	}
+
+	if obj.MessageResponseContentOneOf3 != nil {
+		return *obj.MessageResponseContentOneOf3
 	}
 
 	// all schemas are nil

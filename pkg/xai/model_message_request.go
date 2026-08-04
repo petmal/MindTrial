@@ -42,7 +42,7 @@ type MessageRequest struct {
 	// (Unsupported) When generating next tokens, randomly selecting the next token from the k most likely options.
 	TopK NullableInt32 `json:"top_k,omitempty"`
 	// An alternative to sampling with `temperature`, called nucleus sampling, where the model considers the results of the tokens with `top_p` probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. It is generally recommended to alter this or `temperature` but not both.
-	TopP                 NullableFloat32 `json:"top_p,omitempty"`
+	TopP NullableFloat32 `json:"top_p,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -169,7 +169,6 @@ func (o *MessageRequest) HasMetadata() bool {
 func (o *MessageRequest) SetMetadata(v MessageMetadata) {
 	o.Metadata.Set(&v)
 }
-
 // SetMetadataNil sets the value for Metadata to be an explicit nil
 func (o *MessageRequest) SetMetadataNil() {
 	o.Metadata.Set(nil)
@@ -277,7 +276,6 @@ func (o *MessageRequest) HasStream() bool {
 func (o *MessageRequest) SetStream(v bool) {
 	o.Stream.Set(&v)
 }
-
 // SetStreamNil sets the value for Stream to be an explicit nil
 func (o *MessageRequest) SetStreamNil() {
 	o.Stream.Set(nil)
@@ -320,7 +318,6 @@ func (o *MessageRequest) HasSystem() bool {
 func (o *MessageRequest) SetSystem(v SystemMessageContent) {
 	o.System.Set(&v)
 }
-
 // SetSystemNil sets the value for System to be an explicit nil
 func (o *MessageRequest) SetSystemNil() {
 	o.System.Set(nil)
@@ -363,7 +360,6 @@ func (o *MessageRequest) HasTemperature() bool {
 func (o *MessageRequest) SetTemperature(v float32) {
 	o.Temperature.Set(&v)
 }
-
 // SetTemperatureNil sets the value for Temperature to be an explicit nil
 func (o *MessageRequest) SetTemperatureNil() {
 	o.Temperature.Set(nil)
@@ -406,7 +402,6 @@ func (o *MessageRequest) HasToolChoice() bool {
 func (o *MessageRequest) SetToolChoice(v MessageToolChoice) {
 	o.ToolChoice.Set(&v)
 }
-
 // SetToolChoiceNil sets the value for ToolChoice to be an explicit nil
 func (o *MessageRequest) SetToolChoiceNil() {
 	o.ToolChoice.Set(nil)
@@ -482,7 +477,6 @@ func (o *MessageRequest) HasTopK() bool {
 func (o *MessageRequest) SetTopK(v int32) {
 	o.TopK.Set(&v)
 }
-
 // SetTopKNil sets the value for TopK to be an explicit nil
 func (o *MessageRequest) SetTopKNil() {
 	o.TopK.Set(nil)
@@ -525,7 +519,6 @@ func (o *MessageRequest) HasTopP() bool {
 func (o *MessageRequest) SetTopP(v float32) {
 	o.TopP.Set(&v)
 }
-
 // SetTopPNil sets the value for TopP to be an explicit nil
 func (o *MessageRequest) SetTopPNil() {
 	o.TopP.Set(nil)
@@ -537,7 +530,7 @@ func (o *MessageRequest) UnsetTopP() {
 }
 
 func (o MessageRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

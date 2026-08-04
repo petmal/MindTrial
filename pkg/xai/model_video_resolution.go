@@ -20,8 +20,8 @@ type VideoResolution string
 
 // List of VideoResolution
 const (
-	VIDEORESOLUTION__480P  VideoResolution = "480p"
-	VIDEORESOLUTION__720P  VideoResolution = "720p"
+	VIDEORESOLUTION__480P VideoResolution = "480p"
+	VIDEORESOLUTION__720P VideoResolution = "720p"
 	VIDEORESOLUTION__1080P VideoResolution = "1080p"
 )
 

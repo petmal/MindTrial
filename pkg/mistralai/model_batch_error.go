@@ -20,8 +20,8 @@ var _ MappedNullable = &BatchError{}
 
 // BatchError struct for BatchError
 type BatchError struct {
-	Message              string `json:"message"`
-	Count                *int32 `json:"count,omitempty"`
+	Count *int32 `json:"count,omitempty"`
+	Message string `json:"message"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -33,9 +33,9 @@ type _BatchError BatchError
 // will change when the set of required properties is changed
 func NewBatchError(message string) *BatchError {
 	this := BatchError{}
-	this.Message = message
 	var count int32 = 1
 	this.Count = &count
+	this.Message = message
 	return &this
 }
 
@@ -47,30 +47,6 @@ func NewBatchErrorWithDefaults() *BatchError {
 	var count int32 = 1
 	this.Count = &count
 	return &this
-}
-
-// GetMessage returns the Message field value
-func (o *BatchError) GetMessage() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Message
-}
-
-// GetMessageOk returns a tuple with the Message field value
-// and a boolean to check if the value has been set.
-func (o *BatchError) GetMessageOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Message, true
-}
-
-// SetMessage sets field value
-func (o *BatchError) SetMessage(v string) {
-	o.Message = v
 }
 
 // GetCount returns the Count field value if set, zero value otherwise.
@@ -105,8 +81,32 @@ func (o *BatchError) SetCount(v int32) {
 	o.Count = &v
 }
 
+// GetMessage returns the Message field value
+func (o *BatchError) GetMessage() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Message
+}
+
+// GetMessageOk returns a tuple with the Message field value
+// and a boolean to check if the value has been set.
+func (o *BatchError) GetMessageOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Message, true
+}
+
+// SetMessage sets field value
+func (o *BatchError) SetMessage(v string) {
+	o.Message = v
+}
+
 func (o BatchError) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -115,10 +115,10 @@ func (o BatchError) MarshalJSON() ([]byte, error) {
 
 func (o BatchError) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["message"] = o.Message
 	if !IsNil(o.Count) {
 		toSerialize["count"] = o.Count
 	}
+	toSerialize["message"] = o.Message
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -140,10 +140,10 @@ func (o *BatchError) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -162,8 +162,8 @@ func (o *BatchError) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "message")
 		delete(additionalProperties, "count")
+		delete(additionalProperties, "message")
 		o.AdditionalProperties = additionalProperties
 	}
 

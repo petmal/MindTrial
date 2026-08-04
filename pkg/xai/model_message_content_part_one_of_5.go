@@ -23,8 +23,8 @@ type MessageContentPartOneOf5 struct {
 	// Signature of the thinking block (required by Anthropic SDK for round-tripping).
 	Signature NullableString `json:"signature,omitempty"`
 	// Thinking.
-	Thinking             string `json:"thinking"`
-	Type                 string `json:"type"`
+	Thinking string `json:"thinking"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -81,7 +81,6 @@ func (o *MessageContentPartOneOf5) HasSignature() bool {
 func (o *MessageContentPartOneOf5) SetSignature(v string) {
 	o.Signature.Set(&v)
 }
-
 // SetSignatureNil sets the value for Signature to be an explicit nil
 func (o *MessageContentPartOneOf5) SetSignatureNil() {
 	o.Signature.Set(nil)
@@ -141,7 +140,7 @@ func (o *MessageContentPartOneOf5) SetType(v string) {
 }
 
 func (o MessageContentPartOneOf5) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -177,10 +176,10 @@ func (o *MessageContentPartOneOf5) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

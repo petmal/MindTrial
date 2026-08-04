@@ -35,7 +35,7 @@ type MessageResponse struct {
 	// Object type. This is always `\"message\"` for message types.
 	Type string `json:"type"`
 	// Token usage information.
-	Usage                MessageUsage `json:"usage"`
+	Usage MessageUsage `json:"usage"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -192,7 +192,6 @@ func (o *MessageResponse) HasStopReason() bool {
 func (o *MessageResponse) SetStopReason(v string) {
 	o.StopReason.Set(&v)
 }
-
 // SetStopReasonNil sets the value for StopReason to be an explicit nil
 func (o *MessageResponse) SetStopReasonNil() {
 	o.StopReason.Set(nil)
@@ -235,7 +234,6 @@ func (o *MessageResponse) HasStopSequence() bool {
 func (o *MessageResponse) SetStopSequence(v string) {
 	o.StopSequence.Set(&v)
 }
-
 // SetStopSequenceNil sets the value for StopSequence to be an explicit nil
 func (o *MessageResponse) SetStopSequenceNil() {
 	o.StopSequence.Set(nil)
@@ -295,7 +293,7 @@ func (o *MessageResponse) SetUsage(v MessageUsage) {
 }
 
 func (o MessageResponse) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -342,10 +340,10 @@ func (o *MessageResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

@@ -47,13 +47,21 @@ type CompletionHandler interface {
 	CompletionAccumulator
 
 	// IsTerminalStopReason reports whether the response should terminate the
-	// conversation loop and trigger response parsing.
-	IsTerminalStopReason(stopReason string) bool
+	// conversation loop and trigger response parsing. The full candidate is
+	// passed (rather than just the finish reason) because some providers report
+	// a finish reason that is only meaningful in light of other candidate state,
+	// such as the presence of tool calls.
+	IsTerminalStopReason(candidate openai.ChatCompletionChoice) bool
 
 	// ToParam converts a response message into a request parameter for the next
 	// conversation turn. Implementations may inject non-standard fields captured
 	// during streaming or extracted from non-streaming message metadata.
 	ToParam(ctx context.Context, logger logging.Logger, message openai.ChatCompletionMessage) openai.ChatCompletionMessageParamUnion
+
+	// InputCacheTokens extracts the cache write/read token counts from a Chat
+	// Completions usage response. Implementations may override this to read
+	// provider-specific usage shapes that differ from the OpenAI-standard one.
+	InputCacheTokens(usage openai.CompletionUsage) (writeTokens *int64, readTokens *int64)
 }
 
 // defaultCompletionHandler is the standard CompletionHandler that delegates to
@@ -70,12 +78,25 @@ func (h *defaultCompletionHandler) Result() *openai.ChatCompletion {
 	return &h.acc.ChatCompletion
 }
 
-func (h *defaultCompletionHandler) IsTerminalStopReason(stopReason string) bool {
-	return !slices.Contains([]string{"", "tool_calls"}, stopReason)
+func (h *defaultCompletionHandler) IsTerminalStopReason(candidate openai.ChatCompletionChoice) bool {
+	return !slices.Contains([]string{"", "tool_calls"}, candidate.FinishReason)
 }
 
 func (h *defaultCompletionHandler) ToParam(_ context.Context, _ logging.Logger, message openai.ChatCompletionMessage) openai.ChatCompletionMessageParamUnion {
 	return message.ToParam()
+}
+
+// InputCacheTokens reads the cache counters from a Chat Completions usage response.
+// The SDK models them as plain int64, so presence comes from the JSON metadata to
+// tell an unreported counter from a reported zero.
+func (h *defaultCompletionHandler) InputCacheTokens(usage openai.CompletionUsage) (writeTokens *int64, readTokens *int64) {
+	if usage.PromptTokensDetails.JSON.CacheWriteTokens.Valid() {
+		writeTokens = &usage.PromptTokensDetails.CacheWriteTokens
+	}
+	if usage.PromptTokensDetails.JSON.CachedTokens.Valid() {
+		readTokens = &usage.PromptTokensDetails.CachedTokens
+	}
+	return writeTokens, readTokens
 }
 
 // openAICompletionsProvider is an OpenAI-compatible Chat Completions API
@@ -84,10 +105,13 @@ type openAICompletionsProvider struct {
 	client         openai.Client
 	availableTools []config.ToolConfig
 
-	// NewCompletionHandler is a factory that creates a fresh CompletionHandler
-	// for each API call (both streaming and non-streaming). When nil, the
-	// defaultCompletionHandler is used.
-	NewCompletionHandler func() CompletionHandler
+	// NewCompletionHandler is a fixed factory, set once at provider construction,
+	// that creates a fresh CompletionHandler for each API call (both streaming and
+	// non-streaming). args is opaque to this OpenAI-generic provider and is passed
+	// through unchanged; delegating providers define their own concrete args type
+	// and type-assert it inside their factory. When nil, the defaultCompletionHandler
+	// is used.
+	NewCompletionHandler func(args any) CompletionHandler
 }
 
 // openAIV3ModelParams is an internal model configuration used by OpenAI implementations.
@@ -191,6 +215,10 @@ func newOpenAICompletionsProvider(availableTools []config.ToolConfig, opts ...op
 }
 
 func (o *openAICompletionsProvider) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
+	return o.run(ctx, logger, cfg, task, nil)
+}
+
+func (o *openAICompletionsProvider) run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task, args any) (result Result, err error) {
 	request := openai.ChatCompletionNewParams{
 		Model:    openai.ChatModel(cfg.Model),
 		Messages: []openai.ChatCompletionMessageParamUnion{},
@@ -348,7 +376,7 @@ func (o *openAICompletionsProvider) Run(ctx context.Context, logger logging.Logg
 		}
 
 		// Create a fresh completion handler for each API call.
-		handler := o.newCompletionHandler()
+		handler := o.newCompletionHandler(args)
 
 		resp, err := timed(func() (*openai.ChatCompletion, error) {
 			response, err := o.handleRequest(ctx, logger, request, handler)
@@ -365,13 +393,14 @@ func (o *openAICompletionsProvider) Run(ctx context.Context, logger logging.Logg
 			return result, nil // return current result state
 		}
 
-		recordUsage(&resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, nil, nil, &result.usage)
+		cacheWriteTokens, cacheReadTokens := handler.InputCacheTokens(resp.Usage)
+		recordUsage(InputTokenAccountingCacheTokensIncluded, &resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, cacheWriteTokens, cacheReadTokens, &result.usage)
 
 		if len(resp.Choices) == 0 {
 			return result, ErrNoResponseCandidates
 		}
 		for _, candidate := range resp.Choices {
-			isTerminal := handler.IsTerminalStopReason(candidate.FinishReason)
+			isTerminal := handler.IsTerminalStopReason(candidate)
 			logFinishReason(ctx, logger, candidate.FinishReason, isTerminal)
 
 			if !isTerminal {
@@ -490,11 +519,12 @@ func isOpenAITransientResponse(err error) bool {
 	return false
 }
 
-// newCompletionHandler returns a fresh CompletionHandler for the current API call.
-// If a custom factory is set, it is used; otherwise, the defaultCompletionHandler is returned.
-func (o *openAICompletionsProvider) newCompletionHandler() CompletionHandler {
-	if o.NewCompletionHandler != nil {
-		return o.NewCompletionHandler()
+// newCompletionHandler returns a fresh CompletionHandler for the current API call,
+// built from the provider's fixed NewCompletionHandler factory (if set) using the
+// given args; otherwise the defaultCompletionHandler is returned.
+func (o *openAICompletionsProvider) newCompletionHandler(args any) CompletionHandler {
+	if o != nil && o.NewCompletionHandler != nil {
+		return o.NewCompletionHandler(args)
 	}
 	return &defaultCompletionHandler{}
 }

@@ -25,7 +25,7 @@ type CompactionOutputItem struct {
 	// The unique ID of the compaction item (e.g. `cmp_<uuid>`).
 	Id NullableString `json:"id,omitempty"`
 	// The type of the item. Always `\"compaction\"`.
-	Type                 string `json:"type"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -106,7 +106,6 @@ func (o *CompactionOutputItem) HasId() bool {
 func (o *CompactionOutputItem) SetId(v string) {
 	o.Id.Set(&v)
 }
-
 // SetIdNil sets the value for Id to be an explicit nil
 func (o *CompactionOutputItem) SetIdNil() {
 	o.Id.Set(nil)
@@ -142,7 +141,7 @@ func (o *CompactionOutputItem) SetType(v string) {
 }
 
 func (o CompactionOutputItem) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -178,10 +177,10 @@ func (o *CompactionOutputItem) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

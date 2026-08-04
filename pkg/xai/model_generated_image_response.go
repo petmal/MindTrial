@@ -23,7 +23,7 @@ type GeneratedImageResponse struct {
 	// A list of generated image objects.
 	Data []GeneratedImage `json:"data"`
 	// Billing and cost information for this request.
-	Usage                NullableMediaUsage `json:"usage,omitempty"`
+	Usage NullableMediaUsage `json:"usage,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -103,7 +103,6 @@ func (o *GeneratedImageResponse) HasUsage() bool {
 func (o *GeneratedImageResponse) SetUsage(v MediaUsage) {
 	o.Usage.Set(&v)
 }
-
 // SetUsageNil sets the value for Usage to be an explicit nil
 func (o *GeneratedImageResponse) SetUsageNil() {
 	o.Usage.Set(nil)
@@ -115,7 +114,7 @@ func (o *GeneratedImageResponse) UnsetUsage() {
 }
 
 func (o GeneratedImageResponse) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -149,10 +148,10 @@ func (o *GeneratedImageResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

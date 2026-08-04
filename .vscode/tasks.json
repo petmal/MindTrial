@@ -27,9 +27,12 @@
         // post-generation workarounds (protected by .openapi-generator-ignore):
         // - model_any_of_map_null.go: AnyOfmapnull type generated in API code but never defined
         // - model_input_audio.go: invalid *OsFile identifier from anyOf with binary format
+        // - model_response_connector_list_tools_v1.go: invalid *OsFile identifier from anyOf with binary format
         // - model_agents_completion_request.go: invalid Prediction default literal + unquoted ToolChoice enum
         // - model_chat_completion_request.go: invalid Prediction default literal + unquoted ToolChoice enum
+        // - api_beta_connectors.go: invalid ConnectorsQueryFilters default literal on the connector list operation
         // - model_usage_info.go: spec sets additionalProperties:false but API returns undeclared prompt_tokens_details field
+        // - model_prompt_tokens_details.go: hand-maintained type for the undeclared field above (not present in the spec)
       ],
       "group": "build",
       "options": {

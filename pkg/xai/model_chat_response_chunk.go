@@ -39,7 +39,7 @@ type ChatResponseChunk struct {
 	// System fingerprint, used to indicate xAI system configuration changes.
 	SystemFingerprint NullableString `json:"system_fingerprint,omitempty"`
 	// Token usage information.
-	Usage                NullableUsage `json:"usage,omitempty"`
+	Usage NullableUsage `json:"usage,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -310,7 +310,6 @@ func (o *ChatResponseChunk) HasSystemFingerprint() bool {
 func (o *ChatResponseChunk) SetSystemFingerprint(v string) {
 	o.SystemFingerprint.Set(&v)
 }
-
 // SetSystemFingerprintNil sets the value for SystemFingerprint to be an explicit nil
 func (o *ChatResponseChunk) SetSystemFingerprintNil() {
 	o.SystemFingerprint.Set(nil)
@@ -353,7 +352,6 @@ func (o *ChatResponseChunk) HasUsage() bool {
 func (o *ChatResponseChunk) SetUsage(v Usage) {
 	o.Usage.Set(&v)
 }
-
 // SetUsageNil sets the value for Usage to be an explicit nil
 func (o *ChatResponseChunk) SetUsageNil() {
 	o.Usage.Set(nil)
@@ -365,7 +363,7 @@ func (o *ChatResponseChunk) UnsetUsage() {
 }
 
 func (o ChatResponseChunk) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -418,10 +416,10 @@ func (o *ChatResponseChunk) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

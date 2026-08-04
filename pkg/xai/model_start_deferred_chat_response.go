@@ -21,7 +21,7 @@ var _ MappedNullable = &StartDeferredChatResponse{}
 // StartDeferredChatResponse struct for StartDeferredChatResponse
 type StartDeferredChatResponse struct {
 	// A unique request ID for the chat response.
-	RequestId            string `json:"request_id"`
+	RequestId string `json:"request_id"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -70,7 +70,7 @@ func (o *StartDeferredChatResponse) SetRequestId(v string) {
 }
 
 func (o StartDeferredChatResponse) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -101,10 +101,10 @@ func (o *StartDeferredChatResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

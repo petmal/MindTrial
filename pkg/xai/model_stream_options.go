@@ -21,7 +21,7 @@ var _ MappedNullable = &StreamOptions{}
 // StreamOptions Options available when using streaming response.
 type StreamOptions struct {
 	// Set an additional chunk to be streamed before the `data: [DONE]` message. The other chunks will return `null` in `usage` field.
-	IncludeUsage         bool `json:"include_usage"`
+	IncludeUsage bool `json:"include_usage"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -70,7 +70,7 @@ func (o *StreamOptions) SetIncludeUsage(v bool) {
 }
 
 func (o StreamOptions) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -101,10 +101,10 @@ func (o *StreamOptions) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

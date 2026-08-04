@@ -12,7 +12,6 @@ package mistralai
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 // checks if the ConversationAppendStreamRequest type satisfies the MappedNullable interface at compile time
@@ -20,13 +19,14 @@ var _ MappedNullable = &ConversationAppendStreamRequest{}
 
 // ConversationAppendStreamRequest struct for ConversationAppendStreamRequest
 type ConversationAppendStreamRequest struct {
-	Inputs ConversationInputs `json:"inputs"`
-	Stream *bool              `json:"stream,omitempty"`
-	// Whether to store the results into our servers or not.
-	Store            *bool   `json:"store,omitempty"`
-	HandoffExecution *string `json:"handoff_execution,omitempty"`
 	// Completion arguments that will be used to generate assistant responses. Can be overridden at each message request.
-	CompletionArgs       *CompletionArgs `json:"completion_args,omitempty"`
+	CompletionArgs *CompletionArgs `json:"completion_args,omitempty"`
+	HandoffExecution *string `json:"handoff_execution,omitempty"`
+	Inputs *ConversationInputs `json:"inputs,omitempty"`
+	// Whether to store the results into our servers or not.
+	Store *bool `json:"store,omitempty"`
+	Stream *bool `json:"stream,omitempty"`
+	ToolConfirmations []ToolCallConfirmation `json:"tool_confirmations,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -36,15 +36,14 @@ type _ConversationAppendStreamRequest ConversationAppendStreamRequest
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewConversationAppendStreamRequest(inputs ConversationInputs) *ConversationAppendStreamRequest {
+func NewConversationAppendStreamRequest() *ConversationAppendStreamRequest {
 	this := ConversationAppendStreamRequest{}
-	this.Inputs = inputs
-	var stream bool = true
-	this.Stream = &stream
-	var store bool = true
-	this.Store = &store
 	var handoffExecution string = "server"
 	this.HandoffExecution = &handoffExecution
+	var store bool = true
+	this.Store = &store
+	var stream bool = true
+	this.Stream = &stream
 	return &this
 }
 
@@ -53,133 +52,13 @@ func NewConversationAppendStreamRequest(inputs ConversationInputs) *Conversation
 // but it doesn't guarantee that properties required by API are set
 func NewConversationAppendStreamRequestWithDefaults() *ConversationAppendStreamRequest {
 	this := ConversationAppendStreamRequest{}
-	var stream bool = true
-	this.Stream = &stream
-	var store bool = true
-	this.Store = &store
 	var handoffExecution string = "server"
 	this.HandoffExecution = &handoffExecution
+	var store bool = true
+	this.Store = &store
+	var stream bool = true
+	this.Stream = &stream
 	return &this
-}
-
-// GetInputs returns the Inputs field value
-func (o *ConversationAppendStreamRequest) GetInputs() ConversationInputs {
-	if o == nil {
-		var ret ConversationInputs
-		return ret
-	}
-
-	return o.Inputs
-}
-
-// GetInputsOk returns a tuple with the Inputs field value
-// and a boolean to check if the value has been set.
-func (o *ConversationAppendStreamRequest) GetInputsOk() (*ConversationInputs, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Inputs, true
-}
-
-// SetInputs sets field value
-func (o *ConversationAppendStreamRequest) SetInputs(v ConversationInputs) {
-	o.Inputs = v
-}
-
-// GetStream returns the Stream field value if set, zero value otherwise.
-func (o *ConversationAppendStreamRequest) GetStream() bool {
-	if o == nil || IsNil(o.Stream) {
-		var ret bool
-		return ret
-	}
-	return *o.Stream
-}
-
-// GetStreamOk returns a tuple with the Stream field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ConversationAppendStreamRequest) GetStreamOk() (*bool, bool) {
-	if o == nil || IsNil(o.Stream) {
-		return nil, false
-	}
-	return o.Stream, true
-}
-
-// HasStream returns a boolean if a field has been set.
-func (o *ConversationAppendStreamRequest) HasStream() bool {
-	if o != nil && !IsNil(o.Stream) {
-		return true
-	}
-
-	return false
-}
-
-// SetStream gets a reference to the given bool and assigns it to the Stream field.
-func (o *ConversationAppendStreamRequest) SetStream(v bool) {
-	o.Stream = &v
-}
-
-// GetStore returns the Store field value if set, zero value otherwise.
-func (o *ConversationAppendStreamRequest) GetStore() bool {
-	if o == nil || IsNil(o.Store) {
-		var ret bool
-		return ret
-	}
-	return *o.Store
-}
-
-// GetStoreOk returns a tuple with the Store field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ConversationAppendStreamRequest) GetStoreOk() (*bool, bool) {
-	if o == nil || IsNil(o.Store) {
-		return nil, false
-	}
-	return o.Store, true
-}
-
-// HasStore returns a boolean if a field has been set.
-func (o *ConversationAppendStreamRequest) HasStore() bool {
-	if o != nil && !IsNil(o.Store) {
-		return true
-	}
-
-	return false
-}
-
-// SetStore gets a reference to the given bool and assigns it to the Store field.
-func (o *ConversationAppendStreamRequest) SetStore(v bool) {
-	o.Store = &v
-}
-
-// GetHandoffExecution returns the HandoffExecution field value if set, zero value otherwise.
-func (o *ConversationAppendStreamRequest) GetHandoffExecution() string {
-	if o == nil || IsNil(o.HandoffExecution) {
-		var ret string
-		return ret
-	}
-	return *o.HandoffExecution
-}
-
-// GetHandoffExecutionOk returns a tuple with the HandoffExecution field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ConversationAppendStreamRequest) GetHandoffExecutionOk() (*string, bool) {
-	if o == nil || IsNil(o.HandoffExecution) {
-		return nil, false
-	}
-	return o.HandoffExecution, true
-}
-
-// HasHandoffExecution returns a boolean if a field has been set.
-func (o *ConversationAppendStreamRequest) HasHandoffExecution() bool {
-	if o != nil && !IsNil(o.HandoffExecution) {
-		return true
-	}
-
-	return false
-}
-
-// SetHandoffExecution gets a reference to the given string and assigns it to the HandoffExecution field.
-func (o *ConversationAppendStreamRequest) SetHandoffExecution(v string) {
-	o.HandoffExecution = &v
 }
 
 // GetCompletionArgs returns the CompletionArgs field value if set, zero value otherwise.
@@ -214,8 +93,168 @@ func (o *ConversationAppendStreamRequest) SetCompletionArgs(v CompletionArgs) {
 	o.CompletionArgs = &v
 }
 
+// GetHandoffExecution returns the HandoffExecution field value if set, zero value otherwise.
+func (o *ConversationAppendStreamRequest) GetHandoffExecution() string {
+	if o == nil || IsNil(o.HandoffExecution) {
+		var ret string
+		return ret
+	}
+	return *o.HandoffExecution
+}
+
+// GetHandoffExecutionOk returns a tuple with the HandoffExecution field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationAppendStreamRequest) GetHandoffExecutionOk() (*string, bool) {
+	if o == nil || IsNil(o.HandoffExecution) {
+		return nil, false
+	}
+	return o.HandoffExecution, true
+}
+
+// HasHandoffExecution returns a boolean if a field has been set.
+func (o *ConversationAppendStreamRequest) HasHandoffExecution() bool {
+	if o != nil && !IsNil(o.HandoffExecution) {
+		return true
+	}
+
+	return false
+}
+
+// SetHandoffExecution gets a reference to the given string and assigns it to the HandoffExecution field.
+func (o *ConversationAppendStreamRequest) SetHandoffExecution(v string) {
+	o.HandoffExecution = &v
+}
+
+// GetInputs returns the Inputs field value if set, zero value otherwise.
+func (o *ConversationAppendStreamRequest) GetInputs() ConversationInputs {
+	if o == nil || IsNil(o.Inputs) {
+		var ret ConversationInputs
+		return ret
+	}
+	return *o.Inputs
+}
+
+// GetInputsOk returns a tuple with the Inputs field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationAppendStreamRequest) GetInputsOk() (*ConversationInputs, bool) {
+	if o == nil || IsNil(o.Inputs) {
+		return nil, false
+	}
+	return o.Inputs, true
+}
+
+// HasInputs returns a boolean if a field has been set.
+func (o *ConversationAppendStreamRequest) HasInputs() bool {
+	if o != nil && !IsNil(o.Inputs) {
+		return true
+	}
+
+	return false
+}
+
+// SetInputs gets a reference to the given ConversationInputs and assigns it to the Inputs field.
+func (o *ConversationAppendStreamRequest) SetInputs(v ConversationInputs) {
+	o.Inputs = &v
+}
+
+// GetStore returns the Store field value if set, zero value otherwise.
+func (o *ConversationAppendStreamRequest) GetStore() bool {
+	if o == nil || IsNil(o.Store) {
+		var ret bool
+		return ret
+	}
+	return *o.Store
+}
+
+// GetStoreOk returns a tuple with the Store field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationAppendStreamRequest) GetStoreOk() (*bool, bool) {
+	if o == nil || IsNil(o.Store) {
+		return nil, false
+	}
+	return o.Store, true
+}
+
+// HasStore returns a boolean if a field has been set.
+func (o *ConversationAppendStreamRequest) HasStore() bool {
+	if o != nil && !IsNil(o.Store) {
+		return true
+	}
+
+	return false
+}
+
+// SetStore gets a reference to the given bool and assigns it to the Store field.
+func (o *ConversationAppendStreamRequest) SetStore(v bool) {
+	o.Store = &v
+}
+
+// GetStream returns the Stream field value if set, zero value otherwise.
+func (o *ConversationAppendStreamRequest) GetStream() bool {
+	if o == nil || IsNil(o.Stream) {
+		var ret bool
+		return ret
+	}
+	return *o.Stream
+}
+
+// GetStreamOk returns a tuple with the Stream field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationAppendStreamRequest) GetStreamOk() (*bool, bool) {
+	if o == nil || IsNil(o.Stream) {
+		return nil, false
+	}
+	return o.Stream, true
+}
+
+// HasStream returns a boolean if a field has been set.
+func (o *ConversationAppendStreamRequest) HasStream() bool {
+	if o != nil && !IsNil(o.Stream) {
+		return true
+	}
+
+	return false
+}
+
+// SetStream gets a reference to the given bool and assigns it to the Stream field.
+func (o *ConversationAppendStreamRequest) SetStream(v bool) {
+	o.Stream = &v
+}
+
+// GetToolConfirmations returns the ToolConfirmations field value if set, zero value otherwise.
+func (o *ConversationAppendStreamRequest) GetToolConfirmations() []ToolCallConfirmation {
+	if o == nil || IsNil(o.ToolConfirmations) {
+		var ret []ToolCallConfirmation
+		return ret
+	}
+	return o.ToolConfirmations
+}
+
+// GetToolConfirmationsOk returns a tuple with the ToolConfirmations field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationAppendStreamRequest) GetToolConfirmationsOk() ([]ToolCallConfirmation, bool) {
+	if o == nil || IsNil(o.ToolConfirmations) {
+		return nil, false
+	}
+	return o.ToolConfirmations, true
+}
+
+// HasToolConfirmations returns a boolean if a field has been set.
+func (o *ConversationAppendStreamRequest) HasToolConfirmations() bool {
+	if o != nil && !IsNil(o.ToolConfirmations) {
+		return true
+	}
+
+	return false
+}
+
+// SetToolConfirmations gets a reference to the given []ToolCallConfirmation and assigns it to the ToolConfirmations field.
+func (o *ConversationAppendStreamRequest) SetToolConfirmations(v []ToolCallConfirmation) {
+	o.ToolConfirmations = v
+}
+
 func (o ConversationAppendStreamRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -224,18 +263,23 @@ func (o ConversationAppendStreamRequest) MarshalJSON() ([]byte, error) {
 
 func (o ConversationAppendStreamRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["inputs"] = o.Inputs
-	if !IsNil(o.Stream) {
-		toSerialize["stream"] = o.Stream
-	}
-	if !IsNil(o.Store) {
-		toSerialize["store"] = o.Store
+	if !IsNil(o.CompletionArgs) {
+		toSerialize["completion_args"] = o.CompletionArgs
 	}
 	if !IsNil(o.HandoffExecution) {
 		toSerialize["handoff_execution"] = o.HandoffExecution
 	}
-	if !IsNil(o.CompletionArgs) {
-		toSerialize["completion_args"] = o.CompletionArgs
+	if !IsNil(o.Inputs) {
+		toSerialize["inputs"] = o.Inputs
+	}
+	if !IsNil(o.Store) {
+		toSerialize["store"] = o.Store
+	}
+	if !IsNil(o.Stream) {
+		toSerialize["stream"] = o.Stream
+	}
+	if !IsNil(o.ToolConfirmations) {
+		toSerialize["tool_confirmations"] = o.ToolConfirmations
 	}
 
 	for key, value := range o.AdditionalProperties {
@@ -246,27 +290,6 @@ func (o ConversationAppendStreamRequest) ToMap() (map[string]interface{}, error)
 }
 
 func (o *ConversationAppendStreamRequest) UnmarshalJSON(data []byte) (err error) {
-	// This validates that all required properties are included in the JSON object
-	// by unmarshalling the object into a generic map with string keys and checking
-	// that every required field exists as a key in the generic map.
-	requiredProperties := []string{
-		"inputs",
-	}
-
-	allProperties := make(map[string]interface{})
-
-	err = json.Unmarshal(data, &allProperties)
-
-	if err != nil {
-		return err
-	}
-
-	for _, requiredProperty := range requiredProperties {
-		if _, exists := allProperties[requiredProperty]; !exists {
-			return fmt.Errorf("no value given for required property %v", requiredProperty)
-		}
-	}
-
 	varConversationAppendStreamRequest := _ConversationAppendStreamRequest{}
 
 	err = json.Unmarshal(data, &varConversationAppendStreamRequest)
@@ -280,11 +303,12 @@ func (o *ConversationAppendStreamRequest) UnmarshalJSON(data []byte) (err error)
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "inputs")
-		delete(additionalProperties, "stream")
-		delete(additionalProperties, "store")
-		delete(additionalProperties, "handoff_execution")
 		delete(additionalProperties, "completion_args")
+		delete(additionalProperties, "handoff_execution")
+		delete(additionalProperties, "inputs")
+		delete(additionalProperties, "store")
+		delete(additionalProperties, "stream")
+		delete(additionalProperties, "tool_confirmations")
 		o.AdditionalProperties = additionalProperties
 	}
 

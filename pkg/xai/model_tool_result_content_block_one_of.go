@@ -18,11 +18,11 @@ import (
 // checks if the ToolResultContentBlockOneOf type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &ToolResultContentBlockOneOf{}
 
-// ToolResultContentBlockOneOf Image content block.
+// ToolResultContentBlockOneOf Text content block.
 type ToolResultContentBlockOneOf struct {
-	// Image source.
-	Source               MessageImageContent `json:"source"`
-	Type                 string              `json:"type"`
+	// The text content.
+	Text string `json:"text"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -32,9 +32,9 @@ type _ToolResultContentBlockOneOf ToolResultContentBlockOneOf
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewToolResultContentBlockOneOf(source MessageImageContent, type_ string) *ToolResultContentBlockOneOf {
+func NewToolResultContentBlockOneOf(text string, type_ string) *ToolResultContentBlockOneOf {
 	this := ToolResultContentBlockOneOf{}
-	this.Source = source
+	this.Text = text
 	this.Type = type_
 	return &this
 }
@@ -47,28 +47,28 @@ func NewToolResultContentBlockOneOfWithDefaults() *ToolResultContentBlockOneOf {
 	return &this
 }
 
-// GetSource returns the Source field value
-func (o *ToolResultContentBlockOneOf) GetSource() MessageImageContent {
+// GetText returns the Text field value
+func (o *ToolResultContentBlockOneOf) GetText() string {
 	if o == nil {
-		var ret MessageImageContent
+		var ret string
 		return ret
 	}
 
-	return o.Source
+	return o.Text
 }
 
-// GetSourceOk returns a tuple with the Source field value
+// GetTextOk returns a tuple with the Text field value
 // and a boolean to check if the value has been set.
-func (o *ToolResultContentBlockOneOf) GetSourceOk() (*MessageImageContent, bool) {
+func (o *ToolResultContentBlockOneOf) GetTextOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Source, true
+	return &o.Text, true
 }
 
-// SetSource sets field value
-func (o *ToolResultContentBlockOneOf) SetSource(v MessageImageContent) {
-	o.Source = v
+// SetText sets field value
+func (o *ToolResultContentBlockOneOf) SetText(v string) {
+	o.Text = v
 }
 
 // GetType returns the Type field value
@@ -96,7 +96,7 @@ func (o *ToolResultContentBlockOneOf) SetType(v string) {
 }
 
 func (o ToolResultContentBlockOneOf) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -105,7 +105,7 @@ func (o ToolResultContentBlockOneOf) MarshalJSON() ([]byte, error) {
 
 func (o ToolResultContentBlockOneOf) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["source"] = o.Source
+	toSerialize["text"] = o.Text
 	toSerialize["type"] = o.Type
 
 	for key, value := range o.AdditionalProperties {
@@ -120,7 +120,7 @@ func (o *ToolResultContentBlockOneOf) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"source",
+		"text",
 		"type",
 	}
 
@@ -129,10 +129,10 @@ func (o *ToolResultContentBlockOneOf) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -151,7 +151,7 @@ func (o *ToolResultContentBlockOneOf) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "source")
+		delete(additionalProperties, "text")
 		delete(additionalProperties, "type")
 		o.AdditionalProperties = additionalProperties
 	}

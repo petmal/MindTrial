@@ -19,6 +19,7 @@ import (
 // ToolsInner - struct for ToolsInner
 type ToolsInner struct {
 	CodeInterpreterTool  *CodeInterpreterTool
+	CustomConnector      *CustomConnector
 	DocumentLibraryTool  *DocumentLibraryTool
 	FunctionTool         *FunctionTool
 	ImageGenerationTool  *ImageGenerationTool
@@ -30,6 +31,13 @@ type ToolsInner struct {
 func CodeInterpreterToolAsToolsInner(v *CodeInterpreterTool) ToolsInner {
 	return ToolsInner{
 		CodeInterpreterTool: v,
+	}
+}
+
+// CustomConnectorAsToolsInner is a convenience function that returns CustomConnector wrapped in ToolsInner
+func CustomConnectorAsToolsInner(v *CustomConnector) ToolsInner {
+	return ToolsInner{
+		CustomConnector: v,
 	}
 }
 
@@ -87,6 +95,23 @@ func (dst *ToolsInner) UnmarshalJSON(data []byte) error {
 		}
 	} else {
 		dst.CodeInterpreterTool = nil
+	}
+
+	// try to unmarshal data into CustomConnector
+	err = newStrictDecoder(data).Decode(&dst.CustomConnector)
+	if err == nil {
+		jsonCustomConnector, _ := json.Marshal(dst.CustomConnector)
+		if string(jsonCustomConnector) == "{}" { // empty struct
+			dst.CustomConnector = nil
+		} else {
+			if err = validator.Validate(dst.CustomConnector); err != nil {
+				dst.CustomConnector = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.CustomConnector = nil
 	}
 
 	// try to unmarshal data into DocumentLibraryTool
@@ -177,6 +202,7 @@ func (dst *ToolsInner) UnmarshalJSON(data []byte) error {
 	if match > 1 { // more than 1 match
 		// reset to nil
 		dst.CodeInterpreterTool = nil
+		dst.CustomConnector = nil
 		dst.DocumentLibraryTool = nil
 		dst.FunctionTool = nil
 		dst.ImageGenerationTool = nil
@@ -187,7 +213,12 @@ func (dst *ToolsInner) UnmarshalJSON(data []byte) error {
 	} else if match == 1 {
 		return nil // exactly one match
 	} else { // no match
-		return fmt.Errorf("data failed to match schemas in oneOf(ToolsInner)")
+		if err != nil {
+			return fmt.Errorf("data failed to match schemas in oneOf(ToolsInner): %v", err)
+		} else {
+			return fmt.Errorf("data failed to match schemas in oneOf(ToolsInner)")
+		}
+
 	}
 }
 
@@ -195,6 +226,10 @@ func (dst *ToolsInner) UnmarshalJSON(data []byte) error {
 func (src ToolsInner) MarshalJSON() ([]byte, error) {
 	if src.CodeInterpreterTool != nil {
 		return json.Marshal(&src.CodeInterpreterTool)
+	}
+
+	if src.CustomConnector != nil {
+		return json.Marshal(&src.CustomConnector)
 	}
 
 	if src.DocumentLibraryTool != nil {
@@ -229,6 +264,10 @@ func (obj *ToolsInner) GetActualInstance() interface{} {
 		return obj.CodeInterpreterTool
 	}
 
+	if obj.CustomConnector != nil {
+		return obj.CustomConnector
+	}
+
 	if obj.DocumentLibraryTool != nil {
 		return obj.DocumentLibraryTool
 	}
@@ -257,6 +296,10 @@ func (obj *ToolsInner) GetActualInstance() interface{} {
 func (obj ToolsInner) GetActualInstanceValue() interface{} {
 	if obj.CodeInterpreterTool != nil {
 		return *obj.CodeInterpreterTool
+	}
+
+	if obj.CustomConnector != nil {
+		return *obj.CustomConnector
 	}
 
 	if obj.DocumentLibraryTool != nil {

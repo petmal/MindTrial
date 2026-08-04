@@ -20,7 +20,7 @@ var _ MappedNullable = &IncompleteDetailsOneOf2{}
 
 // IncompleteDetailsOneOf2 struct for IncompleteDetailsOneOf2
 type IncompleteDetailsOneOf2 struct {
-	Reason               string `json:"reason"`
+	Reason string `json:"reason"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -69,7 +69,7 @@ func (o *IncompleteDetailsOneOf2) SetReason(v string) {
 }
 
 func (o IncompleteDetailsOneOf2) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -100,10 +100,10 @@ func (o *IncompleteDetailsOneOf2) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

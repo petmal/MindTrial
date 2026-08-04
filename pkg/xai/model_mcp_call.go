@@ -35,7 +35,7 @@ type McpCall struct {
 	// The status of the MCP tool call.
 	Status *string `json:"status,omitempty"`
 	// The type of the MCP tool call. Always `mcp_call`.
-	Type                 string `json:"type"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -280,7 +280,7 @@ func (o *McpCall) SetType(v string) {
 }
 
 func (o McpCall) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -328,10 +328,10 @@ func (o *McpCall) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

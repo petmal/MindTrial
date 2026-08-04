@@ -20,9 +20,9 @@ type EntityType string
 
 // List of EntityType
 const (
-	ENTITYTYPE_USER      EntityType = "User"
+	ENTITYTYPE_USER EntityType = "User"
 	ENTITYTYPE_WORKSPACE EntityType = "Workspace"
-	ENTITYTYPE_ORG       EntityType = "Org"
+	ENTITYTYPE_ORG EntityType = "Org"
 )
 
 // All allowed values of EntityType enum

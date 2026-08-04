@@ -109,6 +109,20 @@ func TestMoonshotAICopyToOpenAIV3Params(t *testing.T) {
 		require.NotContains(t, params.ExtraFields, "thinking")
 	})
 
+	t.Run("Kimi K3 parameters", func(t *testing.T) {
+		responseFormat := config.ModelResponseFormatJSONSchema
+		params := buildParams(t, config.RunConfig{ModelParams: config.MoonshotAIModelParams{
+			ReasoningEffort:     utils.Ptr("high"),
+			MaxCompletionTokens: utils.Ptr(int32(65536)),
+			ResponseFormat:      &responseFormat,
+			Stream:              true,
+		}})
+		require.Equal(t, "high", *params.ReasoningEffort)
+		require.Equal(t, int64(65536), *params.MaxCompletionTokens)
+		require.Equal(t, ResponseFormatJSONSchema, *params.ResponseFormat)
+		require.True(t, *params.Stream)
+	})
+
 	t.Run("thinking type only sets ExtraFields", func(t *testing.T) {
 		cfg := config.RunConfig{
 			Name: "run",
@@ -346,8 +360,32 @@ func TestMoonshotAICompletionHandler_ToParam(t *testing.T) {
 func TestMoonshotAICompletionHandler_IsTerminalStopReason(t *testing.T) {
 	var handler CompletionHandler = &moonshotAICompletionHandler{}
 
-	require.True(t, handler.IsTerminalStopReason("stop"))
-	require.True(t, handler.IsTerminalStopReason("length"))
-	require.True(t, handler.IsTerminalStopReason("content_filter"))
-	require.False(t, handler.IsTerminalStopReason("tool_calls"))
+	require.True(t, handler.IsTerminalStopReason(mockChatCompletionChoice(t, "stop", false)))
+	require.True(t, handler.IsTerminalStopReason(mockChatCompletionChoice(t, "length", false)))
+	require.True(t, handler.IsTerminalStopReason(mockChatCompletionChoice(t, "content_filter", false)))
+	require.False(t, handler.IsTerminalStopReason(mockChatCompletionChoice(t, "tool_calls", true)))
+}
+
+func TestMoonshotAICompletionHandler_InputCacheTokens(t *testing.T) {
+	tests := []struct {
+		name      string
+		usageJSON string
+		read      *int64
+	}{
+		{name: "omitted", usageJSON: `{"prompt_tokens":19,"completion_tokens":21,"total_tokens":40}`},
+		{name: "reported", usageJSON: `{"prompt_tokens":19,"completion_tokens":21,"total_tokens":40,"cached_tokens":10}`, read: testutils.Ptr(int64(10))},
+		{name: "reported zero is not absent", usageJSON: `{"prompt_tokens":19,"completion_tokens":21,"total_tokens":40,"cached_tokens":0}`, read: testutils.Ptr(int64(0))},
+		{name: "explicit null is absent", usageJSON: `{"prompt_tokens":19,"completion_tokens":21,"total_tokens":40,"cached_tokens":null}`},
+	}
+
+	var handler CompletionHandler = &moonshotAICompletionHandler{}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var usage openai.CompletionUsage
+			require.NoError(t, json.Unmarshal([]byte(test.usageJSON), &usage))
+			write, read := handler.InputCacheTokens(usage)
+			require.Nil(t, write, "Moonshot does not report a distinct cache-write counter")
+			require.Equal(t, test.read, read)
+		})
+	}
 }

@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,9 +21,9 @@ var _ MappedNullable = &ConversationMessages{}
 
 // ConversationMessages Similar to the conversation history but only keep the messages
 type ConversationMessages struct {
-	Object         *string               `json:"object,omitempty"`
-	ConversationId string                `json:"conversation_id"`
-	Messages       []MessageEntriesInner `json:"messages"`
+	ConversationId string `json:"conversation_id"`
+	Messages []MessageEntriesInner `json:"messages"`
+	Object *string `json:"object,omitempty"`
 }
 
 type _ConversationMessages ConversationMessages
@@ -34,10 +34,10 @@ type _ConversationMessages ConversationMessages
 // will change when the set of required properties is changed
 func NewConversationMessages(conversationId string, messages []MessageEntriesInner) *ConversationMessages {
 	this := ConversationMessages{}
-	var object string = "conversation.messages"
-	this.Object = &object
 	this.ConversationId = conversationId
 	this.Messages = messages
+	var object string = "conversation.messages"
+	this.Object = &object
 	return &this
 }
 
@@ -49,38 +49,6 @@ func NewConversationMessagesWithDefaults() *ConversationMessages {
 	var object string = "conversation.messages"
 	this.Object = &object
 	return &this
-}
-
-// GetObject returns the Object field value if set, zero value otherwise.
-func (o *ConversationMessages) GetObject() string {
-	if o == nil || IsNil(o.Object) {
-		var ret string
-		return ret
-	}
-	return *o.Object
-}
-
-// GetObjectOk returns a tuple with the Object field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ConversationMessages) GetObjectOk() (*string, bool) {
-	if o == nil || IsNil(o.Object) {
-		return nil, false
-	}
-	return o.Object, true
-}
-
-// HasObject returns a boolean if a field has been set.
-func (o *ConversationMessages) HasObject() bool {
-	if o != nil && !IsNil(o.Object) {
-		return true
-	}
-
-	return false
-}
-
-// SetObject gets a reference to the given string and assigns it to the Object field.
-func (o *ConversationMessages) SetObject(v string) {
-	o.Object = &v
 }
 
 // GetConversationId returns the ConversationId field value
@@ -131,8 +99,40 @@ func (o *ConversationMessages) SetMessages(v []MessageEntriesInner) {
 	o.Messages = v
 }
 
+// GetObject returns the Object field value if set, zero value otherwise.
+func (o *ConversationMessages) GetObject() string {
+	if o == nil || IsNil(o.Object) {
+		var ret string
+		return ret
+	}
+	return *o.Object
+}
+
+// GetObjectOk returns a tuple with the Object field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationMessages) GetObjectOk() (*string, bool) {
+	if o == nil || IsNil(o.Object) {
+		return nil, false
+	}
+	return o.Object, true
+}
+
+// HasObject returns a boolean if a field has been set.
+func (o *ConversationMessages) HasObject() bool {
+	if o != nil && !IsNil(o.Object) {
+		return true
+	}
+
+	return false
+}
+
+// SetObject gets a reference to the given string and assigns it to the Object field.
+func (o *ConversationMessages) SetObject(v string) {
+	o.Object = &v
+}
+
 func (o ConversationMessages) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -141,11 +141,11 @@ func (o ConversationMessages) MarshalJSON() ([]byte, error) {
 
 func (o ConversationMessages) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["conversation_id"] = o.ConversationId
+	toSerialize["messages"] = o.Messages
 	if !IsNil(o.Object) {
 		toSerialize["object"] = o.Object
 	}
-	toSerialize["conversation_id"] = o.ConversationId
-	toSerialize["messages"] = o.Messages
 	return toSerialize, nil
 }
 
@@ -163,10 +163,10 @@ func (o *ConversationMessages) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

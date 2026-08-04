@@ -18,10 +18,14 @@ import (
 // checks if the ModelToolOneOf4 type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &ModelToolOneOf4{}
 
-// ModelToolOneOf4 Execute code.
+// ModelToolOneOf4 Search the knowledge bases.
 type ModelToolOneOf4 struct {
-	Container            interface{} `json:"container,omitempty"`
-	Type                 string      `json:"type"`
+	Filters interface{} `json:"filters,omitempty"`
+	MaxNumResults NullableInt32 `json:"max_num_results,omitempty"`
+	RankingOptions interface{} `json:"ranking_options,omitempty"`
+	Type string `json:"type"`
+	// List of vector store IDs to search within.
+	VectorStoreIds []string `json:"vector_store_ids"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -31,9 +35,10 @@ type _ModelToolOneOf4 ModelToolOneOf4
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewModelToolOneOf4(type_ string) *ModelToolOneOf4 {
+func NewModelToolOneOf4(type_ string, vectorStoreIds []string) *ModelToolOneOf4 {
 	this := ModelToolOneOf4{}
 	this.Type = type_
+	this.VectorStoreIds = vectorStoreIds
 	return &this
 }
 
@@ -45,37 +50,112 @@ func NewModelToolOneOf4WithDefaults() *ModelToolOneOf4 {
 	return &this
 }
 
-// GetContainer returns the Container field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ModelToolOneOf4) GetContainer() interface{} {
+// GetFilters returns the Filters field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ModelToolOneOf4) GetFilters() interface{} {
 	if o == nil {
 		var ret interface{}
 		return ret
 	}
-	return o.Container
+	return o.Filters
 }
 
-// GetContainerOk returns a tuple with the Container field value if set, nil otherwise
+// GetFiltersOk returns a tuple with the Filters field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 // NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ModelToolOneOf4) GetContainerOk() (*interface{}, bool) {
-	if o == nil || IsNil(o.Container) {
+func (o *ModelToolOneOf4) GetFiltersOk() (*interface{}, bool) {
+	if o == nil || IsNil(o.Filters) {
 		return nil, false
 	}
-	return &o.Container, true
+	return &o.Filters, true
 }
 
-// HasContainer returns a boolean if a field has been set.
-func (o *ModelToolOneOf4) HasContainer() bool {
-	if o != nil && !IsNil(o.Container) {
+// HasFilters returns a boolean if a field has been set.
+func (o *ModelToolOneOf4) HasFilters() bool {
+	if o != nil && !IsNil(o.Filters) {
 		return true
 	}
 
 	return false
 }
 
-// SetContainer gets a reference to the given interface{} and assigns it to the Container field.
-func (o *ModelToolOneOf4) SetContainer(v interface{}) {
-	o.Container = v
+// SetFilters gets a reference to the given interface{} and assigns it to the Filters field.
+func (o *ModelToolOneOf4) SetFilters(v interface{}) {
+	o.Filters = v
+}
+
+// GetMaxNumResults returns the MaxNumResults field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ModelToolOneOf4) GetMaxNumResults() int32 {
+	if o == nil || IsNil(o.MaxNumResults.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.MaxNumResults.Get()
+}
+
+// GetMaxNumResultsOk returns a tuple with the MaxNumResults field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ModelToolOneOf4) GetMaxNumResultsOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.MaxNumResults.Get(), o.MaxNumResults.IsSet()
+}
+
+// HasMaxNumResults returns a boolean if a field has been set.
+func (o *ModelToolOneOf4) HasMaxNumResults() bool {
+	if o != nil && o.MaxNumResults.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetMaxNumResults gets a reference to the given NullableInt32 and assigns it to the MaxNumResults field.
+func (o *ModelToolOneOf4) SetMaxNumResults(v int32) {
+	o.MaxNumResults.Set(&v)
+}
+// SetMaxNumResultsNil sets the value for MaxNumResults to be an explicit nil
+func (o *ModelToolOneOf4) SetMaxNumResultsNil() {
+	o.MaxNumResults.Set(nil)
+}
+
+// UnsetMaxNumResults ensures that no value is present for MaxNumResults, not even an explicit nil
+func (o *ModelToolOneOf4) UnsetMaxNumResults() {
+	o.MaxNumResults.Unset()
+}
+
+// GetRankingOptions returns the RankingOptions field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ModelToolOneOf4) GetRankingOptions() interface{} {
+	if o == nil {
+		var ret interface{}
+		return ret
+	}
+	return o.RankingOptions
+}
+
+// GetRankingOptionsOk returns a tuple with the RankingOptions field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ModelToolOneOf4) GetRankingOptionsOk() (*interface{}, bool) {
+	if o == nil || IsNil(o.RankingOptions) {
+		return nil, false
+	}
+	return &o.RankingOptions, true
+}
+
+// HasRankingOptions returns a boolean if a field has been set.
+func (o *ModelToolOneOf4) HasRankingOptions() bool {
+	if o != nil && !IsNil(o.RankingOptions) {
+		return true
+	}
+
+	return false
+}
+
+// SetRankingOptions gets a reference to the given interface{} and assigns it to the RankingOptions field.
+func (o *ModelToolOneOf4) SetRankingOptions(v interface{}) {
+	o.RankingOptions = v
 }
 
 // GetType returns the Type field value
@@ -102,8 +182,32 @@ func (o *ModelToolOneOf4) SetType(v string) {
 	o.Type = v
 }
 
+// GetVectorStoreIds returns the VectorStoreIds field value
+func (o *ModelToolOneOf4) GetVectorStoreIds() []string {
+	if o == nil {
+		var ret []string
+		return ret
+	}
+
+	return o.VectorStoreIds
+}
+
+// GetVectorStoreIdsOk returns a tuple with the VectorStoreIds field value
+// and a boolean to check if the value has been set.
+func (o *ModelToolOneOf4) GetVectorStoreIdsOk() ([]string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.VectorStoreIds, true
+}
+
+// SetVectorStoreIds sets field value
+func (o *ModelToolOneOf4) SetVectorStoreIds(v []string) {
+	o.VectorStoreIds = v
+}
+
 func (o ModelToolOneOf4) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -112,10 +216,17 @@ func (o ModelToolOneOf4) MarshalJSON() ([]byte, error) {
 
 func (o ModelToolOneOf4) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if o.Container != nil {
-		toSerialize["container"] = o.Container
+	if o.Filters != nil {
+		toSerialize["filters"] = o.Filters
+	}
+	if o.MaxNumResults.IsSet() {
+		toSerialize["max_num_results"] = o.MaxNumResults.Get()
+	}
+	if o.RankingOptions != nil {
+		toSerialize["ranking_options"] = o.RankingOptions
 	}
 	toSerialize["type"] = o.Type
+	toSerialize["vector_store_ids"] = o.VectorStoreIds
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -130,6 +241,7 @@ func (o *ModelToolOneOf4) UnmarshalJSON(data []byte) (err error) {
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
 		"type",
+		"vector_store_ids",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -137,10 +249,10 @@ func (o *ModelToolOneOf4) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -159,8 +271,11 @@ func (o *ModelToolOneOf4) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "container")
+		delete(additionalProperties, "filters")
+		delete(additionalProperties, "max_num_results")
+		delete(additionalProperties, "ranking_options")
 		delete(additionalProperties, "type")
+		delete(additionalProperties, "vector_store_ids")
 		o.AdditionalProperties = additionalProperties
 	}
 

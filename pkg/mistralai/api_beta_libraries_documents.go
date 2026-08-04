@@ -16,21 +16,22 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
+	"os"
 )
+
 
 type BetaLibrariesDocumentsAPI interface {
 
 	/*
-		LibrariesDocumentsDeleteV1 Delete a document.
+	LibrariesDocumentsDeleteV1 Delete a document.
 
-		Given a library and a document in that library, delete that document. The document will be deleted from the library and the search index.
+	Given a library and a document in that library, delete that document. The document will be deleted from the library and the search index.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param libraryId
-		@param documentId
-		@return ApiLibrariesDocumentsDeleteV1Request
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param libraryId
+	@param documentId
+	@return ApiLibrariesDocumentsDeleteV1Request
 	*/
 	LibrariesDocumentsDeleteV1(ctx context.Context, libraryId string, documentId string) ApiLibrariesDocumentsDeleteV1Request
 
@@ -38,14 +39,14 @@ type BetaLibrariesDocumentsAPI interface {
 	LibrariesDocumentsDeleteV1Execute(r ApiLibrariesDocumentsDeleteV1Request) (*http.Response, error)
 
 	/*
-		LibrariesDocumentsGetExtractedTextSignedUrlV1 Retrieve the signed URL of text extracted from a given document.
+	LibrariesDocumentsGetExtractedTextSignedUrlV1 Retrieve the signed URL of text extracted from a given document.
 
-		Given a library and a document in that library, retrieve the signed URL of text extracted. For documents that are sent to the OCR this returns the result of the OCR queries.
+	Given a library and a document in that library, retrieve the signed URL of text extracted. For documents that are sent to the OCR this returns the result of the OCR queries.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param libraryId
-		@param documentId
-		@return ApiLibrariesDocumentsGetExtractedTextSignedUrlV1Request
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param libraryId
+	@param documentId
+	@return ApiLibrariesDocumentsGetExtractedTextSignedUrlV1Request
 	*/
 	LibrariesDocumentsGetExtractedTextSignedUrlV1(ctx context.Context, libraryId string, documentId string) ApiLibrariesDocumentsGetExtractedTextSignedUrlV1Request
 
@@ -54,14 +55,14 @@ type BetaLibrariesDocumentsAPI interface {
 	LibrariesDocumentsGetExtractedTextSignedUrlV1Execute(r ApiLibrariesDocumentsGetExtractedTextSignedUrlV1Request) (string, *http.Response, error)
 
 	/*
-		LibrariesDocumentsGetSignedUrlV1 Retrieve the signed URL of a specific document.
+	LibrariesDocumentsGetSignedUrlV1 Retrieve the signed URL of a specific document.
 
-		Given a library and a document in that library, retrieve the signed URL of a specific document.The url will expire after 30 minutes and can be accessed by anyone with the link.
+	Given a library and a document in that library, retrieve the signed URL of a specific document.The url will expire after 30 minutes and can be accessed by anyone with the link.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param libraryId
-		@param documentId
-		@return ApiLibrariesDocumentsGetSignedUrlV1Request
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param libraryId
+	@param documentId
+	@return ApiLibrariesDocumentsGetSignedUrlV1Request
 	*/
 	LibrariesDocumentsGetSignedUrlV1(ctx context.Context, libraryId string, documentId string) ApiLibrariesDocumentsGetSignedUrlV1Request
 
@@ -70,30 +71,30 @@ type BetaLibrariesDocumentsAPI interface {
 	LibrariesDocumentsGetSignedUrlV1Execute(r ApiLibrariesDocumentsGetSignedUrlV1Request) (string, *http.Response, error)
 
 	/*
-		LibrariesDocumentsGetStatusV1 Retrieve the processing status of a specific document.
+	LibrariesDocumentsGetStatusV1 Retrieve the processing status of a specific document.
 
-		Given a library and a document in that library, retrieve the processing status of that document.
+	Given a library and a document in that library, retrieve the processing status of that document.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param libraryId
-		@param documentId
-		@return ApiLibrariesDocumentsGetStatusV1Request
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param libraryId
+	@param documentId
+	@return ApiLibrariesDocumentsGetStatusV1Request
 	*/
 	LibrariesDocumentsGetStatusV1(ctx context.Context, libraryId string, documentId string) ApiLibrariesDocumentsGetStatusV1Request
 
 	// LibrariesDocumentsGetStatusV1Execute executes the request
-	//  @return ProcessingStatusOut
-	LibrariesDocumentsGetStatusV1Execute(r ApiLibrariesDocumentsGetStatusV1Request) (*ProcessingStatusOut, *http.Response, error)
+	//  @return ProcessingStatus
+	LibrariesDocumentsGetStatusV1Execute(r ApiLibrariesDocumentsGetStatusV1Request) (*ProcessingStatus, *http.Response, error)
 
 	/*
-		LibrariesDocumentsGetTextContentV1 Retrieve the text content of a specific document.
+	LibrariesDocumentsGetTextContentV1 Retrieve the text content of a specific document.
 
-		Given a library and a document in that library, you can retrieve the text content of that document if it exists. For documents like pdf, docx and pptx the text content results from our processing using Mistral OCR.
+	Given a library and a document in that library, you can retrieve the text content of that document if it exists. For documents like pdf, docx and pptx the text content results from our processing using Mistral OCR.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param libraryId
-		@param documentId
-		@return ApiLibrariesDocumentsGetTextContentV1Request
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param libraryId
+	@param documentId
+	@return ApiLibrariesDocumentsGetTextContentV1Request
 	*/
 	LibrariesDocumentsGetTextContentV1(ctx context.Context, libraryId string, documentId string) ApiLibrariesDocumentsGetTextContentV1Request
 
@@ -102,45 +103,61 @@ type BetaLibrariesDocumentsAPI interface {
 	LibrariesDocumentsGetTextContentV1Execute(r ApiLibrariesDocumentsGetTextContentV1Request) (*DocumentTextContent, *http.Response, error)
 
 	/*
-		LibrariesDocumentsGetV1 Retrieve the metadata of a specific document.
+	LibrariesDocumentsGetV1 Retrieve the metadata of a specific document.
 
-		Given a library and a document in this library, you can retrieve the metadata of that document.
+	Given a library and a document in this library, you can retrieve the metadata of that document.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param libraryId
-		@param documentId
-		@return ApiLibrariesDocumentsGetV1Request
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param libraryId
+	@param documentId
+	@return ApiLibrariesDocumentsGetV1Request
 	*/
 	LibrariesDocumentsGetV1(ctx context.Context, libraryId string, documentId string) ApiLibrariesDocumentsGetV1Request
 
 	// LibrariesDocumentsGetV1Execute executes the request
-	//  @return DocumentOut
-	LibrariesDocumentsGetV1Execute(r ApiLibrariesDocumentsGetV1Request) (*DocumentOut, *http.Response, error)
+	//  @return Document
+	LibrariesDocumentsGetV1Execute(r ApiLibrariesDocumentsGetV1Request) (*Document, *http.Response, error)
 
 	/*
-		LibrariesDocumentsListV1 List documents in a given library.
+	LibrariesDocumentsListV1 List documents in a given library.
 
-		Given a library, lists the document that have been uploaded to that library.
+	Given a library, lists the document that have been uploaded to that library.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param libraryId
-		@return ApiLibrariesDocumentsListV1Request
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param libraryId
+	@return ApiLibrariesDocumentsListV1Request
 	*/
 	LibrariesDocumentsListV1(ctx context.Context, libraryId string) ApiLibrariesDocumentsListV1Request
 
 	// LibrariesDocumentsListV1Execute executes the request
-	//  @return ListDocumentOut
-	LibrariesDocumentsListV1Execute(r ApiLibrariesDocumentsListV1Request) (*ListDocumentOut, *http.Response, error)
+	//  @return ListDocumentsResponse
+	LibrariesDocumentsListV1Execute(r ApiLibrariesDocumentsListV1Request) (*ListDocumentsResponse, *http.Response, error)
 
 	/*
-		LibrariesDocumentsReprocessV1 Reprocess a document.
+	LibrariesDocumentsPatchV1 Update the metadata of a specific document.
 
-		Given a library and a document in that library, reprocess that document, it will be billed again.
+	Given a library and a document in that library, update the name and/or attributes of that document.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param libraryId
-		@param documentId
-		@return ApiLibrariesDocumentsReprocessV1Request
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param libraryId
+	@param documentId
+	@return ApiLibrariesDocumentsPatchV1Request
+	*/
+	LibrariesDocumentsPatchV1(ctx context.Context, libraryId string, documentId string) ApiLibrariesDocumentsPatchV1Request
+
+	// LibrariesDocumentsPatchV1Execute executes the request
+	//  @return Document
+	LibrariesDocumentsPatchV1Execute(r ApiLibrariesDocumentsPatchV1Request) (*Document, *http.Response, error)
+
+	/*
+	LibrariesDocumentsReprocessV1 Reprocess a document.
+
+	Given a library and a document in that library, reprocess that document, it will be billed again.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param libraryId
+	@param documentId
+	@return ApiLibrariesDocumentsReprocessV1Request
 	*/
 	LibrariesDocumentsReprocessV1(ctx context.Context, libraryId string, documentId string) ApiLibrariesDocumentsReprocessV1Request
 
@@ -148,44 +165,47 @@ type BetaLibrariesDocumentsAPI interface {
 	LibrariesDocumentsReprocessV1Execute(r ApiLibrariesDocumentsReprocessV1Request) (*http.Response, error)
 
 	/*
-		LibrariesDocumentsUpdateV1 Update the metadata of a specific document.
+	LibrariesDocumentsUpdateV1 Update the metadata of a specific document.
 
-		Given a library and a document in that library, update the name of that document.
+	Given a library and a document in that library, update the name of that document.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param libraryId
-		@param documentId
-		@return ApiLibrariesDocumentsUpdateV1Request
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param libraryId
+	@param documentId
+	@return ApiLibrariesDocumentsUpdateV1Request
+
+	Deprecated
 	*/
 	LibrariesDocumentsUpdateV1(ctx context.Context, libraryId string, documentId string) ApiLibrariesDocumentsUpdateV1Request
 
 	// LibrariesDocumentsUpdateV1Execute executes the request
-	//  @return DocumentOut
-	LibrariesDocumentsUpdateV1Execute(r ApiLibrariesDocumentsUpdateV1Request) (*DocumentOut, *http.Response, error)
+	//  @return Document
+	// Deprecated
+	LibrariesDocumentsUpdateV1Execute(r ApiLibrariesDocumentsUpdateV1Request) (*Document, *http.Response, error)
 
 	/*
-		LibrariesDocumentsUploadV1 Upload a new document.
+	LibrariesDocumentsUploadV1 Upload a new document.
 
-		Given a library, upload a new document to that library. It is queued for processing, it status will change it has been processed. The processing has to be completed in order be discoverable for the library search
+	Given a library, upload a new document to that library. It is queued for processing, it status will change it has been processed. The processing has to be completed in order be discoverable for the library search
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param libraryId
-		@return ApiLibrariesDocumentsUploadV1Request
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param libraryId
+	@return ApiLibrariesDocumentsUploadV1Request
 	*/
 	LibrariesDocumentsUploadV1(ctx context.Context, libraryId string) ApiLibrariesDocumentsUploadV1Request
 
 	// LibrariesDocumentsUploadV1Execute executes the request
-	//  @return DocumentOut
-	LibrariesDocumentsUploadV1Execute(r ApiLibrariesDocumentsUploadV1Request) (*DocumentOut, *http.Response, error)
+	//  @return Document
+	LibrariesDocumentsUploadV1Execute(r ApiLibrariesDocumentsUploadV1Request) (*Document, *http.Response, error)
 }
 
 // BetaLibrariesDocumentsAPIService BetaLibrariesDocumentsAPI service
 type BetaLibrariesDocumentsAPIService service
 
 type ApiLibrariesDocumentsDeleteV1Request struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService BetaLibrariesDocumentsAPI
-	libraryId  string
+	libraryId string
 	documentId string
 }
 
@@ -198,16 +218,16 @@ LibrariesDocumentsDeleteV1 Delete a document.
 
 Given a library and a document in that library, delete that document. The document will be deleted from the library and the search index.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param libraryId
-	@param documentId
-	@return ApiLibrariesDocumentsDeleteV1Request
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param libraryId
+ @param documentId
+ @return ApiLibrariesDocumentsDeleteV1Request
 */
 func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsDeleteV1(ctx context.Context, libraryId string, documentId string) ApiLibrariesDocumentsDeleteV1Request {
 	return ApiLibrariesDocumentsDeleteV1Request{
 		ApiService: a,
-		ctx:        ctx,
-		libraryId:  libraryId,
+		ctx: ctx,
+		libraryId: libraryId,
 		documentId: documentId,
 	}
 }
@@ -215,9 +235,9 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsDeleteV1(ctx contex
 // Execute executes the request
 func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsDeleteV1Execute(r ApiLibrariesDocumentsDeleteV1Request) (*http.Response, error) {
 	var (
-		localVarHTTPMethod = http.MethodDelete
-		localVarPostBody   interface{}
-		formFiles          []formFile
+		localVarHTTPMethod   = http.MethodDelete
+		localVarPostBody     interface{}
+		formFiles            []formFile
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaLibrariesDocumentsAPIService.LibrariesDocumentsDeleteV1")
@@ -279,8 +299,8 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsDeleteV1Execute(r A
 				newErr.error = err.Error()
 				return localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarHTTPResponse, newErr
 	}
@@ -289,9 +309,9 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsDeleteV1Execute(r A
 }
 
 type ApiLibrariesDocumentsGetExtractedTextSignedUrlV1Request struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService BetaLibrariesDocumentsAPI
-	libraryId  string
+	libraryId string
 	documentId string
 }
 
@@ -304,29 +324,28 @@ LibrariesDocumentsGetExtractedTextSignedUrlV1 Retrieve the signed URL of text ex
 
 Given a library and a document in that library, retrieve the signed URL of text extracted. For documents that are sent to the OCR this returns the result of the OCR queries.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param libraryId
-	@param documentId
-	@return ApiLibrariesDocumentsGetExtractedTextSignedUrlV1Request
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param libraryId
+ @param documentId
+ @return ApiLibrariesDocumentsGetExtractedTextSignedUrlV1Request
 */
 func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetExtractedTextSignedUrlV1(ctx context.Context, libraryId string, documentId string) ApiLibrariesDocumentsGetExtractedTextSignedUrlV1Request {
 	return ApiLibrariesDocumentsGetExtractedTextSignedUrlV1Request{
 		ApiService: a,
-		ctx:        ctx,
-		libraryId:  libraryId,
+		ctx: ctx,
+		libraryId: libraryId,
 		documentId: documentId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return string
+//  @return string
 func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetExtractedTextSignedUrlV1Execute(r ApiLibrariesDocumentsGetExtractedTextSignedUrlV1Request) (string, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue string
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  string
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaLibrariesDocumentsAPIService.LibrariesDocumentsGetExtractedTextSignedUrlV1")
@@ -388,8 +407,8 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetExtractedTextSig
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -407,9 +426,9 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetExtractedTextSig
 }
 
 type ApiLibrariesDocumentsGetSignedUrlV1Request struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService BetaLibrariesDocumentsAPI
-	libraryId  string
+	libraryId string
 	documentId string
 }
 
@@ -422,29 +441,28 @@ LibrariesDocumentsGetSignedUrlV1 Retrieve the signed URL of a specific document.
 
 Given a library and a document in that library, retrieve the signed URL of a specific document.The url will expire after 30 minutes and can be accessed by anyone with the link.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param libraryId
-	@param documentId
-	@return ApiLibrariesDocumentsGetSignedUrlV1Request
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param libraryId
+ @param documentId
+ @return ApiLibrariesDocumentsGetSignedUrlV1Request
 */
 func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetSignedUrlV1(ctx context.Context, libraryId string, documentId string) ApiLibrariesDocumentsGetSignedUrlV1Request {
 	return ApiLibrariesDocumentsGetSignedUrlV1Request{
 		ApiService: a,
-		ctx:        ctx,
-		libraryId:  libraryId,
+		ctx: ctx,
+		libraryId: libraryId,
 		documentId: documentId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return string
+//  @return string
 func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetSignedUrlV1Execute(r ApiLibrariesDocumentsGetSignedUrlV1Request) (string, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue string
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  string
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaLibrariesDocumentsAPIService.LibrariesDocumentsGetSignedUrlV1")
@@ -506,8 +524,8 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetSignedUrlV1Execu
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -525,13 +543,13 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetSignedUrlV1Execu
 }
 
 type ApiLibrariesDocumentsGetStatusV1Request struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService BetaLibrariesDocumentsAPI
-	libraryId  string
+	libraryId string
 	documentId string
 }
 
-func (r ApiLibrariesDocumentsGetStatusV1Request) Execute() (*ProcessingStatusOut, *http.Response, error) {
+func (r ApiLibrariesDocumentsGetStatusV1Request) Execute() (*ProcessingStatus, *http.Response, error) {
 	return r.ApiService.LibrariesDocumentsGetStatusV1Execute(r)
 }
 
@@ -540,29 +558,28 @@ LibrariesDocumentsGetStatusV1 Retrieve the processing status of a specific docum
 
 Given a library and a document in that library, retrieve the processing status of that document.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param libraryId
-	@param documentId
-	@return ApiLibrariesDocumentsGetStatusV1Request
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param libraryId
+ @param documentId
+ @return ApiLibrariesDocumentsGetStatusV1Request
 */
 func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetStatusV1(ctx context.Context, libraryId string, documentId string) ApiLibrariesDocumentsGetStatusV1Request {
 	return ApiLibrariesDocumentsGetStatusV1Request{
 		ApiService: a,
-		ctx:        ctx,
-		libraryId:  libraryId,
+		ctx: ctx,
+		libraryId: libraryId,
 		documentId: documentId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ProcessingStatusOut
-func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetStatusV1Execute(r ApiLibrariesDocumentsGetStatusV1Request) (*ProcessingStatusOut, *http.Response, error) {
+//  @return ProcessingStatus
+func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetStatusV1Execute(r ApiLibrariesDocumentsGetStatusV1Request) (*ProcessingStatus, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ProcessingStatusOut
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ProcessingStatus
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaLibrariesDocumentsAPIService.LibrariesDocumentsGetStatusV1")
@@ -624,8 +641,8 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetStatusV1Execute(
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -643,10 +660,22 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetStatusV1Execute(
 }
 
 type ApiLibrariesDocumentsGetTextContentV1Request struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService BetaLibrariesDocumentsAPI
-	libraryId  string
+	libraryId string
 	documentId string
+	pageStart *int32
+	pageEnd *int32
+}
+
+func (r ApiLibrariesDocumentsGetTextContentV1Request) PageStart(pageStart int32) ApiLibrariesDocumentsGetTextContentV1Request {
+	r.pageStart = &pageStart
+	return r
+}
+
+func (r ApiLibrariesDocumentsGetTextContentV1Request) PageEnd(pageEnd int32) ApiLibrariesDocumentsGetTextContentV1Request {
+	r.pageEnd = &pageEnd
+	return r
 }
 
 func (r ApiLibrariesDocumentsGetTextContentV1Request) Execute() (*DocumentTextContent, *http.Response, error) {
@@ -658,29 +687,28 @@ LibrariesDocumentsGetTextContentV1 Retrieve the text content of a specific docum
 
 Given a library and a document in that library, you can retrieve the text content of that document if it exists. For documents like pdf, docx and pptx the text content results from our processing using Mistral OCR.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param libraryId
-	@param documentId
-	@return ApiLibrariesDocumentsGetTextContentV1Request
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param libraryId
+ @param documentId
+ @return ApiLibrariesDocumentsGetTextContentV1Request
 */
 func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetTextContentV1(ctx context.Context, libraryId string, documentId string) ApiLibrariesDocumentsGetTextContentV1Request {
 	return ApiLibrariesDocumentsGetTextContentV1Request{
 		ApiService: a,
-		ctx:        ctx,
-		libraryId:  libraryId,
+		ctx: ctx,
+		libraryId: libraryId,
 		documentId: documentId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return DocumentTextContent
+//  @return DocumentTextContent
 func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetTextContentV1Execute(r ApiLibrariesDocumentsGetTextContentV1Request) (*DocumentTextContent, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *DocumentTextContent
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *DocumentTextContent
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaLibrariesDocumentsAPIService.LibrariesDocumentsGetTextContentV1")
@@ -696,6 +724,12 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetTextContentV1Exe
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.pageStart != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page_start", r.pageStart, "form", "")
+	}
+	if r.pageEnd != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page_end", r.pageEnd, "form", "")
+	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
 
@@ -742,8 +776,8 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetTextContentV1Exe
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -761,13 +795,13 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetTextContentV1Exe
 }
 
 type ApiLibrariesDocumentsGetV1Request struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService BetaLibrariesDocumentsAPI
-	libraryId  string
+	libraryId string
 	documentId string
 }
 
-func (r ApiLibrariesDocumentsGetV1Request) Execute() (*DocumentOut, *http.Response, error) {
+func (r ApiLibrariesDocumentsGetV1Request) Execute() (*Document, *http.Response, error) {
 	return r.ApiService.LibrariesDocumentsGetV1Execute(r)
 }
 
@@ -776,29 +810,28 @@ LibrariesDocumentsGetV1 Retrieve the metadata of a specific document.
 
 Given a library and a document in this library, you can retrieve the metadata of that document.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param libraryId
-	@param documentId
-	@return ApiLibrariesDocumentsGetV1Request
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param libraryId
+ @param documentId
+ @return ApiLibrariesDocumentsGetV1Request
 */
 func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetV1(ctx context.Context, libraryId string, documentId string) ApiLibrariesDocumentsGetV1Request {
 	return ApiLibrariesDocumentsGetV1Request{
 		ApiService: a,
-		ctx:        ctx,
-		libraryId:  libraryId,
+		ctx: ctx,
+		libraryId: libraryId,
 		documentId: documentId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return DocumentOut
-func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetV1Execute(r ApiLibrariesDocumentsGetV1Request) (*DocumentOut, *http.Response, error) {
+//  @return Document
+func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetV1Execute(r ApiLibrariesDocumentsGetV1Request) (*Document, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *DocumentOut
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *Document
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaLibrariesDocumentsAPIService.LibrariesDocumentsGetV1")
@@ -860,8 +893,8 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetV1Execute(r ApiL
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -879,15 +912,15 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsGetV1Execute(r ApiL
 }
 
 type ApiLibrariesDocumentsListV1Request struct {
-	ctx               context.Context
-	ApiService        BetaLibrariesDocumentsAPI
-	libraryId         string
-	search            *string
-	pageSize          *int32
-	page              *int32
+	ctx context.Context
+	ApiService BetaLibrariesDocumentsAPI
+	libraryId string
+	search *string
+	pageSize *int32
+	page *int32
 	filtersAttributes *string
-	sortBy            *string
-	sortOrder         *string
+	sortBy *string
+	sortOrder *string
 }
 
 func (r ApiLibrariesDocumentsListV1Request) Search(search string) ApiLibrariesDocumentsListV1Request {
@@ -905,6 +938,8 @@ func (r ApiLibrariesDocumentsListV1Request) Page(page int32) ApiLibrariesDocumen
 	return r
 }
 
+// Deprecated: this parameter will be removed in a future version.
+// Deprecated
 func (r ApiLibrariesDocumentsListV1Request) FiltersAttributes(filtersAttributes string) ApiLibrariesDocumentsListV1Request {
 	r.filtersAttributes = &filtersAttributes
 	return r
@@ -920,7 +955,7 @@ func (r ApiLibrariesDocumentsListV1Request) SortOrder(sortOrder string) ApiLibra
 	return r
 }
 
-func (r ApiLibrariesDocumentsListV1Request) Execute() (*ListDocumentOut, *http.Response, error) {
+func (r ApiLibrariesDocumentsListV1Request) Execute() (*ListDocumentsResponse, *http.Response, error) {
 	return r.ApiService.LibrariesDocumentsListV1Execute(r)
 }
 
@@ -929,27 +964,26 @@ LibrariesDocumentsListV1 List documents in a given library.
 
 Given a library, lists the document that have been uploaded to that library.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param libraryId
-	@return ApiLibrariesDocumentsListV1Request
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param libraryId
+ @return ApiLibrariesDocumentsListV1Request
 */
 func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsListV1(ctx context.Context, libraryId string) ApiLibrariesDocumentsListV1Request {
 	return ApiLibrariesDocumentsListV1Request{
 		ApiService: a,
-		ctx:        ctx,
-		libraryId:  libraryId,
+		ctx: ctx,
+		libraryId: libraryId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ListDocumentOut
-func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsListV1Execute(r ApiLibrariesDocumentsListV1Request) (*ListDocumentOut, *http.Response, error) {
+//  @return ListDocumentsResponse
+func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsListV1Execute(r ApiLibrariesDocumentsListV1Request) (*ListDocumentsResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ListDocumentOut
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ListDocumentsResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaLibrariesDocumentsAPIService.LibrariesDocumentsListV1")
@@ -1044,8 +1078,136 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsListV1Execute(r Api
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiLibrariesDocumentsPatchV1Request struct {
+	ctx context.Context
+	ApiService BetaLibrariesDocumentsAPI
+	libraryId string
+	documentId string
+	updateDocumentRequest *UpdateDocumentRequest
+}
+
+func (r ApiLibrariesDocumentsPatchV1Request) UpdateDocumentRequest(updateDocumentRequest UpdateDocumentRequest) ApiLibrariesDocumentsPatchV1Request {
+	r.updateDocumentRequest = &updateDocumentRequest
+	return r
+}
+
+func (r ApiLibrariesDocumentsPatchV1Request) Execute() (*Document, *http.Response, error) {
+	return r.ApiService.LibrariesDocumentsPatchV1Execute(r)
+}
+
+/*
+LibrariesDocumentsPatchV1 Update the metadata of a specific document.
+
+Given a library and a document in that library, update the name and/or attributes of that document.
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param libraryId
+ @param documentId
+ @return ApiLibrariesDocumentsPatchV1Request
+*/
+func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsPatchV1(ctx context.Context, libraryId string, documentId string) ApiLibrariesDocumentsPatchV1Request {
+	return ApiLibrariesDocumentsPatchV1Request{
+		ApiService: a,
+		ctx: ctx,
+		libraryId: libraryId,
+		documentId: documentId,
+	}
+}
+
+// Execute executes the request
+//  @return Document
+func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsPatchV1Execute(r ApiLibrariesDocumentsPatchV1Request) (*Document, *http.Response, error) {
+	var (
+		localVarHTTPMethod   = http.MethodPatch
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *Document
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaLibrariesDocumentsAPIService.LibrariesDocumentsPatchV1")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/libraries/{library_id}/documents/{document_id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"library_id"+"}", url.PathEscape(parameterValueToString(r.libraryId, "libraryId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"document_id"+"}", url.PathEscape(parameterValueToString(r.documentId, "documentId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.updateDocumentRequest == nil {
+		return localVarReturnValue, nil, reportError("updateDocumentRequest is required and must be specified")
+	}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = r.updateDocumentRequest
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 422 {
+			var v HTTPValidationError
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -1063,9 +1225,9 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsListV1Execute(r Api
 }
 
 type ApiLibrariesDocumentsReprocessV1Request struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService BetaLibrariesDocumentsAPI
-	libraryId  string
+	libraryId string
 	documentId string
 }
 
@@ -1078,16 +1240,16 @@ LibrariesDocumentsReprocessV1 Reprocess a document.
 
 Given a library and a document in that library, reprocess that document, it will be billed again.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param libraryId
-	@param documentId
-	@return ApiLibrariesDocumentsReprocessV1Request
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param libraryId
+ @param documentId
+ @return ApiLibrariesDocumentsReprocessV1Request
 */
 func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsReprocessV1(ctx context.Context, libraryId string, documentId string) ApiLibrariesDocumentsReprocessV1Request {
 	return ApiLibrariesDocumentsReprocessV1Request{
 		ApiService: a,
-		ctx:        ctx,
-		libraryId:  libraryId,
+		ctx: ctx,
+		libraryId: libraryId,
 		documentId: documentId,
 	}
 }
@@ -1095,9 +1257,9 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsReprocessV1(ctx con
 // Execute executes the request
 func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsReprocessV1Execute(r ApiLibrariesDocumentsReprocessV1Request) (*http.Response, error) {
 	var (
-		localVarHTTPMethod = http.MethodPost
-		localVarPostBody   interface{}
-		formFiles          []formFile
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaLibrariesDocumentsAPIService.LibrariesDocumentsReprocessV1")
@@ -1159,8 +1321,8 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsReprocessV1Execute(
 				newErr.error = err.Error()
 				return localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarHTTPResponse, newErr
 	}
@@ -1169,19 +1331,19 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsReprocessV1Execute(
 }
 
 type ApiLibrariesDocumentsUpdateV1Request struct {
-	ctx              context.Context
-	ApiService       BetaLibrariesDocumentsAPI
-	libraryId        string
-	documentId       string
-	documentUpdateIn *DocumentUpdateIn
+	ctx context.Context
+	ApiService BetaLibrariesDocumentsAPI
+	libraryId string
+	documentId string
+	updateDocumentRequest *UpdateDocumentRequest
 }
 
-func (r ApiLibrariesDocumentsUpdateV1Request) DocumentUpdateIn(documentUpdateIn DocumentUpdateIn) ApiLibrariesDocumentsUpdateV1Request {
-	r.documentUpdateIn = &documentUpdateIn
+func (r ApiLibrariesDocumentsUpdateV1Request) UpdateDocumentRequest(updateDocumentRequest UpdateDocumentRequest) ApiLibrariesDocumentsUpdateV1Request {
+	r.updateDocumentRequest = &updateDocumentRequest
 	return r
 }
 
-func (r ApiLibrariesDocumentsUpdateV1Request) Execute() (*DocumentOut, *http.Response, error) {
+func (r ApiLibrariesDocumentsUpdateV1Request) Execute() (*Document, *http.Response, error) {
 	return r.ApiService.LibrariesDocumentsUpdateV1Execute(r)
 }
 
@@ -1190,29 +1352,31 @@ LibrariesDocumentsUpdateV1 Update the metadata of a specific document.
 
 Given a library and a document in that library, update the name of that document.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param libraryId
-	@param documentId
-	@return ApiLibrariesDocumentsUpdateV1Request
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param libraryId
+ @param documentId
+ @return ApiLibrariesDocumentsUpdateV1Request
+
+Deprecated
 */
 func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsUpdateV1(ctx context.Context, libraryId string, documentId string) ApiLibrariesDocumentsUpdateV1Request {
 	return ApiLibrariesDocumentsUpdateV1Request{
 		ApiService: a,
-		ctx:        ctx,
-		libraryId:  libraryId,
+		ctx: ctx,
+		libraryId: libraryId,
 		documentId: documentId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return DocumentOut
-func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsUpdateV1Execute(r ApiLibrariesDocumentsUpdateV1Request) (*DocumentOut, *http.Response, error) {
+//  @return Document
+// Deprecated
+func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsUpdateV1Execute(r ApiLibrariesDocumentsUpdateV1Request) (*Document, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPut
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *DocumentOut
+		localVarHTTPMethod   = http.MethodPut
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *Document
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaLibrariesDocumentsAPIService.LibrariesDocumentsUpdateV1")
@@ -1227,8 +1391,8 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsUpdateV1Execute(r A
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.documentUpdateIn == nil {
-		return localVarReturnValue, nil, reportError("documentUpdateIn is required and must be specified")
+	if r.updateDocumentRequest == nil {
+		return localVarReturnValue, nil, reportError("updateDocumentRequest is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -1249,7 +1413,7 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsUpdateV1Execute(r A
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.documentUpdateIn
+	localVarPostBody = r.updateDocumentRequest
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -1279,8 +1443,8 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsUpdateV1Execute(r A
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -1298,10 +1462,10 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsUpdateV1Execute(r A
 }
 
 type ApiLibrariesDocumentsUploadV1Request struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService BetaLibrariesDocumentsAPI
-	libraryId  string
-	file       *os.File
+	libraryId string
+	file *os.File
 }
 
 // The File object (not file name) to be uploaded.  To upload a file and specify a custom file name you should format your request as such:  &#x60;&#x60;&#x60;bash  file&#x3D;@path/to/your/file.jsonl;filename&#x3D;custom_name.jsonl  &#x60;&#x60;&#x60;  Otherwise, you can just keep the original file name:  &#x60;&#x60;&#x60;bash  file&#x3D;@path/to/your/file.jsonl  &#x60;&#x60;&#x60;
@@ -1310,7 +1474,7 @@ func (r ApiLibrariesDocumentsUploadV1Request) File(file *os.File) ApiLibrariesDo
 	return r
 }
 
-func (r ApiLibrariesDocumentsUploadV1Request) Execute() (*DocumentOut, *http.Response, error) {
+func (r ApiLibrariesDocumentsUploadV1Request) Execute() (*Document, *http.Response, error) {
 	return r.ApiService.LibrariesDocumentsUploadV1Execute(r)
 }
 
@@ -1319,27 +1483,26 @@ LibrariesDocumentsUploadV1 Upload a new document.
 
 Given a library, upload a new document to that library. It is queued for processing, it status will change it has been processed. The processing has to be completed in order be discoverable for the library search
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param libraryId
-	@return ApiLibrariesDocumentsUploadV1Request
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param libraryId
+ @return ApiLibrariesDocumentsUploadV1Request
 */
 func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsUploadV1(ctx context.Context, libraryId string) ApiLibrariesDocumentsUploadV1Request {
 	return ApiLibrariesDocumentsUploadV1Request{
 		ApiService: a,
-		ctx:        ctx,
-		libraryId:  libraryId,
+		ctx: ctx,
+		libraryId: libraryId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return DocumentOut
-func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsUploadV1Execute(r ApiLibrariesDocumentsUploadV1Request) (*DocumentOut, *http.Response, error) {
+//  @return Document
+func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsUploadV1Execute(r ApiLibrariesDocumentsUploadV1Request) (*Document, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *DocumentOut
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *Document
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BetaLibrariesDocumentsAPIService.LibrariesDocumentsUploadV1")
@@ -1375,8 +1538,8 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsUploadV1Execute(r A
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	var fileLocalVarFormFileName string
-	var fileLocalVarFileName string
-	var fileLocalVarFileBytes []byte
+	var fileLocalVarFileName     string
+	var fileLocalVarFileBytes    []byte
 
 	fileLocalVarFormFileName = "file"
 	fileLocalVarFile := r.file
@@ -1418,8 +1581,8 @@ func (a *BetaLibrariesDocumentsAPIService) LibrariesDocumentsUploadV1Execute(r A
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

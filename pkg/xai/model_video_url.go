@@ -22,7 +22,7 @@ type VideoUrl struct {
 	// File ID from the xAI Files API. Mutually exclusive with `url`. The file must be a video (e.g., MP4) and fully uploaded.
 	FileId NullableString `json:"file_id,omitempty"`
 	// URL of the video (public URL or base64-encoded data URL). The video must have the `.mp4` file extension and be encoded with `.mp4` supported codecs such as H.265, H.264, AV1, etc. Required when `file_id` is not set.
-	Url                  *string `json:"url,omitempty"`
+	Url *string `json:"url,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -77,7 +77,6 @@ func (o *VideoUrl) HasFileId() bool {
 func (o *VideoUrl) SetFileId(v string) {
 	o.FileId.Set(&v)
 }
-
 // SetFileIdNil sets the value for FileId to be an explicit nil
 func (o *VideoUrl) SetFileIdNil() {
 	o.FileId.Set(nil)
@@ -121,7 +120,7 @@ func (o *VideoUrl) SetUrl(v string) {
 }
 
 func (o VideoUrl) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

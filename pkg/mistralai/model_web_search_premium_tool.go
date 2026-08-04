@@ -19,6 +19,7 @@ var _ MappedNullable = &WebSearchPremiumTool{}
 
 // WebSearchPremiumTool struct for WebSearchPremiumTool
 type WebSearchPremiumTool struct {
+	ToolConfiguration NullableToolConfiguration `json:"tool_configuration,omitempty"`
 	Type *string `json:"type,omitempty"`
 }
 
@@ -41,6 +42,48 @@ func NewWebSearchPremiumToolWithDefaults() *WebSearchPremiumTool {
 	var type_ string = "web_search_premium"
 	this.Type = &type_
 	return &this
+}
+
+// GetToolConfiguration returns the ToolConfiguration field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *WebSearchPremiumTool) GetToolConfiguration() ToolConfiguration {
+	if o == nil || IsNil(o.ToolConfiguration.Get()) {
+		var ret ToolConfiguration
+		return ret
+	}
+	return *o.ToolConfiguration.Get()
+}
+
+// GetToolConfigurationOk returns a tuple with the ToolConfiguration field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *WebSearchPremiumTool) GetToolConfigurationOk() (*ToolConfiguration, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ToolConfiguration.Get(), o.ToolConfiguration.IsSet()
+}
+
+// HasToolConfiguration returns a boolean if a field has been set.
+func (o *WebSearchPremiumTool) HasToolConfiguration() bool {
+	if o != nil && o.ToolConfiguration.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetToolConfiguration gets a reference to the given NullableToolConfiguration and assigns it to the ToolConfiguration field.
+func (o *WebSearchPremiumTool) SetToolConfiguration(v ToolConfiguration) {
+	o.ToolConfiguration.Set(&v)
+}
+// SetToolConfigurationNil sets the value for ToolConfiguration to be an explicit nil
+func (o *WebSearchPremiumTool) SetToolConfigurationNil() {
+	o.ToolConfiguration.Set(nil)
+}
+
+// UnsetToolConfiguration ensures that no value is present for ToolConfiguration, not even an explicit nil
+func (o *WebSearchPremiumTool) UnsetToolConfiguration() {
+	o.ToolConfiguration.Unset()
 }
 
 // GetType returns the Type field value if set, zero value otherwise.
@@ -76,7 +119,7 @@ func (o *WebSearchPremiumTool) SetType(v string) {
 }
 
 func (o WebSearchPremiumTool) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -85,6 +128,9 @@ func (o WebSearchPremiumTool) MarshalJSON() ([]byte, error) {
 
 func (o WebSearchPremiumTool) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if o.ToolConfiguration.IsSet() {
+		toSerialize["tool_configuration"] = o.ToolConfiguration.Get()
+	}
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
 	}

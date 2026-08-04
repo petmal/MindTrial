@@ -31,6 +31,8 @@ type GenerateVideoRequest struct {
 	Output NullableVideoOutput `json:"output,omitempty"`
 	// Prompt for video generation. Required for text-to-video (T2V) and reference-to-video (R2V). Optional for image-to-video (I2V) — when omitted, the model generates a video from the image alone.
 	Prompt *string `json:"prompt,omitempty"`
+	// Optional reference audio (voice identity) for reference-to-video generation. Each entry selects a first-party preset voice via `voice_id`. Only supported by select video models; at most 3 entries. May be provided without `reference_images` (audio-only reference-to-video) — at least one reference of either kind selects the reference-to-video mode.
+	ReferenceAudios []AudioUrl `json:"reference_audios,omitempty"`
 	// Optional reference images for reference-to-video (R2V) generation. When provided generates video using these images as style/content references.
 	ReferenceImages []ImageUrl `json:"reference_images,omitempty"`
 	// Resolution of the generated video.
@@ -38,7 +40,7 @@ type GenerateVideoRequest struct {
 	// Optional output storage configuration. When present, the generated video is stored in the Files API and a `file_output` reference is returned in the response alongside the ephemeral URL.
 	StorageOptions NullableStorageOptions `json:"storage_options,omitempty"`
 	// A unique identifier representing your end-user.
-	User                 NullableString `json:"user,omitempty"`
+	User NullableString `json:"user,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -97,7 +99,6 @@ func (o *GenerateVideoRequest) HasAspectRatio() bool {
 func (o *GenerateVideoRequest) SetAspectRatio(v VideoAspectRatio) {
 	o.AspectRatio.Set(&v)
 }
-
 // SetAspectRatioNil sets the value for AspectRatio to be an explicit nil
 func (o *GenerateVideoRequest) SetAspectRatioNil() {
 	o.AspectRatio.Set(nil)
@@ -140,7 +141,6 @@ func (o *GenerateVideoRequest) HasDuration() bool {
 func (o *GenerateVideoRequest) SetDuration(v int32) {
 	o.Duration.Set(&v)
 }
-
 // SetDurationNil sets the value for Duration to be an explicit nil
 func (o *GenerateVideoRequest) SetDurationNil() {
 	o.Duration.Set(nil)
@@ -183,7 +183,6 @@ func (o *GenerateVideoRequest) HasImage() bool {
 func (o *GenerateVideoRequest) SetImage(v ImageUrl) {
 	o.Image.Set(&v)
 }
-
 // SetImageNil sets the value for Image to be an explicit nil
 func (o *GenerateVideoRequest) SetImageNil() {
 	o.Image.Set(nil)
@@ -226,7 +225,6 @@ func (o *GenerateVideoRequest) HasModel() bool {
 func (o *GenerateVideoRequest) SetModel(v string) {
 	o.Model.Set(&v)
 }
-
 // SetModelNil sets the value for Model to be an explicit nil
 func (o *GenerateVideoRequest) SetModelNil() {
 	o.Model.Set(nil)
@@ -269,7 +267,6 @@ func (o *GenerateVideoRequest) HasOutput() bool {
 func (o *GenerateVideoRequest) SetOutput(v VideoOutput) {
 	o.Output.Set(&v)
 }
-
 // SetOutputNil sets the value for Output to be an explicit nil
 func (o *GenerateVideoRequest) SetOutputNil() {
 	o.Output.Set(nil)
@@ -310,6 +307,38 @@ func (o *GenerateVideoRequest) HasPrompt() bool {
 // SetPrompt gets a reference to the given string and assigns it to the Prompt field.
 func (o *GenerateVideoRequest) SetPrompt(v string) {
 	o.Prompt = &v
+}
+
+// GetReferenceAudios returns the ReferenceAudios field value if set, zero value otherwise.
+func (o *GenerateVideoRequest) GetReferenceAudios() []AudioUrl {
+	if o == nil || IsNil(o.ReferenceAudios) {
+		var ret []AudioUrl
+		return ret
+	}
+	return o.ReferenceAudios
+}
+
+// GetReferenceAudiosOk returns a tuple with the ReferenceAudios field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *GenerateVideoRequest) GetReferenceAudiosOk() ([]AudioUrl, bool) {
+	if o == nil || IsNil(o.ReferenceAudios) {
+		return nil, false
+	}
+	return o.ReferenceAudios, true
+}
+
+// HasReferenceAudios returns a boolean if a field has been set.
+func (o *GenerateVideoRequest) HasReferenceAudios() bool {
+	if o != nil && !IsNil(o.ReferenceAudios) {
+		return true
+	}
+
+	return false
+}
+
+// SetReferenceAudios gets a reference to the given []AudioUrl and assigns it to the ReferenceAudios field.
+func (o *GenerateVideoRequest) SetReferenceAudios(v []AudioUrl) {
+	o.ReferenceAudios = v
 }
 
 // GetReferenceImages returns the ReferenceImages field value if set, zero value otherwise.
@@ -376,7 +405,6 @@ func (o *GenerateVideoRequest) HasResolution() bool {
 func (o *GenerateVideoRequest) SetResolution(v VideoResolution) {
 	o.Resolution.Set(&v)
 }
-
 // SetResolutionNil sets the value for Resolution to be an explicit nil
 func (o *GenerateVideoRequest) SetResolutionNil() {
 	o.Resolution.Set(nil)
@@ -419,7 +447,6 @@ func (o *GenerateVideoRequest) HasStorageOptions() bool {
 func (o *GenerateVideoRequest) SetStorageOptions(v StorageOptions) {
 	o.StorageOptions.Set(&v)
 }
-
 // SetStorageOptionsNil sets the value for StorageOptions to be an explicit nil
 func (o *GenerateVideoRequest) SetStorageOptionsNil() {
 	o.StorageOptions.Set(nil)
@@ -462,7 +489,6 @@ func (o *GenerateVideoRequest) HasUser() bool {
 func (o *GenerateVideoRequest) SetUser(v string) {
 	o.User.Set(&v)
 }
-
 // SetUserNil sets the value for User to be an explicit nil
 func (o *GenerateVideoRequest) SetUserNil() {
 	o.User.Set(nil)
@@ -474,7 +500,7 @@ func (o *GenerateVideoRequest) UnsetUser() {
 }
 
 func (o GenerateVideoRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -500,6 +526,9 @@ func (o GenerateVideoRequest) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.Prompt) {
 		toSerialize["prompt"] = o.Prompt
+	}
+	if !IsNil(o.ReferenceAudios) {
+		toSerialize["reference_audios"] = o.ReferenceAudios
 	}
 	if !IsNil(o.ReferenceImages) {
 		toSerialize["reference_images"] = o.ReferenceImages
@@ -541,6 +570,7 @@ func (o *GenerateVideoRequest) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "model")
 		delete(additionalProperties, "output")
 		delete(additionalProperties, "prompt")
+		delete(additionalProperties, "reference_audios")
 		delete(additionalProperties, "reference_images")
 		delete(additionalProperties, "resolution")
 		delete(additionalProperties, "storage_options")

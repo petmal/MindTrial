@@ -20,7 +20,7 @@ var _ MappedNullable = &KeywordRetrieval{}
 // KeywordRetrieval Document search using keyword matching (sparse embeddings).
 type KeywordRetrieval struct {
 	// Optional, but always used when doing search across multiple collections.
-	Reranker             NullableRerankerModel `json:"reranker,omitempty"`
+	Reranker NullableRerankerModel `json:"reranker,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -75,7 +75,6 @@ func (o *KeywordRetrieval) HasReranker() bool {
 func (o *KeywordRetrieval) SetReranker(v RerankerModel) {
 	o.Reranker.Set(&v)
 }
-
 // SetRerankerNil sets the value for Reranker to be an explicit nil
 func (o *KeywordRetrieval) SetRerankerNil() {
 	o.Reranker.Set(nil)
@@ -87,7 +86,7 @@ func (o *KeywordRetrieval) UnsetReranker() {
 }
 
 func (o KeywordRetrieval) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

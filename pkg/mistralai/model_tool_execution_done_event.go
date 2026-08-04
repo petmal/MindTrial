@@ -11,10 +11,10 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"time"
+	"bytes"
+	"fmt"
 )
 
 // checks if the ToolExecutionDoneEvent type satisfies the MappedNullable interface at compile time
@@ -22,12 +22,12 @@ var _ MappedNullable = &ToolExecutionDoneEvent{}
 
 // ToolExecutionDoneEvent struct for ToolExecutionDoneEvent
 type ToolExecutionDoneEvent struct {
-	Type        *string                `json:"type,omitempty"`
-	CreatedAt   *time.Time             `json:"created_at,omitempty"`
-	OutputIndex *int32                 `json:"output_index,omitempty"`
-	Id          string                 `json:"id"`
-	Name        Name                   `json:"name"`
-	Info        map[string]interface{} `json:"info,omitempty"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	Id string `json:"id"`
+	Info map[string]interface{} `json:"info,omitempty"`
+	Name Name `json:"name"`
+	OutputIndex *int32 `json:"output_index,omitempty"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _ToolExecutionDoneEvent ToolExecutionDoneEvent
@@ -38,12 +38,12 @@ type _ToolExecutionDoneEvent ToolExecutionDoneEvent
 // will change when the set of required properties is changed
 func NewToolExecutionDoneEvent(id string, name Name) *ToolExecutionDoneEvent {
 	this := ToolExecutionDoneEvent{}
-	var type_ string = "tool.execution.done"
-	this.Type = &type_
-	var outputIndex int32 = 0
-	this.OutputIndex = &outputIndex
 	this.Id = id
 	this.Name = name
+	var outputIndex int32 = 0
+	this.OutputIndex = &outputIndex
+	var type_ string = "tool.execution.done"
+	this.Type = &type_
 	return &this
 }
 
@@ -52,43 +52,11 @@ func NewToolExecutionDoneEvent(id string, name Name) *ToolExecutionDoneEvent {
 // but it doesn't guarantee that properties required by API are set
 func NewToolExecutionDoneEventWithDefaults() *ToolExecutionDoneEvent {
 	this := ToolExecutionDoneEvent{}
-	var type_ string = "tool.execution.done"
-	this.Type = &type_
 	var outputIndex int32 = 0
 	this.OutputIndex = &outputIndex
+	var type_ string = "tool.execution.done"
+	this.Type = &type_
 	return &this
-}
-
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *ToolExecutionDoneEvent) GetType() string {
-	if o == nil || IsNil(o.Type) {
-		var ret string
-		return ret
-	}
-	return *o.Type
-}
-
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ToolExecutionDoneEvent) GetTypeOk() (*string, bool) {
-	if o == nil || IsNil(o.Type) {
-		return nil, false
-	}
-	return o.Type, true
-}
-
-// HasType returns a boolean if a field has been set.
-func (o *ToolExecutionDoneEvent) HasType() bool {
-	if o != nil && !IsNil(o.Type) {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given string and assigns it to the Type field.
-func (o *ToolExecutionDoneEvent) SetType(v string) {
-	o.Type = &v
 }
 
 // GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
@@ -123,38 +91,6 @@ func (o *ToolExecutionDoneEvent) SetCreatedAt(v time.Time) {
 	o.CreatedAt = &v
 }
 
-// GetOutputIndex returns the OutputIndex field value if set, zero value otherwise.
-func (o *ToolExecutionDoneEvent) GetOutputIndex() int32 {
-	if o == nil || IsNil(o.OutputIndex) {
-		var ret int32
-		return ret
-	}
-	return *o.OutputIndex
-}
-
-// GetOutputIndexOk returns a tuple with the OutputIndex field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ToolExecutionDoneEvent) GetOutputIndexOk() (*int32, bool) {
-	if o == nil || IsNil(o.OutputIndex) {
-		return nil, false
-	}
-	return o.OutputIndex, true
-}
-
-// HasOutputIndex returns a boolean if a field has been set.
-func (o *ToolExecutionDoneEvent) HasOutputIndex() bool {
-	if o != nil && !IsNil(o.OutputIndex) {
-		return true
-	}
-
-	return false
-}
-
-// SetOutputIndex gets a reference to the given int32 and assigns it to the OutputIndex field.
-func (o *ToolExecutionDoneEvent) SetOutputIndex(v int32) {
-	o.OutputIndex = &v
-}
-
 // GetId returns the Id field value
 func (o *ToolExecutionDoneEvent) GetId() string {
 	if o == nil {
@@ -177,30 +113,6 @@ func (o *ToolExecutionDoneEvent) GetIdOk() (*string, bool) {
 // SetId sets field value
 func (o *ToolExecutionDoneEvent) SetId(v string) {
 	o.Id = v
-}
-
-// GetName returns the Name field value
-func (o *ToolExecutionDoneEvent) GetName() Name {
-	if o == nil {
-		var ret Name
-		return ret
-	}
-
-	return o.Name
-}
-
-// GetNameOk returns a tuple with the Name field value
-// and a boolean to check if the value has been set.
-func (o *ToolExecutionDoneEvent) GetNameOk() (*Name, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Name, true
-}
-
-// SetName sets field value
-func (o *ToolExecutionDoneEvent) SetName(v Name) {
-	o.Name = v
 }
 
 // GetInfo returns the Info field value if set, zero value otherwise.
@@ -235,8 +147,96 @@ func (o *ToolExecutionDoneEvent) SetInfo(v map[string]interface{}) {
 	o.Info = v
 }
 
+// GetName returns the Name field value
+func (o *ToolExecutionDoneEvent) GetName() Name {
+	if o == nil {
+		var ret Name
+		return ret
+	}
+
+	return o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value
+// and a boolean to check if the value has been set.
+func (o *ToolExecutionDoneEvent) GetNameOk() (*Name, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Name, true
+}
+
+// SetName sets field value
+func (o *ToolExecutionDoneEvent) SetName(v Name) {
+	o.Name = v
+}
+
+// GetOutputIndex returns the OutputIndex field value if set, zero value otherwise.
+func (o *ToolExecutionDoneEvent) GetOutputIndex() int32 {
+	if o == nil || IsNil(o.OutputIndex) {
+		var ret int32
+		return ret
+	}
+	return *o.OutputIndex
+}
+
+// GetOutputIndexOk returns a tuple with the OutputIndex field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ToolExecutionDoneEvent) GetOutputIndexOk() (*int32, bool) {
+	if o == nil || IsNil(o.OutputIndex) {
+		return nil, false
+	}
+	return o.OutputIndex, true
+}
+
+// HasOutputIndex returns a boolean if a field has been set.
+func (o *ToolExecutionDoneEvent) HasOutputIndex() bool {
+	if o != nil && !IsNil(o.OutputIndex) {
+		return true
+	}
+
+	return false
+}
+
+// SetOutputIndex gets a reference to the given int32 and assigns it to the OutputIndex field.
+func (o *ToolExecutionDoneEvent) SetOutputIndex(v int32) {
+	o.OutputIndex = &v
+}
+
+// GetType returns the Type field value if set, zero value otherwise.
+func (o *ToolExecutionDoneEvent) GetType() string {
+	if o == nil || IsNil(o.Type) {
+		var ret string
+		return ret
+	}
+	return *o.Type
+}
+
+// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ToolExecutionDoneEvent) GetTypeOk() (*string, bool) {
+	if o == nil || IsNil(o.Type) {
+		return nil, false
+	}
+	return o.Type, true
+}
+
+// HasType returns a boolean if a field has been set.
+func (o *ToolExecutionDoneEvent) HasType() bool {
+	if o != nil && !IsNil(o.Type) {
+		return true
+	}
+
+	return false
+}
+
+// SetType gets a reference to the given string and assigns it to the Type field.
+func (o *ToolExecutionDoneEvent) SetType(v string) {
+	o.Type = &v
+}
+
 func (o ToolExecutionDoneEvent) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -245,19 +245,19 @@ func (o ToolExecutionDoneEvent) MarshalJSON() ([]byte, error) {
 
 func (o ToolExecutionDoneEvent) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Type) {
-		toSerialize["type"] = o.Type
-	}
 	if !IsNil(o.CreatedAt) {
 		toSerialize["created_at"] = o.CreatedAt
 	}
+	toSerialize["id"] = o.Id
+	if !IsNil(o.Info) {
+		toSerialize["info"] = o.Info
+	}
+	toSerialize["name"] = o.Name
 	if !IsNil(o.OutputIndex) {
 		toSerialize["output_index"] = o.OutputIndex
 	}
-	toSerialize["id"] = o.Id
-	toSerialize["name"] = o.Name
-	if !IsNil(o.Info) {
-		toSerialize["info"] = o.Info
+	if !IsNil(o.Type) {
+		toSerialize["type"] = o.Type
 	}
 	return toSerialize, nil
 }
@@ -276,10 +276,10 @@ func (o *ToolExecutionDoneEvent) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

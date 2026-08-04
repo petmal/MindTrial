@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,10 +21,10 @@ var _ MappedNullable = &ClassificationRequest{}
 
 // ClassificationRequest struct for ClassificationRequest
 type ClassificationRequest struct {
-	// ID of the model to use.
-	Model    string                 `json:"model"`
+	Input Input1 `json:"input"`
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
-	Input    Input1                 `json:"input"`
+	// ID of the model to use.
+	Model string `json:"model"`
 }
 
 type _ClassificationRequest ClassificationRequest
@@ -33,10 +33,10 @@ type _ClassificationRequest ClassificationRequest
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewClassificationRequest(model string, input Input1) *ClassificationRequest {
+func NewClassificationRequest(input Input1, model string) *ClassificationRequest {
 	this := ClassificationRequest{}
-	this.Model = model
 	this.Input = input
+	this.Model = model
 	return &this
 }
 
@@ -48,28 +48,28 @@ func NewClassificationRequestWithDefaults() *ClassificationRequest {
 	return &this
 }
 
-// GetModel returns the Model field value
-func (o *ClassificationRequest) GetModel() string {
+// GetInput returns the Input field value
+func (o *ClassificationRequest) GetInput() Input1 {
 	if o == nil {
-		var ret string
+		var ret Input1
 		return ret
 	}
 
-	return o.Model
+	return o.Input
 }
 
-// GetModelOk returns a tuple with the Model field value
+// GetInputOk returns a tuple with the Input field value
 // and a boolean to check if the value has been set.
-func (o *ClassificationRequest) GetModelOk() (*string, bool) {
+func (o *ClassificationRequest) GetInputOk() (*Input1, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Model, true
+	return &o.Input, true
 }
 
-// SetModel sets field value
-func (o *ClassificationRequest) SetModel(v string) {
-	o.Model = v
+// SetInput sets field value
+func (o *ClassificationRequest) SetInput(v Input1) {
+	o.Input = v
 }
 
 // GetMetadata returns the Metadata field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -105,32 +105,32 @@ func (o *ClassificationRequest) SetMetadata(v map[string]interface{}) {
 	o.Metadata = v
 }
 
-// GetInput returns the Input field value
-func (o *ClassificationRequest) GetInput() Input1 {
+// GetModel returns the Model field value
+func (o *ClassificationRequest) GetModel() string {
 	if o == nil {
-		var ret Input1
+		var ret string
 		return ret
 	}
 
-	return o.Input
+	return o.Model
 }
 
-// GetInputOk returns a tuple with the Input field value
+// GetModelOk returns a tuple with the Model field value
 // and a boolean to check if the value has been set.
-func (o *ClassificationRequest) GetInputOk() (*Input1, bool) {
+func (o *ClassificationRequest) GetModelOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Input, true
+	return &o.Model, true
 }
 
-// SetInput sets field value
-func (o *ClassificationRequest) SetInput(v Input1) {
-	o.Input = v
+// SetModel sets field value
+func (o *ClassificationRequest) SetModel(v string) {
+	o.Model = v
 }
 
 func (o ClassificationRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -139,11 +139,11 @@ func (o ClassificationRequest) MarshalJSON() ([]byte, error) {
 
 func (o ClassificationRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["model"] = o.Model
+	toSerialize["input"] = o.Input
 	if o.Metadata != nil {
 		toSerialize["metadata"] = o.Metadata
 	}
-	toSerialize["input"] = o.Input
+	toSerialize["model"] = o.Model
 	return toSerialize, nil
 }
 
@@ -152,8 +152,8 @@ func (o *ClassificationRequest) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"model",
 		"input",
+		"model",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -161,10 +161,10 @@ func (o *ClassificationRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

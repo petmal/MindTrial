@@ -20,9 +20,9 @@ var _ MappedNullable = &CompletionResponseStreamChoice{}
 
 // CompletionResponseStreamChoice struct for CompletionResponseStreamChoice
 type CompletionResponseStreamChoice struct {
-	Index                int32          `json:"index"`
-	Delta                DeltaMessage   `json:"delta"`
-	FinishReason         NullableString `json:"finish_reason"`
+	Delta DeltaMessage `json:"delta"`
+	FinishReason NullableString `json:"finish_reason"`
+	Index int32 `json:"index"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -32,11 +32,11 @@ type _CompletionResponseStreamChoice CompletionResponseStreamChoice
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCompletionResponseStreamChoice(index int32, delta DeltaMessage, finishReason NullableString) *CompletionResponseStreamChoice {
+func NewCompletionResponseStreamChoice(delta DeltaMessage, finishReason NullableString, index int32) *CompletionResponseStreamChoice {
 	this := CompletionResponseStreamChoice{}
-	this.Index = index
 	this.Delta = delta
 	this.FinishReason = finishReason
+	this.Index = index
 	return &this
 }
 
@@ -46,30 +46,6 @@ func NewCompletionResponseStreamChoice(index int32, delta DeltaMessage, finishRe
 func NewCompletionResponseStreamChoiceWithDefaults() *CompletionResponseStreamChoice {
 	this := CompletionResponseStreamChoice{}
 	return &this
-}
-
-// GetIndex returns the Index field value
-func (o *CompletionResponseStreamChoice) GetIndex() int32 {
-	if o == nil {
-		var ret int32
-		return ret
-	}
-
-	return o.Index
-}
-
-// GetIndexOk returns a tuple with the Index field value
-// and a boolean to check if the value has been set.
-func (o *CompletionResponseStreamChoice) GetIndexOk() (*int32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Index, true
-}
-
-// SetIndex sets field value
-func (o *CompletionResponseStreamChoice) SetIndex(v int32) {
-	o.Index = v
 }
 
 // GetDelta returns the Delta field value
@@ -122,8 +98,32 @@ func (o *CompletionResponseStreamChoice) SetFinishReason(v string) {
 	o.FinishReason.Set(&v)
 }
 
+// GetIndex returns the Index field value
+func (o *CompletionResponseStreamChoice) GetIndex() int32 {
+	if o == nil {
+		var ret int32
+		return ret
+	}
+
+	return o.Index
+}
+
+// GetIndexOk returns a tuple with the Index field value
+// and a boolean to check if the value has been set.
+func (o *CompletionResponseStreamChoice) GetIndexOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Index, true
+}
+
+// SetIndex sets field value
+func (o *CompletionResponseStreamChoice) SetIndex(v int32) {
+	o.Index = v
+}
+
 func (o CompletionResponseStreamChoice) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -132,9 +132,9 @@ func (o CompletionResponseStreamChoice) MarshalJSON() ([]byte, error) {
 
 func (o CompletionResponseStreamChoice) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["index"] = o.Index
 	toSerialize["delta"] = o.Delta
 	toSerialize["finish_reason"] = o.FinishReason.Get()
+	toSerialize["index"] = o.Index
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -148,9 +148,9 @@ func (o *CompletionResponseStreamChoice) UnmarshalJSON(data []byte) (err error) 
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"index",
 		"delta",
 		"finish_reason",
+		"index",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -158,10 +158,10 @@ func (o *CompletionResponseStreamChoice) UnmarshalJSON(data []byte) (err error) 
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -180,9 +180,9 @@ func (o *CompletionResponseStreamChoice) UnmarshalJSON(data []byte) (err error) 
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "index")
 		delete(additionalProperties, "delta")
 		delete(additionalProperties, "finish_reason")
+		delete(additionalProperties, "index")
 		o.AdditionalProperties = additionalProperties
 	}
 

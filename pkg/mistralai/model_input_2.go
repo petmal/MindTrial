@@ -15,39 +15,45 @@ import (
 	"fmt"
 )
 
-// Input2 The text content to be embedded, can be a string or an array of strings for fast processing in bulk.
+
+// Input2 Input data for the query, matching its schema
 type Input2 struct {
-	ArrayOfString *[]string
-	String        *string
+	NetworkEncodedInput *NetworkEncodedInput
+	MapmapOfStringAny *map[string]interface{}
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
 func (dst *Input2) UnmarshalJSON(data []byte) error {
 	var err error
-	// try to unmarshal JSON data into ArrayOfString
-	err = json.Unmarshal(data, &dst.ArrayOfString)
-	if err == nil {
-		jsonArrayOfString, _ := json.Marshal(dst.ArrayOfString)
-		if string(jsonArrayOfString) == "{}" { // empty struct
-			dst.ArrayOfString = nil
-		} else {
-			return nil // data stored in dst.ArrayOfString, return on the first match
-		}
-	} else {
-		dst.ArrayOfString = nil
+	// this object is nullable so check if the payload is null or empty string
+	if string(data) == "" || string(data) == "{}" {
+		return nil
 	}
 
-	// try to unmarshal JSON data into String
-	err = json.Unmarshal(data, &dst.String)
+	// try to unmarshal JSON data into NetworkEncodedInput
+	err = json.Unmarshal(data, &dst.NetworkEncodedInput);
 	if err == nil {
-		jsonString, _ := json.Marshal(dst.String)
-		if string(jsonString) == "{}" { // empty struct
-			dst.String = nil
+		jsonNetworkEncodedInput, _ := json.Marshal(dst.NetworkEncodedInput)
+		if string(jsonNetworkEncodedInput) == "{}" { // empty struct
+			dst.NetworkEncodedInput = nil
 		} else {
-			return nil // data stored in dst.String, return on the first match
+			return nil // data stored in dst.NetworkEncodedInput, return on the first match
 		}
 	} else {
-		dst.String = nil
+		dst.NetworkEncodedInput = nil
+	}
+
+	// try to unmarshal JSON data into MapmapOfStringAny
+	err = json.Unmarshal(data, &dst.MapmapOfStringAny);
+	if err == nil {
+		jsonMapmapOfStringAny, _ := json.Marshal(dst.MapmapOfStringAny)
+		if string(jsonMapmapOfStringAny) == "{}" { // empty struct
+			dst.MapmapOfStringAny = nil
+		} else {
+			return nil // data stored in dst.MapmapOfStringAny, return on the first match
+		}
+	} else {
+		dst.MapmapOfStringAny = nil
 	}
 
 	return fmt.Errorf("data failed to match schemas in anyOf(Input2)")
@@ -55,16 +61,17 @@ func (dst *Input2) UnmarshalJSON(data []byte) error {
 
 // Marshal data from the first non-nil pointers in the struct to JSON
 func (src Input2) MarshalJSON() ([]byte, error) {
-	if src.ArrayOfString != nil {
-		return json.Marshal(&src.ArrayOfString)
+	if src.NetworkEncodedInput != nil {
+		return json.Marshal(&src.NetworkEncodedInput)
 	}
 
-	if src.String != nil {
-		return json.Marshal(&src.String)
+	if src.MapmapOfStringAny != nil {
+		return json.Marshal(&src.MapmapOfStringAny)
 	}
 
 	return nil, nil // no data in anyOf schemas
 }
+
 
 type NullableInput2 struct {
 	value *Input2

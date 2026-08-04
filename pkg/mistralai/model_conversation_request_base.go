@@ -20,21 +20,24 @@ var _ MappedNullable = &ConversationRequestBase{}
 
 // ConversationRequestBase struct for ConversationRequestBase
 type ConversationRequestBase struct {
-	Inputs           ConversationInputs `json:"inputs"`
-	Stream           NullableBool       `json:"stream,omitempty"`
-	Store            NullableBool       `json:"store,omitempty"`
-	HandoffExecution NullableString     `json:"handoff_execution,omitempty"`
-	Instructions     NullableString     `json:"instructions,omitempty"`
-	// List of tools which are available to the model during the conversation.
-	Tools          []ToolsInner           `json:"tools,omitempty"`
+	AgentId NullableString `json:"agent_id,omitempty"`
+	AgentVersion NullableAgentVersion1 `json:"agent_version,omitempty"`
 	CompletionArgs NullableCompletionArgs `json:"completion_args,omitempty"`
-	Name           NullableString         `json:"name,omitempty"`
-	Description    NullableString         `json:"description,omitempty"`
+	Description NullableString `json:"description,omitempty"`
+	Guardrails []GuardrailConfig `json:"guardrails,omitempty"`
+	HandoffExecution NullableString `json:"handoff_execution,omitempty"`
+	Inputs ConversationInputs `json:"inputs"`
+	// Workspace ID to filter results.
+	Instructions NullableString `json:"instructions,omitempty"`
 	// Custom type for metadata with embedded validation.
-	Metadata             map[string]interface{} `json:"metadata,omitempty"`
-	AgentId              NullableString         `json:"agent_id,omitempty"`
-	AgentVersion         NullableAgentVersion1  `json:"agent_version,omitempty"`
-	Model                NullableString         `json:"model,omitempty"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Model NullableString `json:"model,omitempty"`
+	Name NullableString `json:"name,omitempty"`
+	// Deprecated: this parameter will be removed in a future version.
+	Store NullableBool `json:"store,omitempty"`
+	// Deprecated: this parameter will be removed in a future version.
+	Stream NullableBool `json:"stream,omitempty"`
+	Tools []ToolsInner `json:"tools,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -56,396 +59,6 @@ func NewConversationRequestBase(inputs ConversationInputs) *ConversationRequestB
 func NewConversationRequestBaseWithDefaults() *ConversationRequestBase {
 	this := ConversationRequestBase{}
 	return &this
-}
-
-// GetInputs returns the Inputs field value
-func (o *ConversationRequestBase) GetInputs() ConversationInputs {
-	if o == nil {
-		var ret ConversationInputs
-		return ret
-	}
-
-	return o.Inputs
-}
-
-// GetInputsOk returns a tuple with the Inputs field value
-// and a boolean to check if the value has been set.
-func (o *ConversationRequestBase) GetInputsOk() (*ConversationInputs, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Inputs, true
-}
-
-// SetInputs sets field value
-func (o *ConversationRequestBase) SetInputs(v ConversationInputs) {
-	o.Inputs = v
-}
-
-// GetStream returns the Stream field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ConversationRequestBase) GetStream() bool {
-	if o == nil || IsNil(o.Stream.Get()) {
-		var ret bool
-		return ret
-	}
-	return *o.Stream.Get()
-}
-
-// GetStreamOk returns a tuple with the Stream field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ConversationRequestBase) GetStreamOk() (*bool, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Stream.Get(), o.Stream.IsSet()
-}
-
-// HasStream returns a boolean if a field has been set.
-func (o *ConversationRequestBase) HasStream() bool {
-	if o != nil && o.Stream.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetStream gets a reference to the given NullableBool and assigns it to the Stream field.
-func (o *ConversationRequestBase) SetStream(v bool) {
-	o.Stream.Set(&v)
-}
-
-// SetStreamNil sets the value for Stream to be an explicit nil
-func (o *ConversationRequestBase) SetStreamNil() {
-	o.Stream.Set(nil)
-}
-
-// UnsetStream ensures that no value is present for Stream, not even an explicit nil
-func (o *ConversationRequestBase) UnsetStream() {
-	o.Stream.Unset()
-}
-
-// GetStore returns the Store field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ConversationRequestBase) GetStore() bool {
-	if o == nil || IsNil(o.Store.Get()) {
-		var ret bool
-		return ret
-	}
-	return *o.Store.Get()
-}
-
-// GetStoreOk returns a tuple with the Store field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ConversationRequestBase) GetStoreOk() (*bool, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Store.Get(), o.Store.IsSet()
-}
-
-// HasStore returns a boolean if a field has been set.
-func (o *ConversationRequestBase) HasStore() bool {
-	if o != nil && o.Store.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetStore gets a reference to the given NullableBool and assigns it to the Store field.
-func (o *ConversationRequestBase) SetStore(v bool) {
-	o.Store.Set(&v)
-}
-
-// SetStoreNil sets the value for Store to be an explicit nil
-func (o *ConversationRequestBase) SetStoreNil() {
-	o.Store.Set(nil)
-}
-
-// UnsetStore ensures that no value is present for Store, not even an explicit nil
-func (o *ConversationRequestBase) UnsetStore() {
-	o.Store.Unset()
-}
-
-// GetHandoffExecution returns the HandoffExecution field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ConversationRequestBase) GetHandoffExecution() string {
-	if o == nil || IsNil(o.HandoffExecution.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.HandoffExecution.Get()
-}
-
-// GetHandoffExecutionOk returns a tuple with the HandoffExecution field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ConversationRequestBase) GetHandoffExecutionOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.HandoffExecution.Get(), o.HandoffExecution.IsSet()
-}
-
-// HasHandoffExecution returns a boolean if a field has been set.
-func (o *ConversationRequestBase) HasHandoffExecution() bool {
-	if o != nil && o.HandoffExecution.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetHandoffExecution gets a reference to the given NullableString and assigns it to the HandoffExecution field.
-func (o *ConversationRequestBase) SetHandoffExecution(v string) {
-	o.HandoffExecution.Set(&v)
-}
-
-// SetHandoffExecutionNil sets the value for HandoffExecution to be an explicit nil
-func (o *ConversationRequestBase) SetHandoffExecutionNil() {
-	o.HandoffExecution.Set(nil)
-}
-
-// UnsetHandoffExecution ensures that no value is present for HandoffExecution, not even an explicit nil
-func (o *ConversationRequestBase) UnsetHandoffExecution() {
-	o.HandoffExecution.Unset()
-}
-
-// GetInstructions returns the Instructions field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ConversationRequestBase) GetInstructions() string {
-	if o == nil || IsNil(o.Instructions.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.Instructions.Get()
-}
-
-// GetInstructionsOk returns a tuple with the Instructions field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ConversationRequestBase) GetInstructionsOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Instructions.Get(), o.Instructions.IsSet()
-}
-
-// HasInstructions returns a boolean if a field has been set.
-func (o *ConversationRequestBase) HasInstructions() bool {
-	if o != nil && o.Instructions.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetInstructions gets a reference to the given NullableString and assigns it to the Instructions field.
-func (o *ConversationRequestBase) SetInstructions(v string) {
-	o.Instructions.Set(&v)
-}
-
-// SetInstructionsNil sets the value for Instructions to be an explicit nil
-func (o *ConversationRequestBase) SetInstructionsNil() {
-	o.Instructions.Set(nil)
-}
-
-// UnsetInstructions ensures that no value is present for Instructions, not even an explicit nil
-func (o *ConversationRequestBase) UnsetInstructions() {
-	o.Instructions.Unset()
-}
-
-// GetTools returns the Tools field value if set, zero value otherwise.
-func (o *ConversationRequestBase) GetTools() []ToolsInner {
-	if o == nil || IsNil(o.Tools) {
-		var ret []ToolsInner
-		return ret
-	}
-	return o.Tools
-}
-
-// GetToolsOk returns a tuple with the Tools field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ConversationRequestBase) GetToolsOk() ([]ToolsInner, bool) {
-	if o == nil || IsNil(o.Tools) {
-		return nil, false
-	}
-	return o.Tools, true
-}
-
-// HasTools returns a boolean if a field has been set.
-func (o *ConversationRequestBase) HasTools() bool {
-	if o != nil && !IsNil(o.Tools) {
-		return true
-	}
-
-	return false
-}
-
-// SetTools gets a reference to the given []ToolsInner and assigns it to the Tools field.
-func (o *ConversationRequestBase) SetTools(v []ToolsInner) {
-	o.Tools = v
-}
-
-// GetCompletionArgs returns the CompletionArgs field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ConversationRequestBase) GetCompletionArgs() CompletionArgs {
-	if o == nil || IsNil(o.CompletionArgs.Get()) {
-		var ret CompletionArgs
-		return ret
-	}
-	return *o.CompletionArgs.Get()
-}
-
-// GetCompletionArgsOk returns a tuple with the CompletionArgs field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ConversationRequestBase) GetCompletionArgsOk() (*CompletionArgs, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.CompletionArgs.Get(), o.CompletionArgs.IsSet()
-}
-
-// HasCompletionArgs returns a boolean if a field has been set.
-func (o *ConversationRequestBase) HasCompletionArgs() bool {
-	if o != nil && o.CompletionArgs.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetCompletionArgs gets a reference to the given NullableCompletionArgs and assigns it to the CompletionArgs field.
-func (o *ConversationRequestBase) SetCompletionArgs(v CompletionArgs) {
-	o.CompletionArgs.Set(&v)
-}
-
-// SetCompletionArgsNil sets the value for CompletionArgs to be an explicit nil
-func (o *ConversationRequestBase) SetCompletionArgsNil() {
-	o.CompletionArgs.Set(nil)
-}
-
-// UnsetCompletionArgs ensures that no value is present for CompletionArgs, not even an explicit nil
-func (o *ConversationRequestBase) UnsetCompletionArgs() {
-	o.CompletionArgs.Unset()
-}
-
-// GetName returns the Name field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ConversationRequestBase) GetName() string {
-	if o == nil || IsNil(o.Name.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.Name.Get()
-}
-
-// GetNameOk returns a tuple with the Name field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ConversationRequestBase) GetNameOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Name.Get(), o.Name.IsSet()
-}
-
-// HasName returns a boolean if a field has been set.
-func (o *ConversationRequestBase) HasName() bool {
-	if o != nil && o.Name.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetName gets a reference to the given NullableString and assigns it to the Name field.
-func (o *ConversationRequestBase) SetName(v string) {
-	o.Name.Set(&v)
-}
-
-// SetNameNil sets the value for Name to be an explicit nil
-func (o *ConversationRequestBase) SetNameNil() {
-	o.Name.Set(nil)
-}
-
-// UnsetName ensures that no value is present for Name, not even an explicit nil
-func (o *ConversationRequestBase) UnsetName() {
-	o.Name.Unset()
-}
-
-// GetDescription returns the Description field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ConversationRequestBase) GetDescription() string {
-	if o == nil || IsNil(o.Description.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.Description.Get()
-}
-
-// GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ConversationRequestBase) GetDescriptionOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Description.Get(), o.Description.IsSet()
-}
-
-// HasDescription returns a boolean if a field has been set.
-func (o *ConversationRequestBase) HasDescription() bool {
-	if o != nil && o.Description.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetDescription gets a reference to the given NullableString and assigns it to the Description field.
-func (o *ConversationRequestBase) SetDescription(v string) {
-	o.Description.Set(&v)
-}
-
-// SetDescriptionNil sets the value for Description to be an explicit nil
-func (o *ConversationRequestBase) SetDescriptionNil() {
-	o.Description.Set(nil)
-}
-
-// UnsetDescription ensures that no value is present for Description, not even an explicit nil
-func (o *ConversationRequestBase) UnsetDescription() {
-	o.Description.Unset()
-}
-
-// GetMetadata returns the Metadata field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ConversationRequestBase) GetMetadata() map[string]interface{} {
-	if o == nil {
-		var ret map[string]interface{}
-		return ret
-	}
-	return o.Metadata
-}
-
-// GetMetadataOk returns a tuple with the Metadata field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ConversationRequestBase) GetMetadataOk() (map[string]interface{}, bool) {
-	if o == nil || IsNil(o.Metadata) {
-		return map[string]interface{}{}, false
-	}
-	return o.Metadata, true
-}
-
-// HasMetadata returns a boolean if a field has been set.
-func (o *ConversationRequestBase) HasMetadata() bool {
-	if o != nil && !IsNil(o.Metadata) {
-		return true
-	}
-
-	return false
-}
-
-// SetMetadata gets a reference to the given map[string]interface{} and assigns it to the Metadata field.
-func (o *ConversationRequestBase) SetMetadata(v map[string]interface{}) {
-	o.Metadata = v
 }
 
 // GetAgentId returns the AgentId field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -480,7 +93,6 @@ func (o *ConversationRequestBase) HasAgentId() bool {
 func (o *ConversationRequestBase) SetAgentId(v string) {
 	o.AgentId.Set(&v)
 }
-
 // SetAgentIdNil sets the value for AgentId to be an explicit nil
 func (o *ConversationRequestBase) SetAgentIdNil() {
 	o.AgentId.Set(nil)
@@ -523,7 +135,6 @@ func (o *ConversationRequestBase) HasAgentVersion() bool {
 func (o *ConversationRequestBase) SetAgentVersion(v AgentVersion1) {
 	o.AgentVersion.Set(&v)
 }
-
 // SetAgentVersionNil sets the value for AgentVersion to be an explicit nil
 func (o *ConversationRequestBase) SetAgentVersionNil() {
 	o.AgentVersion.Set(nil)
@@ -532,6 +143,264 @@ func (o *ConversationRequestBase) SetAgentVersionNil() {
 // UnsetAgentVersion ensures that no value is present for AgentVersion, not even an explicit nil
 func (o *ConversationRequestBase) UnsetAgentVersion() {
 	o.AgentVersion.Unset()
+}
+
+// GetCompletionArgs returns the CompletionArgs field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ConversationRequestBase) GetCompletionArgs() CompletionArgs {
+	if o == nil || IsNil(o.CompletionArgs.Get()) {
+		var ret CompletionArgs
+		return ret
+	}
+	return *o.CompletionArgs.Get()
+}
+
+// GetCompletionArgsOk returns a tuple with the CompletionArgs field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ConversationRequestBase) GetCompletionArgsOk() (*CompletionArgs, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.CompletionArgs.Get(), o.CompletionArgs.IsSet()
+}
+
+// HasCompletionArgs returns a boolean if a field has been set.
+func (o *ConversationRequestBase) HasCompletionArgs() bool {
+	if o != nil && o.CompletionArgs.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetCompletionArgs gets a reference to the given NullableCompletionArgs and assigns it to the CompletionArgs field.
+func (o *ConversationRequestBase) SetCompletionArgs(v CompletionArgs) {
+	o.CompletionArgs.Set(&v)
+}
+// SetCompletionArgsNil sets the value for CompletionArgs to be an explicit nil
+func (o *ConversationRequestBase) SetCompletionArgsNil() {
+	o.CompletionArgs.Set(nil)
+}
+
+// UnsetCompletionArgs ensures that no value is present for CompletionArgs, not even an explicit nil
+func (o *ConversationRequestBase) UnsetCompletionArgs() {
+	o.CompletionArgs.Unset()
+}
+
+// GetDescription returns the Description field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ConversationRequestBase) GetDescription() string {
+	if o == nil || IsNil(o.Description.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Description.Get()
+}
+
+// GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ConversationRequestBase) GetDescriptionOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Description.Get(), o.Description.IsSet()
+}
+
+// HasDescription returns a boolean if a field has been set.
+func (o *ConversationRequestBase) HasDescription() bool {
+	if o != nil && o.Description.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetDescription gets a reference to the given NullableString and assigns it to the Description field.
+func (o *ConversationRequestBase) SetDescription(v string) {
+	o.Description.Set(&v)
+}
+// SetDescriptionNil sets the value for Description to be an explicit nil
+func (o *ConversationRequestBase) SetDescriptionNil() {
+	o.Description.Set(nil)
+}
+
+// UnsetDescription ensures that no value is present for Description, not even an explicit nil
+func (o *ConversationRequestBase) UnsetDescription() {
+	o.Description.Unset()
+}
+
+// GetGuardrails returns the Guardrails field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ConversationRequestBase) GetGuardrails() []GuardrailConfig {
+	if o == nil {
+		var ret []GuardrailConfig
+		return ret
+	}
+	return o.Guardrails
+}
+
+// GetGuardrailsOk returns a tuple with the Guardrails field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ConversationRequestBase) GetGuardrailsOk() ([]GuardrailConfig, bool) {
+	if o == nil || IsNil(o.Guardrails) {
+		return nil, false
+	}
+	return o.Guardrails, true
+}
+
+// HasGuardrails returns a boolean if a field has been set.
+func (o *ConversationRequestBase) HasGuardrails() bool {
+	if o != nil && !IsNil(o.Guardrails) {
+		return true
+	}
+
+	return false
+}
+
+// SetGuardrails gets a reference to the given []GuardrailConfig and assigns it to the Guardrails field.
+func (o *ConversationRequestBase) SetGuardrails(v []GuardrailConfig) {
+	o.Guardrails = v
+}
+
+// GetHandoffExecution returns the HandoffExecution field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ConversationRequestBase) GetHandoffExecution() string {
+	if o == nil || IsNil(o.HandoffExecution.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.HandoffExecution.Get()
+}
+
+// GetHandoffExecutionOk returns a tuple with the HandoffExecution field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ConversationRequestBase) GetHandoffExecutionOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.HandoffExecution.Get(), o.HandoffExecution.IsSet()
+}
+
+// HasHandoffExecution returns a boolean if a field has been set.
+func (o *ConversationRequestBase) HasHandoffExecution() bool {
+	if o != nil && o.HandoffExecution.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetHandoffExecution gets a reference to the given NullableString and assigns it to the HandoffExecution field.
+func (o *ConversationRequestBase) SetHandoffExecution(v string) {
+	o.HandoffExecution.Set(&v)
+}
+// SetHandoffExecutionNil sets the value for HandoffExecution to be an explicit nil
+func (o *ConversationRequestBase) SetHandoffExecutionNil() {
+	o.HandoffExecution.Set(nil)
+}
+
+// UnsetHandoffExecution ensures that no value is present for HandoffExecution, not even an explicit nil
+func (o *ConversationRequestBase) UnsetHandoffExecution() {
+	o.HandoffExecution.Unset()
+}
+
+// GetInputs returns the Inputs field value
+func (o *ConversationRequestBase) GetInputs() ConversationInputs {
+	if o == nil {
+		var ret ConversationInputs
+		return ret
+	}
+
+	return o.Inputs
+}
+
+// GetInputsOk returns a tuple with the Inputs field value
+// and a boolean to check if the value has been set.
+func (o *ConversationRequestBase) GetInputsOk() (*ConversationInputs, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Inputs, true
+}
+
+// SetInputs sets field value
+func (o *ConversationRequestBase) SetInputs(v ConversationInputs) {
+	o.Inputs = v
+}
+
+// GetInstructions returns the Instructions field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ConversationRequestBase) GetInstructions() string {
+	if o == nil || IsNil(o.Instructions.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Instructions.Get()
+}
+
+// GetInstructionsOk returns a tuple with the Instructions field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ConversationRequestBase) GetInstructionsOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Instructions.Get(), o.Instructions.IsSet()
+}
+
+// HasInstructions returns a boolean if a field has been set.
+func (o *ConversationRequestBase) HasInstructions() bool {
+	if o != nil && o.Instructions.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetInstructions gets a reference to the given NullableString and assigns it to the Instructions field.
+func (o *ConversationRequestBase) SetInstructions(v string) {
+	o.Instructions.Set(&v)
+}
+// SetInstructionsNil sets the value for Instructions to be an explicit nil
+func (o *ConversationRequestBase) SetInstructionsNil() {
+	o.Instructions.Set(nil)
+}
+
+// UnsetInstructions ensures that no value is present for Instructions, not even an explicit nil
+func (o *ConversationRequestBase) UnsetInstructions() {
+	o.Instructions.Unset()
+}
+
+// GetMetadata returns the Metadata field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ConversationRequestBase) GetMetadata() map[string]interface{} {
+	if o == nil {
+		var ret map[string]interface{}
+		return ret
+	}
+	return o.Metadata
+}
+
+// GetMetadataOk returns a tuple with the Metadata field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ConversationRequestBase) GetMetadataOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Metadata) {
+		return map[string]interface{}{}, false
+	}
+	return o.Metadata, true
+}
+
+// HasMetadata returns a boolean if a field has been set.
+func (o *ConversationRequestBase) HasMetadata() bool {
+	if o != nil && !IsNil(o.Metadata) {
+		return true
+	}
+
+	return false
+}
+
+// SetMetadata gets a reference to the given map[string]interface{} and assigns it to the Metadata field.
+func (o *ConversationRequestBase) SetMetadata(v map[string]interface{}) {
+	o.Metadata = v
 }
 
 // GetModel returns the Model field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -566,7 +435,6 @@ func (o *ConversationRequestBase) HasModel() bool {
 func (o *ConversationRequestBase) SetModel(v string) {
 	o.Model.Set(&v)
 }
-
 // SetModelNil sets the value for Model to be an explicit nil
 func (o *ConversationRequestBase) SetModelNil() {
 	o.Model.Set(nil)
@@ -577,8 +445,167 @@ func (o *ConversationRequestBase) UnsetModel() {
 	o.Model.Unset()
 }
 
+// GetName returns the Name field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ConversationRequestBase) GetName() string {
+	if o == nil || IsNil(o.Name.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Name.Get()
+}
+
+// GetNameOk returns a tuple with the Name field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ConversationRequestBase) GetNameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Name.Get(), o.Name.IsSet()
+}
+
+// HasName returns a boolean if a field has been set.
+func (o *ConversationRequestBase) HasName() bool {
+	if o != nil && o.Name.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetName gets a reference to the given NullableString and assigns it to the Name field.
+func (o *ConversationRequestBase) SetName(v string) {
+	o.Name.Set(&v)
+}
+// SetNameNil sets the value for Name to be an explicit nil
+func (o *ConversationRequestBase) SetNameNil() {
+	o.Name.Set(nil)
+}
+
+// UnsetName ensures that no value is present for Name, not even an explicit nil
+func (o *ConversationRequestBase) UnsetName() {
+	o.Name.Unset()
+}
+
+// GetStore returns the Store field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ConversationRequestBase) GetStore() bool {
+	if o == nil || IsNil(o.Store.Get()) {
+		var ret bool
+		return ret
+	}
+	return *o.Store.Get()
+}
+
+// GetStoreOk returns a tuple with the Store field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ConversationRequestBase) GetStoreOk() (*bool, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Store.Get(), o.Store.IsSet()
+}
+
+// HasStore returns a boolean if a field has been set.
+func (o *ConversationRequestBase) HasStore() bool {
+	if o != nil && o.Store.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetStore gets a reference to the given NullableBool and assigns it to the Store field.
+func (o *ConversationRequestBase) SetStore(v bool) {
+	o.Store.Set(&v)
+}
+// SetStoreNil sets the value for Store to be an explicit nil
+func (o *ConversationRequestBase) SetStoreNil() {
+	o.Store.Set(nil)
+}
+
+// UnsetStore ensures that no value is present for Store, not even an explicit nil
+func (o *ConversationRequestBase) UnsetStore() {
+	o.Store.Unset()
+}
+
+// GetStream returns the Stream field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ConversationRequestBase) GetStream() bool {
+	if o == nil || IsNil(o.Stream.Get()) {
+		var ret bool
+		return ret
+	}
+	return *o.Stream.Get()
+}
+
+// GetStreamOk returns a tuple with the Stream field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ConversationRequestBase) GetStreamOk() (*bool, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Stream.Get(), o.Stream.IsSet()
+}
+
+// HasStream returns a boolean if a field has been set.
+func (o *ConversationRequestBase) HasStream() bool {
+	if o != nil && o.Stream.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetStream gets a reference to the given NullableBool and assigns it to the Stream field.
+func (o *ConversationRequestBase) SetStream(v bool) {
+	o.Stream.Set(&v)
+}
+// SetStreamNil sets the value for Stream to be an explicit nil
+func (o *ConversationRequestBase) SetStreamNil() {
+	o.Stream.Set(nil)
+}
+
+// UnsetStream ensures that no value is present for Stream, not even an explicit nil
+func (o *ConversationRequestBase) UnsetStream() {
+	o.Stream.Unset()
+}
+
+// GetTools returns the Tools field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ConversationRequestBase) GetTools() []ToolsInner {
+	if o == nil {
+		var ret []ToolsInner
+		return ret
+	}
+	return o.Tools
+}
+
+// GetToolsOk returns a tuple with the Tools field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ConversationRequestBase) GetToolsOk() ([]ToolsInner, bool) {
+	if o == nil || IsNil(o.Tools) {
+		return nil, false
+	}
+	return o.Tools, true
+}
+
+// HasTools returns a boolean if a field has been set.
+func (o *ConversationRequestBase) HasTools() bool {
+	if o != nil && !IsNil(o.Tools) {
+		return true
+	}
+
+	return false
+}
+
+// SetTools gets a reference to the given []ToolsInner and assigns it to the Tools field.
+func (o *ConversationRequestBase) SetTools(v []ToolsInner) {
+	o.Tools = v
+}
+
 func (o ConversationRequestBase) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -587,42 +614,45 @@ func (o ConversationRequestBase) MarshalJSON() ([]byte, error) {
 
 func (o ConversationRequestBase) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["inputs"] = o.Inputs
-	if o.Stream.IsSet() {
-		toSerialize["stream"] = o.Stream.Get()
-	}
-	if o.Store.IsSet() {
-		toSerialize["store"] = o.Store.Get()
-	}
-	if o.HandoffExecution.IsSet() {
-		toSerialize["handoff_execution"] = o.HandoffExecution.Get()
-	}
-	if o.Instructions.IsSet() {
-		toSerialize["instructions"] = o.Instructions.Get()
-	}
-	if !IsNil(o.Tools) {
-		toSerialize["tools"] = o.Tools
-	}
-	if o.CompletionArgs.IsSet() {
-		toSerialize["completion_args"] = o.CompletionArgs.Get()
-	}
-	if o.Name.IsSet() {
-		toSerialize["name"] = o.Name.Get()
-	}
-	if o.Description.IsSet() {
-		toSerialize["description"] = o.Description.Get()
-	}
-	if o.Metadata != nil {
-		toSerialize["metadata"] = o.Metadata
-	}
 	if o.AgentId.IsSet() {
 		toSerialize["agent_id"] = o.AgentId.Get()
 	}
 	if o.AgentVersion.IsSet() {
 		toSerialize["agent_version"] = o.AgentVersion.Get()
 	}
+	if o.CompletionArgs.IsSet() {
+		toSerialize["completion_args"] = o.CompletionArgs.Get()
+	}
+	if o.Description.IsSet() {
+		toSerialize["description"] = o.Description.Get()
+	}
+	if o.Guardrails != nil {
+		toSerialize["guardrails"] = o.Guardrails
+	}
+	if o.HandoffExecution.IsSet() {
+		toSerialize["handoff_execution"] = o.HandoffExecution.Get()
+	}
+	toSerialize["inputs"] = o.Inputs
+	if o.Instructions.IsSet() {
+		toSerialize["instructions"] = o.Instructions.Get()
+	}
+	if o.Metadata != nil {
+		toSerialize["metadata"] = o.Metadata
+	}
 	if o.Model.IsSet() {
 		toSerialize["model"] = o.Model.Get()
+	}
+	if o.Name.IsSet() {
+		toSerialize["name"] = o.Name.Get()
+	}
+	if o.Store.IsSet() {
+		toSerialize["store"] = o.Store.Get()
+	}
+	if o.Stream.IsSet() {
+		toSerialize["stream"] = o.Stream.Get()
+	}
+	if o.Tools != nil {
+		toSerialize["tools"] = o.Tools
 	}
 
 	for key, value := range o.AdditionalProperties {
@@ -645,10 +675,10 @@ func (o *ConversationRequestBase) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -667,19 +697,20 @@ func (o *ConversationRequestBase) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "inputs")
-		delete(additionalProperties, "stream")
-		delete(additionalProperties, "store")
-		delete(additionalProperties, "handoff_execution")
-		delete(additionalProperties, "instructions")
-		delete(additionalProperties, "tools")
-		delete(additionalProperties, "completion_args")
-		delete(additionalProperties, "name")
-		delete(additionalProperties, "description")
-		delete(additionalProperties, "metadata")
 		delete(additionalProperties, "agent_id")
 		delete(additionalProperties, "agent_version")
+		delete(additionalProperties, "completion_args")
+		delete(additionalProperties, "description")
+		delete(additionalProperties, "guardrails")
+		delete(additionalProperties, "handoff_execution")
+		delete(additionalProperties, "inputs")
+		delete(additionalProperties, "instructions")
+		delete(additionalProperties, "metadata")
 		delete(additionalProperties, "model")
+		delete(additionalProperties, "name")
+		delete(additionalProperties, "store")
+		delete(additionalProperties, "stream")
+		delete(additionalProperties, "tools")
 		o.AdditionalProperties = additionalProperties
 	}
 

@@ -12,76 +12,853 @@ package mistralai
 
 import (
 	"encoding/json"
+	"time"
 	"fmt"
 )
 
-// Document Document to run OCR on
+// checks if the Document type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &Document{}
+
+// Document struct for Document
 type Document struct {
-	DocumentURLChunk *DocumentURLChunk
-	FileChunk        *FileChunk
-	ImageURLChunk    *ImageURLChunk
+	Attributes map[string]interface{} `json:"attributes,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
+	// If set, the document will be automatically deleted after this date.
+	ExpiresAt NullableTime `json:"expires_at,omitempty"`
+	Extension NullableString `json:"extension"`
+	Hash NullableString `json:"hash"`
+	Id string `json:"id"`
+	LastProcessedAt NullableTime `json:"last_processed_at,omitempty"`
+	LibraryId string `json:"library_id"`
+	MimeType NullableString `json:"mime_type"`
+	Name string `json:"name"`
+	NumberOfPages NullableInt32 `json:"number_of_pages,omitempty"`
+	// Processing status of the document.
+	ProcessStatus ProcessStatus `json:"process_status"`
+	// Deprecated
+	ProcessingStatus string `json:"processing_status"`
+	Size NullableInt32 `json:"size"`
+	Summary NullableString `json:"summary,omitempty"`
+	TokensProcessingMainContent NullableInt32 `json:"tokens_processing_main_content,omitempty"`
+	TokensProcessingSummary NullableInt32 `json:"tokens_processing_summary,omitempty"`
+	TokensProcessingTotal int32 `json:"tokens_processing_total"`
+	UploadedById NullableString `json:"uploaded_by_id"`
+	UploadedByType string `json:"uploaded_by_type"`
+	Url NullableString `json:"url,omitempty"`
+	AdditionalProperties map[string]interface{}
 }
 
-// Unmarshal JSON data into any of the pointers in the struct
-func (dst *Document) UnmarshalJSON(data []byte) error {
-	var err error
-	// try to unmarshal JSON data into DocumentURLChunk
-	err = json.Unmarshal(data, &dst.DocumentURLChunk)
-	if err == nil {
-		jsonDocumentURLChunk, _ := json.Marshal(dst.DocumentURLChunk)
-		if string(jsonDocumentURLChunk) == "{}" { // empty struct
-			dst.DocumentURLChunk = nil
-		} else {
-			return nil // data stored in dst.DocumentURLChunk, return on the first match
-		}
-	} else {
-		dst.DocumentURLChunk = nil
-	}
+type _Document Document
 
-	// try to unmarshal JSON data into FileChunk
-	err = json.Unmarshal(data, &dst.FileChunk)
-	if err == nil {
-		jsonFileChunk, _ := json.Marshal(dst.FileChunk)
-		if string(jsonFileChunk) == "{}" { // empty struct
-			dst.FileChunk = nil
-		} else {
-			return nil // data stored in dst.FileChunk, return on the first match
-		}
-	} else {
-		dst.FileChunk = nil
-	}
-
-	// try to unmarshal JSON data into ImageURLChunk
-	err = json.Unmarshal(data, &dst.ImageURLChunk)
-	if err == nil {
-		jsonImageURLChunk, _ := json.Marshal(dst.ImageURLChunk)
-		if string(jsonImageURLChunk) == "{}" { // empty struct
-			dst.ImageURLChunk = nil
-		} else {
-			return nil // data stored in dst.ImageURLChunk, return on the first match
-		}
-	} else {
-		dst.ImageURLChunk = nil
-	}
-
-	return fmt.Errorf("data failed to match schemas in anyOf(Document)")
+// NewDocument instantiates a new Document object
+// This constructor will assign default values to properties that have it defined,
+// and makes sure properties required by API are set, but the set of arguments
+// will change when the set of required properties is changed
+func NewDocument(createdAt time.Time, extension NullableString, hash NullableString, id string, libraryId string, mimeType NullableString, name string, processStatus ProcessStatus, processingStatus string, size NullableInt32, tokensProcessingTotal int32, uploadedById NullableString, uploadedByType string) *Document {
+	this := Document{}
+	this.CreatedAt = createdAt
+	this.Extension = extension
+	this.Hash = hash
+	this.Id = id
+	this.LibraryId = libraryId
+	this.MimeType = mimeType
+	this.Name = name
+	this.ProcessStatus = processStatus
+	this.ProcessingStatus = processingStatus
+	this.Size = size
+	this.TokensProcessingTotal = tokensProcessingTotal
+	this.UploadedById = uploadedById
+	this.UploadedByType = uploadedByType
+	return &this
 }
 
-// Marshal data from the first non-nil pointers in the struct to JSON
-func (src Document) MarshalJSON() ([]byte, error) {
-	if src.DocumentURLChunk != nil {
-		return json.Marshal(&src.DocumentURLChunk)
+// NewDocumentWithDefaults instantiates a new Document object
+// This constructor will only assign default values to properties that have it defined,
+// but it doesn't guarantee that properties required by API are set
+func NewDocumentWithDefaults() *Document {
+	this := Document{}
+	return &this
+}
+
+// GetAttributes returns the Attributes field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Document) GetAttributes() map[string]interface{} {
+	if o == nil {
+		var ret map[string]interface{}
+		return ret
+	}
+	return o.Attributes
+}
+
+// GetAttributesOk returns a tuple with the Attributes field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Document) GetAttributesOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Attributes) {
+		return map[string]interface{}{}, false
+	}
+	return o.Attributes, true
+}
+
+// HasAttributes returns a boolean if a field has been set.
+func (o *Document) HasAttributes() bool {
+	if o != nil && !IsNil(o.Attributes) {
+		return true
 	}
 
-	if src.FileChunk != nil {
-		return json.Marshal(&src.FileChunk)
+	return false
+}
+
+// SetAttributes gets a reference to the given map[string]interface{} and assigns it to the Attributes field.
+func (o *Document) SetAttributes(v map[string]interface{}) {
+	o.Attributes = v
+}
+
+// GetCreatedAt returns the CreatedAt field value
+func (o *Document) GetCreatedAt() time.Time {
+	if o == nil {
+		var ret time.Time
+		return ret
 	}
 
-	if src.ImageURLChunk != nil {
-		return json.Marshal(&src.ImageURLChunk)
+	return o.CreatedAt
+}
+
+// GetCreatedAtOk returns a tuple with the CreatedAt field value
+// and a boolean to check if the value has been set.
+func (o *Document) GetCreatedAtOk() (*time.Time, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.CreatedAt, true
+}
+
+// SetCreatedAt sets field value
+func (o *Document) SetCreatedAt(v time.Time) {
+	o.CreatedAt = v
+}
+
+// GetExpiresAt returns the ExpiresAt field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Document) GetExpiresAt() time.Time {
+	if o == nil || IsNil(o.ExpiresAt.Get()) {
+		var ret time.Time
+		return ret
+	}
+	return *o.ExpiresAt.Get()
+}
+
+// GetExpiresAtOk returns a tuple with the ExpiresAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Document) GetExpiresAtOk() (*time.Time, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ExpiresAt.Get(), o.ExpiresAt.IsSet()
+}
+
+// HasExpiresAt returns a boolean if a field has been set.
+func (o *Document) HasExpiresAt() bool {
+	if o != nil && o.ExpiresAt.IsSet() {
+		return true
 	}
 
-	return nil, nil // no data in anyOf schemas
+	return false
+}
+
+// SetExpiresAt gets a reference to the given NullableTime and assigns it to the ExpiresAt field.
+func (o *Document) SetExpiresAt(v time.Time) {
+	o.ExpiresAt.Set(&v)
+}
+// SetExpiresAtNil sets the value for ExpiresAt to be an explicit nil
+func (o *Document) SetExpiresAtNil() {
+	o.ExpiresAt.Set(nil)
+}
+
+// UnsetExpiresAt ensures that no value is present for ExpiresAt, not even an explicit nil
+func (o *Document) UnsetExpiresAt() {
+	o.ExpiresAt.Unset()
+}
+
+// GetExtension returns the Extension field value
+// If the value is explicit nil, the zero value for string will be returned
+func (o *Document) GetExtension() string {
+	if o == nil || o.Extension.Get() == nil {
+		var ret string
+		return ret
+	}
+
+	return *o.Extension.Get()
+}
+
+// GetExtensionOk returns a tuple with the Extension field value
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Document) GetExtensionOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Extension.Get(), o.Extension.IsSet()
+}
+
+// SetExtension sets field value
+func (o *Document) SetExtension(v string) {
+	o.Extension.Set(&v)
+}
+
+// GetHash returns the Hash field value
+// If the value is explicit nil, the zero value for string will be returned
+func (o *Document) GetHash() string {
+	if o == nil || o.Hash.Get() == nil {
+		var ret string
+		return ret
+	}
+
+	return *o.Hash.Get()
+}
+
+// GetHashOk returns a tuple with the Hash field value
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Document) GetHashOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Hash.Get(), o.Hash.IsSet()
+}
+
+// SetHash sets field value
+func (o *Document) SetHash(v string) {
+	o.Hash.Set(&v)
+}
+
+// GetId returns the Id field value
+func (o *Document) GetId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Id
+}
+
+// GetIdOk returns a tuple with the Id field value
+// and a boolean to check if the value has been set.
+func (o *Document) GetIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Id, true
+}
+
+// SetId sets field value
+func (o *Document) SetId(v string) {
+	o.Id = v
+}
+
+// GetLastProcessedAt returns the LastProcessedAt field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Document) GetLastProcessedAt() time.Time {
+	if o == nil || IsNil(o.LastProcessedAt.Get()) {
+		var ret time.Time
+		return ret
+	}
+	return *o.LastProcessedAt.Get()
+}
+
+// GetLastProcessedAtOk returns a tuple with the LastProcessedAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Document) GetLastProcessedAtOk() (*time.Time, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.LastProcessedAt.Get(), o.LastProcessedAt.IsSet()
+}
+
+// HasLastProcessedAt returns a boolean if a field has been set.
+func (o *Document) HasLastProcessedAt() bool {
+	if o != nil && o.LastProcessedAt.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetLastProcessedAt gets a reference to the given NullableTime and assigns it to the LastProcessedAt field.
+func (o *Document) SetLastProcessedAt(v time.Time) {
+	o.LastProcessedAt.Set(&v)
+}
+// SetLastProcessedAtNil sets the value for LastProcessedAt to be an explicit nil
+func (o *Document) SetLastProcessedAtNil() {
+	o.LastProcessedAt.Set(nil)
+}
+
+// UnsetLastProcessedAt ensures that no value is present for LastProcessedAt, not even an explicit nil
+func (o *Document) UnsetLastProcessedAt() {
+	o.LastProcessedAt.Unset()
+}
+
+// GetLibraryId returns the LibraryId field value
+func (o *Document) GetLibraryId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.LibraryId
+}
+
+// GetLibraryIdOk returns a tuple with the LibraryId field value
+// and a boolean to check if the value has been set.
+func (o *Document) GetLibraryIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.LibraryId, true
+}
+
+// SetLibraryId sets field value
+func (o *Document) SetLibraryId(v string) {
+	o.LibraryId = v
+}
+
+// GetMimeType returns the MimeType field value
+// If the value is explicit nil, the zero value for string will be returned
+func (o *Document) GetMimeType() string {
+	if o == nil || o.MimeType.Get() == nil {
+		var ret string
+		return ret
+	}
+
+	return *o.MimeType.Get()
+}
+
+// GetMimeTypeOk returns a tuple with the MimeType field value
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Document) GetMimeTypeOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.MimeType.Get(), o.MimeType.IsSet()
+}
+
+// SetMimeType sets field value
+func (o *Document) SetMimeType(v string) {
+	o.MimeType.Set(&v)
+}
+
+// GetName returns the Name field value
+func (o *Document) GetName() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value
+// and a boolean to check if the value has been set.
+func (o *Document) GetNameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Name, true
+}
+
+// SetName sets field value
+func (o *Document) SetName(v string) {
+	o.Name = v
+}
+
+// GetNumberOfPages returns the NumberOfPages field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Document) GetNumberOfPages() int32 {
+	if o == nil || IsNil(o.NumberOfPages.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.NumberOfPages.Get()
+}
+
+// GetNumberOfPagesOk returns a tuple with the NumberOfPages field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Document) GetNumberOfPagesOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.NumberOfPages.Get(), o.NumberOfPages.IsSet()
+}
+
+// HasNumberOfPages returns a boolean if a field has been set.
+func (o *Document) HasNumberOfPages() bool {
+	if o != nil && o.NumberOfPages.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetNumberOfPages gets a reference to the given NullableInt32 and assigns it to the NumberOfPages field.
+func (o *Document) SetNumberOfPages(v int32) {
+	o.NumberOfPages.Set(&v)
+}
+// SetNumberOfPagesNil sets the value for NumberOfPages to be an explicit nil
+func (o *Document) SetNumberOfPagesNil() {
+	o.NumberOfPages.Set(nil)
+}
+
+// UnsetNumberOfPages ensures that no value is present for NumberOfPages, not even an explicit nil
+func (o *Document) UnsetNumberOfPages() {
+	o.NumberOfPages.Unset()
+}
+
+// GetProcessStatus returns the ProcessStatus field value
+func (o *Document) GetProcessStatus() ProcessStatus {
+	if o == nil {
+		var ret ProcessStatus
+		return ret
+	}
+
+	return o.ProcessStatus
+}
+
+// GetProcessStatusOk returns a tuple with the ProcessStatus field value
+// and a boolean to check if the value has been set.
+func (o *Document) GetProcessStatusOk() (*ProcessStatus, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.ProcessStatus, true
+}
+
+// SetProcessStatus sets field value
+func (o *Document) SetProcessStatus(v ProcessStatus) {
+	o.ProcessStatus = v
+}
+
+// GetProcessingStatus returns the ProcessingStatus field value
+// Deprecated
+func (o *Document) GetProcessingStatus() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.ProcessingStatus
+}
+
+// GetProcessingStatusOk returns a tuple with the ProcessingStatus field value
+// and a boolean to check if the value has been set.
+// Deprecated
+func (o *Document) GetProcessingStatusOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.ProcessingStatus, true
+}
+
+// SetProcessingStatus sets field value
+// Deprecated
+func (o *Document) SetProcessingStatus(v string) {
+	o.ProcessingStatus = v
+}
+
+// GetSize returns the Size field value
+// If the value is explicit nil, the zero value for int32 will be returned
+func (o *Document) GetSize() int32 {
+	if o == nil || o.Size.Get() == nil {
+		var ret int32
+		return ret
+	}
+
+	return *o.Size.Get()
+}
+
+// GetSizeOk returns a tuple with the Size field value
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Document) GetSizeOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Size.Get(), o.Size.IsSet()
+}
+
+// SetSize sets field value
+func (o *Document) SetSize(v int32) {
+	o.Size.Set(&v)
+}
+
+// GetSummary returns the Summary field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Document) GetSummary() string {
+	if o == nil || IsNil(o.Summary.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Summary.Get()
+}
+
+// GetSummaryOk returns a tuple with the Summary field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Document) GetSummaryOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Summary.Get(), o.Summary.IsSet()
+}
+
+// HasSummary returns a boolean if a field has been set.
+func (o *Document) HasSummary() bool {
+	if o != nil && o.Summary.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetSummary gets a reference to the given NullableString and assigns it to the Summary field.
+func (o *Document) SetSummary(v string) {
+	o.Summary.Set(&v)
+}
+// SetSummaryNil sets the value for Summary to be an explicit nil
+func (o *Document) SetSummaryNil() {
+	o.Summary.Set(nil)
+}
+
+// UnsetSummary ensures that no value is present for Summary, not even an explicit nil
+func (o *Document) UnsetSummary() {
+	o.Summary.Unset()
+}
+
+// GetTokensProcessingMainContent returns the TokensProcessingMainContent field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Document) GetTokensProcessingMainContent() int32 {
+	if o == nil || IsNil(o.TokensProcessingMainContent.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.TokensProcessingMainContent.Get()
+}
+
+// GetTokensProcessingMainContentOk returns a tuple with the TokensProcessingMainContent field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Document) GetTokensProcessingMainContentOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.TokensProcessingMainContent.Get(), o.TokensProcessingMainContent.IsSet()
+}
+
+// HasTokensProcessingMainContent returns a boolean if a field has been set.
+func (o *Document) HasTokensProcessingMainContent() bool {
+	if o != nil && o.TokensProcessingMainContent.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetTokensProcessingMainContent gets a reference to the given NullableInt32 and assigns it to the TokensProcessingMainContent field.
+func (o *Document) SetTokensProcessingMainContent(v int32) {
+	o.TokensProcessingMainContent.Set(&v)
+}
+// SetTokensProcessingMainContentNil sets the value for TokensProcessingMainContent to be an explicit nil
+func (o *Document) SetTokensProcessingMainContentNil() {
+	o.TokensProcessingMainContent.Set(nil)
+}
+
+// UnsetTokensProcessingMainContent ensures that no value is present for TokensProcessingMainContent, not even an explicit nil
+func (o *Document) UnsetTokensProcessingMainContent() {
+	o.TokensProcessingMainContent.Unset()
+}
+
+// GetTokensProcessingSummary returns the TokensProcessingSummary field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Document) GetTokensProcessingSummary() int32 {
+	if o == nil || IsNil(o.TokensProcessingSummary.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.TokensProcessingSummary.Get()
+}
+
+// GetTokensProcessingSummaryOk returns a tuple with the TokensProcessingSummary field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Document) GetTokensProcessingSummaryOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.TokensProcessingSummary.Get(), o.TokensProcessingSummary.IsSet()
+}
+
+// HasTokensProcessingSummary returns a boolean if a field has been set.
+func (o *Document) HasTokensProcessingSummary() bool {
+	if o != nil && o.TokensProcessingSummary.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetTokensProcessingSummary gets a reference to the given NullableInt32 and assigns it to the TokensProcessingSummary field.
+func (o *Document) SetTokensProcessingSummary(v int32) {
+	o.TokensProcessingSummary.Set(&v)
+}
+// SetTokensProcessingSummaryNil sets the value for TokensProcessingSummary to be an explicit nil
+func (o *Document) SetTokensProcessingSummaryNil() {
+	o.TokensProcessingSummary.Set(nil)
+}
+
+// UnsetTokensProcessingSummary ensures that no value is present for TokensProcessingSummary, not even an explicit nil
+func (o *Document) UnsetTokensProcessingSummary() {
+	o.TokensProcessingSummary.Unset()
+}
+
+// GetTokensProcessingTotal returns the TokensProcessingTotal field value
+func (o *Document) GetTokensProcessingTotal() int32 {
+	if o == nil {
+		var ret int32
+		return ret
+	}
+
+	return o.TokensProcessingTotal
+}
+
+// GetTokensProcessingTotalOk returns a tuple with the TokensProcessingTotal field value
+// and a boolean to check if the value has been set.
+func (o *Document) GetTokensProcessingTotalOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.TokensProcessingTotal, true
+}
+
+// SetTokensProcessingTotal sets field value
+func (o *Document) SetTokensProcessingTotal(v int32) {
+	o.TokensProcessingTotal = v
+}
+
+// GetUploadedById returns the UploadedById field value
+// If the value is explicit nil, the zero value for string will be returned
+func (o *Document) GetUploadedById() string {
+	if o == nil || o.UploadedById.Get() == nil {
+		var ret string
+		return ret
+	}
+
+	return *o.UploadedById.Get()
+}
+
+// GetUploadedByIdOk returns a tuple with the UploadedById field value
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Document) GetUploadedByIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.UploadedById.Get(), o.UploadedById.IsSet()
+}
+
+// SetUploadedById sets field value
+func (o *Document) SetUploadedById(v string) {
+	o.UploadedById.Set(&v)
+}
+
+// GetUploadedByType returns the UploadedByType field value
+func (o *Document) GetUploadedByType() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.UploadedByType
+}
+
+// GetUploadedByTypeOk returns a tuple with the UploadedByType field value
+// and a boolean to check if the value has been set.
+func (o *Document) GetUploadedByTypeOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.UploadedByType, true
+}
+
+// SetUploadedByType sets field value
+func (o *Document) SetUploadedByType(v string) {
+	o.UploadedByType = v
+}
+
+// GetUrl returns the Url field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Document) GetUrl() string {
+	if o == nil || IsNil(o.Url.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Url.Get()
+}
+
+// GetUrlOk returns a tuple with the Url field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Document) GetUrlOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Url.Get(), o.Url.IsSet()
+}
+
+// HasUrl returns a boolean if a field has been set.
+func (o *Document) HasUrl() bool {
+	if o != nil && o.Url.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetUrl gets a reference to the given NullableString and assigns it to the Url field.
+func (o *Document) SetUrl(v string) {
+	o.Url.Set(&v)
+}
+// SetUrlNil sets the value for Url to be an explicit nil
+func (o *Document) SetUrlNil() {
+	o.Url.Set(nil)
+}
+
+// UnsetUrl ensures that no value is present for Url, not even an explicit nil
+func (o *Document) UnsetUrl() {
+	o.Url.Unset()
+}
+
+func (o Document) MarshalJSON() ([]byte, error) {
+	toSerialize,err := o.ToMap()
+	if err != nil {
+		return []byte{}, err
+	}
+	return json.Marshal(toSerialize)
+}
+
+func (o Document) ToMap() (map[string]interface{}, error) {
+	toSerialize := map[string]interface{}{}
+	if o.Attributes != nil {
+		toSerialize["attributes"] = o.Attributes
+	}
+	toSerialize["created_at"] = o.CreatedAt
+	if o.ExpiresAt.IsSet() {
+		toSerialize["expires_at"] = o.ExpiresAt.Get()
+	}
+	toSerialize["extension"] = o.Extension.Get()
+	toSerialize["hash"] = o.Hash.Get()
+	toSerialize["id"] = o.Id
+	if o.LastProcessedAt.IsSet() {
+		toSerialize["last_processed_at"] = o.LastProcessedAt.Get()
+	}
+	toSerialize["library_id"] = o.LibraryId
+	toSerialize["mime_type"] = o.MimeType.Get()
+	toSerialize["name"] = o.Name
+	if o.NumberOfPages.IsSet() {
+		toSerialize["number_of_pages"] = o.NumberOfPages.Get()
+	}
+	toSerialize["process_status"] = o.ProcessStatus
+	toSerialize["processing_status"] = o.ProcessingStatus
+	toSerialize["size"] = o.Size.Get()
+	if o.Summary.IsSet() {
+		toSerialize["summary"] = o.Summary.Get()
+	}
+	if o.TokensProcessingMainContent.IsSet() {
+		toSerialize["tokens_processing_main_content"] = o.TokensProcessingMainContent.Get()
+	}
+	if o.TokensProcessingSummary.IsSet() {
+		toSerialize["tokens_processing_summary"] = o.TokensProcessingSummary.Get()
+	}
+	toSerialize["tokens_processing_total"] = o.TokensProcessingTotal
+	toSerialize["uploaded_by_id"] = o.UploadedById.Get()
+	toSerialize["uploaded_by_type"] = o.UploadedByType
+	if o.Url.IsSet() {
+		toSerialize["url"] = o.Url.Get()
+	}
+
+	for key, value := range o.AdditionalProperties {
+		toSerialize[key] = value
+	}
+
+	return toSerialize, nil
+}
+
+func (o *Document) UnmarshalJSON(data []byte) (err error) {
+	// This validates that all required properties are included in the JSON object
+	// by unmarshalling the object into a generic map with string keys and checking
+	// that every required field exists as a key in the generic map.
+	requiredProperties := []string{
+		"created_at",
+		"extension",
+		"hash",
+		"id",
+		"library_id",
+		"mime_type",
+		"name",
+		"process_status",
+		"processing_status",
+		"size",
+		"tokens_processing_total",
+		"uploaded_by_id",
+		"uploaded_by_type",
+	}
+
+	allProperties := make(map[string]interface{})
+
+	err = json.Unmarshal(data, &allProperties)
+
+	if err != nil {
+		return err;
+	}
+
+	for _, requiredProperty := range(requiredProperties) {
+		if _, exists := allProperties[requiredProperty]; !exists {
+			return fmt.Errorf("no value given for required property %v", requiredProperty)
+		}
+	}
+
+	varDocument := _Document{}
+
+	err = json.Unmarshal(data, &varDocument)
+
+	if err != nil {
+		return err
+	}
+
+	*o = Document(varDocument)
+
+	additionalProperties := make(map[string]interface{})
+
+	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "attributes")
+		delete(additionalProperties, "created_at")
+		delete(additionalProperties, "expires_at")
+		delete(additionalProperties, "extension")
+		delete(additionalProperties, "hash")
+		delete(additionalProperties, "id")
+		delete(additionalProperties, "last_processed_at")
+		delete(additionalProperties, "library_id")
+		delete(additionalProperties, "mime_type")
+		delete(additionalProperties, "name")
+		delete(additionalProperties, "number_of_pages")
+		delete(additionalProperties, "process_status")
+		delete(additionalProperties, "processing_status")
+		delete(additionalProperties, "size")
+		delete(additionalProperties, "summary")
+		delete(additionalProperties, "tokens_processing_main_content")
+		delete(additionalProperties, "tokens_processing_summary")
+		delete(additionalProperties, "tokens_processing_total")
+		delete(additionalProperties, "uploaded_by_id")
+		delete(additionalProperties, "uploaded_by_type")
+		delete(additionalProperties, "url")
+		o.AdditionalProperties = additionalProperties
+	}
+
+	return err
 }
 
 type NullableDocument struct {

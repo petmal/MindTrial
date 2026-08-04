@@ -21,7 +21,7 @@ var _ MappedNullable = &EmbeddingInputOneOf3{}
 // EmbeddingInputOneOf3 An array of tokens in integers to be embedded
 type EmbeddingInputOneOf3 struct {
 	// An array of tokens in integers to be embedded
-	IntsArray            [][]int32 `json:"IntsArray"`
+	IntsArray [][]int32 `json:"IntsArray"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -70,7 +70,7 @@ func (o *EmbeddingInputOneOf3) SetIntsArray(v [][]int32) {
 }
 
 func (o EmbeddingInputOneOf3) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -101,10 +101,10 @@ func (o *EmbeddingInputOneOf3) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

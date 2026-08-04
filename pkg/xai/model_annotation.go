@@ -29,7 +29,7 @@ type Annotation struct {
 	// The type of the annotation. Only supported type currently is `url_citation`.
 	Type string `json:"type"`
 	// The URL of the web resource.
-	Url                  string `json:"url"`
+	Url string `json:"url"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -86,7 +86,6 @@ func (o *Annotation) HasEndIndex() bool {
 func (o *Annotation) SetEndIndex(v int32) {
 	o.EndIndex.Set(&v)
 }
-
 // SetEndIndexNil sets the value for EndIndex to be an explicit nil
 func (o *Annotation) SetEndIndexNil() {
 	o.EndIndex.Set(nil)
@@ -129,7 +128,6 @@ func (o *Annotation) HasStartIndex() bool {
 func (o *Annotation) SetStartIndex(v int32) {
 	o.StartIndex.Set(&v)
 }
-
 // SetStartIndexNil sets the value for StartIndex to be an explicit nil
 func (o *Annotation) SetStartIndexNil() {
 	o.StartIndex.Set(nil)
@@ -172,7 +170,6 @@ func (o *Annotation) HasTitle() bool {
 func (o *Annotation) SetTitle(v string) {
 	o.Title.Set(&v)
 }
-
 // SetTitleNil sets the value for Title to be an explicit nil
 func (o *Annotation) SetTitleNil() {
 	o.Title.Set(nil)
@@ -232,7 +229,7 @@ func (o *Annotation) SetUrl(v string) {
 }
 
 func (o Annotation) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -274,10 +271,10 @@ func (o *Annotation) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

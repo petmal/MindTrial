@@ -11,10 +11,10 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"time"
+	"bytes"
+	"fmt"
 )
 
 // checks if the ToolExecutionEntry type satisfies the MappedNullable interface at compile time
@@ -22,14 +22,16 @@ var _ MappedNullable = &ToolExecutionEntry{}
 
 // ToolExecutionEntry struct for ToolExecutionEntry
 type ToolExecutionEntry struct {
-	Object      *string                `json:"object,omitempty"`
-	Type        *string                `json:"type,omitempty"`
-	CreatedAt   *time.Time             `json:"created_at,omitempty"`
-	CompletedAt NullableTime           `json:"completed_at,omitempty"`
-	Id          *string                `json:"id,omitempty"`
-	Name        Name                   `json:"name"`
-	Arguments   string                 `json:"arguments"`
-	Info        map[string]interface{} `json:"info,omitempty"`
+	AgentId NullableString `json:"agent_id,omitempty"`
+	Arguments string `json:"arguments"`
+	CompletedAt NullableTime `json:"completed_at,omitempty"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	Id *string `json:"id,omitempty"`
+	Info map[string]interface{} `json:"info,omitempty"`
+	Model NullableString `json:"model,omitempty"`
+	Name Name `json:"name"`
+	Object *string `json:"object,omitempty"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _ToolExecutionEntry ToolExecutionEntry
@@ -38,14 +40,14 @@ type _ToolExecutionEntry ToolExecutionEntry
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewToolExecutionEntry(name Name, arguments string) *ToolExecutionEntry {
+func NewToolExecutionEntry(arguments string, name Name) *ToolExecutionEntry {
 	this := ToolExecutionEntry{}
+	this.Arguments = arguments
+	this.Name = name
 	var object string = "entry"
 	this.Object = &object
 	var type_ string = "tool.execution"
 	this.Type = &type_
-	this.Name = name
-	this.Arguments = arguments
 	return &this
 }
 
@@ -59,6 +61,276 @@ func NewToolExecutionEntryWithDefaults() *ToolExecutionEntry {
 	var type_ string = "tool.execution"
 	this.Type = &type_
 	return &this
+}
+
+// GetAgentId returns the AgentId field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ToolExecutionEntry) GetAgentId() string {
+	if o == nil || IsNil(o.AgentId.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.AgentId.Get()
+}
+
+// GetAgentIdOk returns a tuple with the AgentId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ToolExecutionEntry) GetAgentIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.AgentId.Get(), o.AgentId.IsSet()
+}
+
+// HasAgentId returns a boolean if a field has been set.
+func (o *ToolExecutionEntry) HasAgentId() bool {
+	if o != nil && o.AgentId.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetAgentId gets a reference to the given NullableString and assigns it to the AgentId field.
+func (o *ToolExecutionEntry) SetAgentId(v string) {
+	o.AgentId.Set(&v)
+}
+// SetAgentIdNil sets the value for AgentId to be an explicit nil
+func (o *ToolExecutionEntry) SetAgentIdNil() {
+	o.AgentId.Set(nil)
+}
+
+// UnsetAgentId ensures that no value is present for AgentId, not even an explicit nil
+func (o *ToolExecutionEntry) UnsetAgentId() {
+	o.AgentId.Unset()
+}
+
+// GetArguments returns the Arguments field value
+func (o *ToolExecutionEntry) GetArguments() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Arguments
+}
+
+// GetArgumentsOk returns a tuple with the Arguments field value
+// and a boolean to check if the value has been set.
+func (o *ToolExecutionEntry) GetArgumentsOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Arguments, true
+}
+
+// SetArguments sets field value
+func (o *ToolExecutionEntry) SetArguments(v string) {
+	o.Arguments = v
+}
+
+// GetCompletedAt returns the CompletedAt field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ToolExecutionEntry) GetCompletedAt() time.Time {
+	if o == nil || IsNil(o.CompletedAt.Get()) {
+		var ret time.Time
+		return ret
+	}
+	return *o.CompletedAt.Get()
+}
+
+// GetCompletedAtOk returns a tuple with the CompletedAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ToolExecutionEntry) GetCompletedAtOk() (*time.Time, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.CompletedAt.Get(), o.CompletedAt.IsSet()
+}
+
+// HasCompletedAt returns a boolean if a field has been set.
+func (o *ToolExecutionEntry) HasCompletedAt() bool {
+	if o != nil && o.CompletedAt.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetCompletedAt gets a reference to the given NullableTime and assigns it to the CompletedAt field.
+func (o *ToolExecutionEntry) SetCompletedAt(v time.Time) {
+	o.CompletedAt.Set(&v)
+}
+// SetCompletedAtNil sets the value for CompletedAt to be an explicit nil
+func (o *ToolExecutionEntry) SetCompletedAtNil() {
+	o.CompletedAt.Set(nil)
+}
+
+// UnsetCompletedAt ensures that no value is present for CompletedAt, not even an explicit nil
+func (o *ToolExecutionEntry) UnsetCompletedAt() {
+	o.CompletedAt.Unset()
+}
+
+// GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
+func (o *ToolExecutionEntry) GetCreatedAt() time.Time {
+	if o == nil || IsNil(o.CreatedAt) {
+		var ret time.Time
+		return ret
+	}
+	return *o.CreatedAt
+}
+
+// GetCreatedAtOk returns a tuple with the CreatedAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ToolExecutionEntry) GetCreatedAtOk() (*time.Time, bool) {
+	if o == nil || IsNil(o.CreatedAt) {
+		return nil, false
+	}
+	return o.CreatedAt, true
+}
+
+// HasCreatedAt returns a boolean if a field has been set.
+func (o *ToolExecutionEntry) HasCreatedAt() bool {
+	if o != nil && !IsNil(o.CreatedAt) {
+		return true
+	}
+
+	return false
+}
+
+// SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
+func (o *ToolExecutionEntry) SetCreatedAt(v time.Time) {
+	o.CreatedAt = &v
+}
+
+// GetId returns the Id field value if set, zero value otherwise.
+func (o *ToolExecutionEntry) GetId() string {
+	if o == nil || IsNil(o.Id) {
+		var ret string
+		return ret
+	}
+	return *o.Id
+}
+
+// GetIdOk returns a tuple with the Id field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ToolExecutionEntry) GetIdOk() (*string, bool) {
+	if o == nil || IsNil(o.Id) {
+		return nil, false
+	}
+	return o.Id, true
+}
+
+// HasId returns a boolean if a field has been set.
+func (o *ToolExecutionEntry) HasId() bool {
+	if o != nil && !IsNil(o.Id) {
+		return true
+	}
+
+	return false
+}
+
+// SetId gets a reference to the given string and assigns it to the Id field.
+func (o *ToolExecutionEntry) SetId(v string) {
+	o.Id = &v
+}
+
+// GetInfo returns the Info field value if set, zero value otherwise.
+func (o *ToolExecutionEntry) GetInfo() map[string]interface{} {
+	if o == nil || IsNil(o.Info) {
+		var ret map[string]interface{}
+		return ret
+	}
+	return o.Info
+}
+
+// GetInfoOk returns a tuple with the Info field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ToolExecutionEntry) GetInfoOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Info) {
+		return map[string]interface{}{}, false
+	}
+	return o.Info, true
+}
+
+// HasInfo returns a boolean if a field has been set.
+func (o *ToolExecutionEntry) HasInfo() bool {
+	if o != nil && !IsNil(o.Info) {
+		return true
+	}
+
+	return false
+}
+
+// SetInfo gets a reference to the given map[string]interface{} and assigns it to the Info field.
+func (o *ToolExecutionEntry) SetInfo(v map[string]interface{}) {
+	o.Info = v
+}
+
+// GetModel returns the Model field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ToolExecutionEntry) GetModel() string {
+	if o == nil || IsNil(o.Model.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Model.Get()
+}
+
+// GetModelOk returns a tuple with the Model field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ToolExecutionEntry) GetModelOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Model.Get(), o.Model.IsSet()
+}
+
+// HasModel returns a boolean if a field has been set.
+func (o *ToolExecutionEntry) HasModel() bool {
+	if o != nil && o.Model.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetModel gets a reference to the given NullableString and assigns it to the Model field.
+func (o *ToolExecutionEntry) SetModel(v string) {
+	o.Model.Set(&v)
+}
+// SetModelNil sets the value for Model to be an explicit nil
+func (o *ToolExecutionEntry) SetModelNil() {
+	o.Model.Set(nil)
+}
+
+// UnsetModel ensures that no value is present for Model, not even an explicit nil
+func (o *ToolExecutionEntry) UnsetModel() {
+	o.Model.Unset()
+}
+
+// GetName returns the Name field value
+func (o *ToolExecutionEntry) GetName() Name {
+	if o == nil {
+		var ret Name
+		return ret
+	}
+
+	return o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value
+// and a boolean to check if the value has been set.
+func (o *ToolExecutionEntry) GetNameOk() (*Name, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Name, true
+}
+
+// SetName sets field value
+func (o *ToolExecutionEntry) SetName(v Name) {
+	o.Name = v
 }
 
 // GetObject returns the Object field value if set, zero value otherwise.
@@ -125,195 +397,8 @@ func (o *ToolExecutionEntry) SetType(v string) {
 	o.Type = &v
 }
 
-// GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
-func (o *ToolExecutionEntry) GetCreatedAt() time.Time {
-	if o == nil || IsNil(o.CreatedAt) {
-		var ret time.Time
-		return ret
-	}
-	return *o.CreatedAt
-}
-
-// GetCreatedAtOk returns a tuple with the CreatedAt field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ToolExecutionEntry) GetCreatedAtOk() (*time.Time, bool) {
-	if o == nil || IsNil(o.CreatedAt) {
-		return nil, false
-	}
-	return o.CreatedAt, true
-}
-
-// HasCreatedAt returns a boolean if a field has been set.
-func (o *ToolExecutionEntry) HasCreatedAt() bool {
-	if o != nil && !IsNil(o.CreatedAt) {
-		return true
-	}
-
-	return false
-}
-
-// SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
-func (o *ToolExecutionEntry) SetCreatedAt(v time.Time) {
-	o.CreatedAt = &v
-}
-
-// GetCompletedAt returns the CompletedAt field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ToolExecutionEntry) GetCompletedAt() time.Time {
-	if o == nil || IsNil(o.CompletedAt.Get()) {
-		var ret time.Time
-		return ret
-	}
-	return *o.CompletedAt.Get()
-}
-
-// GetCompletedAtOk returns a tuple with the CompletedAt field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ToolExecutionEntry) GetCompletedAtOk() (*time.Time, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.CompletedAt.Get(), o.CompletedAt.IsSet()
-}
-
-// HasCompletedAt returns a boolean if a field has been set.
-func (o *ToolExecutionEntry) HasCompletedAt() bool {
-	if o != nil && o.CompletedAt.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetCompletedAt gets a reference to the given NullableTime and assigns it to the CompletedAt field.
-func (o *ToolExecutionEntry) SetCompletedAt(v time.Time) {
-	o.CompletedAt.Set(&v)
-}
-
-// SetCompletedAtNil sets the value for CompletedAt to be an explicit nil
-func (o *ToolExecutionEntry) SetCompletedAtNil() {
-	o.CompletedAt.Set(nil)
-}
-
-// UnsetCompletedAt ensures that no value is present for CompletedAt, not even an explicit nil
-func (o *ToolExecutionEntry) UnsetCompletedAt() {
-	o.CompletedAt.Unset()
-}
-
-// GetId returns the Id field value if set, zero value otherwise.
-func (o *ToolExecutionEntry) GetId() string {
-	if o == nil || IsNil(o.Id) {
-		var ret string
-		return ret
-	}
-	return *o.Id
-}
-
-// GetIdOk returns a tuple with the Id field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ToolExecutionEntry) GetIdOk() (*string, bool) {
-	if o == nil || IsNil(o.Id) {
-		return nil, false
-	}
-	return o.Id, true
-}
-
-// HasId returns a boolean if a field has been set.
-func (o *ToolExecutionEntry) HasId() bool {
-	if o != nil && !IsNil(o.Id) {
-		return true
-	}
-
-	return false
-}
-
-// SetId gets a reference to the given string and assigns it to the Id field.
-func (o *ToolExecutionEntry) SetId(v string) {
-	o.Id = &v
-}
-
-// GetName returns the Name field value
-func (o *ToolExecutionEntry) GetName() Name {
-	if o == nil {
-		var ret Name
-		return ret
-	}
-
-	return o.Name
-}
-
-// GetNameOk returns a tuple with the Name field value
-// and a boolean to check if the value has been set.
-func (o *ToolExecutionEntry) GetNameOk() (*Name, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Name, true
-}
-
-// SetName sets field value
-func (o *ToolExecutionEntry) SetName(v Name) {
-	o.Name = v
-}
-
-// GetArguments returns the Arguments field value
-func (o *ToolExecutionEntry) GetArguments() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Arguments
-}
-
-// GetArgumentsOk returns a tuple with the Arguments field value
-// and a boolean to check if the value has been set.
-func (o *ToolExecutionEntry) GetArgumentsOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Arguments, true
-}
-
-// SetArguments sets field value
-func (o *ToolExecutionEntry) SetArguments(v string) {
-	o.Arguments = v
-}
-
-// GetInfo returns the Info field value if set, zero value otherwise.
-func (o *ToolExecutionEntry) GetInfo() map[string]interface{} {
-	if o == nil || IsNil(o.Info) {
-		var ret map[string]interface{}
-		return ret
-	}
-	return o.Info
-}
-
-// GetInfoOk returns a tuple with the Info field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ToolExecutionEntry) GetInfoOk() (map[string]interface{}, bool) {
-	if o == nil || IsNil(o.Info) {
-		return map[string]interface{}{}, false
-	}
-	return o.Info, true
-}
-
-// HasInfo returns a boolean if a field has been set.
-func (o *ToolExecutionEntry) HasInfo() bool {
-	if o != nil && !IsNil(o.Info) {
-		return true
-	}
-
-	return false
-}
-
-// SetInfo gets a reference to the given map[string]interface{} and assigns it to the Info field.
-func (o *ToolExecutionEntry) SetInfo(v map[string]interface{}) {
-	o.Info = v
-}
-
 func (o ToolExecutionEntry) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -322,25 +407,31 @@ func (o ToolExecutionEntry) MarshalJSON() ([]byte, error) {
 
 func (o ToolExecutionEntry) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if o.AgentId.IsSet() {
+		toSerialize["agent_id"] = o.AgentId.Get()
+	}
+	toSerialize["arguments"] = o.Arguments
+	if o.CompletedAt.IsSet() {
+		toSerialize["completed_at"] = o.CompletedAt.Get()
+	}
+	if !IsNil(o.CreatedAt) {
+		toSerialize["created_at"] = o.CreatedAt
+	}
+	if !IsNil(o.Id) {
+		toSerialize["id"] = o.Id
+	}
+	if !IsNil(o.Info) {
+		toSerialize["info"] = o.Info
+	}
+	if o.Model.IsSet() {
+		toSerialize["model"] = o.Model.Get()
+	}
+	toSerialize["name"] = o.Name
 	if !IsNil(o.Object) {
 		toSerialize["object"] = o.Object
 	}
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
-	}
-	if !IsNil(o.CreatedAt) {
-		toSerialize["created_at"] = o.CreatedAt
-	}
-	if o.CompletedAt.IsSet() {
-		toSerialize["completed_at"] = o.CompletedAt.Get()
-	}
-	if !IsNil(o.Id) {
-		toSerialize["id"] = o.Id
-	}
-	toSerialize["name"] = o.Name
-	toSerialize["arguments"] = o.Arguments
-	if !IsNil(o.Info) {
-		toSerialize["info"] = o.Info
 	}
 	return toSerialize, nil
 }
@@ -350,8 +441,8 @@ func (o *ToolExecutionEntry) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"name",
 		"arguments",
+		"name",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -359,10 +450,10 @@ func (o *ToolExecutionEntry) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

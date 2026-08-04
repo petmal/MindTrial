@@ -15,9 +15,10 @@ import (
 	"fmt"
 )
 
+
 // Input Chat to classify
 type Input struct {
-	ArrayOfMessagesInner        *[]MessagesInner
+	ArrayOfMessagesInner *[]MessagesInner
 	ArrayOfArrayOfMessagesInner *[][]MessagesInner
 }
 
@@ -25,7 +26,7 @@ type Input struct {
 func (dst *Input) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into ArrayOfMessagesInner
-	err = json.Unmarshal(data, &dst.ArrayOfMessagesInner)
+	err = json.Unmarshal(data, &dst.ArrayOfMessagesInner);
 	if err == nil {
 		jsonArrayOfMessagesInner, _ := json.Marshal(dst.ArrayOfMessagesInner)
 		if string(jsonArrayOfMessagesInner) == "{}" { // empty struct
@@ -38,7 +39,7 @@ func (dst *Input) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into ArrayOfArrayOfMessagesInner
-	err = json.Unmarshal(data, &dst.ArrayOfArrayOfMessagesInner)
+	err = json.Unmarshal(data, &dst.ArrayOfArrayOfMessagesInner);
 	if err == nil {
 		jsonArrayOfArrayOfMessagesInner, _ := json.Marshal(dst.ArrayOfArrayOfMessagesInner)
 		if string(jsonArrayOfArrayOfMessagesInner) == "{}" { // empty struct
@@ -65,6 +66,7 @@ func (src Input) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
+
 
 type NullableInput struct {
 	value *Input

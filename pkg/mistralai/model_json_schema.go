@@ -20,10 +20,10 @@ var _ MappedNullable = &JsonSchema{}
 
 // JsonSchema struct for JsonSchema
 type JsonSchema struct {
-	Name                 string                 `json:"name"`
-	Description          NullableString         `json:"description,omitempty"`
-	Schema               map[string]interface{} `json:"schema"`
-	Strict               *bool                  `json:"strict,omitempty"`
+	Description NullableString `json:"description,omitempty"`
+	Name string `json:"name"`
+	Schema map[string]interface{} `json:"schema"`
+	Strict *bool `json:"strict,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -50,30 +50,6 @@ func NewJsonSchemaWithDefaults() *JsonSchema {
 	var strict bool = false
 	this.Strict = &strict
 	return &this
-}
-
-// GetName returns the Name field value
-func (o *JsonSchema) GetName() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Name
-}
-
-// GetNameOk returns a tuple with the Name field value
-// and a boolean to check if the value has been set.
-func (o *JsonSchema) GetNameOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Name, true
-}
-
-// SetName sets field value
-func (o *JsonSchema) SetName(v string) {
-	o.Name = v
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -108,7 +84,6 @@ func (o *JsonSchema) HasDescription() bool {
 func (o *JsonSchema) SetDescription(v string) {
 	o.Description.Set(&v)
 }
-
 // SetDescriptionNil sets the value for Description to be an explicit nil
 func (o *JsonSchema) SetDescriptionNil() {
 	o.Description.Set(nil)
@@ -117,6 +92,30 @@ func (o *JsonSchema) SetDescriptionNil() {
 // UnsetDescription ensures that no value is present for Description, not even an explicit nil
 func (o *JsonSchema) UnsetDescription() {
 	o.Description.Unset()
+}
+
+// GetName returns the Name field value
+func (o *JsonSchema) GetName() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value
+// and a boolean to check if the value has been set.
+func (o *JsonSchema) GetNameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Name, true
+}
+
+// SetName sets field value
+func (o *JsonSchema) SetName(v string) {
+	o.Name = v
 }
 
 // GetSchema returns the Schema field value
@@ -176,7 +175,7 @@ func (o *JsonSchema) SetStrict(v bool) {
 }
 
 func (o JsonSchema) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -185,10 +184,10 @@ func (o JsonSchema) MarshalJSON() ([]byte, error) {
 
 func (o JsonSchema) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["name"] = o.Name
 	if o.Description.IsSet() {
 		toSerialize["description"] = o.Description.Get()
 	}
+	toSerialize["name"] = o.Name
 	toSerialize["schema"] = o.Schema
 	if !IsNil(o.Strict) {
 		toSerialize["strict"] = o.Strict
@@ -215,10 +214,10 @@ func (o *JsonSchema) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -237,8 +236,8 @@ func (o *JsonSchema) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "name")
 		delete(additionalProperties, "description")
+		delete(additionalProperties, "name")
 		delete(additionalProperties, "schema")
 		delete(additionalProperties, "strict")
 		o.AdditionalProperties = additionalProperties

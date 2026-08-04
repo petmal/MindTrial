@@ -21,7 +21,7 @@ type FTClassifierLossFunction string
 // List of FTClassifierLossFunction
 const (
 	FTCLASSIFIERLOSSFUNCTION_SINGLE_CLASS FTClassifierLossFunction = "single_class"
-	FTCLASSIFIERLOSSFUNCTION_MULTI_CLASS  FTClassifierLossFunction = "multi_class"
+	FTCLASSIFIERLOSSFUNCTION_MULTI_CLASS FTClassifierLossFunction = "multi_class"
 )
 
 // All allowed values of FTClassifierLossFunction enum

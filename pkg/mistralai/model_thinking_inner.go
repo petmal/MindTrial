@@ -15,17 +15,19 @@ import (
 	"fmt"
 )
 
+
 // ThinkingInner struct for ThinkingInner
 type ThinkingInner struct {
 	ReferenceChunk *ReferenceChunk
-	TextChunk      *TextChunk
+	TextChunk *TextChunk
+	ToolReferenceChunk *ToolReferenceChunk
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
 func (dst *ThinkingInner) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into ReferenceChunk
-	err = json.Unmarshal(data, &dst.ReferenceChunk)
+	err = json.Unmarshal(data, &dst.ReferenceChunk);
 	if err == nil {
 		jsonReferenceChunk, _ := json.Marshal(dst.ReferenceChunk)
 		if string(jsonReferenceChunk) == "{}" { // empty struct
@@ -38,7 +40,7 @@ func (dst *ThinkingInner) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into TextChunk
-	err = json.Unmarshal(data, &dst.TextChunk)
+	err = json.Unmarshal(data, &dst.TextChunk);
 	if err == nil {
 		jsonTextChunk, _ := json.Marshal(dst.TextChunk)
 		if string(jsonTextChunk) == "{}" { // empty struct
@@ -48,6 +50,19 @@ func (dst *ThinkingInner) UnmarshalJSON(data []byte) error {
 		}
 	} else {
 		dst.TextChunk = nil
+	}
+
+	// try to unmarshal JSON data into ToolReferenceChunk
+	err = json.Unmarshal(data, &dst.ToolReferenceChunk);
+	if err == nil {
+		jsonToolReferenceChunk, _ := json.Marshal(dst.ToolReferenceChunk)
+		if string(jsonToolReferenceChunk) == "{}" { // empty struct
+			dst.ToolReferenceChunk = nil
+		} else {
+			return nil // data stored in dst.ToolReferenceChunk, return on the first match
+		}
+	} else {
+		dst.ToolReferenceChunk = nil
 	}
 
 	return fmt.Errorf("data failed to match schemas in anyOf(ThinkingInner)")
@@ -63,8 +78,13 @@ func (src ThinkingInner) MarshalJSON() ([]byte, error) {
 		return json.Marshal(&src.TextChunk)
 	}
 
+	if src.ToolReferenceChunk != nil {
+		return json.Marshal(&src.ToolReferenceChunk)
+	}
+
 	return nil, nil // no data in anyOf schemas
 }
+
 
 type NullableThinkingInner struct {
 	value *ThinkingInner

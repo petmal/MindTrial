@@ -26,9 +26,9 @@ type MessageOneOf2 struct {
 	Name NullableString `json:"name,omitempty"`
 	// Assistant reasoning content.
 	ReasoningContent NullableString `json:"reasoning_content,omitempty"`
-	Role             string         `json:"role"`
+	Role string `json:"role"`
 	// An array of tool calls available to the model on your machine.
-	ToolCalls            []ToolCall `json:"tool_calls,omitempty"`
+	ToolCalls []ToolCall `json:"tool_calls,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -84,7 +84,6 @@ func (o *MessageOneOf2) HasContent() bool {
 func (o *MessageOneOf2) SetContent(v Content) {
 	o.Content.Set(&v)
 }
-
 // SetContentNil sets the value for Content to be an explicit nil
 func (o *MessageOneOf2) SetContentNil() {
 	o.Content.Set(nil)
@@ -127,7 +126,6 @@ func (o *MessageOneOf2) HasName() bool {
 func (o *MessageOneOf2) SetName(v string) {
 	o.Name.Set(&v)
 }
-
 // SetNameNil sets the value for Name to be an explicit nil
 func (o *MessageOneOf2) SetNameNil() {
 	o.Name.Set(nil)
@@ -170,7 +168,6 @@ func (o *MessageOneOf2) HasReasoningContent() bool {
 func (o *MessageOneOf2) SetReasoningContent(v string) {
 	o.ReasoningContent.Set(&v)
 }
-
 // SetReasoningContentNil sets the value for ReasoningContent to be an explicit nil
 func (o *MessageOneOf2) SetReasoningContentNil() {
 	o.ReasoningContent.Set(nil)
@@ -239,7 +236,7 @@ func (o *MessageOneOf2) SetToolCalls(v []ToolCall) {
 }
 
 func (o MessageOneOf2) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -282,10 +279,10 @@ func (o *MessageOneOf2) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

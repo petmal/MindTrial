@@ -20,20 +20,20 @@ type ImageAspectRatio string
 
 // List of ImageAspectRatio
 const (
-	IMAGEASPECTRATIO__1_1    ImageAspectRatio = "1:1"
-	IMAGEASPECTRATIO__3_4    ImageAspectRatio = "3:4"
-	IMAGEASPECTRATIO__4_3    ImageAspectRatio = "4:3"
-	IMAGEASPECTRATIO__9_16   ImageAspectRatio = "9:16"
-	IMAGEASPECTRATIO__16_9   ImageAspectRatio = "16:9"
-	IMAGEASPECTRATIO__2_3    ImageAspectRatio = "2:3"
-	IMAGEASPECTRATIO__3_2    ImageAspectRatio = "3:2"
+	IMAGEASPECTRATIO__1_1 ImageAspectRatio = "1:1"
+	IMAGEASPECTRATIO__3_4 ImageAspectRatio = "3:4"
+	IMAGEASPECTRATIO__4_3 ImageAspectRatio = "4:3"
+	IMAGEASPECTRATIO__9_16 ImageAspectRatio = "9:16"
+	IMAGEASPECTRATIO__16_9 ImageAspectRatio = "16:9"
+	IMAGEASPECTRATIO__2_3 ImageAspectRatio = "2:3"
+	IMAGEASPECTRATIO__3_2 ImageAspectRatio = "3:2"
 	IMAGEASPECTRATIO__9_19_5 ImageAspectRatio = "9:19.5"
 	IMAGEASPECTRATIO__19_5_9 ImageAspectRatio = "19.5:9"
-	IMAGEASPECTRATIO__9_20   ImageAspectRatio = "9:20"
-	IMAGEASPECTRATIO__20_9   ImageAspectRatio = "20:9"
-	IMAGEASPECTRATIO__1_2    ImageAspectRatio = "1:2"
-	IMAGEASPECTRATIO__2_1    ImageAspectRatio = "2:1"
-	IMAGEASPECTRATIO_AUTO    ImageAspectRatio = "auto"
+	IMAGEASPECTRATIO__9_20 ImageAspectRatio = "9:20"
+	IMAGEASPECTRATIO__20_9 ImageAspectRatio = "20:9"
+	IMAGEASPECTRATIO__1_2 ImageAspectRatio = "1:2"
+	IMAGEASPECTRATIO__2_1 ImageAspectRatio = "2:1"
+	IMAGEASPECTRATIO_AUTO ImageAspectRatio = "auto"
 )
 
 // All allowed values of ImageAspectRatio enum

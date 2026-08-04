@@ -21,8 +21,8 @@ var _ MappedNullable = &ShellCallOutcomeOneOf{}
 // ShellCallOutcomeOneOf The command exited normally.
 type ShellCallOutcomeOneOf struct {
 	// The exit code of the command.
-	ExitCode             int32  `json:"exit_code"`
-	Type                 string `json:"type"`
+	ExitCode int32 `json:"exit_code"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -96,7 +96,7 @@ func (o *ShellCallOutcomeOneOf) SetType(v string) {
 }
 
 func (o ShellCallOutcomeOneOf) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -129,10 +129,10 @@ func (o *ShellCallOutcomeOneOf) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

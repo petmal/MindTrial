@@ -20,10 +20,10 @@ type TranscriptionStreamEventTypes string
 
 // List of TranscriptionStreamEventTypes
 const (
-	TRANSCRIPTIONSTREAMEVENTTYPES_TRANSCRIPTION_LANGUAGE   TranscriptionStreamEventTypes = "transcription.language"
-	TRANSCRIPTIONSTREAMEVENTTYPES_TRANSCRIPTION_SEGMENT    TranscriptionStreamEventTypes = "transcription.segment"
+	TRANSCRIPTIONSTREAMEVENTTYPES_TRANSCRIPTION_LANGUAGE TranscriptionStreamEventTypes = "transcription.language"
+	TRANSCRIPTIONSTREAMEVENTTYPES_TRANSCRIPTION_SEGMENT TranscriptionStreamEventTypes = "transcription.segment"
 	TRANSCRIPTIONSTREAMEVENTTYPES_TRANSCRIPTION_TEXT_DELTA TranscriptionStreamEventTypes = "transcription.text.delta"
-	TRANSCRIPTIONSTREAMEVENTTYPES_TRANSCRIPTION_DONE       TranscriptionStreamEventTypes = "transcription.done"
+	TRANSCRIPTIONSTREAMEVENTTYPES_TRANSCRIPTION_DONE TranscriptionStreamEventTypes = "transcription.done"
 )
 
 // All allowed values of TranscriptionStreamEventTypes enum

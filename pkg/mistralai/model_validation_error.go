@@ -20,9 +20,11 @@ var _ MappedNullable = &ValidationError{}
 
 // ValidationError struct for ValidationError
 type ValidationError struct {
-	Loc                  []LocationInner `json:"loc"`
-	Msg                  string          `json:"msg"`
-	Type                 string          `json:"type"`
+	Ctx map[string]interface{} `json:"ctx,omitempty"`
+	Input interface{} `json:"input,omitempty"`
+	Loc []LocationInner `json:"loc"`
+	Msg string `json:"msg"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -46,6 +48,71 @@ func NewValidationError(loc []LocationInner, msg string, type_ string) *Validati
 func NewValidationErrorWithDefaults() *ValidationError {
 	this := ValidationError{}
 	return &this
+}
+
+// GetCtx returns the Ctx field value if set, zero value otherwise.
+func (o *ValidationError) GetCtx() map[string]interface{} {
+	if o == nil || IsNil(o.Ctx) {
+		var ret map[string]interface{}
+		return ret
+	}
+	return o.Ctx
+}
+
+// GetCtxOk returns a tuple with the Ctx field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ValidationError) GetCtxOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Ctx) {
+		return map[string]interface{}{}, false
+	}
+	return o.Ctx, true
+}
+
+// HasCtx returns a boolean if a field has been set.
+func (o *ValidationError) HasCtx() bool {
+	if o != nil && !IsNil(o.Ctx) {
+		return true
+	}
+
+	return false
+}
+
+// SetCtx gets a reference to the given map[string]interface{} and assigns it to the Ctx field.
+func (o *ValidationError) SetCtx(v map[string]interface{}) {
+	o.Ctx = v
+}
+
+// GetInput returns the Input field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ValidationError) GetInput() interface{} {
+	if o == nil {
+		var ret interface{}
+		return ret
+	}
+	return o.Input
+}
+
+// GetInputOk returns a tuple with the Input field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ValidationError) GetInputOk() (*interface{}, bool) {
+	if o == nil || IsNil(o.Input) {
+		return nil, false
+	}
+	return &o.Input, true
+}
+
+// HasInput returns a boolean if a field has been set.
+func (o *ValidationError) HasInput() bool {
+	if o != nil && !IsNil(o.Input) {
+		return true
+	}
+
+	return false
+}
+
+// SetInput gets a reference to the given interface{} and assigns it to the Input field.
+func (o *ValidationError) SetInput(v interface{}) {
+	o.Input = v
 }
 
 // GetLoc returns the Loc field value
@@ -121,7 +188,7 @@ func (o *ValidationError) SetType(v string) {
 }
 
 func (o ValidationError) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -130,6 +197,12 @@ func (o ValidationError) MarshalJSON() ([]byte, error) {
 
 func (o ValidationError) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if !IsNil(o.Ctx) {
+		toSerialize["ctx"] = o.Ctx
+	}
+	if o.Input != nil {
+		toSerialize["input"] = o.Input
+	}
 	toSerialize["loc"] = o.Loc
 	toSerialize["msg"] = o.Msg
 	toSerialize["type"] = o.Type
@@ -156,10 +229,10 @@ func (o *ValidationError) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -178,6 +251,8 @@ func (o *ValidationError) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "ctx")
+		delete(additionalProperties, "input")
 		delete(additionalProperties, "loc")
 		delete(additionalProperties, "msg")
 		delete(additionalProperties, "type")

@@ -20,17 +20,18 @@ var _ MappedNullable = &ConversationRestartRequest{}
 
 // ConversationRestartRequest struct for ConversationRestartRequest
 type ConversationRestartRequest struct {
-	Inputs ConversationInputs `json:"inputs"`
-	Stream *bool              `json:"stream,omitempty"`
-	// Whether to store the results into our servers or not.
-	Store            *bool   `json:"store,omitempty"`
-	HandoffExecution *string `json:"handoff_execution,omitempty"`
+	AgentVersion NullableAgentVersion1 `json:"agent_version,omitempty"`
 	// Completion arguments that will be used to generate assistant responses. Can be overridden at each message request.
 	CompletionArgs *CompletionArgs `json:"completion_args,omitempty"`
-	// Custom type for metadata with embedded validation.
-	Metadata             map[string]interface{} `json:"metadata,omitempty"`
-	FromEntryId          string                 `json:"from_entry_id"`
-	AgentVersion         NullableAgentVersion2  `json:"agent_version,omitempty"`
+	FromEntryId string `json:"from_entry_id"`
+	Guardrails []GuardrailConfig `json:"guardrails,omitempty"`
+	HandoffExecution *string `json:"handoff_execution,omitempty"`
+	Inputs *ConversationInputs `json:"inputs,omitempty"`
+	// Custom metadata for the conversation.
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	// Whether to store the results into our servers or not.
+	Store *bool `json:"store,omitempty"`
+	Stream *bool `json:"stream,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -40,16 +41,15 @@ type _ConversationRestartRequest ConversationRestartRequest
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewConversationRestartRequest(inputs ConversationInputs, fromEntryId string) *ConversationRestartRequest {
+func NewConversationRestartRequest(fromEntryId string) *ConversationRestartRequest {
 	this := ConversationRestartRequest{}
-	this.Inputs = inputs
-	var stream bool = false
-	this.Stream = &stream
-	var store bool = true
-	this.Store = &store
+	this.FromEntryId = fromEntryId
 	var handoffExecution string = "server"
 	this.HandoffExecution = &handoffExecution
-	this.FromEntryId = fromEntryId
+	var store bool = true
+	this.Store = &store
+	var stream bool = false
+	this.Stream = &stream
 	return &this
 }
 
@@ -58,133 +58,55 @@ func NewConversationRestartRequest(inputs ConversationInputs, fromEntryId string
 // but it doesn't guarantee that properties required by API are set
 func NewConversationRestartRequestWithDefaults() *ConversationRestartRequest {
 	this := ConversationRestartRequest{}
-	var stream bool = false
-	this.Stream = &stream
-	var store bool = true
-	this.Store = &store
 	var handoffExecution string = "server"
 	this.HandoffExecution = &handoffExecution
+	var store bool = true
+	this.Store = &store
+	var stream bool = false
+	this.Stream = &stream
 	return &this
 }
 
-// GetInputs returns the Inputs field value
-func (o *ConversationRestartRequest) GetInputs() ConversationInputs {
+// GetAgentVersion returns the AgentVersion field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ConversationRestartRequest) GetAgentVersion() AgentVersion1 {
+	if o == nil || IsNil(o.AgentVersion.Get()) {
+		var ret AgentVersion1
+		return ret
+	}
+	return *o.AgentVersion.Get()
+}
+
+// GetAgentVersionOk returns a tuple with the AgentVersion field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ConversationRestartRequest) GetAgentVersionOk() (*AgentVersion1, bool) {
 	if o == nil {
-		var ret ConversationInputs
-		return ret
-	}
-
-	return o.Inputs
-}
-
-// GetInputsOk returns a tuple with the Inputs field value
-// and a boolean to check if the value has been set.
-func (o *ConversationRestartRequest) GetInputsOk() (*ConversationInputs, bool) {
-	if o == nil {
 		return nil, false
 	}
-	return &o.Inputs, true
+	return o.AgentVersion.Get(), o.AgentVersion.IsSet()
 }
 
-// SetInputs sets field value
-func (o *ConversationRestartRequest) SetInputs(v ConversationInputs) {
-	o.Inputs = v
-}
-
-// GetStream returns the Stream field value if set, zero value otherwise.
-func (o *ConversationRestartRequest) GetStream() bool {
-	if o == nil || IsNil(o.Stream) {
-		var ret bool
-		return ret
-	}
-	return *o.Stream
-}
-
-// GetStreamOk returns a tuple with the Stream field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ConversationRestartRequest) GetStreamOk() (*bool, bool) {
-	if o == nil || IsNil(o.Stream) {
-		return nil, false
-	}
-	return o.Stream, true
-}
-
-// HasStream returns a boolean if a field has been set.
-func (o *ConversationRestartRequest) HasStream() bool {
-	if o != nil && !IsNil(o.Stream) {
+// HasAgentVersion returns a boolean if a field has been set.
+func (o *ConversationRestartRequest) HasAgentVersion() bool {
+	if o != nil && o.AgentVersion.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetStream gets a reference to the given bool and assigns it to the Stream field.
-func (o *ConversationRestartRequest) SetStream(v bool) {
-	o.Stream = &v
+// SetAgentVersion gets a reference to the given NullableAgentVersion1 and assigns it to the AgentVersion field.
+func (o *ConversationRestartRequest) SetAgentVersion(v AgentVersion1) {
+	o.AgentVersion.Set(&v)
+}
+// SetAgentVersionNil sets the value for AgentVersion to be an explicit nil
+func (o *ConversationRestartRequest) SetAgentVersionNil() {
+	o.AgentVersion.Set(nil)
 }
 
-// GetStore returns the Store field value if set, zero value otherwise.
-func (o *ConversationRestartRequest) GetStore() bool {
-	if o == nil || IsNil(o.Store) {
-		var ret bool
-		return ret
-	}
-	return *o.Store
-}
-
-// GetStoreOk returns a tuple with the Store field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ConversationRestartRequest) GetStoreOk() (*bool, bool) {
-	if o == nil || IsNil(o.Store) {
-		return nil, false
-	}
-	return o.Store, true
-}
-
-// HasStore returns a boolean if a field has been set.
-func (o *ConversationRestartRequest) HasStore() bool {
-	if o != nil && !IsNil(o.Store) {
-		return true
-	}
-
-	return false
-}
-
-// SetStore gets a reference to the given bool and assigns it to the Store field.
-func (o *ConversationRestartRequest) SetStore(v bool) {
-	o.Store = &v
-}
-
-// GetHandoffExecution returns the HandoffExecution field value if set, zero value otherwise.
-func (o *ConversationRestartRequest) GetHandoffExecution() string {
-	if o == nil || IsNil(o.HandoffExecution) {
-		var ret string
-		return ret
-	}
-	return *o.HandoffExecution
-}
-
-// GetHandoffExecutionOk returns a tuple with the HandoffExecution field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ConversationRestartRequest) GetHandoffExecutionOk() (*string, bool) {
-	if o == nil || IsNil(o.HandoffExecution) {
-		return nil, false
-	}
-	return o.HandoffExecution, true
-}
-
-// HasHandoffExecution returns a boolean if a field has been set.
-func (o *ConversationRestartRequest) HasHandoffExecution() bool {
-	if o != nil && !IsNil(o.HandoffExecution) {
-		return true
-	}
-
-	return false
-}
-
-// SetHandoffExecution gets a reference to the given string and assigns it to the HandoffExecution field.
-func (o *ConversationRestartRequest) SetHandoffExecution(v string) {
-	o.HandoffExecution = &v
+// UnsetAgentVersion ensures that no value is present for AgentVersion, not even an explicit nil
+func (o *ConversationRestartRequest) UnsetAgentVersion() {
+	o.AgentVersion.Unset()
 }
 
 // GetCompletionArgs returns the CompletionArgs field value if set, zero value otherwise.
@@ -219,6 +141,126 @@ func (o *ConversationRestartRequest) SetCompletionArgs(v CompletionArgs) {
 	o.CompletionArgs = &v
 }
 
+// GetFromEntryId returns the FromEntryId field value
+func (o *ConversationRestartRequest) GetFromEntryId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.FromEntryId
+}
+
+// GetFromEntryIdOk returns a tuple with the FromEntryId field value
+// and a boolean to check if the value has been set.
+func (o *ConversationRestartRequest) GetFromEntryIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.FromEntryId, true
+}
+
+// SetFromEntryId sets field value
+func (o *ConversationRestartRequest) SetFromEntryId(v string) {
+	o.FromEntryId = v
+}
+
+// GetGuardrails returns the Guardrails field value if set, zero value otherwise.
+func (o *ConversationRestartRequest) GetGuardrails() []GuardrailConfig {
+	if o == nil || IsNil(o.Guardrails) {
+		var ret []GuardrailConfig
+		return ret
+	}
+	return o.Guardrails
+}
+
+// GetGuardrailsOk returns a tuple with the Guardrails field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationRestartRequest) GetGuardrailsOk() ([]GuardrailConfig, bool) {
+	if o == nil || IsNil(o.Guardrails) {
+		return nil, false
+	}
+	return o.Guardrails, true
+}
+
+// HasGuardrails returns a boolean if a field has been set.
+func (o *ConversationRestartRequest) HasGuardrails() bool {
+	if o != nil && !IsNil(o.Guardrails) {
+		return true
+	}
+
+	return false
+}
+
+// SetGuardrails gets a reference to the given []GuardrailConfig and assigns it to the Guardrails field.
+func (o *ConversationRestartRequest) SetGuardrails(v []GuardrailConfig) {
+	o.Guardrails = v
+}
+
+// GetHandoffExecution returns the HandoffExecution field value if set, zero value otherwise.
+func (o *ConversationRestartRequest) GetHandoffExecution() string {
+	if o == nil || IsNil(o.HandoffExecution) {
+		var ret string
+		return ret
+	}
+	return *o.HandoffExecution
+}
+
+// GetHandoffExecutionOk returns a tuple with the HandoffExecution field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationRestartRequest) GetHandoffExecutionOk() (*string, bool) {
+	if o == nil || IsNil(o.HandoffExecution) {
+		return nil, false
+	}
+	return o.HandoffExecution, true
+}
+
+// HasHandoffExecution returns a boolean if a field has been set.
+func (o *ConversationRestartRequest) HasHandoffExecution() bool {
+	if o != nil && !IsNil(o.HandoffExecution) {
+		return true
+	}
+
+	return false
+}
+
+// SetHandoffExecution gets a reference to the given string and assigns it to the HandoffExecution field.
+func (o *ConversationRestartRequest) SetHandoffExecution(v string) {
+	o.HandoffExecution = &v
+}
+
+// GetInputs returns the Inputs field value if set, zero value otherwise.
+func (o *ConversationRestartRequest) GetInputs() ConversationInputs {
+	if o == nil || IsNil(o.Inputs) {
+		var ret ConversationInputs
+		return ret
+	}
+	return *o.Inputs
+}
+
+// GetInputsOk returns a tuple with the Inputs field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationRestartRequest) GetInputsOk() (*ConversationInputs, bool) {
+	if o == nil || IsNil(o.Inputs) {
+		return nil, false
+	}
+	return o.Inputs, true
+}
+
+// HasInputs returns a boolean if a field has been set.
+func (o *ConversationRestartRequest) HasInputs() bool {
+	if o != nil && !IsNil(o.Inputs) {
+		return true
+	}
+
+	return false
+}
+
+// SetInputs gets a reference to the given ConversationInputs and assigns it to the Inputs field.
+func (o *ConversationRestartRequest) SetInputs(v ConversationInputs) {
+	o.Inputs = &v
+}
+
 // GetMetadata returns the Metadata field value if set, zero value otherwise.
 func (o *ConversationRestartRequest) GetMetadata() map[string]interface{} {
 	if o == nil || IsNil(o.Metadata) {
@@ -251,75 +293,72 @@ func (o *ConversationRestartRequest) SetMetadata(v map[string]interface{}) {
 	o.Metadata = v
 }
 
-// GetFromEntryId returns the FromEntryId field value
-func (o *ConversationRestartRequest) GetFromEntryId() string {
-	if o == nil {
-		var ret string
+// GetStore returns the Store field value if set, zero value otherwise.
+func (o *ConversationRestartRequest) GetStore() bool {
+	if o == nil || IsNil(o.Store) {
+		var ret bool
 		return ret
 	}
-
-	return o.FromEntryId
+	return *o.Store
 }
 
-// GetFromEntryIdOk returns a tuple with the FromEntryId field value
+// GetStoreOk returns a tuple with the Store field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ConversationRestartRequest) GetFromEntryIdOk() (*string, bool) {
-	if o == nil {
+func (o *ConversationRestartRequest) GetStoreOk() (*bool, bool) {
+	if o == nil || IsNil(o.Store) {
 		return nil, false
 	}
-	return &o.FromEntryId, true
+	return o.Store, true
 }
 
-// SetFromEntryId sets field value
-func (o *ConversationRestartRequest) SetFromEntryId(v string) {
-	o.FromEntryId = v
-}
-
-// GetAgentVersion returns the AgentVersion field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ConversationRestartRequest) GetAgentVersion() AgentVersion2 {
-	if o == nil || IsNil(o.AgentVersion.Get()) {
-		var ret AgentVersion2
-		return ret
-	}
-	return *o.AgentVersion.Get()
-}
-
-// GetAgentVersionOk returns a tuple with the AgentVersion field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ConversationRestartRequest) GetAgentVersionOk() (*AgentVersion2, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.AgentVersion.Get(), o.AgentVersion.IsSet()
-}
-
-// HasAgentVersion returns a boolean if a field has been set.
-func (o *ConversationRestartRequest) HasAgentVersion() bool {
-	if o != nil && o.AgentVersion.IsSet() {
+// HasStore returns a boolean if a field has been set.
+func (o *ConversationRestartRequest) HasStore() bool {
+	if o != nil && !IsNil(o.Store) {
 		return true
 	}
 
 	return false
 }
 
-// SetAgentVersion gets a reference to the given NullableAgentVersion2 and assigns it to the AgentVersion field.
-func (o *ConversationRestartRequest) SetAgentVersion(v AgentVersion2) {
-	o.AgentVersion.Set(&v)
+// SetStore gets a reference to the given bool and assigns it to the Store field.
+func (o *ConversationRestartRequest) SetStore(v bool) {
+	o.Store = &v
 }
 
-// SetAgentVersionNil sets the value for AgentVersion to be an explicit nil
-func (o *ConversationRestartRequest) SetAgentVersionNil() {
-	o.AgentVersion.Set(nil)
+// GetStream returns the Stream field value if set, zero value otherwise.
+func (o *ConversationRestartRequest) GetStream() bool {
+	if o == nil || IsNil(o.Stream) {
+		var ret bool
+		return ret
+	}
+	return *o.Stream
 }
 
-// UnsetAgentVersion ensures that no value is present for AgentVersion, not even an explicit nil
-func (o *ConversationRestartRequest) UnsetAgentVersion() {
-	o.AgentVersion.Unset()
+// GetStreamOk returns a tuple with the Stream field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationRestartRequest) GetStreamOk() (*bool, bool) {
+	if o == nil || IsNil(o.Stream) {
+		return nil, false
+	}
+	return o.Stream, true
+}
+
+// HasStream returns a boolean if a field has been set.
+func (o *ConversationRestartRequest) HasStream() bool {
+	if o != nil && !IsNil(o.Stream) {
+		return true
+	}
+
+	return false
+}
+
+// SetStream gets a reference to the given bool and assigns it to the Stream field.
+func (o *ConversationRestartRequest) SetStream(v bool) {
+	o.Stream = &v
 }
 
 func (o ConversationRestartRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -328,25 +367,30 @@ func (o ConversationRestartRequest) MarshalJSON() ([]byte, error) {
 
 func (o ConversationRestartRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["inputs"] = o.Inputs
-	if !IsNil(o.Stream) {
-		toSerialize["stream"] = o.Stream
-	}
-	if !IsNil(o.Store) {
-		toSerialize["store"] = o.Store
-	}
-	if !IsNil(o.HandoffExecution) {
-		toSerialize["handoff_execution"] = o.HandoffExecution
+	if o.AgentVersion.IsSet() {
+		toSerialize["agent_version"] = o.AgentVersion.Get()
 	}
 	if !IsNil(o.CompletionArgs) {
 		toSerialize["completion_args"] = o.CompletionArgs
 	}
+	toSerialize["from_entry_id"] = o.FromEntryId
+	if !IsNil(o.Guardrails) {
+		toSerialize["guardrails"] = o.Guardrails
+	}
+	if !IsNil(o.HandoffExecution) {
+		toSerialize["handoff_execution"] = o.HandoffExecution
+	}
+	if !IsNil(o.Inputs) {
+		toSerialize["inputs"] = o.Inputs
+	}
 	if !IsNil(o.Metadata) {
 		toSerialize["metadata"] = o.Metadata
 	}
-	toSerialize["from_entry_id"] = o.FromEntryId
-	if o.AgentVersion.IsSet() {
-		toSerialize["agent_version"] = o.AgentVersion.Get()
+	if !IsNil(o.Store) {
+		toSerialize["store"] = o.Store
+	}
+	if !IsNil(o.Stream) {
+		toSerialize["stream"] = o.Stream
 	}
 
 	for key, value := range o.AdditionalProperties {
@@ -361,7 +405,6 @@ func (o *ConversationRestartRequest) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"inputs",
 		"from_entry_id",
 	}
 
@@ -370,10 +413,10 @@ func (o *ConversationRestartRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -392,14 +435,15 @@ func (o *ConversationRestartRequest) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "inputs")
-		delete(additionalProperties, "stream")
-		delete(additionalProperties, "store")
-		delete(additionalProperties, "handoff_execution")
-		delete(additionalProperties, "completion_args")
-		delete(additionalProperties, "metadata")
-		delete(additionalProperties, "from_entry_id")
 		delete(additionalProperties, "agent_version")
+		delete(additionalProperties, "completion_args")
+		delete(additionalProperties, "from_entry_id")
+		delete(additionalProperties, "guardrails")
+		delete(additionalProperties, "handoff_execution")
+		delete(additionalProperties, "inputs")
+		delete(additionalProperties, "metadata")
+		delete(additionalProperties, "store")
+		delete(additionalProperties, "stream")
 		o.AdditionalProperties = additionalProperties
 	}
 

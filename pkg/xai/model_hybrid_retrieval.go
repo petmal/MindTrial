@@ -22,7 +22,7 @@ type HybridRetrieval struct {
 	// Which reranker to use to limit results to the desired value.
 	Reranker NullableHybridReranker `json:"reranker,omitempty"`
 	// Additional multiplier to requested search limit. Valid range is [1, 100]. Defaults to 1 when unset.
-	SearchMultiplier     NullableInt32 `json:"search_multiplier,omitempty"`
+	SearchMultiplier NullableInt32 `json:"search_multiplier,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -77,7 +77,6 @@ func (o *HybridRetrieval) HasReranker() bool {
 func (o *HybridRetrieval) SetReranker(v HybridReranker) {
 	o.Reranker.Set(&v)
 }
-
 // SetRerankerNil sets the value for Reranker to be an explicit nil
 func (o *HybridRetrieval) SetRerankerNil() {
 	o.Reranker.Set(nil)
@@ -120,7 +119,6 @@ func (o *HybridRetrieval) HasSearchMultiplier() bool {
 func (o *HybridRetrieval) SetSearchMultiplier(v int32) {
 	o.SearchMultiplier.Set(&v)
 }
-
 // SetSearchMultiplierNil sets the value for SearchMultiplier to be an explicit nil
 func (o *HybridRetrieval) SetSearchMultiplierNil() {
 	o.SearchMultiplier.Set(nil)
@@ -132,7 +130,7 @@ func (o *HybridRetrieval) UnsetSearchMultiplier() {
 }
 
 func (o HybridRetrieval) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

@@ -43,7 +43,7 @@ type ApiKey struct {
 	// The team ID of the team that owns the API key.
 	TeamId string `json:"team_id"`
 	// User ID the API key belongs to.
-	UserId               string `json:"user_id"`
+	UserId string `json:"user_id"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -367,7 +367,7 @@ func (o *ApiKey) SetUserId(v string) {
 }
 
 func (o ApiKey) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -420,10 +420,10 @@ func (o *ApiKey) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

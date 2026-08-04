@@ -23,8 +23,8 @@ type HybridRerankerOneOf struct {
 	// Instructions for the reranking model. Defaults to generic reranking instructions.
 	Instructions NullableString `json:"instructions,omitempty"`
 	// The model to use for reranking. Defaults to standard reranker model.
-	Model                NullableString `json:"model,omitempty"`
-	Type                 string         `json:"type"`
+	Model NullableString `json:"model,omitempty"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -80,7 +80,6 @@ func (o *HybridRerankerOneOf) HasInstructions() bool {
 func (o *HybridRerankerOneOf) SetInstructions(v string) {
 	o.Instructions.Set(&v)
 }
-
 // SetInstructionsNil sets the value for Instructions to be an explicit nil
 func (o *HybridRerankerOneOf) SetInstructionsNil() {
 	o.Instructions.Set(nil)
@@ -123,7 +122,6 @@ func (o *HybridRerankerOneOf) HasModel() bool {
 func (o *HybridRerankerOneOf) SetModel(v string) {
 	o.Model.Set(&v)
 }
-
 // SetModelNil sets the value for Model to be an explicit nil
 func (o *HybridRerankerOneOf) SetModelNil() {
 	o.Model.Set(nil)
@@ -159,7 +157,7 @@ func (o *HybridRerankerOneOf) SetType(v string) {
 }
 
 func (o HybridRerankerOneOf) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -196,10 +194,10 @@ func (o *HybridRerankerOneOf) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

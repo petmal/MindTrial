@@ -15,9 +15,10 @@ import (
 	"fmt"
 )
 
-// ToolChoice1 struct for ToolChoice1
+
+// ToolChoice1 Controls which (if any) tool is called by the model. `none` means the model will not call any tool and instead generates a message. `auto` means the model can pick between generating a message or calling one or more tools. `any` or `required` means the model must call one or more tools. Specifying a particular tool via `{\"type\": \"function\", \"function\": {\"name\": \"my_function\"}}` forces the model to call that tool.
 type ToolChoice1 struct {
-	ToolChoice     *ToolChoice
+	ToolChoice *ToolChoice
 	ToolChoiceEnum *ToolChoiceEnum
 }
 
@@ -25,7 +26,7 @@ type ToolChoice1 struct {
 func (dst *ToolChoice1) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into ToolChoice
-	err = json.Unmarshal(data, &dst.ToolChoice)
+	err = json.Unmarshal(data, &dst.ToolChoice);
 	if err == nil {
 		jsonToolChoice, _ := json.Marshal(dst.ToolChoice)
 		if string(jsonToolChoice) == "{}" { // empty struct
@@ -38,7 +39,7 @@ func (dst *ToolChoice1) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into ToolChoiceEnum
-	err = json.Unmarshal(data, &dst.ToolChoiceEnum)
+	err = json.Unmarshal(data, &dst.ToolChoiceEnum);
 	if err == nil {
 		jsonToolChoiceEnum, _ := json.Marshal(dst.ToolChoiceEnum)
 		if string(jsonToolChoiceEnum) == "{}" { // empty struct
@@ -65,6 +66,7 @@ func (src ToolChoice1) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
+
 
 type NullableToolChoice1 struct {
 	value *ToolChoice1

@@ -20,9 +20,9 @@ type ToolChoiceEnum string
 
 // List of ToolChoiceEnum
 const (
-	TOOLCHOICEENUM_auto     ToolChoiceEnum = "auto"
-	TOOLCHOICEENUM_NONE     ToolChoiceEnum = "none"
-	TOOLCHOICEENUM_ANY      ToolChoiceEnum = "any"
+	TOOLCHOICEENUM_auto ToolChoiceEnum = "auto"
+	TOOLCHOICEENUM_NONE ToolChoiceEnum = "none"
+	TOOLCHOICEENUM_ANY ToolChoiceEnum = "any"
 	TOOLCHOICEENUM_REQUIRED ToolChoiceEnum = "required"
 )
 

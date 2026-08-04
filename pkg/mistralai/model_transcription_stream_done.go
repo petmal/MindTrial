@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,12 +21,12 @@ var _ MappedNullable = &TranscriptionStreamDone{}
 
 // TranscriptionStreamDone struct for TranscriptionStreamDone
 type TranscriptionStreamDone struct {
-	Model    string                      `json:"model"`
-	Text     string                      `json:"text"`
-	Language NullableString              `json:"language" validate:"regexp=^\\\\w{2}$"`
+	Language NullableString `json:"language" validate:"regexp=^\\w{2}$"`
+	Model string `json:"model"`
 	Segments []TranscriptionSegmentChunk `json:"segments,omitempty"`
-	Usage    UsageInfo                   `json:"usage"`
-	Type     *string                     `json:"type,omitempty"`
+	Text string `json:"text"`
+	Type *string `json:"type,omitempty"`
+	Usage UsageInfo `json:"usage"`
 }
 
 type _TranscriptionStreamDone TranscriptionStreamDone
@@ -35,14 +35,14 @@ type _TranscriptionStreamDone TranscriptionStreamDone
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewTranscriptionStreamDone(model string, text string, language NullableString, usage UsageInfo) *TranscriptionStreamDone {
+func NewTranscriptionStreamDone(language NullableString, model string, text string, usage UsageInfo) *TranscriptionStreamDone {
 	this := TranscriptionStreamDone{}
+	this.Language = language
 	this.Model = model
 	this.Text = text
-	this.Language = language
-	this.Usage = usage
 	var type_ string = "transcription.done"
 	this.Type = &type_
+	this.Usage = usage
 	return &this
 }
 
@@ -54,54 +54,6 @@ func NewTranscriptionStreamDoneWithDefaults() *TranscriptionStreamDone {
 	var type_ string = "transcription.done"
 	this.Type = &type_
 	return &this
-}
-
-// GetModel returns the Model field value
-func (o *TranscriptionStreamDone) GetModel() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Model
-}
-
-// GetModelOk returns a tuple with the Model field value
-// and a boolean to check if the value has been set.
-func (o *TranscriptionStreamDone) GetModelOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Model, true
-}
-
-// SetModel sets field value
-func (o *TranscriptionStreamDone) SetModel(v string) {
-	o.Model = v
-}
-
-// GetText returns the Text field value
-func (o *TranscriptionStreamDone) GetText() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Text
-}
-
-// GetTextOk returns a tuple with the Text field value
-// and a boolean to check if the value has been set.
-func (o *TranscriptionStreamDone) GetTextOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Text, true
-}
-
-// SetText sets field value
-func (o *TranscriptionStreamDone) SetText(v string) {
-	o.Text = v
 }
 
 // GetLanguage returns the Language field value
@@ -128,6 +80,30 @@ func (o *TranscriptionStreamDone) GetLanguageOk() (*string, bool) {
 // SetLanguage sets field value
 func (o *TranscriptionStreamDone) SetLanguage(v string) {
 	o.Language.Set(&v)
+}
+
+// GetModel returns the Model field value
+func (o *TranscriptionStreamDone) GetModel() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Model
+}
+
+// GetModelOk returns a tuple with the Model field value
+// and a boolean to check if the value has been set.
+func (o *TranscriptionStreamDone) GetModelOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Model, true
+}
+
+// SetModel sets field value
+func (o *TranscriptionStreamDone) SetModel(v string) {
+	o.Model = v
 }
 
 // GetSegments returns the Segments field value if set, zero value otherwise.
@@ -162,28 +138,28 @@ func (o *TranscriptionStreamDone) SetSegments(v []TranscriptionSegmentChunk) {
 	o.Segments = v
 }
 
-// GetUsage returns the Usage field value
-func (o *TranscriptionStreamDone) GetUsage() UsageInfo {
+// GetText returns the Text field value
+func (o *TranscriptionStreamDone) GetText() string {
 	if o == nil {
-		var ret UsageInfo
+		var ret string
 		return ret
 	}
 
-	return o.Usage
+	return o.Text
 }
 
-// GetUsageOk returns a tuple with the Usage field value
+// GetTextOk returns a tuple with the Text field value
 // and a boolean to check if the value has been set.
-func (o *TranscriptionStreamDone) GetUsageOk() (*UsageInfo, bool) {
+func (o *TranscriptionStreamDone) GetTextOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Usage, true
+	return &o.Text, true
 }
 
-// SetUsage sets field value
-func (o *TranscriptionStreamDone) SetUsage(v UsageInfo) {
-	o.Usage = v
+// SetText sets field value
+func (o *TranscriptionStreamDone) SetText(v string) {
+	o.Text = v
 }
 
 // GetType returns the Type field value if set, zero value otherwise.
@@ -218,8 +194,32 @@ func (o *TranscriptionStreamDone) SetType(v string) {
 	o.Type = &v
 }
 
+// GetUsage returns the Usage field value
+func (o *TranscriptionStreamDone) GetUsage() UsageInfo {
+	if o == nil {
+		var ret UsageInfo
+		return ret
+	}
+
+	return o.Usage
+}
+
+// GetUsageOk returns a tuple with the Usage field value
+// and a boolean to check if the value has been set.
+func (o *TranscriptionStreamDone) GetUsageOk() (*UsageInfo, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Usage, true
+}
+
+// SetUsage sets field value
+func (o *TranscriptionStreamDone) SetUsage(v UsageInfo) {
+	o.Usage = v
+}
+
 func (o TranscriptionStreamDone) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -228,16 +228,16 @@ func (o TranscriptionStreamDone) MarshalJSON() ([]byte, error) {
 
 func (o TranscriptionStreamDone) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["model"] = o.Model
-	toSerialize["text"] = o.Text
 	toSerialize["language"] = o.Language.Get()
+	toSerialize["model"] = o.Model
 	if !IsNil(o.Segments) {
 		toSerialize["segments"] = o.Segments
 	}
-	toSerialize["usage"] = o.Usage
+	toSerialize["text"] = o.Text
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
 	}
+	toSerialize["usage"] = o.Usage
 	return toSerialize, nil
 }
 
@@ -246,9 +246,9 @@ func (o *TranscriptionStreamDone) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
+		"language",
 		"model",
 		"text",
-		"language",
 		"usage",
 	}
 
@@ -257,10 +257,10 @@ func (o *TranscriptionStreamDone) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,10 +21,10 @@ var _ MappedNullable = &ToolCall{}
 
 // ToolCall struct for ToolCall
 type ToolCall struct {
-	Id       *string      `json:"id,omitempty"`
-	Type     *ToolTypes   `json:"type,omitempty"`
 	Function FunctionCall `json:"function"`
-	Index    *int32       `json:"index,omitempty"`
+	Id *string `json:"id,omitempty"`
+	Index *int32 `json:"index,omitempty"`
+	Type *ToolTypes `json:"type,omitempty"`
 }
 
 type _ToolCall ToolCall
@@ -35,13 +35,13 @@ type _ToolCall ToolCall
 // will change when the set of required properties is changed
 func NewToolCall(function FunctionCall) *ToolCall {
 	this := ToolCall{}
+	this.Function = function
 	var id string = "null"
 	this.Id = &id
-	var type_ ToolTypes = TOOLTYPES_FUNCTION
-	this.Type = &type_
-	this.Function = function
 	var index int32 = 0
 	this.Index = &index
+	var type_ ToolTypes = TOOLTYPES_FUNCTION
+	this.Type = &type_
 	return &this
 }
 
@@ -52,11 +52,35 @@ func NewToolCallWithDefaults() *ToolCall {
 	this := ToolCall{}
 	var id string = "null"
 	this.Id = &id
-	var type_ ToolTypes = TOOLTYPES_FUNCTION
-	this.Type = &type_
 	var index int32 = 0
 	this.Index = &index
+	var type_ ToolTypes = TOOLTYPES_FUNCTION
+	this.Type = &type_
 	return &this
+}
+
+// GetFunction returns the Function field value
+func (o *ToolCall) GetFunction() FunctionCall {
+	if o == nil {
+		var ret FunctionCall
+		return ret
+	}
+
+	return o.Function
+}
+
+// GetFunctionOk returns a tuple with the Function field value
+// and a boolean to check if the value has been set.
+func (o *ToolCall) GetFunctionOk() (*FunctionCall, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Function, true
+}
+
+// SetFunction sets field value
+func (o *ToolCall) SetFunction(v FunctionCall) {
+	o.Function = v
 }
 
 // GetId returns the Id field value if set, zero value otherwise.
@@ -91,62 +115,6 @@ func (o *ToolCall) SetId(v string) {
 	o.Id = &v
 }
 
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *ToolCall) GetType() ToolTypes {
-	if o == nil || IsNil(o.Type) {
-		var ret ToolTypes
-		return ret
-	}
-	return *o.Type
-}
-
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ToolCall) GetTypeOk() (*ToolTypes, bool) {
-	if o == nil || IsNil(o.Type) {
-		return nil, false
-	}
-	return o.Type, true
-}
-
-// HasType returns a boolean if a field has been set.
-func (o *ToolCall) HasType() bool {
-	if o != nil && !IsNil(o.Type) {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given ToolTypes and assigns it to the Type field.
-func (o *ToolCall) SetType(v ToolTypes) {
-	o.Type = &v
-}
-
-// GetFunction returns the Function field value
-func (o *ToolCall) GetFunction() FunctionCall {
-	if o == nil {
-		var ret FunctionCall
-		return ret
-	}
-
-	return o.Function
-}
-
-// GetFunctionOk returns a tuple with the Function field value
-// and a boolean to check if the value has been set.
-func (o *ToolCall) GetFunctionOk() (*FunctionCall, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Function, true
-}
-
-// SetFunction sets field value
-func (o *ToolCall) SetFunction(v FunctionCall) {
-	o.Function = v
-}
-
 // GetIndex returns the Index field value if set, zero value otherwise.
 func (o *ToolCall) GetIndex() int32 {
 	if o == nil || IsNil(o.Index) {
@@ -179,8 +147,40 @@ func (o *ToolCall) SetIndex(v int32) {
 	o.Index = &v
 }
 
+// GetType returns the Type field value if set, zero value otherwise.
+func (o *ToolCall) GetType() ToolTypes {
+	if o == nil || IsNil(o.Type) {
+		var ret ToolTypes
+		return ret
+	}
+	return *o.Type
+}
+
+// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ToolCall) GetTypeOk() (*ToolTypes, bool) {
+	if o == nil || IsNil(o.Type) {
+		return nil, false
+	}
+	return o.Type, true
+}
+
+// HasType returns a boolean if a field has been set.
+func (o *ToolCall) HasType() bool {
+	if o != nil && !IsNil(o.Type) {
+		return true
+	}
+
+	return false
+}
+
+// SetType gets a reference to the given ToolTypes and assigns it to the Type field.
+func (o *ToolCall) SetType(v ToolTypes) {
+	o.Type = &v
+}
+
 func (o ToolCall) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -189,15 +189,15 @@ func (o ToolCall) MarshalJSON() ([]byte, error) {
 
 func (o ToolCall) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["function"] = o.Function
 	if !IsNil(o.Id) {
 		toSerialize["id"] = o.Id
 	}
-	if !IsNil(o.Type) {
-		toSerialize["type"] = o.Type
-	}
-	toSerialize["function"] = o.Function
 	if !IsNil(o.Index) {
 		toSerialize["index"] = o.Index
+	}
+	if !IsNil(o.Type) {
+		toSerialize["type"] = o.Type
 	}
 	return toSerialize, nil
 }
@@ -215,10 +215,10 @@ func (o *ToolCall) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

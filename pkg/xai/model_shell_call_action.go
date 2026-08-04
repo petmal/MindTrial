@@ -27,7 +27,7 @@ type ShellCallAction struct {
 	// Optional timeout in milliseconds for the commands.
 	TimeoutMs NullableInt64 `json:"timeout_ms,omitempty"`
 	// The type of the action, which is always `exec`.
-	Type                 NullableString `json:"type,omitempty"`
+	Type NullableString `json:"type,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -107,7 +107,6 @@ func (o *ShellCallAction) HasMaxOutputLength() bool {
 func (o *ShellCallAction) SetMaxOutputLength(v int32) {
 	o.MaxOutputLength.Set(&v)
 }
-
 // SetMaxOutputLengthNil sets the value for MaxOutputLength to be an explicit nil
 func (o *ShellCallAction) SetMaxOutputLengthNil() {
 	o.MaxOutputLength.Set(nil)
@@ -150,7 +149,6 @@ func (o *ShellCallAction) HasTimeoutMs() bool {
 func (o *ShellCallAction) SetTimeoutMs(v int64) {
 	o.TimeoutMs.Set(&v)
 }
-
 // SetTimeoutMsNil sets the value for TimeoutMs to be an explicit nil
 func (o *ShellCallAction) SetTimeoutMsNil() {
 	o.TimeoutMs.Set(nil)
@@ -193,7 +191,6 @@ func (o *ShellCallAction) HasType() bool {
 func (o *ShellCallAction) SetType(v string) {
 	o.Type.Set(&v)
 }
-
 // SetTypeNil sets the value for Type to be an explicit nil
 func (o *ShellCallAction) SetTypeNil() {
 	o.Type.Set(nil)
@@ -205,7 +202,7 @@ func (o *ShellCallAction) UnsetType() {
 }
 
 func (o ShellCallAction) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -245,10 +242,10 @@ func (o *ShellCallAction) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

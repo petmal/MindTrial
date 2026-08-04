@@ -31,7 +31,7 @@ type CompactResponse struct {
 	// Compacted output containing a single compaction item. Pass this verbatim as input to the next `/v1/responses` call.
 	Output []ModelInputPart `json:"output"`
 	// Token usage information for the compaction call.
-	Usage                NullableCompactUsage `json:"usage,omitempty"`
+	Usage NullableCompactUsage `json:"usage,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -211,7 +211,6 @@ func (o *CompactResponse) HasUsage() bool {
 func (o *CompactResponse) SetUsage(v CompactUsage) {
 	o.Usage.Set(&v)
 }
-
 // SetUsageNil sets the value for Usage to be an explicit nil
 func (o *CompactResponse) SetUsageNil() {
 	o.Usage.Set(nil)
@@ -223,7 +222,7 @@ func (o *CompactResponse) UnsetUsage() {
 }
 
 func (o CompactResponse) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -265,10 +264,10 @@ func (o *CompactResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

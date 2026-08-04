@@ -29,7 +29,7 @@ type ChoiceMessage struct {
 	// The role that the message belongs to, the response from model is always `\"assistant\"`.
 	Role string `json:"role"`
 	// A list of tool calls asked by model for user to perform.
-	ToolCalls            []ToolCall `json:"tool_calls,omitempty"`
+	ToolCalls []ToolCall `json:"tool_calls,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -85,7 +85,6 @@ func (o *ChoiceMessage) HasContent() bool {
 func (o *ChoiceMessage) SetContent(v string) {
 	o.Content.Set(&v)
 }
-
 // SetContentNil sets the value for Content to be an explicit nil
 func (o *ChoiceMessage) SetContentNil() {
 	o.Content.Set(nil)
@@ -128,7 +127,6 @@ func (o *ChoiceMessage) HasReasoningContent() bool {
 func (o *ChoiceMessage) SetReasoningContent(v string) {
 	o.ReasoningContent.Set(&v)
 }
-
 // SetReasoningContentNil sets the value for ReasoningContent to be an explicit nil
 func (o *ChoiceMessage) SetReasoningContentNil() {
 	o.ReasoningContent.Set(nil)
@@ -171,7 +169,6 @@ func (o *ChoiceMessage) HasRefusal() bool {
 func (o *ChoiceMessage) SetRefusal(v string) {
 	o.Refusal.Set(&v)
 }
-
 // SetRefusalNil sets the value for Refusal to be an explicit nil
 func (o *ChoiceMessage) SetRefusalNil() {
 	o.Refusal.Set(nil)
@@ -240,7 +237,7 @@ func (o *ChoiceMessage) SetToolCalls(v []ToolCall) {
 }
 
 func (o ChoiceMessage) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -283,10 +280,10 @@ func (o *ChoiceMessage) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

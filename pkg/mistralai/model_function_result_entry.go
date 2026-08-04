@@ -11,10 +11,10 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"time"
+	"bytes"
+	"fmt"
 )
 
 // checks if the FunctionResultEntry type satisfies the MappedNullable interface at compile time
@@ -22,13 +22,13 @@ var _ MappedNullable = &FunctionResultEntry{}
 
 // FunctionResultEntry struct for FunctionResultEntry
 type FunctionResultEntry struct {
-	Object      *string      `json:"object,omitempty"`
-	Type        *string      `json:"type,omitempty"`
-	CreatedAt   *time.Time   `json:"created_at,omitempty"`
 	CompletedAt NullableTime `json:"completed_at,omitempty"`
-	Id          *string      `json:"id,omitempty"`
-	ToolCallId  string       `json:"tool_call_id"`
-	Result      string       `json:"result"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	Id *string `json:"id,omitempty"`
+	Object *string `json:"object,omitempty"`
+	Result string `json:"result"`
+	ToolCallId string `json:"tool_call_id"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _FunctionResultEntry FunctionResultEntry
@@ -37,14 +37,14 @@ type _FunctionResultEntry FunctionResultEntry
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewFunctionResultEntry(toolCallId string, result string) *FunctionResultEntry {
+func NewFunctionResultEntry(result string, toolCallId string) *FunctionResultEntry {
 	this := FunctionResultEntry{}
 	var object string = "entry"
 	this.Object = &object
+	this.Result = result
+	this.ToolCallId = toolCallId
 	var type_ string = "function.result"
 	this.Type = &type_
-	this.ToolCallId = toolCallId
-	this.Result = result
 	return &this
 }
 
@@ -58,102 +58,6 @@ func NewFunctionResultEntryWithDefaults() *FunctionResultEntry {
 	var type_ string = "function.result"
 	this.Type = &type_
 	return &this
-}
-
-// GetObject returns the Object field value if set, zero value otherwise.
-func (o *FunctionResultEntry) GetObject() string {
-	if o == nil || IsNil(o.Object) {
-		var ret string
-		return ret
-	}
-	return *o.Object
-}
-
-// GetObjectOk returns a tuple with the Object field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *FunctionResultEntry) GetObjectOk() (*string, bool) {
-	if o == nil || IsNil(o.Object) {
-		return nil, false
-	}
-	return o.Object, true
-}
-
-// HasObject returns a boolean if a field has been set.
-func (o *FunctionResultEntry) HasObject() bool {
-	if o != nil && !IsNil(o.Object) {
-		return true
-	}
-
-	return false
-}
-
-// SetObject gets a reference to the given string and assigns it to the Object field.
-func (o *FunctionResultEntry) SetObject(v string) {
-	o.Object = &v
-}
-
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *FunctionResultEntry) GetType() string {
-	if o == nil || IsNil(o.Type) {
-		var ret string
-		return ret
-	}
-	return *o.Type
-}
-
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *FunctionResultEntry) GetTypeOk() (*string, bool) {
-	if o == nil || IsNil(o.Type) {
-		return nil, false
-	}
-	return o.Type, true
-}
-
-// HasType returns a boolean if a field has been set.
-func (o *FunctionResultEntry) HasType() bool {
-	if o != nil && !IsNil(o.Type) {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given string and assigns it to the Type field.
-func (o *FunctionResultEntry) SetType(v string) {
-	o.Type = &v
-}
-
-// GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
-func (o *FunctionResultEntry) GetCreatedAt() time.Time {
-	if o == nil || IsNil(o.CreatedAt) {
-		var ret time.Time
-		return ret
-	}
-	return *o.CreatedAt
-}
-
-// GetCreatedAtOk returns a tuple with the CreatedAt field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *FunctionResultEntry) GetCreatedAtOk() (*time.Time, bool) {
-	if o == nil || IsNil(o.CreatedAt) {
-		return nil, false
-	}
-	return o.CreatedAt, true
-}
-
-// HasCreatedAt returns a boolean if a field has been set.
-func (o *FunctionResultEntry) HasCreatedAt() bool {
-	if o != nil && !IsNil(o.CreatedAt) {
-		return true
-	}
-
-	return false
-}
-
-// SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
-func (o *FunctionResultEntry) SetCreatedAt(v time.Time) {
-	o.CreatedAt = &v
 }
 
 // GetCompletedAt returns the CompletedAt field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -188,7 +92,6 @@ func (o *FunctionResultEntry) HasCompletedAt() bool {
 func (o *FunctionResultEntry) SetCompletedAt(v time.Time) {
 	o.CompletedAt.Set(&v)
 }
-
 // SetCompletedAtNil sets the value for CompletedAt to be an explicit nil
 func (o *FunctionResultEntry) SetCompletedAtNil() {
 	o.CompletedAt.Set(nil)
@@ -197,6 +100,38 @@ func (o *FunctionResultEntry) SetCompletedAtNil() {
 // UnsetCompletedAt ensures that no value is present for CompletedAt, not even an explicit nil
 func (o *FunctionResultEntry) UnsetCompletedAt() {
 	o.CompletedAt.Unset()
+}
+
+// GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
+func (o *FunctionResultEntry) GetCreatedAt() time.Time {
+	if o == nil || IsNil(o.CreatedAt) {
+		var ret time.Time
+		return ret
+	}
+	return *o.CreatedAt
+}
+
+// GetCreatedAtOk returns a tuple with the CreatedAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *FunctionResultEntry) GetCreatedAtOk() (*time.Time, bool) {
+	if o == nil || IsNil(o.CreatedAt) {
+		return nil, false
+	}
+	return o.CreatedAt, true
+}
+
+// HasCreatedAt returns a boolean if a field has been set.
+func (o *FunctionResultEntry) HasCreatedAt() bool {
+	if o != nil && !IsNil(o.CreatedAt) {
+		return true
+	}
+
+	return false
+}
+
+// SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
+func (o *FunctionResultEntry) SetCreatedAt(v time.Time) {
+	o.CreatedAt = &v
 }
 
 // GetId returns the Id field value if set, zero value otherwise.
@@ -231,28 +166,36 @@ func (o *FunctionResultEntry) SetId(v string) {
 	o.Id = &v
 }
 
-// GetToolCallId returns the ToolCallId field value
-func (o *FunctionResultEntry) GetToolCallId() string {
-	if o == nil {
+// GetObject returns the Object field value if set, zero value otherwise.
+func (o *FunctionResultEntry) GetObject() string {
+	if o == nil || IsNil(o.Object) {
 		var ret string
 		return ret
 	}
-
-	return o.ToolCallId
+	return *o.Object
 }
 
-// GetToolCallIdOk returns a tuple with the ToolCallId field value
+// GetObjectOk returns a tuple with the Object field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *FunctionResultEntry) GetToolCallIdOk() (*string, bool) {
-	if o == nil {
+func (o *FunctionResultEntry) GetObjectOk() (*string, bool) {
+	if o == nil || IsNil(o.Object) {
 		return nil, false
 	}
-	return &o.ToolCallId, true
+	return o.Object, true
 }
 
-// SetToolCallId sets field value
-func (o *FunctionResultEntry) SetToolCallId(v string) {
-	o.ToolCallId = v
+// HasObject returns a boolean if a field has been set.
+func (o *FunctionResultEntry) HasObject() bool {
+	if o != nil && !IsNil(o.Object) {
+		return true
+	}
+
+	return false
+}
+
+// SetObject gets a reference to the given string and assigns it to the Object field.
+func (o *FunctionResultEntry) SetObject(v string) {
+	o.Object = &v
 }
 
 // GetResult returns the Result field value
@@ -279,8 +222,64 @@ func (o *FunctionResultEntry) SetResult(v string) {
 	o.Result = v
 }
 
+// GetToolCallId returns the ToolCallId field value
+func (o *FunctionResultEntry) GetToolCallId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.ToolCallId
+}
+
+// GetToolCallIdOk returns a tuple with the ToolCallId field value
+// and a boolean to check if the value has been set.
+func (o *FunctionResultEntry) GetToolCallIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.ToolCallId, true
+}
+
+// SetToolCallId sets field value
+func (o *FunctionResultEntry) SetToolCallId(v string) {
+	o.ToolCallId = v
+}
+
+// GetType returns the Type field value if set, zero value otherwise.
+func (o *FunctionResultEntry) GetType() string {
+	if o == nil || IsNil(o.Type) {
+		var ret string
+		return ret
+	}
+	return *o.Type
+}
+
+// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *FunctionResultEntry) GetTypeOk() (*string, bool) {
+	if o == nil || IsNil(o.Type) {
+		return nil, false
+	}
+	return o.Type, true
+}
+
+// HasType returns a boolean if a field has been set.
+func (o *FunctionResultEntry) HasType() bool {
+	if o != nil && !IsNil(o.Type) {
+		return true
+	}
+
+	return false
+}
+
+// SetType gets a reference to the given string and assigns it to the Type field.
+func (o *FunctionResultEntry) SetType(v string) {
+	o.Type = &v
+}
+
 func (o FunctionResultEntry) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -289,23 +288,23 @@ func (o FunctionResultEntry) MarshalJSON() ([]byte, error) {
 
 func (o FunctionResultEntry) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Object) {
-		toSerialize["object"] = o.Object
-	}
-	if !IsNil(o.Type) {
-		toSerialize["type"] = o.Type
+	if o.CompletedAt.IsSet() {
+		toSerialize["completed_at"] = o.CompletedAt.Get()
 	}
 	if !IsNil(o.CreatedAt) {
 		toSerialize["created_at"] = o.CreatedAt
 	}
-	if o.CompletedAt.IsSet() {
-		toSerialize["completed_at"] = o.CompletedAt.Get()
-	}
 	if !IsNil(o.Id) {
 		toSerialize["id"] = o.Id
 	}
-	toSerialize["tool_call_id"] = o.ToolCallId
+	if !IsNil(o.Object) {
+		toSerialize["object"] = o.Object
+	}
 	toSerialize["result"] = o.Result
+	toSerialize["tool_call_id"] = o.ToolCallId
+	if !IsNil(o.Type) {
+		toSerialize["type"] = o.Type
+	}
 	return toSerialize, nil
 }
 
@@ -314,8 +313,8 @@ func (o *FunctionResultEntry) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"tool_call_id",
 		"result",
+		"tool_call_id",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -323,10 +322,10 @@ func (o *FunctionResultEntry) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

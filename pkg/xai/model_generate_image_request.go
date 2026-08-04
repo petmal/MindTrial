@@ -34,7 +34,7 @@ type GenerateImageRequest struct {
 	// Optional output storage configuration. When present, the generated image(s) are stored in the Files API and a `file_output` reference is returned in the response alongside the ephemeral URL.
 	StorageOptions NullableStorageOptions `json:"storage_options,omitempty"`
 	// A unique identifier representing your end-user, which can help xAI to monitor and detect abuse.
-	User                 NullableString `json:"user,omitempty"`
+	User NullableString `json:"user,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -97,7 +97,6 @@ func (o *GenerateImageRequest) HasAspectRatio() bool {
 func (o *GenerateImageRequest) SetAspectRatio(v ImageAspectRatio) {
 	o.AspectRatio.Set(&v)
 }
-
 // SetAspectRatioNil sets the value for AspectRatio to be an explicit nil
 func (o *GenerateImageRequest) SetAspectRatioNil() {
 	o.AspectRatio.Set(nil)
@@ -140,7 +139,6 @@ func (o *GenerateImageRequest) HasModel() bool {
 func (o *GenerateImageRequest) SetModel(v string) {
 	o.Model.Set(&v)
 }
-
 // SetModelNil sets the value for Model to be an explicit nil
 func (o *GenerateImageRequest) SetModelNil() {
 	o.Model.Set(nil)
@@ -183,7 +181,6 @@ func (o *GenerateImageRequest) HasN() bool {
 func (o *GenerateImageRequest) SetN(v int32) {
 	o.N.Set(&v)
 }
-
 // SetNNil sets the value for N to be an explicit nil
 func (o *GenerateImageRequest) SetNNil() {
 	o.N.Set(nil)
@@ -258,7 +255,6 @@ func (o *GenerateImageRequest) HasResolution() bool {
 func (o *GenerateImageRequest) SetResolution(v ImageResolution) {
 	o.Resolution.Set(&v)
 }
-
 // SetResolutionNil sets the value for Resolution to be an explicit nil
 func (o *GenerateImageRequest) SetResolutionNil() {
 	o.Resolution.Set(nil)
@@ -301,7 +297,6 @@ func (o *GenerateImageRequest) HasResponseFormat() bool {
 func (o *GenerateImageRequest) SetResponseFormat(v string) {
 	o.ResponseFormat.Set(&v)
 }
-
 // SetResponseFormatNil sets the value for ResponseFormat to be an explicit nil
 func (o *GenerateImageRequest) SetResponseFormatNil() {
 	o.ResponseFormat.Set(nil)
@@ -344,7 +339,6 @@ func (o *GenerateImageRequest) HasStorageOptions() bool {
 func (o *GenerateImageRequest) SetStorageOptions(v StorageOptions) {
 	o.StorageOptions.Set(&v)
 }
-
 // SetStorageOptionsNil sets the value for StorageOptions to be an explicit nil
 func (o *GenerateImageRequest) SetStorageOptionsNil() {
 	o.StorageOptions.Set(nil)
@@ -387,7 +381,6 @@ func (o *GenerateImageRequest) HasUser() bool {
 func (o *GenerateImageRequest) SetUser(v string) {
 	o.User.Set(&v)
 }
-
 // SetUserNil sets the value for User to be an explicit nil
 func (o *GenerateImageRequest) SetUserNil() {
 	o.User.Set(nil)
@@ -399,7 +392,7 @@ func (o *GenerateImageRequest) UnsetUser() {
 }
 
 func (o GenerateImageRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

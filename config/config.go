@@ -486,7 +486,18 @@ type OpenRouterModelParams struct {
 
 	// MaxTokens sets an upper limit on the number of tokens the model can generate.
 	// Range: 1 or above. The maximum usable value is model context length minus prompt length.
-	MaxTokens *int32 `yaml:"max-tokens" validate:"omitempty,min=1"`
+	// Mutually exclusive with MaxCompletionTokens.
+	MaxTokens *int32 `yaml:"max-tokens" validate:"omitempty,min=1,excluded_with=MaxCompletionTokens"`
+
+	// MaxCompletionTokens sets the modern upper limit on generated tokens.
+	// Range: 1 or above. Default: model-dependent.
+	// Mutually exclusive with MaxTokens.
+	MaxCompletionTokens *int32 `yaml:"max-completion-tokens" validate:"omitempty,min=1,excluded_with=MaxTokens"`
+
+	// ReasoningEffort controls reasoning depth for supported OpenRouter models.
+	// Valid values: "none", "minimal", "low", "medium", "high", "xhigh", "max".
+	// Default: model-dependent.
+	ReasoningEffort *string `yaml:"reasoning-effort" validate:"omitempty,oneof=none minimal low medium high xhigh max"`
 
 	// Seed enables deterministic sampling when supported.
 	Seed *int64 `yaml:"seed" validate:"omitempty"`
@@ -716,6 +727,11 @@ type DeepseekModelParams struct {
 
 // MistralAIModelParams represents Mistral AI model-specific settings.
 type MistralAIModelParams struct {
+	// ReasoningEffort controls reasoning depth for supported Mistral models.
+	// Valid values: "none", "minimal", "low", "medium", "high", "xhigh".
+	// Default: model-dependent.
+	ReasoningEffort *string `yaml:"reasoning-effort" validate:"omitempty,oneof=none minimal low medium high xhigh"`
+
 	// Temperature controls the randomness or "creativity" of the model's outputs.
 	// Values range from 0.0 to 1.5, with lower values making the output more focused and deterministic.
 	// The default value varies depending on the model.
@@ -795,6 +811,18 @@ type XAIModelParams struct {
 
 // AlibabaModelParams represents Alibaba model-specific settings.
 type AlibabaModelParams struct {
+	// EnableThinking enables hybrid thinking on supported Qwen models.
+	// Default: model-dependent.
+	EnableThinking *bool `yaml:"enable-thinking" validate:"omitempty"`
+
+	// PreserveThinking retains reasoning content across conversation turns.
+	// Default: false.
+	PreserveThinking *bool `yaml:"preserve-thinking" validate:"omitempty"`
+
+	// ThinkingBudget limits thinking tokens when explicitly configured.
+	// Range: 1 or above. When omitted, the provider uses the model's default budget.
+	ThinkingBudget *int32 `yaml:"thinking-budget" validate:"omitempty,gt=0"`
+
 	// TextResponseFormat indicates whether to use plain-text response format
 	// for compatibility with models that do not support JSON mode (e.g., when
 	// thinking is enabled on certain Qwen models).
@@ -844,6 +872,23 @@ type AlibabaModelParams struct {
 
 // MoonshotAIModelParams represents Moonshot AI model-specific settings.
 type MoonshotAIModelParams struct {
+	// ReasoningEffort controls reasoning depth for Kimi K3.
+	// Valid values: "low", "high", "max". Default: "max" for Kimi K3.
+	ReasoningEffort *string `yaml:"reasoning-effort" validate:"omitempty,oneof=low high max"`
+
+	// MaxCompletionTokens is the modern completion limit for Moonshot models.
+	// Range: 1 or above. Default: model-dependent. Mutually exclusive with MaxTokens.
+	MaxCompletionTokens *int32 `yaml:"max-completion-tokens" validate:"omitempty,min=1,excluded_with=MaxTokens"`
+
+	// ResponseFormat selects the API response format.
+	// Valid values: "json-schema", "json-object", "text".
+	// MindTrial applies "json-object" when this is omitted and structured output is not disabled.
+	ResponseFormat *ModelResponseFormat `yaml:"response-format" validate:"omitempty,oneof=json-schema json-object text"`
+
+	// Stream enables streaming responses.
+	// Default: false.
+	Stream bool `yaml:"stream" validate:"omitempty"`
+
 	// Temperature controls the randomness or "creativity" of the model's outputs.
 	// Values range from 0.0 to 1.0, with lower values making the output more focused and deterministic.
 	// The default value is 0.0.
@@ -858,7 +903,8 @@ type MoonshotAIModelParams struct {
 	TopP *float32 `yaml:"top-p" validate:"omitempty,min=0,max=1"`
 
 	// MaxTokens controls the maximum number of tokens available to the model for generating a response.
-	MaxTokens *int32 `yaml:"max-tokens" validate:"omitempty,min=0"`
+	// Mutually exclusive with MaxCompletionTokens.
+	MaxTokens *int32 `yaml:"max-tokens" validate:"omitempty,min=0,excluded_with=MaxCompletionTokens"`
 
 	// PresencePenalty penalizes new tokens based on whether they appear in the text so far.
 	// Values range from -2.0 to 2.0, with positive values encouraging the model to use new tokens,

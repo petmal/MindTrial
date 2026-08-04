@@ -530,7 +530,8 @@ func (r *Result) recordToolCalls(calls []tools.ToolCallSummary) {
 	r.toolCalls = calls
 }
 
-func recordUsage[T constraints.Signed](inputTokens *T, outputTokens *T, inputCacheWriteTokens *T, inputCacheReadTokens *T, out *Usage) {
+func recordUsage[T constraints.Signed](inputTokenAccounting InputTokenAccounting, inputTokens *T, outputTokens *T, inputCacheWriteTokens *T, inputCacheReadTokens *T, out *Usage) {
+	out.InputTokenAccounting = inputTokenAccounting
 	addIfNotNil(&out.InputTokens, inputTokens)
 	addIfNotNil(&out.OutputTokens, outputTokens)
 	addIfNotNil(&out.InputCacheWriteTokens, inputCacheWriteTokens)

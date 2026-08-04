@@ -11,10 +11,10 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"time"
+	"bytes"
+	"fmt"
 )
 
 // checks if the MessageOutputEvent type satisfies the MappedNullable interface at compile time
@@ -22,15 +22,15 @@ var _ MappedNullable = &MessageOutputEvent{}
 
 // MessageOutputEvent struct for MessageOutputEvent
 type MessageOutputEvent struct {
-	Type         *string        `json:"type,omitempty"`
-	CreatedAt    *time.Time     `json:"created_at,omitempty"`
-	OutputIndex  *int32         `json:"output_index,omitempty"`
-	Id           string         `json:"id"`
-	ContentIndex *int32         `json:"content_index,omitempty"`
-	Model        NullableString `json:"model,omitempty"`
-	AgentId      NullableString `json:"agent_id,omitempty"`
-	Role         *string        `json:"role,omitempty"`
-	Content      Content2       `json:"content"`
+	AgentId NullableString `json:"agent_id,omitempty"`
+	Content Content3 `json:"content"`
+	ContentIndex *int32 `json:"content_index,omitempty"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	Id string `json:"id"`
+	Model NullableString `json:"model,omitempty"`
+	OutputIndex *int32 `json:"output_index,omitempty"`
+	Role *string `json:"role,omitempty"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _MessageOutputEvent MessageOutputEvent
@@ -39,18 +39,18 @@ type _MessageOutputEvent MessageOutputEvent
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMessageOutputEvent(id string, content Content2) *MessageOutputEvent {
+func NewMessageOutputEvent(content Content3, id string) *MessageOutputEvent {
 	this := MessageOutputEvent{}
-	var type_ string = "message.output.delta"
-	this.Type = &type_
-	var outputIndex int32 = 0
-	this.OutputIndex = &outputIndex
-	this.Id = id
+	this.Content = content
 	var contentIndex int32 = 0
 	this.ContentIndex = &contentIndex
+	this.Id = id
+	var outputIndex int32 = 0
+	this.OutputIndex = &outputIndex
 	var role string = "assistant"
 	this.Role = &role
-	this.Content = content
+	var type_ string = "message.output.delta"
+	this.Type = &type_
 	return &this
 }
 
@@ -59,210 +59,15 @@ func NewMessageOutputEvent(id string, content Content2) *MessageOutputEvent {
 // but it doesn't guarantee that properties required by API are set
 func NewMessageOutputEventWithDefaults() *MessageOutputEvent {
 	this := MessageOutputEvent{}
-	var type_ string = "message.output.delta"
-	this.Type = &type_
-	var outputIndex int32 = 0
-	this.OutputIndex = &outputIndex
 	var contentIndex int32 = 0
 	this.ContentIndex = &contentIndex
+	var outputIndex int32 = 0
+	this.OutputIndex = &outputIndex
 	var role string = "assistant"
 	this.Role = &role
+	var type_ string = "message.output.delta"
+	this.Type = &type_
 	return &this
-}
-
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *MessageOutputEvent) GetType() string {
-	if o == nil || IsNil(o.Type) {
-		var ret string
-		return ret
-	}
-	return *o.Type
-}
-
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *MessageOutputEvent) GetTypeOk() (*string, bool) {
-	if o == nil || IsNil(o.Type) {
-		return nil, false
-	}
-	return o.Type, true
-}
-
-// HasType returns a boolean if a field has been set.
-func (o *MessageOutputEvent) HasType() bool {
-	if o != nil && !IsNil(o.Type) {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given string and assigns it to the Type field.
-func (o *MessageOutputEvent) SetType(v string) {
-	o.Type = &v
-}
-
-// GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
-func (o *MessageOutputEvent) GetCreatedAt() time.Time {
-	if o == nil || IsNil(o.CreatedAt) {
-		var ret time.Time
-		return ret
-	}
-	return *o.CreatedAt
-}
-
-// GetCreatedAtOk returns a tuple with the CreatedAt field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *MessageOutputEvent) GetCreatedAtOk() (*time.Time, bool) {
-	if o == nil || IsNil(o.CreatedAt) {
-		return nil, false
-	}
-	return o.CreatedAt, true
-}
-
-// HasCreatedAt returns a boolean if a field has been set.
-func (o *MessageOutputEvent) HasCreatedAt() bool {
-	if o != nil && !IsNil(o.CreatedAt) {
-		return true
-	}
-
-	return false
-}
-
-// SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
-func (o *MessageOutputEvent) SetCreatedAt(v time.Time) {
-	o.CreatedAt = &v
-}
-
-// GetOutputIndex returns the OutputIndex field value if set, zero value otherwise.
-func (o *MessageOutputEvent) GetOutputIndex() int32 {
-	if o == nil || IsNil(o.OutputIndex) {
-		var ret int32
-		return ret
-	}
-	return *o.OutputIndex
-}
-
-// GetOutputIndexOk returns a tuple with the OutputIndex field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *MessageOutputEvent) GetOutputIndexOk() (*int32, bool) {
-	if o == nil || IsNil(o.OutputIndex) {
-		return nil, false
-	}
-	return o.OutputIndex, true
-}
-
-// HasOutputIndex returns a boolean if a field has been set.
-func (o *MessageOutputEvent) HasOutputIndex() bool {
-	if o != nil && !IsNil(o.OutputIndex) {
-		return true
-	}
-
-	return false
-}
-
-// SetOutputIndex gets a reference to the given int32 and assigns it to the OutputIndex field.
-func (o *MessageOutputEvent) SetOutputIndex(v int32) {
-	o.OutputIndex = &v
-}
-
-// GetId returns the Id field value
-func (o *MessageOutputEvent) GetId() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Id
-}
-
-// GetIdOk returns a tuple with the Id field value
-// and a boolean to check if the value has been set.
-func (o *MessageOutputEvent) GetIdOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Id, true
-}
-
-// SetId sets field value
-func (o *MessageOutputEvent) SetId(v string) {
-	o.Id = v
-}
-
-// GetContentIndex returns the ContentIndex field value if set, zero value otherwise.
-func (o *MessageOutputEvent) GetContentIndex() int32 {
-	if o == nil || IsNil(o.ContentIndex) {
-		var ret int32
-		return ret
-	}
-	return *o.ContentIndex
-}
-
-// GetContentIndexOk returns a tuple with the ContentIndex field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *MessageOutputEvent) GetContentIndexOk() (*int32, bool) {
-	if o == nil || IsNil(o.ContentIndex) {
-		return nil, false
-	}
-	return o.ContentIndex, true
-}
-
-// HasContentIndex returns a boolean if a field has been set.
-func (o *MessageOutputEvent) HasContentIndex() bool {
-	if o != nil && !IsNil(o.ContentIndex) {
-		return true
-	}
-
-	return false
-}
-
-// SetContentIndex gets a reference to the given int32 and assigns it to the ContentIndex field.
-func (o *MessageOutputEvent) SetContentIndex(v int32) {
-	o.ContentIndex = &v
-}
-
-// GetModel returns the Model field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *MessageOutputEvent) GetModel() string {
-	if o == nil || IsNil(o.Model.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.Model.Get()
-}
-
-// GetModelOk returns a tuple with the Model field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *MessageOutputEvent) GetModelOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Model.Get(), o.Model.IsSet()
-}
-
-// HasModel returns a boolean if a field has been set.
-func (o *MessageOutputEvent) HasModel() bool {
-	if o != nil && o.Model.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetModel gets a reference to the given NullableString and assigns it to the Model field.
-func (o *MessageOutputEvent) SetModel(v string) {
-	o.Model.Set(&v)
-}
-
-// SetModelNil sets the value for Model to be an explicit nil
-func (o *MessageOutputEvent) SetModelNil() {
-	o.Model.Set(nil)
-}
-
-// UnsetModel ensures that no value is present for Model, not even an explicit nil
-func (o *MessageOutputEvent) UnsetModel() {
-	o.Model.Unset()
 }
 
 // GetAgentId returns the AgentId field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -297,7 +102,6 @@ func (o *MessageOutputEvent) HasAgentId() bool {
 func (o *MessageOutputEvent) SetAgentId(v string) {
 	o.AgentId.Set(&v)
 }
-
 // SetAgentIdNil sets the value for AgentId to be an explicit nil
 func (o *MessageOutputEvent) SetAgentIdNil() {
 	o.AgentId.Set(nil)
@@ -306,6 +110,192 @@ func (o *MessageOutputEvent) SetAgentIdNil() {
 // UnsetAgentId ensures that no value is present for AgentId, not even an explicit nil
 func (o *MessageOutputEvent) UnsetAgentId() {
 	o.AgentId.Unset()
+}
+
+// GetContent returns the Content field value
+func (o *MessageOutputEvent) GetContent() Content3 {
+	if o == nil {
+		var ret Content3
+		return ret
+	}
+
+	return o.Content
+}
+
+// GetContentOk returns a tuple with the Content field value
+// and a boolean to check if the value has been set.
+func (o *MessageOutputEvent) GetContentOk() (*Content3, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Content, true
+}
+
+// SetContent sets field value
+func (o *MessageOutputEvent) SetContent(v Content3) {
+	o.Content = v
+}
+
+// GetContentIndex returns the ContentIndex field value if set, zero value otherwise.
+func (o *MessageOutputEvent) GetContentIndex() int32 {
+	if o == nil || IsNil(o.ContentIndex) {
+		var ret int32
+		return ret
+	}
+	return *o.ContentIndex
+}
+
+// GetContentIndexOk returns a tuple with the ContentIndex field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *MessageOutputEvent) GetContentIndexOk() (*int32, bool) {
+	if o == nil || IsNil(o.ContentIndex) {
+		return nil, false
+	}
+	return o.ContentIndex, true
+}
+
+// HasContentIndex returns a boolean if a field has been set.
+func (o *MessageOutputEvent) HasContentIndex() bool {
+	if o != nil && !IsNil(o.ContentIndex) {
+		return true
+	}
+
+	return false
+}
+
+// SetContentIndex gets a reference to the given int32 and assigns it to the ContentIndex field.
+func (o *MessageOutputEvent) SetContentIndex(v int32) {
+	o.ContentIndex = &v
+}
+
+// GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
+func (o *MessageOutputEvent) GetCreatedAt() time.Time {
+	if o == nil || IsNil(o.CreatedAt) {
+		var ret time.Time
+		return ret
+	}
+	return *o.CreatedAt
+}
+
+// GetCreatedAtOk returns a tuple with the CreatedAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *MessageOutputEvent) GetCreatedAtOk() (*time.Time, bool) {
+	if o == nil || IsNil(o.CreatedAt) {
+		return nil, false
+	}
+	return o.CreatedAt, true
+}
+
+// HasCreatedAt returns a boolean if a field has been set.
+func (o *MessageOutputEvent) HasCreatedAt() bool {
+	if o != nil && !IsNil(o.CreatedAt) {
+		return true
+	}
+
+	return false
+}
+
+// SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
+func (o *MessageOutputEvent) SetCreatedAt(v time.Time) {
+	o.CreatedAt = &v
+}
+
+// GetId returns the Id field value
+func (o *MessageOutputEvent) GetId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Id
+}
+
+// GetIdOk returns a tuple with the Id field value
+// and a boolean to check if the value has been set.
+func (o *MessageOutputEvent) GetIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Id, true
+}
+
+// SetId sets field value
+func (o *MessageOutputEvent) SetId(v string) {
+	o.Id = v
+}
+
+// GetModel returns the Model field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *MessageOutputEvent) GetModel() string {
+	if o == nil || IsNil(o.Model.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Model.Get()
+}
+
+// GetModelOk returns a tuple with the Model field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *MessageOutputEvent) GetModelOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Model.Get(), o.Model.IsSet()
+}
+
+// HasModel returns a boolean if a field has been set.
+func (o *MessageOutputEvent) HasModel() bool {
+	if o != nil && o.Model.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetModel gets a reference to the given NullableString and assigns it to the Model field.
+func (o *MessageOutputEvent) SetModel(v string) {
+	o.Model.Set(&v)
+}
+// SetModelNil sets the value for Model to be an explicit nil
+func (o *MessageOutputEvent) SetModelNil() {
+	o.Model.Set(nil)
+}
+
+// UnsetModel ensures that no value is present for Model, not even an explicit nil
+func (o *MessageOutputEvent) UnsetModel() {
+	o.Model.Unset()
+}
+
+// GetOutputIndex returns the OutputIndex field value if set, zero value otherwise.
+func (o *MessageOutputEvent) GetOutputIndex() int32 {
+	if o == nil || IsNil(o.OutputIndex) {
+		var ret int32
+		return ret
+	}
+	return *o.OutputIndex
+}
+
+// GetOutputIndexOk returns a tuple with the OutputIndex field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *MessageOutputEvent) GetOutputIndexOk() (*int32, bool) {
+	if o == nil || IsNil(o.OutputIndex) {
+		return nil, false
+	}
+	return o.OutputIndex, true
+}
+
+// HasOutputIndex returns a boolean if a field has been set.
+func (o *MessageOutputEvent) HasOutputIndex() bool {
+	if o != nil && !IsNil(o.OutputIndex) {
+		return true
+	}
+
+	return false
+}
+
+// SetOutputIndex gets a reference to the given int32 and assigns it to the OutputIndex field.
+func (o *MessageOutputEvent) SetOutputIndex(v int32) {
+	o.OutputIndex = &v
 }
 
 // GetRole returns the Role field value if set, zero value otherwise.
@@ -340,32 +330,40 @@ func (o *MessageOutputEvent) SetRole(v string) {
 	o.Role = &v
 }
 
-// GetContent returns the Content field value
-func (o *MessageOutputEvent) GetContent() Content2 {
-	if o == nil {
-		var ret Content2
+// GetType returns the Type field value if set, zero value otherwise.
+func (o *MessageOutputEvent) GetType() string {
+	if o == nil || IsNil(o.Type) {
+		var ret string
 		return ret
 	}
-
-	return o.Content
+	return *o.Type
 }
 
-// GetContentOk returns a tuple with the Content field value
+// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *MessageOutputEvent) GetContentOk() (*Content2, bool) {
-	if o == nil {
+func (o *MessageOutputEvent) GetTypeOk() (*string, bool) {
+	if o == nil || IsNil(o.Type) {
 		return nil, false
 	}
-	return &o.Content, true
+	return o.Type, true
 }
 
-// SetContent sets field value
-func (o *MessageOutputEvent) SetContent(v Content2) {
-	o.Content = v
+// HasType returns a boolean if a field has been set.
+func (o *MessageOutputEvent) HasType() bool {
+	if o != nil && !IsNil(o.Type) {
+		return true
+	}
+
+	return false
+}
+
+// SetType gets a reference to the given string and assigns it to the Type field.
+func (o *MessageOutputEvent) SetType(v string) {
+	o.Type = &v
 }
 
 func (o MessageOutputEvent) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -374,29 +372,29 @@ func (o MessageOutputEvent) MarshalJSON() ([]byte, error) {
 
 func (o MessageOutputEvent) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Type) {
-		toSerialize["type"] = o.Type
+	if o.AgentId.IsSet() {
+		toSerialize["agent_id"] = o.AgentId.Get()
+	}
+	toSerialize["content"] = o.Content
+	if !IsNil(o.ContentIndex) {
+		toSerialize["content_index"] = o.ContentIndex
 	}
 	if !IsNil(o.CreatedAt) {
 		toSerialize["created_at"] = o.CreatedAt
 	}
-	if !IsNil(o.OutputIndex) {
-		toSerialize["output_index"] = o.OutputIndex
-	}
 	toSerialize["id"] = o.Id
-	if !IsNil(o.ContentIndex) {
-		toSerialize["content_index"] = o.ContentIndex
-	}
 	if o.Model.IsSet() {
 		toSerialize["model"] = o.Model.Get()
 	}
-	if o.AgentId.IsSet() {
-		toSerialize["agent_id"] = o.AgentId.Get()
+	if !IsNil(o.OutputIndex) {
+		toSerialize["output_index"] = o.OutputIndex
 	}
 	if !IsNil(o.Role) {
 		toSerialize["role"] = o.Role
 	}
-	toSerialize["content"] = o.Content
+	if !IsNil(o.Type) {
+		toSerialize["type"] = o.Type
+	}
 	return toSerialize, nil
 }
 
@@ -405,8 +403,8 @@ func (o *MessageOutputEvent) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"id",
 		"content",
+		"id",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -414,10 +412,10 @@ func (o *MessageOutputEvent) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

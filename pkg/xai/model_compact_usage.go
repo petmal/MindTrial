@@ -31,7 +31,7 @@ type CompactUsage struct {
 	// Detailed breakdown of output tokens.
 	OutputTokensDetails CompactUsageOutputTokensDetails `json:"output_tokens_details"`
 	// Total number of tokens used (input + output, including reasoning).
-	TotalTokens          int32 `json:"total_tokens"`
+	TotalTokens int32 `json:"total_tokens"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -205,7 +205,7 @@ func (o *CompactUsage) SetTotalTokens(v int32) {
 }
 
 func (o CompactUsage) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -246,10 +246,10 @@ func (o *CompactUsage) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

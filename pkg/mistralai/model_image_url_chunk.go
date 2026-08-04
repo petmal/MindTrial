@@ -11,18 +11,18 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
 // checks if the ImageURLChunk type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &ImageURLChunk{}
 
-// ImageURLChunk {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,iVBORw0
+// ImageURLChunk {\"type\":\"image_url\",\"image_url\":\"data:image/png;base64,iVBORw0\"}
 type ImageURLChunk struct {
 	ImageUrl ImageUrl `json:"image_url"`
-	Type     *string  `json:"type,omitempty"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _ImageURLChunk ImageURLChunk
@@ -106,7 +106,7 @@ func (o *ImageURLChunk) SetType(v string) {
 }
 
 func (o ImageURLChunk) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -135,10 +135,10 @@ func (o *ImageURLChunk) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

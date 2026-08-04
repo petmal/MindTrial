@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,8 +21,8 @@ var _ MappedNullable = &FunctionTool{}
 
 // FunctionTool struct for FunctionTool
 type FunctionTool struct {
-	Type     *string  `json:"type,omitempty"`
 	Function Function `json:"function"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _FunctionTool FunctionTool
@@ -33,9 +33,9 @@ type _FunctionTool FunctionTool
 // will change when the set of required properties is changed
 func NewFunctionTool(function Function) *FunctionTool {
 	this := FunctionTool{}
+	this.Function = function
 	var type_ string = "function"
 	this.Type = &type_
-	this.Function = function
 	return &this
 }
 
@@ -47,6 +47,30 @@ func NewFunctionToolWithDefaults() *FunctionTool {
 	var type_ string = "function"
 	this.Type = &type_
 	return &this
+}
+
+// GetFunction returns the Function field value
+func (o *FunctionTool) GetFunction() Function {
+	if o == nil {
+		var ret Function
+		return ret
+	}
+
+	return o.Function
+}
+
+// GetFunctionOk returns a tuple with the Function field value
+// and a boolean to check if the value has been set.
+func (o *FunctionTool) GetFunctionOk() (*Function, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Function, true
+}
+
+// SetFunction sets field value
+func (o *FunctionTool) SetFunction(v Function) {
+	o.Function = v
 }
 
 // GetType returns the Type field value if set, zero value otherwise.
@@ -81,32 +105,8 @@ func (o *FunctionTool) SetType(v string) {
 	o.Type = &v
 }
 
-// GetFunction returns the Function field value
-func (o *FunctionTool) GetFunction() Function {
-	if o == nil {
-		var ret Function
-		return ret
-	}
-
-	return o.Function
-}
-
-// GetFunctionOk returns a tuple with the Function field value
-// and a boolean to check if the value has been set.
-func (o *FunctionTool) GetFunctionOk() (*Function, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Function, true
-}
-
-// SetFunction sets field value
-func (o *FunctionTool) SetFunction(v Function) {
-	o.Function = v
-}
-
 func (o FunctionTool) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -115,10 +115,10 @@ func (o FunctionTool) MarshalJSON() ([]byte, error) {
 
 func (o FunctionTool) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["function"] = o.Function
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
 	}
-	toSerialize["function"] = o.Function
 	return toSerialize, nil
 }
 
@@ -135,10 +135,10 @@ func (o *FunctionTool) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

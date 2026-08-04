@@ -31,7 +31,7 @@ type FileOutput struct {
 	// Human-readable error when `storage_options.public_url` was set but public URL creation failed. The file was stored successfully.
 	PublicUrlError NullableString `json:"public_url_error,omitempty"`
 	// Unix timestamp (seconds) when the public URL expires. Present when the public URL has an expiry, either from an explicit `expires_after` in the request or inherited from the file's TTL.
-	PublicUrlExpiresAt   NullableInt64 `json:"public_url_expires_at,omitempty"`
+	PublicUrlExpiresAt NullableInt64 `json:"public_url_expires_at,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -88,7 +88,6 @@ func (o *FileOutput) HasExpiresAt() bool {
 func (o *FileOutput) SetExpiresAt(v int64) {
 	o.ExpiresAt.Set(&v)
 }
-
 // SetExpiresAtNil sets the value for ExpiresAt to be an explicit nil
 func (o *FileOutput) SetExpiresAtNil() {
 	o.ExpiresAt.Set(nil)
@@ -179,7 +178,6 @@ func (o *FileOutput) HasPublicUrl() bool {
 func (o *FileOutput) SetPublicUrl(v string) {
 	o.PublicUrl.Set(&v)
 }
-
 // SetPublicUrlNil sets the value for PublicUrl to be an explicit nil
 func (o *FileOutput) SetPublicUrlNil() {
 	o.PublicUrl.Set(nil)
@@ -222,7 +220,6 @@ func (o *FileOutput) HasPublicUrlError() bool {
 func (o *FileOutput) SetPublicUrlError(v string) {
 	o.PublicUrlError.Set(&v)
 }
-
 // SetPublicUrlErrorNil sets the value for PublicUrlError to be an explicit nil
 func (o *FileOutput) SetPublicUrlErrorNil() {
 	o.PublicUrlError.Set(nil)
@@ -265,7 +262,6 @@ func (o *FileOutput) HasPublicUrlExpiresAt() bool {
 func (o *FileOutput) SetPublicUrlExpiresAt(v int64) {
 	o.PublicUrlExpiresAt.Set(&v)
 }
-
 // SetPublicUrlExpiresAtNil sets the value for PublicUrlExpiresAt to be an explicit nil
 func (o *FileOutput) SetPublicUrlExpiresAtNil() {
 	o.PublicUrlExpiresAt.Set(nil)
@@ -277,7 +273,7 @@ func (o *FileOutput) UnsetPublicUrlExpiresAt() {
 }
 
 func (o FileOutput) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -322,10 +318,10 @@ func (o *FileOutput) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

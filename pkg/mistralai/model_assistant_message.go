@@ -19,11 +19,11 @@ var _ MappedNullable = &AssistantMessage{}
 
 // AssistantMessage struct for AssistantMessage
 type AssistantMessage struct {
-	Content   NullableContent3 `json:"content,omitempty"`
-	ToolCalls []ToolCall       `json:"tool_calls,omitempty"`
+	Content NullableContent `json:"content,omitempty"`
 	// Set this to `true` when adding an assistant message as prefix to condition the model response. The role of the prefix message is to force the model to start its answer by the content of the message.
-	Prefix *bool   `json:"prefix,omitempty"`
-	Role   *string `json:"role,omitempty"`
+	Prefix *bool `json:"prefix,omitempty"`
+	Role *string `json:"role,omitempty"`
+	ToolCalls []ToolCall `json:"tool_calls,omitempty"`
 }
 
 // NewAssistantMessage instantiates a new AssistantMessage object
@@ -52,9 +52,9 @@ func NewAssistantMessageWithDefaults() *AssistantMessage {
 }
 
 // GetContent returns the Content field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *AssistantMessage) GetContent() Content3 {
+func (o *AssistantMessage) GetContent() Content {
 	if o == nil || IsNil(o.Content.Get()) {
-		var ret Content3
+		var ret Content
 		return ret
 	}
 	return *o.Content.Get()
@@ -63,7 +63,7 @@ func (o *AssistantMessage) GetContent() Content3 {
 // GetContentOk returns a tuple with the Content field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 // NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *AssistantMessage) GetContentOk() (*Content3, bool) {
+func (o *AssistantMessage) GetContentOk() (*Content, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -79,11 +79,10 @@ func (o *AssistantMessage) HasContent() bool {
 	return false
 }
 
-// SetContent gets a reference to the given NullableContent3 and assigns it to the Content field.
-func (o *AssistantMessage) SetContent(v Content3) {
+// SetContent gets a reference to the given NullableContent and assigns it to the Content field.
+func (o *AssistantMessage) SetContent(v Content) {
 	o.Content.Set(&v)
 }
-
 // SetContentNil sets the value for Content to be an explicit nil
 func (o *AssistantMessage) SetContentNil() {
 	o.Content.Set(nil)
@@ -92,39 +91,6 @@ func (o *AssistantMessage) SetContentNil() {
 // UnsetContent ensures that no value is present for Content, not even an explicit nil
 func (o *AssistantMessage) UnsetContent() {
 	o.Content.Unset()
-}
-
-// GetToolCalls returns the ToolCalls field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *AssistantMessage) GetToolCalls() []ToolCall {
-	if o == nil {
-		var ret []ToolCall
-		return ret
-	}
-	return o.ToolCalls
-}
-
-// GetToolCallsOk returns a tuple with the ToolCalls field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *AssistantMessage) GetToolCallsOk() ([]ToolCall, bool) {
-	if o == nil || IsNil(o.ToolCalls) {
-		return nil, false
-	}
-	return o.ToolCalls, true
-}
-
-// HasToolCalls returns a boolean if a field has been set.
-func (o *AssistantMessage) HasToolCalls() bool {
-	if o != nil && !IsNil(o.ToolCalls) {
-		return true
-	}
-
-	return false
-}
-
-// SetToolCalls gets a reference to the given []ToolCall and assigns it to the ToolCalls field.
-func (o *AssistantMessage) SetToolCalls(v []ToolCall) {
-	o.ToolCalls = v
 }
 
 // GetPrefix returns the Prefix field value if set, zero value otherwise.
@@ -191,8 +157,41 @@ func (o *AssistantMessage) SetRole(v string) {
 	o.Role = &v
 }
 
+// GetToolCalls returns the ToolCalls field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *AssistantMessage) GetToolCalls() []ToolCall {
+	if o == nil {
+		var ret []ToolCall
+		return ret
+	}
+	return o.ToolCalls
+}
+
+// GetToolCallsOk returns a tuple with the ToolCalls field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *AssistantMessage) GetToolCallsOk() ([]ToolCall, bool) {
+	if o == nil || IsNil(o.ToolCalls) {
+		return nil, false
+	}
+	return o.ToolCalls, true
+}
+
+// HasToolCalls returns a boolean if a field has been set.
+func (o *AssistantMessage) HasToolCalls() bool {
+	if o != nil && !IsNil(o.ToolCalls) {
+		return true
+	}
+
+	return false
+}
+
+// SetToolCalls gets a reference to the given []ToolCall and assigns it to the ToolCalls field.
+func (o *AssistantMessage) SetToolCalls(v []ToolCall) {
+	o.ToolCalls = v
+}
+
 func (o AssistantMessage) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -204,14 +203,14 @@ func (o AssistantMessage) ToMap() (map[string]interface{}, error) {
 	if o.Content.IsSet() {
 		toSerialize["content"] = o.Content.Get()
 	}
-	if o.ToolCalls != nil {
-		toSerialize["tool_calls"] = o.ToolCalls
-	}
 	if !IsNil(o.Prefix) {
 		toSerialize["prefix"] = o.Prefix
 	}
 	if !IsNil(o.Role) {
 		toSerialize["role"] = o.Role
+	}
+	if o.ToolCalls != nil {
+		toSerialize["tool_calls"] = o.ToolCalls
 	}
 	return toSerialize, nil
 }

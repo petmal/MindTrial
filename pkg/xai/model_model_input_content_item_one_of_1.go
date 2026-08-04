@@ -20,8 +20,8 @@ var _ MappedNullable = &ModelInputContentItemOneOf1{}
 
 // ModelInputContentItemOneOf1 Text output (used in compact response output items).
 type ModelInputContentItemOneOf1 struct {
-	Text                 string `json:"text"`
-	Type                 string `json:"type"`
+	Text string `json:"text"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -95,7 +95,7 @@ func (o *ModelInputContentItemOneOf1) SetType(v string) {
 }
 
 func (o ModelInputContentItemOneOf1) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -128,10 +128,10 @@ func (o *ModelInputContentItemOneOf1) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

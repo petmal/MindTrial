@@ -28,7 +28,7 @@ type GeneratedImage struct {
 	// Human-readable error when `storage_options` was set but the upload failed. Absent on success or when storage was not requested.
 	StorageError NullableString `json:"storage_error,omitempty"`
 	// A url to the generated image, if `response_format` is not specified or with `url` in the request.
-	Url                  NullableString `json:"url,omitempty"`
+	Url NullableString `json:"url,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -83,7 +83,6 @@ func (o *GeneratedImage) HasB64Json() bool {
 func (o *GeneratedImage) SetB64Json(v string) {
 	o.B64Json.Set(&v)
 }
-
 // SetB64JsonNil sets the value for B64Json to be an explicit nil
 func (o *GeneratedImage) SetB64JsonNil() {
 	o.B64Json.Set(nil)
@@ -126,7 +125,6 @@ func (o *GeneratedImage) HasFileOutput() bool {
 func (o *GeneratedImage) SetFileOutput(v FileOutput) {
 	o.FileOutput.Set(&v)
 }
-
 // SetFileOutputNil sets the value for FileOutput to be an explicit nil
 func (o *GeneratedImage) SetFileOutputNil() {
 	o.FileOutput.Set(nil)
@@ -169,7 +167,6 @@ func (o *GeneratedImage) HasMimeType() bool {
 func (o *GeneratedImage) SetMimeType(v string) {
 	o.MimeType.Set(&v)
 }
-
 // SetMimeTypeNil sets the value for MimeType to be an explicit nil
 func (o *GeneratedImage) SetMimeTypeNil() {
 	o.MimeType.Set(nil)
@@ -212,7 +209,6 @@ func (o *GeneratedImage) HasStorageError() bool {
 func (o *GeneratedImage) SetStorageError(v string) {
 	o.StorageError.Set(&v)
 }
-
 // SetStorageErrorNil sets the value for StorageError to be an explicit nil
 func (o *GeneratedImage) SetStorageErrorNil() {
 	o.StorageError.Set(nil)
@@ -255,7 +251,6 @@ func (o *GeneratedImage) HasUrl() bool {
 func (o *GeneratedImage) SetUrl(v string) {
 	o.Url.Set(&v)
 }
-
 // SetUrlNil sets the value for Url to be an explicit nil
 func (o *GeneratedImage) SetUrlNil() {
 	o.Url.Set(nil)
@@ -267,7 +262,7 @@ func (o *GeneratedImage) UnsetUrl() {
 }
 
 func (o GeneratedImage) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

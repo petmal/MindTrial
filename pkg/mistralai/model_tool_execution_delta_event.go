@@ -11,10 +11,10 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"time"
+	"bytes"
+	"fmt"
 )
 
 // checks if the ToolExecutionDeltaEvent type satisfies the MappedNullable interface at compile time
@@ -22,12 +22,12 @@ var _ MappedNullable = &ToolExecutionDeltaEvent{}
 
 // ToolExecutionDeltaEvent struct for ToolExecutionDeltaEvent
 type ToolExecutionDeltaEvent struct {
-	Type        *string    `json:"type,omitempty"`
-	CreatedAt   *time.Time `json:"created_at,omitempty"`
-	OutputIndex *int32     `json:"output_index,omitempty"`
-	Id          string     `json:"id"`
-	Name        Name       `json:"name"`
-	Arguments   string     `json:"arguments"`
+	Arguments string `json:"arguments"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	Id string `json:"id"`
+	Name Name `json:"name"`
+	OutputIndex *int32 `json:"output_index,omitempty"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _ToolExecutionDeltaEvent ToolExecutionDeltaEvent
@@ -36,15 +36,15 @@ type _ToolExecutionDeltaEvent ToolExecutionDeltaEvent
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewToolExecutionDeltaEvent(id string, name Name, arguments string) *ToolExecutionDeltaEvent {
+func NewToolExecutionDeltaEvent(arguments string, id string, name Name) *ToolExecutionDeltaEvent {
 	this := ToolExecutionDeltaEvent{}
-	var type_ string = "tool.execution.delta"
-	this.Type = &type_
-	var outputIndex int32 = 0
-	this.OutputIndex = &outputIndex
+	this.Arguments = arguments
 	this.Id = id
 	this.Name = name
-	this.Arguments = arguments
+	var outputIndex int32 = 0
+	this.OutputIndex = &outputIndex
+	var type_ string = "tool.execution.delta"
+	this.Type = &type_
 	return &this
 }
 
@@ -53,43 +53,35 @@ func NewToolExecutionDeltaEvent(id string, name Name, arguments string) *ToolExe
 // but it doesn't guarantee that properties required by API are set
 func NewToolExecutionDeltaEventWithDefaults() *ToolExecutionDeltaEvent {
 	this := ToolExecutionDeltaEvent{}
-	var type_ string = "tool.execution.delta"
-	this.Type = &type_
 	var outputIndex int32 = 0
 	this.OutputIndex = &outputIndex
+	var type_ string = "tool.execution.delta"
+	this.Type = &type_
 	return &this
 }
 
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *ToolExecutionDeltaEvent) GetType() string {
-	if o == nil || IsNil(o.Type) {
+// GetArguments returns the Arguments field value
+func (o *ToolExecutionDeltaEvent) GetArguments() string {
+	if o == nil {
 		var ret string
 		return ret
 	}
-	return *o.Type
+
+	return o.Arguments
 }
 
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
+// GetArgumentsOk returns a tuple with the Arguments field value
 // and a boolean to check if the value has been set.
-func (o *ToolExecutionDeltaEvent) GetTypeOk() (*string, bool) {
-	if o == nil || IsNil(o.Type) {
+func (o *ToolExecutionDeltaEvent) GetArgumentsOk() (*string, bool) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Type, true
+	return &o.Arguments, true
 }
 
-// HasType returns a boolean if a field has been set.
-func (o *ToolExecutionDeltaEvent) HasType() bool {
-	if o != nil && !IsNil(o.Type) {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given string and assigns it to the Type field.
-func (o *ToolExecutionDeltaEvent) SetType(v string) {
-	o.Type = &v
+// SetArguments sets field value
+func (o *ToolExecutionDeltaEvent) SetArguments(v string) {
+	o.Arguments = v
 }
 
 // GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
@@ -122,38 +114,6 @@ func (o *ToolExecutionDeltaEvent) HasCreatedAt() bool {
 // SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
 func (o *ToolExecutionDeltaEvent) SetCreatedAt(v time.Time) {
 	o.CreatedAt = &v
-}
-
-// GetOutputIndex returns the OutputIndex field value if set, zero value otherwise.
-func (o *ToolExecutionDeltaEvent) GetOutputIndex() int32 {
-	if o == nil || IsNil(o.OutputIndex) {
-		var ret int32
-		return ret
-	}
-	return *o.OutputIndex
-}
-
-// GetOutputIndexOk returns a tuple with the OutputIndex field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ToolExecutionDeltaEvent) GetOutputIndexOk() (*int32, bool) {
-	if o == nil || IsNil(o.OutputIndex) {
-		return nil, false
-	}
-	return o.OutputIndex, true
-}
-
-// HasOutputIndex returns a boolean if a field has been set.
-func (o *ToolExecutionDeltaEvent) HasOutputIndex() bool {
-	if o != nil && !IsNil(o.OutputIndex) {
-		return true
-	}
-
-	return false
-}
-
-// SetOutputIndex gets a reference to the given int32 and assigns it to the OutputIndex field.
-func (o *ToolExecutionDeltaEvent) SetOutputIndex(v int32) {
-	o.OutputIndex = &v
 }
 
 // GetId returns the Id field value
@@ -204,32 +164,72 @@ func (o *ToolExecutionDeltaEvent) SetName(v Name) {
 	o.Name = v
 }
 
-// GetArguments returns the Arguments field value
-func (o *ToolExecutionDeltaEvent) GetArguments() string {
-	if o == nil {
+// GetOutputIndex returns the OutputIndex field value if set, zero value otherwise.
+func (o *ToolExecutionDeltaEvent) GetOutputIndex() int32 {
+	if o == nil || IsNil(o.OutputIndex) {
+		var ret int32
+		return ret
+	}
+	return *o.OutputIndex
+}
+
+// GetOutputIndexOk returns a tuple with the OutputIndex field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ToolExecutionDeltaEvent) GetOutputIndexOk() (*int32, bool) {
+	if o == nil || IsNil(o.OutputIndex) {
+		return nil, false
+	}
+	return o.OutputIndex, true
+}
+
+// HasOutputIndex returns a boolean if a field has been set.
+func (o *ToolExecutionDeltaEvent) HasOutputIndex() bool {
+	if o != nil && !IsNil(o.OutputIndex) {
+		return true
+	}
+
+	return false
+}
+
+// SetOutputIndex gets a reference to the given int32 and assigns it to the OutputIndex field.
+func (o *ToolExecutionDeltaEvent) SetOutputIndex(v int32) {
+	o.OutputIndex = &v
+}
+
+// GetType returns the Type field value if set, zero value otherwise.
+func (o *ToolExecutionDeltaEvent) GetType() string {
+	if o == nil || IsNil(o.Type) {
 		var ret string
 		return ret
 	}
-
-	return o.Arguments
+	return *o.Type
 }
 
-// GetArgumentsOk returns a tuple with the Arguments field value
+// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ToolExecutionDeltaEvent) GetArgumentsOk() (*string, bool) {
-	if o == nil {
+func (o *ToolExecutionDeltaEvent) GetTypeOk() (*string, bool) {
+	if o == nil || IsNil(o.Type) {
 		return nil, false
 	}
-	return &o.Arguments, true
+	return o.Type, true
 }
 
-// SetArguments sets field value
-func (o *ToolExecutionDeltaEvent) SetArguments(v string) {
-	o.Arguments = v
+// HasType returns a boolean if a field has been set.
+func (o *ToolExecutionDeltaEvent) HasType() bool {
+	if o != nil && !IsNil(o.Type) {
+		return true
+	}
+
+	return false
+}
+
+// SetType gets a reference to the given string and assigns it to the Type field.
+func (o *ToolExecutionDeltaEvent) SetType(v string) {
+	o.Type = &v
 }
 
 func (o ToolExecutionDeltaEvent) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -238,18 +238,18 @@ func (o ToolExecutionDeltaEvent) MarshalJSON() ([]byte, error) {
 
 func (o ToolExecutionDeltaEvent) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Type) {
-		toSerialize["type"] = o.Type
-	}
+	toSerialize["arguments"] = o.Arguments
 	if !IsNil(o.CreatedAt) {
 		toSerialize["created_at"] = o.CreatedAt
 	}
+	toSerialize["id"] = o.Id
+	toSerialize["name"] = o.Name
 	if !IsNil(o.OutputIndex) {
 		toSerialize["output_index"] = o.OutputIndex
 	}
-	toSerialize["id"] = o.Id
-	toSerialize["name"] = o.Name
-	toSerialize["arguments"] = o.Arguments
+	if !IsNil(o.Type) {
+		toSerialize["type"] = o.Type
+	}
 	return toSerialize, nil
 }
 
@@ -258,9 +258,9 @@ func (o *ToolExecutionDeltaEvent) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
+		"arguments",
 		"id",
 		"name",
-		"arguments",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -268,10 +268,10 @@ func (o *ToolExecutionDeltaEvent) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

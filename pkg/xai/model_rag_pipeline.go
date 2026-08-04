@@ -21,7 +21,7 @@ type RagPipeline string
 // List of RagPipeline
 const (
 	RAGPIPELINE_CHROMA_DB RagPipeline = "chroma_db"
-	RAGPIPELINE_ES        RagPipeline = "es"
+	RAGPIPELINE_ES RagPipeline = "es"
 )
 
 // All allowed values of RagPipeline enum

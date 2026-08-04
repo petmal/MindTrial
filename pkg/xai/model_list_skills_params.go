@@ -24,7 +24,7 @@ type ListSkillsParams struct {
 	// The maximum number of objects to be returned in a single response.
 	Limit NullableInt32 `json:"limit,omitempty"`
 	// Sort order. Use `asc` for ascending and `desc` for descending order.
-	Order                NullableString `json:"order,omitempty"`
+	Order NullableString `json:"order,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -87,7 +87,6 @@ func (o *ListSkillsParams) HasAfter() bool {
 func (o *ListSkillsParams) SetAfter(v string) {
 	o.After.Set(&v)
 }
-
 // SetAfterNil sets the value for After to be an explicit nil
 func (o *ListSkillsParams) SetAfterNil() {
 	o.After.Set(nil)
@@ -130,7 +129,6 @@ func (o *ListSkillsParams) HasLimit() bool {
 func (o *ListSkillsParams) SetLimit(v int32) {
 	o.Limit.Set(&v)
 }
-
 // SetLimitNil sets the value for Limit to be an explicit nil
 func (o *ListSkillsParams) SetLimitNil() {
 	o.Limit.Set(nil)
@@ -173,7 +171,6 @@ func (o *ListSkillsParams) HasOrder() bool {
 func (o *ListSkillsParams) SetOrder(v string) {
 	o.Order.Set(&v)
 }
-
 // SetOrderNil sets the value for Order to be an explicit nil
 func (o *ListSkillsParams) SetOrderNil() {
 	o.Order.Set(nil)
@@ -185,7 +182,7 @@ func (o *ListSkillsParams) UnsetOrder() {
 }
 
 func (o ListSkillsParams) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

@@ -31,7 +31,7 @@ type ShellCall struct {
 	// Status of the item. One of `completed`, `in_progress` or `incomplete`.
 	Status *string `json:"status,omitempty"`
 	// The type of the output item, which is always `shell_call`.
-	Type                 string `json:"type"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -137,7 +137,6 @@ func (o *ShellCall) HasEnvironment() bool {
 func (o *ShellCall) SetEnvironment(v ShellEnvironment) {
 	o.Environment.Set(&v)
 }
-
 // SetEnvironmentNil sets the value for Environment to be an explicit nil
 func (o *ShellCall) SetEnvironmentNil() {
 	o.Environment.Set(nil)
@@ -237,7 +236,7 @@ func (o *ShellCall) SetType(v string) {
 }
 
 func (o ShellCall) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -281,10 +280,10 @@ func (o *ShellCall) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

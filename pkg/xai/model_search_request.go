@@ -35,7 +35,7 @@ type SearchRequest struct {
 	// How to perform the document search. Defaults to hybrid retrieval.
 	RetrievalMode NullableRetrievalMode `json:"retrieval_mode,omitempty"`
 	// The source to query.
-	Source               DocumentsSource `json:"source"`
+	Source DocumentsSource `json:"source"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -92,7 +92,6 @@ func (o *SearchRequest) HasFilter() bool {
 func (o *SearchRequest) SetFilter(v string) {
 	o.Filter.Set(&v)
 }
-
 // SetFilterNil sets the value for Filter to be an explicit nil
 func (o *SearchRequest) SetFilterNil() {
 	o.Filter.Set(nil)
@@ -135,7 +134,6 @@ func (o *SearchRequest) HasGroupBy() bool {
 func (o *SearchRequest) SetGroupBy(v GroupBy) {
 	o.GroupBy.Set(&v)
 }
-
 // SetGroupByNil sets the value for GroupBy to be an explicit nil
 func (o *SearchRequest) SetGroupByNil() {
 	o.GroupBy.Set(nil)
@@ -178,7 +176,6 @@ func (o *SearchRequest) HasInstructions() bool {
 func (o *SearchRequest) SetInstructions(v string) {
 	o.Instructions.Set(&v)
 }
-
 // SetInstructionsNil sets the value for Instructions to be an explicit nil
 func (o *SearchRequest) SetInstructionsNil() {
 	o.Instructions.Set(nil)
@@ -221,7 +218,6 @@ func (o *SearchRequest) HasLimit() bool {
 func (o *SearchRequest) SetLimit(v int32) {
 	o.Limit.Set(&v)
 }
-
 // SetLimitNil sets the value for Limit to be an explicit nil
 func (o *SearchRequest) SetLimitNil() {
 	o.Limit.Set(nil)
@@ -288,7 +284,6 @@ func (o *SearchRequest) HasRankingMetric() bool {
 func (o *SearchRequest) SetRankingMetric(v RankingMetric) {
 	o.RankingMetric.Set(&v)
 }
-
 // SetRankingMetricNil sets the value for RankingMetric to be an explicit nil
 func (o *SearchRequest) SetRankingMetricNil() {
 	o.RankingMetric.Set(nil)
@@ -331,7 +326,6 @@ func (o *SearchRequest) HasRetrievalMode() bool {
 func (o *SearchRequest) SetRetrievalMode(v RetrievalMode) {
 	o.RetrievalMode.Set(&v)
 }
-
 // SetRetrievalModeNil sets the value for RetrievalMode to be an explicit nil
 func (o *SearchRequest) SetRetrievalModeNil() {
 	o.RetrievalMode.Set(nil)
@@ -367,7 +361,7 @@ func (o *SearchRequest) SetSource(v DocumentsSource) {
 }
 
 func (o SearchRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -418,10 +412,10 @@ func (o *SearchRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

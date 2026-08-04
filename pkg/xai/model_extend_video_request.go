@@ -31,7 +31,7 @@ type ExtendVideoRequest struct {
 	// Optional output storage configuration. When present, the generated video is stored in the Files API and a `file_output` reference is returned in the response alongside the ephemeral URL.
 	StorageOptions NullableStorageOptions `json:"storage_options,omitempty"`
 	// Input video to extend. The extension continues from the end of this video. Input video must be between 2 and 15 seconds long.
-	Video                VideoUrl `json:"video"`
+	Video VideoUrl `json:"video"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -88,7 +88,6 @@ func (o *ExtendVideoRequest) HasDuration() bool {
 func (o *ExtendVideoRequest) SetDuration(v int32) {
 	o.Duration.Set(&v)
 }
-
 // SetDurationNil sets the value for Duration to be an explicit nil
 func (o *ExtendVideoRequest) SetDurationNil() {
 	o.Duration.Set(nil)
@@ -131,7 +130,6 @@ func (o *ExtendVideoRequest) HasModel() bool {
 func (o *ExtendVideoRequest) SetModel(v string) {
 	o.Model.Set(&v)
 }
-
 // SetModelNil sets the value for Model to be an explicit nil
 func (o *ExtendVideoRequest) SetModelNil() {
 	o.Model.Set(nil)
@@ -174,7 +172,6 @@ func (o *ExtendVideoRequest) HasOutput() bool {
 func (o *ExtendVideoRequest) SetOutput(v VideoOutput) {
 	o.Output.Set(&v)
 }
-
 // SetOutputNil sets the value for Output to be an explicit nil
 func (o *ExtendVideoRequest) SetOutputNil() {
 	o.Output.Set(nil)
@@ -241,7 +238,6 @@ func (o *ExtendVideoRequest) HasStorageOptions() bool {
 func (o *ExtendVideoRequest) SetStorageOptions(v StorageOptions) {
 	o.StorageOptions.Set(&v)
 }
-
 // SetStorageOptionsNil sets the value for StorageOptions to be an explicit nil
 func (o *ExtendVideoRequest) SetStorageOptionsNil() {
 	o.StorageOptions.Set(nil)
@@ -277,7 +273,7 @@ func (o *ExtendVideoRequest) SetVideo(v VideoUrl) {
 }
 
 func (o ExtendVideoRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -322,10 +318,10 @@ func (o *ExtendVideoRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

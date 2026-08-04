@@ -20,7 +20,7 @@ var _ MappedNullable = &CreatePublicUrlRequest{}
 // CreatePublicUrlRequest Request body for `POST /v1/files/{file_id}/public-url`.
 type CreatePublicUrlRequest struct {
 	// Seconds from now until the public URL expires. Must be between `3600` (1 hour) and `2592000` (30 days). Omit to inherit the file's expiry (if it has one) or to make the URL valid indefinitely.
-	ExpiresAfter         NullableInt64 `json:"expires_after,omitempty"`
+	ExpiresAfter NullableInt64 `json:"expires_after,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -75,7 +75,6 @@ func (o *CreatePublicUrlRequest) HasExpiresAfter() bool {
 func (o *CreatePublicUrlRequest) SetExpiresAfter(v int64) {
 	o.ExpiresAfter.Set(&v)
 }
-
 // SetExpiresAfterNil sets the value for ExpiresAfter to be an explicit nil
 func (o *CreatePublicUrlRequest) SetExpiresAfterNil() {
 	o.ExpiresAfter.Set(nil)
@@ -87,7 +86,7 @@ func (o *CreatePublicUrlRequest) UnsetExpiresAfter() {
 }
 
 func (o CreatePublicUrlRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

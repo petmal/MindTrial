@@ -15,9 +15,10 @@ import (
 	"fmt"
 )
 
+
 // LocationInner struct for LocationInner
 type LocationInner struct {
-	Int32  *int32
+	Int32 *int32
 	String *string
 }
 
@@ -25,7 +26,7 @@ type LocationInner struct {
 func (dst *LocationInner) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into Int32
-	err = json.Unmarshal(data, &dst.Int32)
+	err = json.Unmarshal(data, &dst.Int32);
 	if err == nil {
 		jsonInt32, _ := json.Marshal(dst.Int32)
 		if string(jsonInt32) == "{}" { // empty struct
@@ -38,7 +39,7 @@ func (dst *LocationInner) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into String
-	err = json.Unmarshal(data, &dst.String)
+	err = json.Unmarshal(data, &dst.String);
 	if err == nil {
 		jsonString, _ := json.Marshal(dst.String)
 		if string(jsonString) == "{}" { // empty struct
@@ -65,6 +66,7 @@ func (src LocationInner) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
+
 
 type NullableLocationInner struct {
 	value *LocationInner

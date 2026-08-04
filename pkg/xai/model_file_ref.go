@@ -22,7 +22,7 @@ type FileRef struct {
 	// The file ID from the Files API.
 	FileId NullableString `json:"file_id,omitempty"`
 	// Public URL for a file attachment.
-	Url                  NullableString `json:"url,omitempty"`
+	Url NullableString `json:"url,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -77,7 +77,6 @@ func (o *FileRef) HasFileId() bool {
 func (o *FileRef) SetFileId(v string) {
 	o.FileId.Set(&v)
 }
-
 // SetFileIdNil sets the value for FileId to be an explicit nil
 func (o *FileRef) SetFileIdNil() {
 	o.FileId.Set(nil)
@@ -120,7 +119,6 @@ func (o *FileRef) HasUrl() bool {
 func (o *FileRef) SetUrl(v string) {
 	o.Url.Set(&v)
 }
-
 // SetUrlNil sets the value for Url to be an explicit nil
 func (o *FileRef) SetUrlNil() {
 	o.Url.Set(nil)
@@ -132,7 +130,7 @@ func (o *FileRef) UnsetUrl() {
 }
 
 func (o FileRef) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

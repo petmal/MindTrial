@@ -53,6 +53,7 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 	request := mistralai.NewChatCompletionRequestWithDefaults()
 	request.SetModel(cfg.Model)
 	request.SetN(1)
+	request.SetPromptCacheKey(promptCacheKeyFor(cfg))
 
 	// Configure response format.
 	responseFormat := mistralai.NewResponseFormatWithDefaults()
@@ -124,7 +125,7 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 			function.SetDescription(toolCfg.Description)
 			function.SetStrict(false)
 			toolDef := mistralai.NewTool(*function)
-			request.Tools = append(request.Tools, *toolDef)
+			request.Tools = append(request.Tools, mistralai.ToolAsAgentsCompletionRequestToolsInner(toolDef))
 		}
 		// If user tools are present, allow auto tool choice.
 		request.ToolChoice = mistralai.ToolChoiceEnum("auto").Ptr()
@@ -160,18 +161,26 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 		}
 
 		if resp.Usage != nil {
-			recordUsage(&resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, nil, nil, &result.usage)
+			var cachedTokens *int32
+			if promptTokensDetails, ok := resp.Usage.GetPromptTokensDetailsOk(); ok && promptTokensDetails != nil {
+				value := promptTokensDetails.GetCachedTokens()
+				cachedTokens = &value
+			}
+			recordUsage(InputTokenAccountingCacheTokensIncluded, &resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, nil, cachedTokens, &result.usage)
 		}
 		if len(resp.Choices) == 0 {
 			return result, ErrNoResponseCandidates
 		}
 		for _, candidate := range resp.Choices {
+			if !candidate.HasMessage() {
+				return result, ErrNoResponseCandidates
+			}
 			isTerminal := o.isTerminalStopReason(candidate.FinishReason)
 			logFinishReason(ctx, logger, candidate.FinishReason, isTerminal)
 
 			if !isTerminal {
 				// Append assistant message for every non-terminal turn.
-				request.Messages = append(request.Messages, mistralai.AssistantMessageAsMessagesInner(&candidate.Message))
+				request.Messages = append(request.Messages, mistralai.AssistantMessageAsMessagesInner(candidate.Message))
 
 				for _, textContent := range o.getMessageTextChunks(candidate.Message) {
 					logSkippedPreambleText(ctx, logger, candidate.FinishReason, textContent)
@@ -188,14 +197,14 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 						return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
 					}
 					toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, args, data, &tools.ToolCallContext{CallID: toolCall.GetId(), ConversationTurn: turn})
-					content := string(toolResult)
+					toolContent := string(toolResult)
 					if err != nil {
-						content = formatToolExecutionError(err)
+						toolContent = formatToolExecutionError(err)
 					}
-					content3 := mistralai.Content3{
-						String: &content,
+					content := mistralai.Content{
+						String: &toolContent,
 					}
-					nullableContent := mistralai.NewNullableContent3(&content3)
+					nullableContent := mistralai.NewNullableContent(&content)
 					toolMessage := mistralai.NewToolMessage(*nullableContent)
 					toolMessage.ToolCallId.Set(toolCall.Id)
 					request.Messages = append(request.Messages, mistralai.ToolMessageAsMessagesInner(toolMessage))
@@ -223,13 +232,13 @@ func (o *MistralAI) isTerminalStopReason(stopReason string) bool {
 	return !slices.Contains([]string{"", "tool_calls"}, stopReason)
 }
 
-func (o *MistralAI) getMessageText(message mistralai.AssistantMessage) (text string, ok bool) {
+func (o *MistralAI) getMessageText(message *mistralai.AssistantMessage) (text string, ok bool) {
 	text = strings.Join(o.getMessageTextChunks(message), "")
 	ok = text != ""
 	return
 }
 
-func (o *MistralAI) getMessageTextChunks(message mistralai.AssistantMessage) (textChunks []string) {
+func (o *MistralAI) getMessageTextChunks(message *mistralai.AssistantMessage) (textChunks []string) {
 	if content, hasContent := message.GetContentOk(); hasContent && content != nil {
 		if content.String != nil {
 			textChunks = []string{*content.String}
@@ -277,6 +286,14 @@ func (o *MistralAI) isTransientResponse(response *http.Response) bool {
 }
 
 func (o *MistralAI) applyModelParameters(request *mistralai.ChatCompletionRequest, modelParams config.MistralAIModelParams) error {
+	if modelParams.ReasoningEffort != nil {
+		reasoningEffort, err := mistralai.NewReasoningEffortFromValue(*modelParams.ReasoningEffort)
+		if err != nil {
+			return err
+		}
+		request.SetReasoningEffort(*reasoningEffort)
+	}
+
 	if modelParams.Temperature != nil {
 		request.SetTemperature(*modelParams.Temperature)
 	}
@@ -317,7 +334,7 @@ func (o *MistralAI) applyModelParameters(request *mistralai.ChatCompletionReques
 }
 
 func (o *MistralAI) createPromptMessage(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (message mistralai.MessagesInner, err error) {
-	var content3 mistralai.Content3
+	var content mistralai.Content
 	if len(files) > 0 {
 		parts := make([]mistralai.ContentChunk, 0, (len(files)*2)+1)
 		for _, file := range files {
@@ -347,13 +364,13 @@ func (o *MistralAI) createPromptMessage(ctx context.Context, promptText string, 
 		parts = append(parts, mistralai.TextChunkAsContentChunk(
 			mistralai.NewTextChunk(result.recordPrompt(promptText))))
 
-		content3.ArrayOfContentChunk = &parts
+		content.ArrayOfContentChunk = &parts
 	} else {
-		content3.String = mistralai.PtrString(result.recordPrompt(promptText))
+		content.String = mistralai.PtrString(result.recordPrompt(promptText))
 	}
 
 	return mistralai.UserMessageAsMessagesInner(
-		mistralai.NewUserMessage(*mistralai.NewNullableContent3(&content3))), nil
+		mistralai.NewUserMessage(*mistralai.NewNullableContent(&content))), nil
 }
 
 func marshalToolArguments(args mistralai.Arguments) (argsData json.RawMessage, err error) {

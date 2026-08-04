@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,19 +21,30 @@ var _ MappedNullable = &OCRRequest{}
 
 // OCRRequest struct for OCRRequest
 type OCRRequest struct {
-	Model                    NullableString         `json:"model"`
-	Id                       *string                `json:"id,omitempty"`
-	Document                 Document               `json:"document"`
-	Pages                    []int32                `json:"pages,omitempty"`
-	IncludeImageBase64       NullableBool           `json:"include_image_base64,omitempty"`
-	ImageLimit               NullableInt32          `json:"image_limit,omitempty"`
-	ImageMinSize             NullableInt32          `json:"image_min_size,omitempty"`
-	BboxAnnotationFormat     NullableResponseFormat `json:"bbox_annotation_format,omitempty"`
+	// Structured output class for extracting useful information from each extracted bounding box / image from document. Only json_schema is valid for this field
+	BboxAnnotationFormat NullableResponseFormat `json:"bbox_annotation_format,omitempty"`
+	// Granularity for confidence scores: 'page' (aggregate only), 'word' (per-word scores). Defaults to None (no confidence scores) to keep response payload small.
+	ConfidenceScoresGranularity NullableString `json:"confidence_scores_granularity,omitempty"`
+	Document Document1 `json:"document"`
+	// Structured output class for extracting useful information from the entire document. Only json_schema is valid for this field
 	DocumentAnnotationFormat NullableResponseFormat `json:"document_annotation_format,omitempty"`
-	DocumentAnnotationPrompt NullableString         `json:"document_annotation_prompt,omitempty"`
-	TableFormat              NullableString         `json:"table_format,omitempty"`
-	ExtractHeader            *bool                  `json:"extract_header,omitempty"`
-	ExtractFooter            *bool                  `json:"extract_footer,omitempty"`
+	// Optional prompt to guide the model in extracting structured output from the entire document. A document_annotation_format must be provided.
+	DocumentAnnotationPrompt NullableString `json:"document_annotation_prompt,omitempty"`
+	// Extract the page footer into the response's `footer` field and remove it from the markdown content
+	ExtractFooter *bool `json:"extract_footer,omitempty"`
+	// Extract the page header into the response's `header` field and remove it from the markdown content
+	ExtractHeader *bool `json:"extract_header,omitempty"`
+	// Max images to extract
+	ImageLimit NullableInt32 `json:"image_limit,omitempty"`
+	// Minimum height and width of image to extract
+	ImageMinSize NullableInt32 `json:"image_min_size,omitempty"`
+	// Return paragraph-level bounding boxes for all content blocks in the response
+	IncludeBlocks *bool `json:"include_blocks,omitempty"`
+	// Include image URLs in response
+	IncludeImageBase64 NullableBool `json:"include_image_base64,omitempty"`
+	Model NullableString `json:"model"`
+	Pages NullablePages `json:"pages,omitempty"`
+	TableFormat NullableString `json:"table_format,omitempty"`
 }
 
 type _OCRRequest OCRRequest
@@ -42,14 +53,16 @@ type _OCRRequest OCRRequest
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewOCRRequest(model NullableString, document Document) *OCRRequest {
+func NewOCRRequest(document Document1, model NullableString) *OCRRequest {
 	this := OCRRequest{}
-	this.Model = model
 	this.Document = document
-	var extractHeader bool = false
-	this.ExtractHeader = &extractHeader
 	var extractFooter bool = false
 	this.ExtractFooter = &extractFooter
+	var extractHeader bool = false
+	this.ExtractHeader = &extractHeader
+	var includeBlocks bool = true
+	this.IncludeBlocks = &includeBlocks
+	this.Model = model
 	return &this
 }
 
@@ -58,255 +71,13 @@ func NewOCRRequest(model NullableString, document Document) *OCRRequest {
 // but it doesn't guarantee that properties required by API are set
 func NewOCRRequestWithDefaults() *OCRRequest {
 	this := OCRRequest{}
-	var extractHeader bool = false
-	this.ExtractHeader = &extractHeader
 	var extractFooter bool = false
 	this.ExtractFooter = &extractFooter
+	var extractHeader bool = false
+	this.ExtractHeader = &extractHeader
+	var includeBlocks bool = true
+	this.IncludeBlocks = &includeBlocks
 	return &this
-}
-
-// GetModel returns the Model field value
-// If the value is explicit nil, the zero value for string will be returned
-func (o *OCRRequest) GetModel() string {
-	if o == nil || o.Model.Get() == nil {
-		var ret string
-		return ret
-	}
-
-	return *o.Model.Get()
-}
-
-// GetModelOk returns a tuple with the Model field value
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *OCRRequest) GetModelOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Model.Get(), o.Model.IsSet()
-}
-
-// SetModel sets field value
-func (o *OCRRequest) SetModel(v string) {
-	o.Model.Set(&v)
-}
-
-// GetId returns the Id field value if set, zero value otherwise.
-func (o *OCRRequest) GetId() string {
-	if o == nil || IsNil(o.Id) {
-		var ret string
-		return ret
-	}
-	return *o.Id
-}
-
-// GetIdOk returns a tuple with the Id field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *OCRRequest) GetIdOk() (*string, bool) {
-	if o == nil || IsNil(o.Id) {
-		return nil, false
-	}
-	return o.Id, true
-}
-
-// HasId returns a boolean if a field has been set.
-func (o *OCRRequest) HasId() bool {
-	if o != nil && !IsNil(o.Id) {
-		return true
-	}
-
-	return false
-}
-
-// SetId gets a reference to the given string and assigns it to the Id field.
-func (o *OCRRequest) SetId(v string) {
-	o.Id = &v
-}
-
-// GetDocument returns the Document field value
-func (o *OCRRequest) GetDocument() Document {
-	if o == nil {
-		var ret Document
-		return ret
-	}
-
-	return o.Document
-}
-
-// GetDocumentOk returns a tuple with the Document field value
-// and a boolean to check if the value has been set.
-func (o *OCRRequest) GetDocumentOk() (*Document, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Document, true
-}
-
-// SetDocument sets field value
-func (o *OCRRequest) SetDocument(v Document) {
-	o.Document = v
-}
-
-// GetPages returns the Pages field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *OCRRequest) GetPages() []int32 {
-	if o == nil {
-		var ret []int32
-		return ret
-	}
-	return o.Pages
-}
-
-// GetPagesOk returns a tuple with the Pages field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *OCRRequest) GetPagesOk() ([]int32, bool) {
-	if o == nil || IsNil(o.Pages) {
-		return nil, false
-	}
-	return o.Pages, true
-}
-
-// HasPages returns a boolean if a field has been set.
-func (o *OCRRequest) HasPages() bool {
-	if o != nil && !IsNil(o.Pages) {
-		return true
-	}
-
-	return false
-}
-
-// SetPages gets a reference to the given []int32 and assigns it to the Pages field.
-func (o *OCRRequest) SetPages(v []int32) {
-	o.Pages = v
-}
-
-// GetIncludeImageBase64 returns the IncludeImageBase64 field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *OCRRequest) GetIncludeImageBase64() bool {
-	if o == nil || IsNil(o.IncludeImageBase64.Get()) {
-		var ret bool
-		return ret
-	}
-	return *o.IncludeImageBase64.Get()
-}
-
-// GetIncludeImageBase64Ok returns a tuple with the IncludeImageBase64 field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *OCRRequest) GetIncludeImageBase64Ok() (*bool, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.IncludeImageBase64.Get(), o.IncludeImageBase64.IsSet()
-}
-
-// HasIncludeImageBase64 returns a boolean if a field has been set.
-func (o *OCRRequest) HasIncludeImageBase64() bool {
-	if o != nil && o.IncludeImageBase64.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetIncludeImageBase64 gets a reference to the given NullableBool and assigns it to the IncludeImageBase64 field.
-func (o *OCRRequest) SetIncludeImageBase64(v bool) {
-	o.IncludeImageBase64.Set(&v)
-}
-
-// SetIncludeImageBase64Nil sets the value for IncludeImageBase64 to be an explicit nil
-func (o *OCRRequest) SetIncludeImageBase64Nil() {
-	o.IncludeImageBase64.Set(nil)
-}
-
-// UnsetIncludeImageBase64 ensures that no value is present for IncludeImageBase64, not even an explicit nil
-func (o *OCRRequest) UnsetIncludeImageBase64() {
-	o.IncludeImageBase64.Unset()
-}
-
-// GetImageLimit returns the ImageLimit field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *OCRRequest) GetImageLimit() int32 {
-	if o == nil || IsNil(o.ImageLimit.Get()) {
-		var ret int32
-		return ret
-	}
-	return *o.ImageLimit.Get()
-}
-
-// GetImageLimitOk returns a tuple with the ImageLimit field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *OCRRequest) GetImageLimitOk() (*int32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.ImageLimit.Get(), o.ImageLimit.IsSet()
-}
-
-// HasImageLimit returns a boolean if a field has been set.
-func (o *OCRRequest) HasImageLimit() bool {
-	if o != nil && o.ImageLimit.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetImageLimit gets a reference to the given NullableInt32 and assigns it to the ImageLimit field.
-func (o *OCRRequest) SetImageLimit(v int32) {
-	o.ImageLimit.Set(&v)
-}
-
-// SetImageLimitNil sets the value for ImageLimit to be an explicit nil
-func (o *OCRRequest) SetImageLimitNil() {
-	o.ImageLimit.Set(nil)
-}
-
-// UnsetImageLimit ensures that no value is present for ImageLimit, not even an explicit nil
-func (o *OCRRequest) UnsetImageLimit() {
-	o.ImageLimit.Unset()
-}
-
-// GetImageMinSize returns the ImageMinSize field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *OCRRequest) GetImageMinSize() int32 {
-	if o == nil || IsNil(o.ImageMinSize.Get()) {
-		var ret int32
-		return ret
-	}
-	return *o.ImageMinSize.Get()
-}
-
-// GetImageMinSizeOk returns a tuple with the ImageMinSize field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *OCRRequest) GetImageMinSizeOk() (*int32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.ImageMinSize.Get(), o.ImageMinSize.IsSet()
-}
-
-// HasImageMinSize returns a boolean if a field has been set.
-func (o *OCRRequest) HasImageMinSize() bool {
-	if o != nil && o.ImageMinSize.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetImageMinSize gets a reference to the given NullableInt32 and assigns it to the ImageMinSize field.
-func (o *OCRRequest) SetImageMinSize(v int32) {
-	o.ImageMinSize.Set(&v)
-}
-
-// SetImageMinSizeNil sets the value for ImageMinSize to be an explicit nil
-func (o *OCRRequest) SetImageMinSizeNil() {
-	o.ImageMinSize.Set(nil)
-}
-
-// UnsetImageMinSize ensures that no value is present for ImageMinSize, not even an explicit nil
-func (o *OCRRequest) UnsetImageMinSize() {
-	o.ImageMinSize.Unset()
 }
 
 // GetBboxAnnotationFormat returns the BboxAnnotationFormat field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -341,7 +112,6 @@ func (o *OCRRequest) HasBboxAnnotationFormat() bool {
 func (o *OCRRequest) SetBboxAnnotationFormat(v ResponseFormat) {
 	o.BboxAnnotationFormat.Set(&v)
 }
-
 // SetBboxAnnotationFormatNil sets the value for BboxAnnotationFormat to be an explicit nil
 func (o *OCRRequest) SetBboxAnnotationFormatNil() {
 	o.BboxAnnotationFormat.Set(nil)
@@ -350,6 +120,72 @@ func (o *OCRRequest) SetBboxAnnotationFormatNil() {
 // UnsetBboxAnnotationFormat ensures that no value is present for BboxAnnotationFormat, not even an explicit nil
 func (o *OCRRequest) UnsetBboxAnnotationFormat() {
 	o.BboxAnnotationFormat.Unset()
+}
+
+// GetConfidenceScoresGranularity returns the ConfidenceScoresGranularity field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *OCRRequest) GetConfidenceScoresGranularity() string {
+	if o == nil || IsNil(o.ConfidenceScoresGranularity.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.ConfidenceScoresGranularity.Get()
+}
+
+// GetConfidenceScoresGranularityOk returns a tuple with the ConfidenceScoresGranularity field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OCRRequest) GetConfidenceScoresGranularityOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ConfidenceScoresGranularity.Get(), o.ConfidenceScoresGranularity.IsSet()
+}
+
+// HasConfidenceScoresGranularity returns a boolean if a field has been set.
+func (o *OCRRequest) HasConfidenceScoresGranularity() bool {
+	if o != nil && o.ConfidenceScoresGranularity.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetConfidenceScoresGranularity gets a reference to the given NullableString and assigns it to the ConfidenceScoresGranularity field.
+func (o *OCRRequest) SetConfidenceScoresGranularity(v string) {
+	o.ConfidenceScoresGranularity.Set(&v)
+}
+// SetConfidenceScoresGranularityNil sets the value for ConfidenceScoresGranularity to be an explicit nil
+func (o *OCRRequest) SetConfidenceScoresGranularityNil() {
+	o.ConfidenceScoresGranularity.Set(nil)
+}
+
+// UnsetConfidenceScoresGranularity ensures that no value is present for ConfidenceScoresGranularity, not even an explicit nil
+func (o *OCRRequest) UnsetConfidenceScoresGranularity() {
+	o.ConfidenceScoresGranularity.Unset()
+}
+
+// GetDocument returns the Document field value
+func (o *OCRRequest) GetDocument() Document1 {
+	if o == nil {
+		var ret Document1
+		return ret
+	}
+
+	return o.Document
+}
+
+// GetDocumentOk returns a tuple with the Document field value
+// and a boolean to check if the value has been set.
+func (o *OCRRequest) GetDocumentOk() (*Document1, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Document, true
+}
+
+// SetDocument sets field value
+func (o *OCRRequest) SetDocument(v Document1) {
+	o.Document = v
 }
 
 // GetDocumentAnnotationFormat returns the DocumentAnnotationFormat field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -384,7 +220,6 @@ func (o *OCRRequest) HasDocumentAnnotationFormat() bool {
 func (o *OCRRequest) SetDocumentAnnotationFormat(v ResponseFormat) {
 	o.DocumentAnnotationFormat.Set(&v)
 }
-
 // SetDocumentAnnotationFormatNil sets the value for DocumentAnnotationFormat to be an explicit nil
 func (o *OCRRequest) SetDocumentAnnotationFormatNil() {
 	o.DocumentAnnotationFormat.Set(nil)
@@ -427,7 +262,6 @@ func (o *OCRRequest) HasDocumentAnnotationPrompt() bool {
 func (o *OCRRequest) SetDocumentAnnotationPrompt(v string) {
 	o.DocumentAnnotationPrompt.Set(&v)
 }
-
 // SetDocumentAnnotationPromptNil sets the value for DocumentAnnotationPrompt to be an explicit nil
 func (o *OCRRequest) SetDocumentAnnotationPromptNil() {
 	o.DocumentAnnotationPrompt.Set(nil)
@@ -436,81 +270,6 @@ func (o *OCRRequest) SetDocumentAnnotationPromptNil() {
 // UnsetDocumentAnnotationPrompt ensures that no value is present for DocumentAnnotationPrompt, not even an explicit nil
 func (o *OCRRequest) UnsetDocumentAnnotationPrompt() {
 	o.DocumentAnnotationPrompt.Unset()
-}
-
-// GetTableFormat returns the TableFormat field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *OCRRequest) GetTableFormat() string {
-	if o == nil || IsNil(o.TableFormat.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.TableFormat.Get()
-}
-
-// GetTableFormatOk returns a tuple with the TableFormat field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *OCRRequest) GetTableFormatOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.TableFormat.Get(), o.TableFormat.IsSet()
-}
-
-// HasTableFormat returns a boolean if a field has been set.
-func (o *OCRRequest) HasTableFormat() bool {
-	if o != nil && o.TableFormat.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetTableFormat gets a reference to the given NullableString and assigns it to the TableFormat field.
-func (o *OCRRequest) SetTableFormat(v string) {
-	o.TableFormat.Set(&v)
-}
-
-// SetTableFormatNil sets the value for TableFormat to be an explicit nil
-func (o *OCRRequest) SetTableFormatNil() {
-	o.TableFormat.Set(nil)
-}
-
-// UnsetTableFormat ensures that no value is present for TableFormat, not even an explicit nil
-func (o *OCRRequest) UnsetTableFormat() {
-	o.TableFormat.Unset()
-}
-
-// GetExtractHeader returns the ExtractHeader field value if set, zero value otherwise.
-func (o *OCRRequest) GetExtractHeader() bool {
-	if o == nil || IsNil(o.ExtractHeader) {
-		var ret bool
-		return ret
-	}
-	return *o.ExtractHeader
-}
-
-// GetExtractHeaderOk returns a tuple with the ExtractHeader field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *OCRRequest) GetExtractHeaderOk() (*bool, bool) {
-	if o == nil || IsNil(o.ExtractHeader) {
-		return nil, false
-	}
-	return o.ExtractHeader, true
-}
-
-// HasExtractHeader returns a boolean if a field has been set.
-func (o *OCRRequest) HasExtractHeader() bool {
-	if o != nil && !IsNil(o.ExtractHeader) {
-		return true
-	}
-
-	return false
-}
-
-// SetExtractHeader gets a reference to the given bool and assigns it to the ExtractHeader field.
-func (o *OCRRequest) SetExtractHeader(v bool) {
-	o.ExtractHeader = &v
 }
 
 // GetExtractFooter returns the ExtractFooter field value if set, zero value otherwise.
@@ -545,8 +304,308 @@ func (o *OCRRequest) SetExtractFooter(v bool) {
 	o.ExtractFooter = &v
 }
 
+// GetExtractHeader returns the ExtractHeader field value if set, zero value otherwise.
+func (o *OCRRequest) GetExtractHeader() bool {
+	if o == nil || IsNil(o.ExtractHeader) {
+		var ret bool
+		return ret
+	}
+	return *o.ExtractHeader
+}
+
+// GetExtractHeaderOk returns a tuple with the ExtractHeader field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *OCRRequest) GetExtractHeaderOk() (*bool, bool) {
+	if o == nil || IsNil(o.ExtractHeader) {
+		return nil, false
+	}
+	return o.ExtractHeader, true
+}
+
+// HasExtractHeader returns a boolean if a field has been set.
+func (o *OCRRequest) HasExtractHeader() bool {
+	if o != nil && !IsNil(o.ExtractHeader) {
+		return true
+	}
+
+	return false
+}
+
+// SetExtractHeader gets a reference to the given bool and assigns it to the ExtractHeader field.
+func (o *OCRRequest) SetExtractHeader(v bool) {
+	o.ExtractHeader = &v
+}
+
+// GetImageLimit returns the ImageLimit field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *OCRRequest) GetImageLimit() int32 {
+	if o == nil || IsNil(o.ImageLimit.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.ImageLimit.Get()
+}
+
+// GetImageLimitOk returns a tuple with the ImageLimit field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OCRRequest) GetImageLimitOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ImageLimit.Get(), o.ImageLimit.IsSet()
+}
+
+// HasImageLimit returns a boolean if a field has been set.
+func (o *OCRRequest) HasImageLimit() bool {
+	if o != nil && o.ImageLimit.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetImageLimit gets a reference to the given NullableInt32 and assigns it to the ImageLimit field.
+func (o *OCRRequest) SetImageLimit(v int32) {
+	o.ImageLimit.Set(&v)
+}
+// SetImageLimitNil sets the value for ImageLimit to be an explicit nil
+func (o *OCRRequest) SetImageLimitNil() {
+	o.ImageLimit.Set(nil)
+}
+
+// UnsetImageLimit ensures that no value is present for ImageLimit, not even an explicit nil
+func (o *OCRRequest) UnsetImageLimit() {
+	o.ImageLimit.Unset()
+}
+
+// GetImageMinSize returns the ImageMinSize field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *OCRRequest) GetImageMinSize() int32 {
+	if o == nil || IsNil(o.ImageMinSize.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.ImageMinSize.Get()
+}
+
+// GetImageMinSizeOk returns a tuple with the ImageMinSize field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OCRRequest) GetImageMinSizeOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ImageMinSize.Get(), o.ImageMinSize.IsSet()
+}
+
+// HasImageMinSize returns a boolean if a field has been set.
+func (o *OCRRequest) HasImageMinSize() bool {
+	if o != nil && o.ImageMinSize.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetImageMinSize gets a reference to the given NullableInt32 and assigns it to the ImageMinSize field.
+func (o *OCRRequest) SetImageMinSize(v int32) {
+	o.ImageMinSize.Set(&v)
+}
+// SetImageMinSizeNil sets the value for ImageMinSize to be an explicit nil
+func (o *OCRRequest) SetImageMinSizeNil() {
+	o.ImageMinSize.Set(nil)
+}
+
+// UnsetImageMinSize ensures that no value is present for ImageMinSize, not even an explicit nil
+func (o *OCRRequest) UnsetImageMinSize() {
+	o.ImageMinSize.Unset()
+}
+
+// GetIncludeBlocks returns the IncludeBlocks field value if set, zero value otherwise.
+func (o *OCRRequest) GetIncludeBlocks() bool {
+	if o == nil || IsNil(o.IncludeBlocks) {
+		var ret bool
+		return ret
+	}
+	return *o.IncludeBlocks
+}
+
+// GetIncludeBlocksOk returns a tuple with the IncludeBlocks field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *OCRRequest) GetIncludeBlocksOk() (*bool, bool) {
+	if o == nil || IsNil(o.IncludeBlocks) {
+		return nil, false
+	}
+	return o.IncludeBlocks, true
+}
+
+// HasIncludeBlocks returns a boolean if a field has been set.
+func (o *OCRRequest) HasIncludeBlocks() bool {
+	if o != nil && !IsNil(o.IncludeBlocks) {
+		return true
+	}
+
+	return false
+}
+
+// SetIncludeBlocks gets a reference to the given bool and assigns it to the IncludeBlocks field.
+func (o *OCRRequest) SetIncludeBlocks(v bool) {
+	o.IncludeBlocks = &v
+}
+
+// GetIncludeImageBase64 returns the IncludeImageBase64 field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *OCRRequest) GetIncludeImageBase64() bool {
+	if o == nil || IsNil(o.IncludeImageBase64.Get()) {
+		var ret bool
+		return ret
+	}
+	return *o.IncludeImageBase64.Get()
+}
+
+// GetIncludeImageBase64Ok returns a tuple with the IncludeImageBase64 field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OCRRequest) GetIncludeImageBase64Ok() (*bool, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.IncludeImageBase64.Get(), o.IncludeImageBase64.IsSet()
+}
+
+// HasIncludeImageBase64 returns a boolean if a field has been set.
+func (o *OCRRequest) HasIncludeImageBase64() bool {
+	if o != nil && o.IncludeImageBase64.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetIncludeImageBase64 gets a reference to the given NullableBool and assigns it to the IncludeImageBase64 field.
+func (o *OCRRequest) SetIncludeImageBase64(v bool) {
+	o.IncludeImageBase64.Set(&v)
+}
+// SetIncludeImageBase64Nil sets the value for IncludeImageBase64 to be an explicit nil
+func (o *OCRRequest) SetIncludeImageBase64Nil() {
+	o.IncludeImageBase64.Set(nil)
+}
+
+// UnsetIncludeImageBase64 ensures that no value is present for IncludeImageBase64, not even an explicit nil
+func (o *OCRRequest) UnsetIncludeImageBase64() {
+	o.IncludeImageBase64.Unset()
+}
+
+// GetModel returns the Model field value
+// If the value is explicit nil, the zero value for string will be returned
+func (o *OCRRequest) GetModel() string {
+	if o == nil || o.Model.Get() == nil {
+		var ret string
+		return ret
+	}
+
+	return *o.Model.Get()
+}
+
+// GetModelOk returns a tuple with the Model field value
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OCRRequest) GetModelOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Model.Get(), o.Model.IsSet()
+}
+
+// SetModel sets field value
+func (o *OCRRequest) SetModel(v string) {
+	o.Model.Set(&v)
+}
+
+// GetPages returns the Pages field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *OCRRequest) GetPages() Pages {
+	if o == nil || IsNil(o.Pages.Get()) {
+		var ret Pages
+		return ret
+	}
+	return *o.Pages.Get()
+}
+
+// GetPagesOk returns a tuple with the Pages field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OCRRequest) GetPagesOk() (*Pages, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Pages.Get(), o.Pages.IsSet()
+}
+
+// HasPages returns a boolean if a field has been set.
+func (o *OCRRequest) HasPages() bool {
+	if o != nil && o.Pages.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetPages gets a reference to the given NullablePages and assigns it to the Pages field.
+func (o *OCRRequest) SetPages(v Pages) {
+	o.Pages.Set(&v)
+}
+// SetPagesNil sets the value for Pages to be an explicit nil
+func (o *OCRRequest) SetPagesNil() {
+	o.Pages.Set(nil)
+}
+
+// UnsetPages ensures that no value is present for Pages, not even an explicit nil
+func (o *OCRRequest) UnsetPages() {
+	o.Pages.Unset()
+}
+
+// GetTableFormat returns the TableFormat field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *OCRRequest) GetTableFormat() string {
+	if o == nil || IsNil(o.TableFormat.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.TableFormat.Get()
+}
+
+// GetTableFormatOk returns a tuple with the TableFormat field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OCRRequest) GetTableFormatOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.TableFormat.Get(), o.TableFormat.IsSet()
+}
+
+// HasTableFormat returns a boolean if a field has been set.
+func (o *OCRRequest) HasTableFormat() bool {
+	if o != nil && o.TableFormat.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetTableFormat gets a reference to the given NullableString and assigns it to the TableFormat field.
+func (o *OCRRequest) SetTableFormat(v string) {
+	o.TableFormat.Set(&v)
+}
+// SetTableFormatNil sets the value for TableFormat to be an explicit nil
+func (o *OCRRequest) SetTableFormatNil() {
+	o.TableFormat.Set(nil)
+}
+
+// UnsetTableFormat ensures that no value is present for TableFormat, not even an explicit nil
+func (o *OCRRequest) UnsetTableFormat() {
+	o.TableFormat.Unset()
+}
+
 func (o OCRRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -555,16 +614,24 @@ func (o OCRRequest) MarshalJSON() ([]byte, error) {
 
 func (o OCRRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["model"] = o.Model.Get()
-	if !IsNil(o.Id) {
-		toSerialize["id"] = o.Id
+	if o.BboxAnnotationFormat.IsSet() {
+		toSerialize["bbox_annotation_format"] = o.BboxAnnotationFormat.Get()
+	}
+	if o.ConfidenceScoresGranularity.IsSet() {
+		toSerialize["confidence_scores_granularity"] = o.ConfidenceScoresGranularity.Get()
 	}
 	toSerialize["document"] = o.Document
-	if o.Pages != nil {
-		toSerialize["pages"] = o.Pages
+	if o.DocumentAnnotationFormat.IsSet() {
+		toSerialize["document_annotation_format"] = o.DocumentAnnotationFormat.Get()
 	}
-	if o.IncludeImageBase64.IsSet() {
-		toSerialize["include_image_base64"] = o.IncludeImageBase64.Get()
+	if o.DocumentAnnotationPrompt.IsSet() {
+		toSerialize["document_annotation_prompt"] = o.DocumentAnnotationPrompt.Get()
+	}
+	if !IsNil(o.ExtractFooter) {
+		toSerialize["extract_footer"] = o.ExtractFooter
+	}
+	if !IsNil(o.ExtractHeader) {
+		toSerialize["extract_header"] = o.ExtractHeader
 	}
 	if o.ImageLimit.IsSet() {
 		toSerialize["image_limit"] = o.ImageLimit.Get()
@@ -572,23 +639,18 @@ func (o OCRRequest) ToMap() (map[string]interface{}, error) {
 	if o.ImageMinSize.IsSet() {
 		toSerialize["image_min_size"] = o.ImageMinSize.Get()
 	}
-	if o.BboxAnnotationFormat.IsSet() {
-		toSerialize["bbox_annotation_format"] = o.BboxAnnotationFormat.Get()
+	if !IsNil(o.IncludeBlocks) {
+		toSerialize["include_blocks"] = o.IncludeBlocks
 	}
-	if o.DocumentAnnotationFormat.IsSet() {
-		toSerialize["document_annotation_format"] = o.DocumentAnnotationFormat.Get()
+	if o.IncludeImageBase64.IsSet() {
+		toSerialize["include_image_base64"] = o.IncludeImageBase64.Get()
 	}
-	if o.DocumentAnnotationPrompt.IsSet() {
-		toSerialize["document_annotation_prompt"] = o.DocumentAnnotationPrompt.Get()
+	toSerialize["model"] = o.Model.Get()
+	if o.Pages.IsSet() {
+		toSerialize["pages"] = o.Pages.Get()
 	}
 	if o.TableFormat.IsSet() {
 		toSerialize["table_format"] = o.TableFormat.Get()
-	}
-	if !IsNil(o.ExtractHeader) {
-		toSerialize["extract_header"] = o.ExtractHeader
-	}
-	if !IsNil(o.ExtractFooter) {
-		toSerialize["extract_footer"] = o.ExtractFooter
 	}
 	return toSerialize, nil
 }
@@ -598,8 +660,8 @@ func (o *OCRRequest) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"model",
 		"document",
+		"model",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -607,10 +669,10 @@ func (o *OCRRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

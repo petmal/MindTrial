@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,10 +21,10 @@ var _ MappedNullable = &ToolMessage{}
 
 // ToolMessage struct for ToolMessage
 type ToolMessage struct {
-	Content    NullableContent3 `json:"content"`
-	ToolCallId NullableString   `json:"tool_call_id,omitempty"`
-	Name       NullableString   `json:"name,omitempty"`
-	Role       *string          `json:"role,omitempty"`
+	Content NullableContent `json:"content"`
+	Name NullableString `json:"name,omitempty"`
+	Role *string `json:"role,omitempty"`
+	ToolCallId NullableString `json:"tool_call_id,omitempty"`
 }
 
 type _ToolMessage ToolMessage
@@ -33,7 +33,7 @@ type _ToolMessage ToolMessage
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewToolMessage(content NullableContent3) *ToolMessage {
+func NewToolMessage(content NullableContent) *ToolMessage {
 	this := ToolMessage{}
 	this.Content = content
 	var role string = "tool"
@@ -52,10 +52,10 @@ func NewToolMessageWithDefaults() *ToolMessage {
 }
 
 // GetContent returns the Content field value
-// If the value is explicit nil, the zero value for Content3 will be returned
-func (o *ToolMessage) GetContent() Content3 {
+// If the value is explicit nil, the zero value for Content will be returned
+func (o *ToolMessage) GetContent() Content {
 	if o == nil || o.Content.Get() == nil {
-		var ret Content3
+		var ret Content
 		return ret
 	}
 
@@ -65,7 +65,7 @@ func (o *ToolMessage) GetContent() Content3 {
 // GetContentOk returns a tuple with the Content field value
 // and a boolean to check if the value has been set.
 // NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ToolMessage) GetContentOk() (*Content3, bool) {
+func (o *ToolMessage) GetContentOk() (*Content, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -73,51 +73,8 @@ func (o *ToolMessage) GetContentOk() (*Content3, bool) {
 }
 
 // SetContent sets field value
-func (o *ToolMessage) SetContent(v Content3) {
+func (o *ToolMessage) SetContent(v Content) {
 	o.Content.Set(&v)
-}
-
-// GetToolCallId returns the ToolCallId field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ToolMessage) GetToolCallId() string {
-	if o == nil || IsNil(o.ToolCallId.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.ToolCallId.Get()
-}
-
-// GetToolCallIdOk returns a tuple with the ToolCallId field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ToolMessage) GetToolCallIdOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.ToolCallId.Get(), o.ToolCallId.IsSet()
-}
-
-// HasToolCallId returns a boolean if a field has been set.
-func (o *ToolMessage) HasToolCallId() bool {
-	if o != nil && o.ToolCallId.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetToolCallId gets a reference to the given NullableString and assigns it to the ToolCallId field.
-func (o *ToolMessage) SetToolCallId(v string) {
-	o.ToolCallId.Set(&v)
-}
-
-// SetToolCallIdNil sets the value for ToolCallId to be an explicit nil
-func (o *ToolMessage) SetToolCallIdNil() {
-	o.ToolCallId.Set(nil)
-}
-
-// UnsetToolCallId ensures that no value is present for ToolCallId, not even an explicit nil
-func (o *ToolMessage) UnsetToolCallId() {
-	o.ToolCallId.Unset()
 }
 
 // GetName returns the Name field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -152,7 +109,6 @@ func (o *ToolMessage) HasName() bool {
 func (o *ToolMessage) SetName(v string) {
 	o.Name.Set(&v)
 }
-
 // SetNameNil sets the value for Name to be an explicit nil
 func (o *ToolMessage) SetNameNil() {
 	o.Name.Set(nil)
@@ -195,8 +151,50 @@ func (o *ToolMessage) SetRole(v string) {
 	o.Role = &v
 }
 
+// GetToolCallId returns the ToolCallId field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ToolMessage) GetToolCallId() string {
+	if o == nil || IsNil(o.ToolCallId.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.ToolCallId.Get()
+}
+
+// GetToolCallIdOk returns a tuple with the ToolCallId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ToolMessage) GetToolCallIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ToolCallId.Get(), o.ToolCallId.IsSet()
+}
+
+// HasToolCallId returns a boolean if a field has been set.
+func (o *ToolMessage) HasToolCallId() bool {
+	if o != nil && o.ToolCallId.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetToolCallId gets a reference to the given NullableString and assigns it to the ToolCallId field.
+func (o *ToolMessage) SetToolCallId(v string) {
+	o.ToolCallId.Set(&v)
+}
+// SetToolCallIdNil sets the value for ToolCallId to be an explicit nil
+func (o *ToolMessage) SetToolCallIdNil() {
+	o.ToolCallId.Set(nil)
+}
+
+// UnsetToolCallId ensures that no value is present for ToolCallId, not even an explicit nil
+func (o *ToolMessage) UnsetToolCallId() {
+	o.ToolCallId.Unset()
+}
+
 func (o ToolMessage) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -206,14 +204,14 @@ func (o ToolMessage) MarshalJSON() ([]byte, error) {
 func (o ToolMessage) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["content"] = o.Content.Get()
-	if o.ToolCallId.IsSet() {
-		toSerialize["tool_call_id"] = o.ToolCallId.Get()
-	}
 	if o.Name.IsSet() {
 		toSerialize["name"] = o.Name.Get()
 	}
 	if !IsNil(o.Role) {
 		toSerialize["role"] = o.Role
+	}
+	if o.ToolCallId.IsSet() {
+		toSerialize["tool_call_id"] = o.ToolCallId.Get()
 	}
 	return toSerialize, nil
 }
@@ -231,10 +229,10 @@ func (o *ToolMessage) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

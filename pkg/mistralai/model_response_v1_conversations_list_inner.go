@@ -15,6 +15,7 @@ import (
 	"fmt"
 )
 
+
 // ResponseV1ConversationsListInner struct for ResponseV1ConversationsListInner
 type ResponseV1ConversationsListInner struct {
 	AgentConversation *AgentConversation
@@ -25,7 +26,7 @@ type ResponseV1ConversationsListInner struct {
 func (dst *ResponseV1ConversationsListInner) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into AgentConversation
-	err = json.Unmarshal(data, &dst.AgentConversation)
+	err = json.Unmarshal(data, &dst.AgentConversation);
 	if err == nil {
 		jsonAgentConversation, _ := json.Marshal(dst.AgentConversation)
 		if string(jsonAgentConversation) == "{}" { // empty struct
@@ -38,7 +39,7 @@ func (dst *ResponseV1ConversationsListInner) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into ModelConversation
-	err = json.Unmarshal(data, &dst.ModelConversation)
+	err = json.Unmarshal(data, &dst.ModelConversation);
 	if err == nil {
 		jsonModelConversation, _ := json.Marshal(dst.ModelConversation)
 		if string(jsonModelConversation) == "{}" { // empty struct
@@ -65,6 +66,7 @@ func (src ResponseV1ConversationsListInner) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
+
 
 type NullableResponseV1ConversationsListInner struct {
 	value *ResponseV1ConversationsListInner

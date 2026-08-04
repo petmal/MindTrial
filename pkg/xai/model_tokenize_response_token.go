@@ -25,7 +25,7 @@ type TokenizeResponseToken struct {
 	// The bytes that constituted the token.
 	TokenBytes []int32 `json:"token_bytes"`
 	// The integer representation of the token for the model.
-	TokenId              int32 `json:"token_id"`
+	TokenId int32 `json:"token_id"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -124,7 +124,7 @@ func (o *TokenizeResponseToken) SetTokenId(v int32) {
 }
 
 func (o TokenizeResponseToken) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -159,10 +159,10 @@ func (o *TokenizeResponseToken) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

@@ -20,7 +20,7 @@ var _ MappedNullable = &ModelResponseFormatOneOf1{}
 
 // ModelResponseFormatOneOf1 Specify json_object response format, always `json_object`. Used for backward compatibility. Prefer to use `\"json_schema\"` instead of this.
 type ModelResponseFormatOneOf1 struct {
-	Type                 string `json:"type"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -69,7 +69,7 @@ func (o *ModelResponseFormatOneOf1) SetType(v string) {
 }
 
 func (o ModelResponseFormatOneOf1) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -100,10 +100,10 @@ func (o *ModelResponseFormatOneOf1) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

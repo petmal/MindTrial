@@ -37,7 +37,7 @@ type File struct {
 	// Unix timestamp (seconds) when the public URL expires. Only present when the public URL has an independent expiry.
 	PublicUrlExpiresAt NullableInt64 `json:"public_url_expires_at,omitempty"`
 	// The intended purpose of the uploaded file. Only included for OAI compatability.
-	Purpose              *string `json:"purpose,omitempty"`
+	Purpose *string `json:"purpose,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -145,7 +145,6 @@ func (o *File) HasExpiresAt() bool {
 func (o *File) SetExpiresAt(v int64) {
 	o.ExpiresAt.Set(&v)
 }
-
 // SetExpiresAtNil sets the value for ExpiresAt to be an explicit nil
 func (o *File) SetExpiresAtNil() {
 	o.ExpiresAt.Set(nil)
@@ -260,7 +259,6 @@ func (o *File) HasPublicUrl() bool {
 func (o *File) SetPublicUrl(v string) {
 	o.PublicUrl.Set(&v)
 }
-
 // SetPublicUrlNil sets the value for PublicUrl to be an explicit nil
 func (o *File) SetPublicUrlNil() {
 	o.PublicUrl.Set(nil)
@@ -303,7 +301,6 @@ func (o *File) HasPublicUrlExpiresAt() bool {
 func (o *File) SetPublicUrlExpiresAt(v int64) {
 	o.PublicUrlExpiresAt.Set(&v)
 }
-
 // SetPublicUrlExpiresAtNil sets the value for PublicUrlExpiresAt to be an explicit nil
 func (o *File) SetPublicUrlExpiresAtNil() {
 	o.PublicUrlExpiresAt.Set(nil)
@@ -347,7 +344,7 @@ func (o *File) SetPurpose(v string) {
 }
 
 func (o File) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -398,10 +395,10 @@ func (o *File) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

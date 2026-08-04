@@ -23,7 +23,7 @@ type ReasoningText struct {
 	// Reasoning done by the model.
 	Text string `json:"text"`
 	// The type of the object, which is always `reasoning_text`.
-	Type                 string `json:"type"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -97,7 +97,7 @@ func (o *ReasoningText) SetType(v string) {
 }
 
 func (o ReasoningText) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -130,10 +130,10 @@ func (o *ReasoningText) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

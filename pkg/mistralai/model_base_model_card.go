@@ -12,8 +12,8 @@ package mistralai
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
+	"fmt"
 )
 
 // checks if the BaseModelCard type satisfies the MappedNullable interface at compile time
@@ -21,20 +21,21 @@ var _ MappedNullable = &BaseModelCard{}
 
 // BaseModelCard struct for BaseModelCard
 type BaseModelCard struct {
-	Id                          string            `json:"id"`
-	Object                      *string           `json:"object,omitempty"`
-	Created                     *int32            `json:"created,omitempty"`
-	OwnedBy                     *string           `json:"owned_by,omitempty"`
-	Capabilities                ModelCapabilities `json:"capabilities"`
-	Name                        NullableString    `json:"name,omitempty"`
-	Description                 NullableString    `json:"description,omitempty"`
-	MaxContextLength            *int32            `json:"max_context_length,omitempty"`
-	Aliases                     []string          `json:"aliases,omitempty"`
-	Deprecation                 NullableTime      `json:"deprecation,omitempty"`
-	DeprecationReplacementModel NullableString    `json:"deprecation_replacement_model,omitempty"`
-	DefaultModelTemperature     NullableFloat32   `json:"default_model_temperature,omitempty"`
-	Type                        *string           `json:"type,omitempty"`
-	AdditionalProperties        map[string]interface{}
+	Aliases []string `json:"aliases,omitempty"`
+	Capabilities ModelCapabilities `json:"capabilities"`
+	Created *int32 `json:"created,omitempty"`
+	DefaultModelTemperature NullableFloat32 `json:"default_model_temperature,omitempty"`
+	Deprecation NullableTime `json:"deprecation,omitempty"`
+	DeprecationReplacementModel NullableString `json:"deprecation_replacement_model,omitempty"`
+	Description NullableString `json:"description,omitempty"`
+	Id string `json:"id"`
+	Internal *bool `json:"internal,omitempty"`
+	MaxContextLength *int32 `json:"max_context_length,omitempty"`
+	Name NullableString `json:"name,omitempty"`
+	Object *string `json:"object,omitempty"`
+	OwnedBy *string `json:"owned_by,omitempty"`
+	Type *string `json:"type,omitempty"`
+	AdditionalProperties map[string]interface{}
 }
 
 type _BaseModelCard BaseModelCard
@@ -43,16 +44,18 @@ type _BaseModelCard BaseModelCard
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewBaseModelCard(id string, capabilities ModelCapabilities) *BaseModelCard {
+func NewBaseModelCard(capabilities ModelCapabilities, id string) *BaseModelCard {
 	this := BaseModelCard{}
+	this.Capabilities = capabilities
 	this.Id = id
+	var internal bool = false
+	this.Internal = &internal
+	var maxContextLength int32 = 32768
+	this.MaxContextLength = &maxContextLength
 	var object string = "model"
 	this.Object = &object
 	var ownedBy string = "mistralai"
 	this.OwnedBy = &ownedBy
-	this.Capabilities = capabilities
-	var maxContextLength int32 = 32768
-	this.MaxContextLength = &maxContextLength
 	var type_ string = "base"
 	this.Type = &type_
 	return &this
@@ -63,277 +66,17 @@ func NewBaseModelCard(id string, capabilities ModelCapabilities) *BaseModelCard 
 // but it doesn't guarantee that properties required by API are set
 func NewBaseModelCardWithDefaults() *BaseModelCard {
 	this := BaseModelCard{}
+	var internal bool = false
+	this.Internal = &internal
+	var maxContextLength int32 = 32768
+	this.MaxContextLength = &maxContextLength
 	var object string = "model"
 	this.Object = &object
 	var ownedBy string = "mistralai"
 	this.OwnedBy = &ownedBy
-	var maxContextLength int32 = 32768
-	this.MaxContextLength = &maxContextLength
 	var type_ string = "base"
 	this.Type = &type_
 	return &this
-}
-
-// GetId returns the Id field value
-func (o *BaseModelCard) GetId() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Id
-}
-
-// GetIdOk returns a tuple with the Id field value
-// and a boolean to check if the value has been set.
-func (o *BaseModelCard) GetIdOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Id, true
-}
-
-// SetId sets field value
-func (o *BaseModelCard) SetId(v string) {
-	o.Id = v
-}
-
-// GetObject returns the Object field value if set, zero value otherwise.
-func (o *BaseModelCard) GetObject() string {
-	if o == nil || IsNil(o.Object) {
-		var ret string
-		return ret
-	}
-	return *o.Object
-}
-
-// GetObjectOk returns a tuple with the Object field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *BaseModelCard) GetObjectOk() (*string, bool) {
-	if o == nil || IsNil(o.Object) {
-		return nil, false
-	}
-	return o.Object, true
-}
-
-// HasObject returns a boolean if a field has been set.
-func (o *BaseModelCard) HasObject() bool {
-	if o != nil && !IsNil(o.Object) {
-		return true
-	}
-
-	return false
-}
-
-// SetObject gets a reference to the given string and assigns it to the Object field.
-func (o *BaseModelCard) SetObject(v string) {
-	o.Object = &v
-}
-
-// GetCreated returns the Created field value if set, zero value otherwise.
-func (o *BaseModelCard) GetCreated() int32 {
-	if o == nil || IsNil(o.Created) {
-		var ret int32
-		return ret
-	}
-	return *o.Created
-}
-
-// GetCreatedOk returns a tuple with the Created field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *BaseModelCard) GetCreatedOk() (*int32, bool) {
-	if o == nil || IsNil(o.Created) {
-		return nil, false
-	}
-	return o.Created, true
-}
-
-// HasCreated returns a boolean if a field has been set.
-func (o *BaseModelCard) HasCreated() bool {
-	if o != nil && !IsNil(o.Created) {
-		return true
-	}
-
-	return false
-}
-
-// SetCreated gets a reference to the given int32 and assigns it to the Created field.
-func (o *BaseModelCard) SetCreated(v int32) {
-	o.Created = &v
-}
-
-// GetOwnedBy returns the OwnedBy field value if set, zero value otherwise.
-func (o *BaseModelCard) GetOwnedBy() string {
-	if o == nil || IsNil(o.OwnedBy) {
-		var ret string
-		return ret
-	}
-	return *o.OwnedBy
-}
-
-// GetOwnedByOk returns a tuple with the OwnedBy field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *BaseModelCard) GetOwnedByOk() (*string, bool) {
-	if o == nil || IsNil(o.OwnedBy) {
-		return nil, false
-	}
-	return o.OwnedBy, true
-}
-
-// HasOwnedBy returns a boolean if a field has been set.
-func (o *BaseModelCard) HasOwnedBy() bool {
-	if o != nil && !IsNil(o.OwnedBy) {
-		return true
-	}
-
-	return false
-}
-
-// SetOwnedBy gets a reference to the given string and assigns it to the OwnedBy field.
-func (o *BaseModelCard) SetOwnedBy(v string) {
-	o.OwnedBy = &v
-}
-
-// GetCapabilities returns the Capabilities field value
-func (o *BaseModelCard) GetCapabilities() ModelCapabilities {
-	if o == nil {
-		var ret ModelCapabilities
-		return ret
-	}
-
-	return o.Capabilities
-}
-
-// GetCapabilitiesOk returns a tuple with the Capabilities field value
-// and a boolean to check if the value has been set.
-func (o *BaseModelCard) GetCapabilitiesOk() (*ModelCapabilities, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Capabilities, true
-}
-
-// SetCapabilities sets field value
-func (o *BaseModelCard) SetCapabilities(v ModelCapabilities) {
-	o.Capabilities = v
-}
-
-// GetName returns the Name field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *BaseModelCard) GetName() string {
-	if o == nil || IsNil(o.Name.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.Name.Get()
-}
-
-// GetNameOk returns a tuple with the Name field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *BaseModelCard) GetNameOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Name.Get(), o.Name.IsSet()
-}
-
-// HasName returns a boolean if a field has been set.
-func (o *BaseModelCard) HasName() bool {
-	if o != nil && o.Name.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetName gets a reference to the given NullableString and assigns it to the Name field.
-func (o *BaseModelCard) SetName(v string) {
-	o.Name.Set(&v)
-}
-
-// SetNameNil sets the value for Name to be an explicit nil
-func (o *BaseModelCard) SetNameNil() {
-	o.Name.Set(nil)
-}
-
-// UnsetName ensures that no value is present for Name, not even an explicit nil
-func (o *BaseModelCard) UnsetName() {
-	o.Name.Unset()
-}
-
-// GetDescription returns the Description field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *BaseModelCard) GetDescription() string {
-	if o == nil || IsNil(o.Description.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.Description.Get()
-}
-
-// GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *BaseModelCard) GetDescriptionOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Description.Get(), o.Description.IsSet()
-}
-
-// HasDescription returns a boolean if a field has been set.
-func (o *BaseModelCard) HasDescription() bool {
-	if o != nil && o.Description.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetDescription gets a reference to the given NullableString and assigns it to the Description field.
-func (o *BaseModelCard) SetDescription(v string) {
-	o.Description.Set(&v)
-}
-
-// SetDescriptionNil sets the value for Description to be an explicit nil
-func (o *BaseModelCard) SetDescriptionNil() {
-	o.Description.Set(nil)
-}
-
-// UnsetDescription ensures that no value is present for Description, not even an explicit nil
-func (o *BaseModelCard) UnsetDescription() {
-	o.Description.Unset()
-}
-
-// GetMaxContextLength returns the MaxContextLength field value if set, zero value otherwise.
-func (o *BaseModelCard) GetMaxContextLength() int32 {
-	if o == nil || IsNil(o.MaxContextLength) {
-		var ret int32
-		return ret
-	}
-	return *o.MaxContextLength
-}
-
-// GetMaxContextLengthOk returns a tuple with the MaxContextLength field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *BaseModelCard) GetMaxContextLengthOk() (*int32, bool) {
-	if o == nil || IsNil(o.MaxContextLength) {
-		return nil, false
-	}
-	return o.MaxContextLength, true
-}
-
-// HasMaxContextLength returns a boolean if a field has been set.
-func (o *BaseModelCard) HasMaxContextLength() bool {
-	if o != nil && !IsNil(o.MaxContextLength) {
-		return true
-	}
-
-	return false
-}
-
-// SetMaxContextLength gets a reference to the given int32 and assigns it to the MaxContextLength field.
-func (o *BaseModelCard) SetMaxContextLength(v int32) {
-	o.MaxContextLength = &v
 }
 
 // GetAliases returns the Aliases field value if set, zero value otherwise.
@@ -368,6 +111,104 @@ func (o *BaseModelCard) SetAliases(v []string) {
 	o.Aliases = v
 }
 
+// GetCapabilities returns the Capabilities field value
+func (o *BaseModelCard) GetCapabilities() ModelCapabilities {
+	if o == nil {
+		var ret ModelCapabilities
+		return ret
+	}
+
+	return o.Capabilities
+}
+
+// GetCapabilitiesOk returns a tuple with the Capabilities field value
+// and a boolean to check if the value has been set.
+func (o *BaseModelCard) GetCapabilitiesOk() (*ModelCapabilities, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Capabilities, true
+}
+
+// SetCapabilities sets field value
+func (o *BaseModelCard) SetCapabilities(v ModelCapabilities) {
+	o.Capabilities = v
+}
+
+// GetCreated returns the Created field value if set, zero value otherwise.
+func (o *BaseModelCard) GetCreated() int32 {
+	if o == nil || IsNil(o.Created) {
+		var ret int32
+		return ret
+	}
+	return *o.Created
+}
+
+// GetCreatedOk returns a tuple with the Created field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *BaseModelCard) GetCreatedOk() (*int32, bool) {
+	if o == nil || IsNil(o.Created) {
+		return nil, false
+	}
+	return o.Created, true
+}
+
+// HasCreated returns a boolean if a field has been set.
+func (o *BaseModelCard) HasCreated() bool {
+	if o != nil && !IsNil(o.Created) {
+		return true
+	}
+
+	return false
+}
+
+// SetCreated gets a reference to the given int32 and assigns it to the Created field.
+func (o *BaseModelCard) SetCreated(v int32) {
+	o.Created = &v
+}
+
+// GetDefaultModelTemperature returns the DefaultModelTemperature field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BaseModelCard) GetDefaultModelTemperature() float32 {
+	if o == nil || IsNil(o.DefaultModelTemperature.Get()) {
+		var ret float32
+		return ret
+	}
+	return *o.DefaultModelTemperature.Get()
+}
+
+// GetDefaultModelTemperatureOk returns a tuple with the DefaultModelTemperature field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BaseModelCard) GetDefaultModelTemperatureOk() (*float32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.DefaultModelTemperature.Get(), o.DefaultModelTemperature.IsSet()
+}
+
+// HasDefaultModelTemperature returns a boolean if a field has been set.
+func (o *BaseModelCard) HasDefaultModelTemperature() bool {
+	if o != nil && o.DefaultModelTemperature.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetDefaultModelTemperature gets a reference to the given NullableFloat32 and assigns it to the DefaultModelTemperature field.
+func (o *BaseModelCard) SetDefaultModelTemperature(v float32) {
+	o.DefaultModelTemperature.Set(&v)
+}
+// SetDefaultModelTemperatureNil sets the value for DefaultModelTemperature to be an explicit nil
+func (o *BaseModelCard) SetDefaultModelTemperatureNil() {
+	o.DefaultModelTemperature.Set(nil)
+}
+
+// UnsetDefaultModelTemperature ensures that no value is present for DefaultModelTemperature, not even an explicit nil
+func (o *BaseModelCard) UnsetDefaultModelTemperature() {
+	o.DefaultModelTemperature.Unset()
+}
+
 // GetDeprecation returns the Deprecation field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *BaseModelCard) GetDeprecation() time.Time {
 	if o == nil || IsNil(o.Deprecation.Get()) {
@@ -400,7 +241,6 @@ func (o *BaseModelCard) HasDeprecation() bool {
 func (o *BaseModelCard) SetDeprecation(v time.Time) {
 	o.Deprecation.Set(&v)
 }
-
 // SetDeprecationNil sets the value for Deprecation to be an explicit nil
 func (o *BaseModelCard) SetDeprecationNil() {
 	o.Deprecation.Set(nil)
@@ -443,7 +283,6 @@ func (o *BaseModelCard) HasDeprecationReplacementModel() bool {
 func (o *BaseModelCard) SetDeprecationReplacementModel(v string) {
 	o.DeprecationReplacementModel.Set(&v)
 }
-
 // SetDeprecationReplacementModelNil sets the value for DeprecationReplacementModel to be an explicit nil
 func (o *BaseModelCard) SetDeprecationReplacementModelNil() {
 	o.DeprecationReplacementModel.Set(nil)
@@ -454,47 +293,240 @@ func (o *BaseModelCard) UnsetDeprecationReplacementModel() {
 	o.DeprecationReplacementModel.Unset()
 }
 
-// GetDefaultModelTemperature returns the DefaultModelTemperature field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *BaseModelCard) GetDefaultModelTemperature() float32 {
-	if o == nil || IsNil(o.DefaultModelTemperature.Get()) {
-		var ret float32
+// GetDescription returns the Description field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BaseModelCard) GetDescription() string {
+	if o == nil || IsNil(o.Description.Get()) {
+		var ret string
 		return ret
 	}
-	return *o.DefaultModelTemperature.Get()
+	return *o.Description.Get()
 }
 
-// GetDefaultModelTemperatureOk returns a tuple with the DefaultModelTemperature field value if set, nil otherwise
+// GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 // NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *BaseModelCard) GetDefaultModelTemperatureOk() (*float32, bool) {
+func (o *BaseModelCard) GetDescriptionOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return o.DefaultModelTemperature.Get(), o.DefaultModelTemperature.IsSet()
+	return o.Description.Get(), o.Description.IsSet()
 }
 
-// HasDefaultModelTemperature returns a boolean if a field has been set.
-func (o *BaseModelCard) HasDefaultModelTemperature() bool {
-	if o != nil && o.DefaultModelTemperature.IsSet() {
+// HasDescription returns a boolean if a field has been set.
+func (o *BaseModelCard) HasDescription() bool {
+	if o != nil && o.Description.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetDefaultModelTemperature gets a reference to the given NullableFloat32 and assigns it to the DefaultModelTemperature field.
-func (o *BaseModelCard) SetDefaultModelTemperature(v float32) {
-	o.DefaultModelTemperature.Set(&v)
+// SetDescription gets a reference to the given NullableString and assigns it to the Description field.
+func (o *BaseModelCard) SetDescription(v string) {
+	o.Description.Set(&v)
+}
+// SetDescriptionNil sets the value for Description to be an explicit nil
+func (o *BaseModelCard) SetDescriptionNil() {
+	o.Description.Set(nil)
 }
 
-// SetDefaultModelTemperatureNil sets the value for DefaultModelTemperature to be an explicit nil
-func (o *BaseModelCard) SetDefaultModelTemperatureNil() {
-	o.DefaultModelTemperature.Set(nil)
+// UnsetDescription ensures that no value is present for Description, not even an explicit nil
+func (o *BaseModelCard) UnsetDescription() {
+	o.Description.Unset()
 }
 
-// UnsetDefaultModelTemperature ensures that no value is present for DefaultModelTemperature, not even an explicit nil
-func (o *BaseModelCard) UnsetDefaultModelTemperature() {
-	o.DefaultModelTemperature.Unset()
+// GetId returns the Id field value
+func (o *BaseModelCard) GetId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Id
+}
+
+// GetIdOk returns a tuple with the Id field value
+// and a boolean to check if the value has been set.
+func (o *BaseModelCard) GetIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Id, true
+}
+
+// SetId sets field value
+func (o *BaseModelCard) SetId(v string) {
+	o.Id = v
+}
+
+// GetInternal returns the Internal field value if set, zero value otherwise.
+func (o *BaseModelCard) GetInternal() bool {
+	if o == nil || IsNil(o.Internal) {
+		var ret bool
+		return ret
+	}
+	return *o.Internal
+}
+
+// GetInternalOk returns a tuple with the Internal field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *BaseModelCard) GetInternalOk() (*bool, bool) {
+	if o == nil || IsNil(o.Internal) {
+		return nil, false
+	}
+	return o.Internal, true
+}
+
+// HasInternal returns a boolean if a field has been set.
+func (o *BaseModelCard) HasInternal() bool {
+	if o != nil && !IsNil(o.Internal) {
+		return true
+	}
+
+	return false
+}
+
+// SetInternal gets a reference to the given bool and assigns it to the Internal field.
+func (o *BaseModelCard) SetInternal(v bool) {
+	o.Internal = &v
+}
+
+// GetMaxContextLength returns the MaxContextLength field value if set, zero value otherwise.
+func (o *BaseModelCard) GetMaxContextLength() int32 {
+	if o == nil || IsNil(o.MaxContextLength) {
+		var ret int32
+		return ret
+	}
+	return *o.MaxContextLength
+}
+
+// GetMaxContextLengthOk returns a tuple with the MaxContextLength field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *BaseModelCard) GetMaxContextLengthOk() (*int32, bool) {
+	if o == nil || IsNil(o.MaxContextLength) {
+		return nil, false
+	}
+	return o.MaxContextLength, true
+}
+
+// HasMaxContextLength returns a boolean if a field has been set.
+func (o *BaseModelCard) HasMaxContextLength() bool {
+	if o != nil && !IsNil(o.MaxContextLength) {
+		return true
+	}
+
+	return false
+}
+
+// SetMaxContextLength gets a reference to the given int32 and assigns it to the MaxContextLength field.
+func (o *BaseModelCard) SetMaxContextLength(v int32) {
+	o.MaxContextLength = &v
+}
+
+// GetName returns the Name field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *BaseModelCard) GetName() string {
+	if o == nil || IsNil(o.Name.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Name.Get()
+}
+
+// GetNameOk returns a tuple with the Name field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *BaseModelCard) GetNameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Name.Get(), o.Name.IsSet()
+}
+
+// HasName returns a boolean if a field has been set.
+func (o *BaseModelCard) HasName() bool {
+	if o != nil && o.Name.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetName gets a reference to the given NullableString and assigns it to the Name field.
+func (o *BaseModelCard) SetName(v string) {
+	o.Name.Set(&v)
+}
+// SetNameNil sets the value for Name to be an explicit nil
+func (o *BaseModelCard) SetNameNil() {
+	o.Name.Set(nil)
+}
+
+// UnsetName ensures that no value is present for Name, not even an explicit nil
+func (o *BaseModelCard) UnsetName() {
+	o.Name.Unset()
+}
+
+// GetObject returns the Object field value if set, zero value otherwise.
+func (o *BaseModelCard) GetObject() string {
+	if o == nil || IsNil(o.Object) {
+		var ret string
+		return ret
+	}
+	return *o.Object
+}
+
+// GetObjectOk returns a tuple with the Object field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *BaseModelCard) GetObjectOk() (*string, bool) {
+	if o == nil || IsNil(o.Object) {
+		return nil, false
+	}
+	return o.Object, true
+}
+
+// HasObject returns a boolean if a field has been set.
+func (o *BaseModelCard) HasObject() bool {
+	if o != nil && !IsNil(o.Object) {
+		return true
+	}
+
+	return false
+}
+
+// SetObject gets a reference to the given string and assigns it to the Object field.
+func (o *BaseModelCard) SetObject(v string) {
+	o.Object = &v
+}
+
+// GetOwnedBy returns the OwnedBy field value if set, zero value otherwise.
+func (o *BaseModelCard) GetOwnedBy() string {
+	if o == nil || IsNil(o.OwnedBy) {
+		var ret string
+		return ret
+	}
+	return *o.OwnedBy
+}
+
+// GetOwnedByOk returns a tuple with the OwnedBy field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *BaseModelCard) GetOwnedByOk() (*string, bool) {
+	if o == nil || IsNil(o.OwnedBy) {
+		return nil, false
+	}
+	return o.OwnedBy, true
+}
+
+// HasOwnedBy returns a boolean if a field has been set.
+func (o *BaseModelCard) HasOwnedBy() bool {
+	if o != nil && !IsNil(o.OwnedBy) {
+		return true
+	}
+
+	return false
+}
+
+// SetOwnedBy gets a reference to the given string and assigns it to the OwnedBy field.
+func (o *BaseModelCard) SetOwnedBy(v string) {
+	o.OwnedBy = &v
 }
 
 // GetType returns the Type field value if set, zero value otherwise.
@@ -530,7 +562,7 @@ func (o *BaseModelCard) SetType(v string) {
 }
 
 func (o BaseModelCard) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -539,28 +571,15 @@ func (o BaseModelCard) MarshalJSON() ([]byte, error) {
 
 func (o BaseModelCard) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["id"] = o.Id
-	if !IsNil(o.Object) {
-		toSerialize["object"] = o.Object
+	if !IsNil(o.Aliases) {
+		toSerialize["aliases"] = o.Aliases
 	}
+	toSerialize["capabilities"] = o.Capabilities
 	if !IsNil(o.Created) {
 		toSerialize["created"] = o.Created
 	}
-	if !IsNil(o.OwnedBy) {
-		toSerialize["owned_by"] = o.OwnedBy
-	}
-	toSerialize["capabilities"] = o.Capabilities
-	if o.Name.IsSet() {
-		toSerialize["name"] = o.Name.Get()
-	}
-	if o.Description.IsSet() {
-		toSerialize["description"] = o.Description.Get()
-	}
-	if !IsNil(o.MaxContextLength) {
-		toSerialize["max_context_length"] = o.MaxContextLength
-	}
-	if !IsNil(o.Aliases) {
-		toSerialize["aliases"] = o.Aliases
+	if o.DefaultModelTemperature.IsSet() {
+		toSerialize["default_model_temperature"] = o.DefaultModelTemperature.Get()
 	}
 	if o.Deprecation.IsSet() {
 		toSerialize["deprecation"] = o.Deprecation.Get()
@@ -568,8 +587,24 @@ func (o BaseModelCard) ToMap() (map[string]interface{}, error) {
 	if o.DeprecationReplacementModel.IsSet() {
 		toSerialize["deprecation_replacement_model"] = o.DeprecationReplacementModel.Get()
 	}
-	if o.DefaultModelTemperature.IsSet() {
-		toSerialize["default_model_temperature"] = o.DefaultModelTemperature.Get()
+	if o.Description.IsSet() {
+		toSerialize["description"] = o.Description.Get()
+	}
+	toSerialize["id"] = o.Id
+	if !IsNil(o.Internal) {
+		toSerialize["internal"] = o.Internal
+	}
+	if !IsNil(o.MaxContextLength) {
+		toSerialize["max_context_length"] = o.MaxContextLength
+	}
+	if o.Name.IsSet() {
+		toSerialize["name"] = o.Name.Get()
+	}
+	if !IsNil(o.Object) {
+		toSerialize["object"] = o.Object
+	}
+	if !IsNil(o.OwnedBy) {
+		toSerialize["owned_by"] = o.OwnedBy
 	}
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
@@ -587,8 +622,8 @@ func (o *BaseModelCard) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"id",
 		"capabilities",
+		"id",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -596,10 +631,10 @@ func (o *BaseModelCard) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -618,18 +653,19 @@ func (o *BaseModelCard) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "id")
-		delete(additionalProperties, "object")
-		delete(additionalProperties, "created")
-		delete(additionalProperties, "owned_by")
-		delete(additionalProperties, "capabilities")
-		delete(additionalProperties, "name")
-		delete(additionalProperties, "description")
-		delete(additionalProperties, "max_context_length")
 		delete(additionalProperties, "aliases")
+		delete(additionalProperties, "capabilities")
+		delete(additionalProperties, "created")
+		delete(additionalProperties, "default_model_temperature")
 		delete(additionalProperties, "deprecation")
 		delete(additionalProperties, "deprecation_replacement_model")
-		delete(additionalProperties, "default_model_temperature")
+		delete(additionalProperties, "description")
+		delete(additionalProperties, "id")
+		delete(additionalProperties, "internal")
+		delete(additionalProperties, "max_context_length")
+		delete(additionalProperties, "name")
+		delete(additionalProperties, "object")
+		delete(additionalProperties, "owned_by")
 		delete(additionalProperties, "type")
 		o.AdditionalProperties = additionalProperties
 	}

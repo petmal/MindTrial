@@ -20,7 +20,7 @@ var _ MappedNullable = &DownloadFileContentParams{}
 // DownloadFileContentParams Query parameters for downloading file content.
 type DownloadFileContentParams struct {
 	// Format of the downloaded content.
-	Format               NullableContentFormat `json:"format,omitempty"`
+	Format NullableContentFormat `json:"format,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -75,7 +75,6 @@ func (o *DownloadFileContentParams) HasFormat() bool {
 func (o *DownloadFileContentParams) SetFormat(v ContentFormat) {
 	o.Format.Set(&v)
 }
-
 // SetFormatNil sets the value for Format to be an explicit nil
 func (o *DownloadFileContentParams) SetFormatNil() {
 	o.Format.Set(nil)
@@ -87,7 +86,7 @@ func (o *DownloadFileContentParams) UnsetFormat() {
 }
 
 func (o DownloadFileContentParams) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

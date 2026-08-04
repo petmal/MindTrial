@@ -33,7 +33,7 @@ type Usage struct {
 	// Breakdown of prompt token usage of different types.
 	PromptTokensDetails PromptUsageDetail `json:"prompt_tokens_details"`
 	// Total token used, the sum of prompt token and completion token amount.
-	TotalTokens          int32 `json:"total_tokens"`
+	TotalTokens int32 `json:"total_tokens"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -232,7 +232,7 @@ func (o *Usage) SetTotalTokens(v int32) {
 }
 
 func (o Usage) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -275,10 +275,10 @@ func (o *Usage) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

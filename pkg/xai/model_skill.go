@@ -33,7 +33,7 @@ type Skill struct {
 	// Skill name extracted from `SKILL.md` frontmatter.
 	Name string `json:"name"`
 	// The object type, which is always `\"skill\"`.
-	Object               string `json:"object"`
+	Object string `json:"object"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -232,7 +232,7 @@ func (o *Skill) SetObject(v string) {
 }
 
 func (o Skill) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -275,10 +275,10 @@ func (o *Skill) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

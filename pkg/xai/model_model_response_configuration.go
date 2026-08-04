@@ -20,7 +20,7 @@ var _ MappedNullable = &ModelResponseConfiguration{}
 // ModelResponseConfiguration struct for ModelResponseConfiguration
 type ModelResponseConfiguration struct {
 	// An object specifying the format that the model must output. Specify `{ \"type\": \"json_object\" }` for JSON output, or `{ \"type\": \"json_schema\", \"json_schema\": {...} }` for structured outputs. If `{ \\\"type\\\": \\\"text\\\" }`, the model will return a text response.
-	Format               NullableModelResponseFormat `json:"format,omitempty"`
+	Format NullableModelResponseFormat `json:"format,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -75,7 +75,6 @@ func (o *ModelResponseConfiguration) HasFormat() bool {
 func (o *ModelResponseConfiguration) SetFormat(v ModelResponseFormat) {
 	o.Format.Set(&v)
 }
-
 // SetFormatNil sets the value for Format to be an explicit nil
 func (o *ModelResponseConfiguration) SetFormatNil() {
 	o.Format.Set(nil)
@@ -87,7 +86,7 @@ func (o *ModelResponseConfiguration) UnsetFormat() {
 }
 
 func (o ModelResponseConfiguration) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

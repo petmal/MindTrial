@@ -22,7 +22,7 @@ type RerankerModel struct {
 	// Instructions for the reranking model. Defaults to generic reranking instructions.
 	Instructions NullableString `json:"instructions,omitempty"`
 	// The model to use for reranking. Defaults to standard reranker model.
-	Model                NullableString `json:"model,omitempty"`
+	Model NullableString `json:"model,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -77,7 +77,6 @@ func (o *RerankerModel) HasInstructions() bool {
 func (o *RerankerModel) SetInstructions(v string) {
 	o.Instructions.Set(&v)
 }
-
 // SetInstructionsNil sets the value for Instructions to be an explicit nil
 func (o *RerankerModel) SetInstructionsNil() {
 	o.Instructions.Set(nil)
@@ -120,7 +119,6 @@ func (o *RerankerModel) HasModel() bool {
 func (o *RerankerModel) SetModel(v string) {
 	o.Model.Set(&v)
 }
-
 // SetModelNil sets the value for Model to be an explicit nil
 func (o *RerankerModel) SetModelNil() {
 	o.Model.Set(nil)
@@ -132,7 +130,7 @@ func (o *RerankerModel) UnsetModel() {
 }
 
 func (o RerankerModel) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

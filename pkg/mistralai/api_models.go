@@ -19,75 +19,76 @@ import (
 	"strings"
 )
 
+
 type ModelsAPI interface {
 
 	/*
-		DeleteModelV1ModelsModelIdDelete Delete Model
+	DeleteModelV1ModelsModelIdDelete Delete Model
 
-		Delete a fine-tuned model.
+	Delete a fine-tuned model.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param modelId The ID of the model to delete.
-		@return ApiDeleteModelV1ModelsModelIdDeleteRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param modelId The ID of the model to delete.
+	@return ApiDeleteModelV1ModelsModelIdDeleteRequest
 	*/
 	DeleteModelV1ModelsModelIdDelete(ctx context.Context, modelId string) ApiDeleteModelV1ModelsModelIdDeleteRequest
 
 	// DeleteModelV1ModelsModelIdDeleteExecute executes the request
-	//  @return DeleteModelOut
-	DeleteModelV1ModelsModelIdDeleteExecute(r ApiDeleteModelV1ModelsModelIdDeleteRequest) (*DeleteModelOut, *http.Response, error)
+	//  @return DeleteModelResponse
+	DeleteModelV1ModelsModelIdDeleteExecute(r ApiDeleteModelV1ModelsModelIdDeleteRequest) (*DeleteModelResponse, *http.Response, error)
 
 	/*
-		JobsApiRoutesFineTuningArchiveFineTunedModel Archive Fine Tuned Model
+	JobsApiRoutesFineTuningArchiveFineTunedModel Archive Fine Tuned Model
 
-		Archive a fine-tuned model.
+	Archive a fine-tuned model.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param modelId The ID of the model to archive.
-		@return ApiJobsApiRoutesFineTuningArchiveFineTunedModelRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param modelId The ID of the model to archive.
+	@return ApiJobsApiRoutesFineTuningArchiveFineTunedModelRequest
 	*/
 	JobsApiRoutesFineTuningArchiveFineTunedModel(ctx context.Context, modelId string) ApiJobsApiRoutesFineTuningArchiveFineTunedModelRequest
 
 	// JobsApiRoutesFineTuningArchiveFineTunedModelExecute executes the request
-	//  @return ArchiveFTModelOut
-	JobsApiRoutesFineTuningArchiveFineTunedModelExecute(r ApiJobsApiRoutesFineTuningArchiveFineTunedModelRequest) (*ArchiveFTModelOut, *http.Response, error)
+	//  @return ArchiveModelResponse
+	JobsApiRoutesFineTuningArchiveFineTunedModelExecute(r ApiJobsApiRoutesFineTuningArchiveFineTunedModelRequest) (*ArchiveModelResponse, *http.Response, error)
 
 	/*
-		JobsApiRoutesFineTuningUnarchiveFineTunedModel Unarchive Fine Tuned Model
+	JobsApiRoutesFineTuningUnarchiveFineTunedModel Unarchive Fine Tuned Model
 
-		Un-archive a fine-tuned model.
+	Un-archive a fine-tuned model.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param modelId The ID of the model to unarchive.
-		@return ApiJobsApiRoutesFineTuningUnarchiveFineTunedModelRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param modelId The ID of the model to unarchive.
+	@return ApiJobsApiRoutesFineTuningUnarchiveFineTunedModelRequest
 	*/
 	JobsApiRoutesFineTuningUnarchiveFineTunedModel(ctx context.Context, modelId string) ApiJobsApiRoutesFineTuningUnarchiveFineTunedModelRequest
 
 	// JobsApiRoutesFineTuningUnarchiveFineTunedModelExecute executes the request
-	//  @return UnarchiveFTModelOut
-	JobsApiRoutesFineTuningUnarchiveFineTunedModelExecute(r ApiJobsApiRoutesFineTuningUnarchiveFineTunedModelRequest) (*UnarchiveFTModelOut, *http.Response, error)
+	//  @return UnarchiveModelResponse
+	JobsApiRoutesFineTuningUnarchiveFineTunedModelExecute(r ApiJobsApiRoutesFineTuningUnarchiveFineTunedModelRequest) (*UnarchiveModelResponse, *http.Response, error)
 
 	/*
-		JobsApiRoutesFineTuningUpdateFineTunedModel Update Fine Tuned Model
+	JobsApiRoutesFineTuningUpdateFineTunedModel Update Fine Tuned Model
 
-		Update a model name or description.
+	Update a model name or description.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param modelId The ID of the model to update.
-		@return ApiJobsApiRoutesFineTuningUpdateFineTunedModelRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param modelId The ID of the model to update.
+	@return ApiJobsApiRoutesFineTuningUpdateFineTunedModelRequest
 	*/
 	JobsApiRoutesFineTuningUpdateFineTunedModel(ctx context.Context, modelId string) ApiJobsApiRoutesFineTuningUpdateFineTunedModelRequest
 
 	// JobsApiRoutesFineTuningUpdateFineTunedModelExecute executes the request
-	//  @return Response2
-	JobsApiRoutesFineTuningUpdateFineTunedModelExecute(r ApiJobsApiRoutesFineTuningUpdateFineTunedModelRequest) (*Response2, *http.Response, error)
+	//  @return Response
+	JobsApiRoutesFineTuningUpdateFineTunedModelExecute(r ApiJobsApiRoutesFineTuningUpdateFineTunedModelRequest) (*Response, *http.Response, error)
 
 	/*
-		ListModelsV1ModelsGet List Models
+	ListModelsV1ModelsGet List Models
 
-		List all models available to the user.
+	List all models available to the user.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return ApiListModelsV1ModelsGetRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiListModelsV1ModelsGetRequest
 	*/
 	ListModelsV1ModelsGet(ctx context.Context) ApiListModelsV1ModelsGetRequest
 
@@ -96,13 +97,13 @@ type ModelsAPI interface {
 	ListModelsV1ModelsGetExecute(r ApiListModelsV1ModelsGetRequest) (*ModelList, *http.Response, error)
 
 	/*
-		RetrieveModelV1ModelsModelIdGet Retrieve Model
+	RetrieveModelV1ModelsModelIdGet Retrieve Model
 
-		Retrieve information about a model.
+	Retrieve information about a model.
 
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param modelId The ID of the model to retrieve.
-		@return ApiRetrieveModelV1ModelsModelIdGetRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param modelId The ID of the model to retrieve.
+	@return ApiRetrieveModelV1ModelsModelIdGetRequest
 	*/
 	RetrieveModelV1ModelsModelIdGet(ctx context.Context, modelId string) ApiRetrieveModelV1ModelsModelIdGetRequest
 
@@ -115,12 +116,12 @@ type ModelsAPI interface {
 type ModelsAPIService service
 
 type ApiDeleteModelV1ModelsModelIdDeleteRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService ModelsAPI
-	modelId    string
+	modelId string
 }
 
-func (r ApiDeleteModelV1ModelsModelIdDeleteRequest) Execute() (*DeleteModelOut, *http.Response, error) {
+func (r ApiDeleteModelV1ModelsModelIdDeleteRequest) Execute() (*DeleteModelResponse, *http.Response, error) {
 	return r.ApiService.DeleteModelV1ModelsModelIdDeleteExecute(r)
 }
 
@@ -129,27 +130,26 @@ DeleteModelV1ModelsModelIdDelete Delete Model
 
 Delete a fine-tuned model.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param modelId The ID of the model to delete.
-	@return ApiDeleteModelV1ModelsModelIdDeleteRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param modelId The ID of the model to delete.
+ @return ApiDeleteModelV1ModelsModelIdDeleteRequest
 */
 func (a *ModelsAPIService) DeleteModelV1ModelsModelIdDelete(ctx context.Context, modelId string) ApiDeleteModelV1ModelsModelIdDeleteRequest {
 	return ApiDeleteModelV1ModelsModelIdDeleteRequest{
 		ApiService: a,
-		ctx:        ctx,
-		modelId:    modelId,
+		ctx: ctx,
+		modelId: modelId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return DeleteModelOut
-func (a *ModelsAPIService) DeleteModelV1ModelsModelIdDeleteExecute(r ApiDeleteModelV1ModelsModelIdDeleteRequest) (*DeleteModelOut, *http.Response, error) {
+//  @return DeleteModelResponse
+func (a *ModelsAPIService) DeleteModelV1ModelsModelIdDeleteExecute(r ApiDeleteModelV1ModelsModelIdDeleteRequest) (*DeleteModelResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodDelete
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *DeleteModelOut
+		localVarHTTPMethod   = http.MethodDelete
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *DeleteModelResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ModelsAPIService.DeleteModelV1ModelsModelIdDelete")
@@ -210,8 +210,8 @@ func (a *ModelsAPIService) DeleteModelV1ModelsModelIdDeleteExecute(r ApiDeleteMo
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -229,12 +229,12 @@ func (a *ModelsAPIService) DeleteModelV1ModelsModelIdDeleteExecute(r ApiDeleteMo
 }
 
 type ApiJobsApiRoutesFineTuningArchiveFineTunedModelRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService ModelsAPI
-	modelId    string
+	modelId string
 }
 
-func (r ApiJobsApiRoutesFineTuningArchiveFineTunedModelRequest) Execute() (*ArchiveFTModelOut, *http.Response, error) {
+func (r ApiJobsApiRoutesFineTuningArchiveFineTunedModelRequest) Execute() (*ArchiveModelResponse, *http.Response, error) {
 	return r.ApiService.JobsApiRoutesFineTuningArchiveFineTunedModelExecute(r)
 }
 
@@ -243,27 +243,26 @@ JobsApiRoutesFineTuningArchiveFineTunedModel Archive Fine Tuned Model
 
 Archive a fine-tuned model.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param modelId The ID of the model to archive.
-	@return ApiJobsApiRoutesFineTuningArchiveFineTunedModelRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param modelId The ID of the model to archive.
+ @return ApiJobsApiRoutesFineTuningArchiveFineTunedModelRequest
 */
 func (a *ModelsAPIService) JobsApiRoutesFineTuningArchiveFineTunedModel(ctx context.Context, modelId string) ApiJobsApiRoutesFineTuningArchiveFineTunedModelRequest {
 	return ApiJobsApiRoutesFineTuningArchiveFineTunedModelRequest{
 		ApiService: a,
-		ctx:        ctx,
-		modelId:    modelId,
+		ctx: ctx,
+		modelId: modelId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ArchiveFTModelOut
-func (a *ModelsAPIService) JobsApiRoutesFineTuningArchiveFineTunedModelExecute(r ApiJobsApiRoutesFineTuningArchiveFineTunedModelRequest) (*ArchiveFTModelOut, *http.Response, error) {
+//  @return ArchiveModelResponse
+func (a *ModelsAPIService) JobsApiRoutesFineTuningArchiveFineTunedModelExecute(r ApiJobsApiRoutesFineTuningArchiveFineTunedModelRequest) (*ArchiveModelResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ArchiveFTModelOut
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ArchiveModelResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ModelsAPIService.JobsApiRoutesFineTuningArchiveFineTunedModel")
@@ -333,12 +332,12 @@ func (a *ModelsAPIService) JobsApiRoutesFineTuningArchiveFineTunedModelExecute(r
 }
 
 type ApiJobsApiRoutesFineTuningUnarchiveFineTunedModelRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService ModelsAPI
-	modelId    string
+	modelId string
 }
 
-func (r ApiJobsApiRoutesFineTuningUnarchiveFineTunedModelRequest) Execute() (*UnarchiveFTModelOut, *http.Response, error) {
+func (r ApiJobsApiRoutesFineTuningUnarchiveFineTunedModelRequest) Execute() (*UnarchiveModelResponse, *http.Response, error) {
 	return r.ApiService.JobsApiRoutesFineTuningUnarchiveFineTunedModelExecute(r)
 }
 
@@ -347,27 +346,26 @@ JobsApiRoutesFineTuningUnarchiveFineTunedModel Unarchive Fine Tuned Model
 
 Un-archive a fine-tuned model.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param modelId The ID of the model to unarchive.
-	@return ApiJobsApiRoutesFineTuningUnarchiveFineTunedModelRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param modelId The ID of the model to unarchive.
+ @return ApiJobsApiRoutesFineTuningUnarchiveFineTunedModelRequest
 */
 func (a *ModelsAPIService) JobsApiRoutesFineTuningUnarchiveFineTunedModel(ctx context.Context, modelId string) ApiJobsApiRoutesFineTuningUnarchiveFineTunedModelRequest {
 	return ApiJobsApiRoutesFineTuningUnarchiveFineTunedModelRequest{
 		ApiService: a,
-		ctx:        ctx,
-		modelId:    modelId,
+		ctx: ctx,
+		modelId: modelId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return UnarchiveFTModelOut
-func (a *ModelsAPIService) JobsApiRoutesFineTuningUnarchiveFineTunedModelExecute(r ApiJobsApiRoutesFineTuningUnarchiveFineTunedModelRequest) (*UnarchiveFTModelOut, *http.Response, error) {
+//  @return UnarchiveModelResponse
+func (a *ModelsAPIService) JobsApiRoutesFineTuningUnarchiveFineTunedModelExecute(r ApiJobsApiRoutesFineTuningUnarchiveFineTunedModelRequest) (*UnarchiveModelResponse, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodDelete
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *UnarchiveFTModelOut
+		localVarHTTPMethod   = http.MethodDelete
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *UnarchiveModelResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ModelsAPIService.JobsApiRoutesFineTuningUnarchiveFineTunedModel")
@@ -437,18 +435,18 @@ func (a *ModelsAPIService) JobsApiRoutesFineTuningUnarchiveFineTunedModelExecute
 }
 
 type ApiJobsApiRoutesFineTuningUpdateFineTunedModelRequest struct {
-	ctx             context.Context
-	ApiService      ModelsAPI
-	modelId         string
-	updateFTModelIn *UpdateFTModelIn
+	ctx context.Context
+	ApiService ModelsAPI
+	modelId string
+	updateModelRequest *UpdateModelRequest
 }
 
-func (r ApiJobsApiRoutesFineTuningUpdateFineTunedModelRequest) UpdateFTModelIn(updateFTModelIn UpdateFTModelIn) ApiJobsApiRoutesFineTuningUpdateFineTunedModelRequest {
-	r.updateFTModelIn = &updateFTModelIn
+func (r ApiJobsApiRoutesFineTuningUpdateFineTunedModelRequest) UpdateModelRequest(updateModelRequest UpdateModelRequest) ApiJobsApiRoutesFineTuningUpdateFineTunedModelRequest {
+	r.updateModelRequest = &updateModelRequest
 	return r
 }
 
-func (r ApiJobsApiRoutesFineTuningUpdateFineTunedModelRequest) Execute() (*Response2, *http.Response, error) {
+func (r ApiJobsApiRoutesFineTuningUpdateFineTunedModelRequest) Execute() (*Response, *http.Response, error) {
 	return r.ApiService.JobsApiRoutesFineTuningUpdateFineTunedModelExecute(r)
 }
 
@@ -457,27 +455,26 @@ JobsApiRoutesFineTuningUpdateFineTunedModel Update Fine Tuned Model
 
 Update a model name or description.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param modelId The ID of the model to update.
-	@return ApiJobsApiRoutesFineTuningUpdateFineTunedModelRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param modelId The ID of the model to update.
+ @return ApiJobsApiRoutesFineTuningUpdateFineTunedModelRequest
 */
 func (a *ModelsAPIService) JobsApiRoutesFineTuningUpdateFineTunedModel(ctx context.Context, modelId string) ApiJobsApiRoutesFineTuningUpdateFineTunedModelRequest {
 	return ApiJobsApiRoutesFineTuningUpdateFineTunedModelRequest{
 		ApiService: a,
-		ctx:        ctx,
-		modelId:    modelId,
+		ctx: ctx,
+		modelId: modelId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return Response2
-func (a *ModelsAPIService) JobsApiRoutesFineTuningUpdateFineTunedModelExecute(r ApiJobsApiRoutesFineTuningUpdateFineTunedModelRequest) (*Response2, *http.Response, error) {
+//  @return Response
+func (a *ModelsAPIService) JobsApiRoutesFineTuningUpdateFineTunedModelExecute(r ApiJobsApiRoutesFineTuningUpdateFineTunedModelRequest) (*Response, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodPatch
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *Response2
+		localVarHTTPMethod   = http.MethodPatch
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *Response
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ModelsAPIService.JobsApiRoutesFineTuningUpdateFineTunedModel")
@@ -491,8 +488,8 @@ func (a *ModelsAPIService) JobsApiRoutesFineTuningUpdateFineTunedModelExecute(r 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.updateFTModelIn == nil {
-		return localVarReturnValue, nil, reportError("updateFTModelIn is required and must be specified")
+	if r.updateModelRequest == nil {
+		return localVarReturnValue, nil, reportError("updateModelRequest is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -513,7 +510,7 @@ func (a *ModelsAPIService) JobsApiRoutesFineTuningUpdateFineTunedModelExecute(r 
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.updateFTModelIn
+	localVarPostBody = r.updateModelRequest
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -552,8 +549,20 @@ func (a *ModelsAPIService) JobsApiRoutesFineTuningUpdateFineTunedModelExecute(r 
 }
 
 type ApiListModelsV1ModelsGetRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService ModelsAPI
+	provider *string
+	model *string
+}
+
+func (r ApiListModelsV1ModelsGetRequest) Provider(provider string) ApiListModelsV1ModelsGetRequest {
+	r.provider = &provider
+	return r
+}
+
+func (r ApiListModelsV1ModelsGetRequest) Model(model string) ApiListModelsV1ModelsGetRequest {
+	r.model = &model
+	return r
 }
 
 func (r ApiListModelsV1ModelsGetRequest) Execute() (*ModelList, *http.Response, error) {
@@ -565,25 +574,24 @@ ListModelsV1ModelsGet List Models
 
 List all models available to the user.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiListModelsV1ModelsGetRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiListModelsV1ModelsGetRequest
 */
 func (a *ModelsAPIService) ListModelsV1ModelsGet(ctx context.Context) ApiListModelsV1ModelsGetRequest {
 	return ApiListModelsV1ModelsGetRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ModelList
+//  @return ModelList
 func (a *ModelsAPIService) ListModelsV1ModelsGetExecute(r ApiListModelsV1ModelsGetRequest) (*ModelList, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ModelList
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ModelList
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ModelsAPIService.ListModelsV1ModelsGet")
@@ -597,6 +605,12 @@ func (a *ModelsAPIService) ListModelsV1ModelsGetExecute(r ApiListModelsV1ModelsG
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.provider != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "provider", r.provider, "form", "")
+	}
+	if r.model != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "model", r.model, "form", "")
+	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
 
@@ -636,6 +650,16 @@ func (a *ModelsAPIService) ListModelsV1ModelsGetExecute(r ApiListModelsV1ModelsG
 			body:  localVarBody,
 			error: localVarHTTPResponse.Status,
 		}
+		if localVarHTTPResponse.StatusCode == 422 {
+			var v HTTPValidationError
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
 
@@ -652,9 +676,9 @@ func (a *ModelsAPIService) ListModelsV1ModelsGetExecute(r ApiListModelsV1ModelsG
 }
 
 type ApiRetrieveModelV1ModelsModelIdGetRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService ModelsAPI
-	modelId    string
+	modelId string
 }
 
 func (r ApiRetrieveModelV1ModelsModelIdGetRequest) Execute() (*ResponseRetrieveModelV1ModelsModelIdGet, *http.Response, error) {
@@ -666,27 +690,26 @@ RetrieveModelV1ModelsModelIdGet Retrieve Model
 
 Retrieve information about a model.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param modelId The ID of the model to retrieve.
-	@return ApiRetrieveModelV1ModelsModelIdGetRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param modelId The ID of the model to retrieve.
+ @return ApiRetrieveModelV1ModelsModelIdGetRequest
 */
 func (a *ModelsAPIService) RetrieveModelV1ModelsModelIdGet(ctx context.Context, modelId string) ApiRetrieveModelV1ModelsModelIdGetRequest {
 	return ApiRetrieveModelV1ModelsModelIdGetRequest{
 		ApiService: a,
-		ctx:        ctx,
-		modelId:    modelId,
+		ctx: ctx,
+		modelId: modelId,
 	}
 }
 
 // Execute executes the request
-//
-//	@return ResponseRetrieveModelV1ModelsModelIdGet
+//  @return ResponseRetrieveModelV1ModelsModelIdGet
 func (a *ModelsAPIService) RetrieveModelV1ModelsModelIdGetExecute(r ApiRetrieveModelV1ModelsModelIdGetRequest) (*ResponseRetrieveModelV1ModelsModelIdGet, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *ResponseRetrieveModelV1ModelsModelIdGet
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ResponseRetrieveModelV1ModelsModelIdGet
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ModelsAPIService.RetrieveModelV1ModelsModelIdGet")
@@ -747,8 +770,8 @@ func (a *ModelsAPIService) RetrieveModelV1ModelsModelIdGetExecute(r ApiRetrieveM
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

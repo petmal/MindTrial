@@ -20,23 +20,25 @@ var _ MappedNullable = &FileSchema{}
 
 // FileSchema struct for FileSchema
 type FileSchema struct {
-	// The unique identifier of the file.
-	Id string `json:"id"`
-	// The object type, which is always \"file\".
-	Object string `json:"object"`
 	// The size of the file, in bytes.
 	Bytes int32 `json:"bytes"`
 	// The UNIX timestamp (in seconds) of the event.
 	CreatedAt int32 `json:"created_at"`
+	ExpiresAt NullableInt32 `json:"expires_at,omitempty"`
 	// The name of the uploaded file.
 	Filename string `json:"filename"`
+	// The unique identifier of the file.
+	Id string `json:"id"`
+	Mimetype NullableString `json:"mimetype,omitempty"`
+	NumLines NullableInt32 `json:"num_lines,omitempty"`
+	// The object type, which is always \"file\".
+	Object string `json:"object"`
 	// The intended purpose of the uploaded file, currently supports fine-tuning (`fine-tune`), OCR (`ocr`), Audio/Transcription (`audio`) and batch inference (`batch`).
-	Purpose              FilePurpose    `json:"purpose"`
-	SampleType           SampleType     `json:"sample_type"`
-	NumLines             NullableInt32  `json:"num_lines,omitempty"`
-	Mimetype             NullableString `json:"mimetype,omitempty"`
-	Source               Source         `json:"source"`
-	Signature            NullableString `json:"signature,omitempty"`
+	Purpose FilePurpose `json:"purpose"`
+	SampleType SampleType `json:"sample_type"`
+	Signature NullableString `json:"signature,omitempty"`
+	Source Source `json:"source"`
+	Visibility NullableFileVisibility `json:"visibility,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -46,13 +48,13 @@ type _FileSchema FileSchema
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewFileSchema(id string, object string, bytes int32, createdAt int32, filename string, purpose FilePurpose, sampleType SampleType, source Source) *FileSchema {
+func NewFileSchema(bytes int32, createdAt int32, filename string, id string, object string, purpose FilePurpose, sampleType SampleType, source Source) *FileSchema {
 	this := FileSchema{}
-	this.Id = id
-	this.Object = object
 	this.Bytes = bytes
 	this.CreatedAt = createdAt
 	this.Filename = filename
+	this.Id = id
+	this.Object = object
 	this.Purpose = purpose
 	this.SampleType = sampleType
 	this.Source = source
@@ -65,54 +67,6 @@ func NewFileSchema(id string, object string, bytes int32, createdAt int32, filen
 func NewFileSchemaWithDefaults() *FileSchema {
 	this := FileSchema{}
 	return &this
-}
-
-// GetId returns the Id field value
-func (o *FileSchema) GetId() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Id
-}
-
-// GetIdOk returns a tuple with the Id field value
-// and a boolean to check if the value has been set.
-func (o *FileSchema) GetIdOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Id, true
-}
-
-// SetId sets field value
-func (o *FileSchema) SetId(v string) {
-	o.Id = v
-}
-
-// GetObject returns the Object field value
-func (o *FileSchema) GetObject() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Object
-}
-
-// GetObjectOk returns a tuple with the Object field value
-// and a boolean to check if the value has been set.
-func (o *FileSchema) GetObjectOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Object, true
-}
-
-// SetObject sets field value
-func (o *FileSchema) SetObject(v string) {
-	o.Object = v
 }
 
 // GetBytes returns the Bytes field value
@@ -163,6 +117,48 @@ func (o *FileSchema) SetCreatedAt(v int32) {
 	o.CreatedAt = v
 }
 
+// GetExpiresAt returns the ExpiresAt field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *FileSchema) GetExpiresAt() int32 {
+	if o == nil || IsNil(o.ExpiresAt.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.ExpiresAt.Get()
+}
+
+// GetExpiresAtOk returns a tuple with the ExpiresAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *FileSchema) GetExpiresAtOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ExpiresAt.Get(), o.ExpiresAt.IsSet()
+}
+
+// HasExpiresAt returns a boolean if a field has been set.
+func (o *FileSchema) HasExpiresAt() bool {
+	if o != nil && o.ExpiresAt.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetExpiresAt gets a reference to the given NullableInt32 and assigns it to the ExpiresAt field.
+func (o *FileSchema) SetExpiresAt(v int32) {
+	o.ExpiresAt.Set(&v)
+}
+// SetExpiresAtNil sets the value for ExpiresAt to be an explicit nil
+func (o *FileSchema) SetExpiresAtNil() {
+	o.ExpiresAt.Set(nil)
+}
+
+// UnsetExpiresAt ensures that no value is present for ExpiresAt, not even an explicit nil
+func (o *FileSchema) UnsetExpiresAt() {
+	o.ExpiresAt.Unset()
+}
+
 // GetFilename returns the Filename field value
 func (o *FileSchema) GetFilename() string {
 	if o == nil {
@@ -185,6 +181,138 @@ func (o *FileSchema) GetFilenameOk() (*string, bool) {
 // SetFilename sets field value
 func (o *FileSchema) SetFilename(v string) {
 	o.Filename = v
+}
+
+// GetId returns the Id field value
+func (o *FileSchema) GetId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Id
+}
+
+// GetIdOk returns a tuple with the Id field value
+// and a boolean to check if the value has been set.
+func (o *FileSchema) GetIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Id, true
+}
+
+// SetId sets field value
+func (o *FileSchema) SetId(v string) {
+	o.Id = v
+}
+
+// GetMimetype returns the Mimetype field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *FileSchema) GetMimetype() string {
+	if o == nil || IsNil(o.Mimetype.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Mimetype.Get()
+}
+
+// GetMimetypeOk returns a tuple with the Mimetype field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *FileSchema) GetMimetypeOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Mimetype.Get(), o.Mimetype.IsSet()
+}
+
+// HasMimetype returns a boolean if a field has been set.
+func (o *FileSchema) HasMimetype() bool {
+	if o != nil && o.Mimetype.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetMimetype gets a reference to the given NullableString and assigns it to the Mimetype field.
+func (o *FileSchema) SetMimetype(v string) {
+	o.Mimetype.Set(&v)
+}
+// SetMimetypeNil sets the value for Mimetype to be an explicit nil
+func (o *FileSchema) SetMimetypeNil() {
+	o.Mimetype.Set(nil)
+}
+
+// UnsetMimetype ensures that no value is present for Mimetype, not even an explicit nil
+func (o *FileSchema) UnsetMimetype() {
+	o.Mimetype.Unset()
+}
+
+// GetNumLines returns the NumLines field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *FileSchema) GetNumLines() int32 {
+	if o == nil || IsNil(o.NumLines.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.NumLines.Get()
+}
+
+// GetNumLinesOk returns a tuple with the NumLines field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *FileSchema) GetNumLinesOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.NumLines.Get(), o.NumLines.IsSet()
+}
+
+// HasNumLines returns a boolean if a field has been set.
+func (o *FileSchema) HasNumLines() bool {
+	if o != nil && o.NumLines.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetNumLines gets a reference to the given NullableInt32 and assigns it to the NumLines field.
+func (o *FileSchema) SetNumLines(v int32) {
+	o.NumLines.Set(&v)
+}
+// SetNumLinesNil sets the value for NumLines to be an explicit nil
+func (o *FileSchema) SetNumLinesNil() {
+	o.NumLines.Set(nil)
+}
+
+// UnsetNumLines ensures that no value is present for NumLines, not even an explicit nil
+func (o *FileSchema) UnsetNumLines() {
+	o.NumLines.Unset()
+}
+
+// GetObject returns the Object field value
+func (o *FileSchema) GetObject() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Object
+}
+
+// GetObjectOk returns a tuple with the Object field value
+// and a boolean to check if the value has been set.
+func (o *FileSchema) GetObjectOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Object, true
+}
+
+// SetObject sets field value
+func (o *FileSchema) SetObject(v string) {
+	o.Object = v
 }
 
 // GetPurpose returns the Purpose field value
@@ -235,116 +363,6 @@ func (o *FileSchema) SetSampleType(v SampleType) {
 	o.SampleType = v
 }
 
-// GetNumLines returns the NumLines field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *FileSchema) GetNumLines() int32 {
-	if o == nil || IsNil(o.NumLines.Get()) {
-		var ret int32
-		return ret
-	}
-	return *o.NumLines.Get()
-}
-
-// GetNumLinesOk returns a tuple with the NumLines field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *FileSchema) GetNumLinesOk() (*int32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.NumLines.Get(), o.NumLines.IsSet()
-}
-
-// HasNumLines returns a boolean if a field has been set.
-func (o *FileSchema) HasNumLines() bool {
-	if o != nil && o.NumLines.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetNumLines gets a reference to the given NullableInt32 and assigns it to the NumLines field.
-func (o *FileSchema) SetNumLines(v int32) {
-	o.NumLines.Set(&v)
-}
-
-// SetNumLinesNil sets the value for NumLines to be an explicit nil
-func (o *FileSchema) SetNumLinesNil() {
-	o.NumLines.Set(nil)
-}
-
-// UnsetNumLines ensures that no value is present for NumLines, not even an explicit nil
-func (o *FileSchema) UnsetNumLines() {
-	o.NumLines.Unset()
-}
-
-// GetMimetype returns the Mimetype field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *FileSchema) GetMimetype() string {
-	if o == nil || IsNil(o.Mimetype.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.Mimetype.Get()
-}
-
-// GetMimetypeOk returns a tuple with the Mimetype field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *FileSchema) GetMimetypeOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Mimetype.Get(), o.Mimetype.IsSet()
-}
-
-// HasMimetype returns a boolean if a field has been set.
-func (o *FileSchema) HasMimetype() bool {
-	if o != nil && o.Mimetype.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetMimetype gets a reference to the given NullableString and assigns it to the Mimetype field.
-func (o *FileSchema) SetMimetype(v string) {
-	o.Mimetype.Set(&v)
-}
-
-// SetMimetypeNil sets the value for Mimetype to be an explicit nil
-func (o *FileSchema) SetMimetypeNil() {
-	o.Mimetype.Set(nil)
-}
-
-// UnsetMimetype ensures that no value is present for Mimetype, not even an explicit nil
-func (o *FileSchema) UnsetMimetype() {
-	o.Mimetype.Unset()
-}
-
-// GetSource returns the Source field value
-func (o *FileSchema) GetSource() Source {
-	if o == nil {
-		var ret Source
-		return ret
-	}
-
-	return o.Source
-}
-
-// GetSourceOk returns a tuple with the Source field value
-// and a boolean to check if the value has been set.
-func (o *FileSchema) GetSourceOk() (*Source, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Source, true
-}
-
-// SetSource sets field value
-func (o *FileSchema) SetSource(v Source) {
-	o.Source = v
-}
-
 // GetSignature returns the Signature field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *FileSchema) GetSignature() string {
 	if o == nil || IsNil(o.Signature.Get()) {
@@ -377,7 +395,6 @@ func (o *FileSchema) HasSignature() bool {
 func (o *FileSchema) SetSignature(v string) {
 	o.Signature.Set(&v)
 }
-
 // SetSignatureNil sets the value for Signature to be an explicit nil
 func (o *FileSchema) SetSignatureNil() {
 	o.Signature.Set(nil)
@@ -388,8 +405,74 @@ func (o *FileSchema) UnsetSignature() {
 	o.Signature.Unset()
 }
 
+// GetSource returns the Source field value
+func (o *FileSchema) GetSource() Source {
+	if o == nil {
+		var ret Source
+		return ret
+	}
+
+	return o.Source
+}
+
+// GetSourceOk returns a tuple with the Source field value
+// and a boolean to check if the value has been set.
+func (o *FileSchema) GetSourceOk() (*Source, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Source, true
+}
+
+// SetSource sets field value
+func (o *FileSchema) SetSource(v Source) {
+	o.Source = v
+}
+
+// GetVisibility returns the Visibility field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *FileSchema) GetVisibility() FileVisibility {
+	if o == nil || IsNil(o.Visibility.Get()) {
+		var ret FileVisibility
+		return ret
+	}
+	return *o.Visibility.Get()
+}
+
+// GetVisibilityOk returns a tuple with the Visibility field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *FileSchema) GetVisibilityOk() (*FileVisibility, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Visibility.Get(), o.Visibility.IsSet()
+}
+
+// HasVisibility returns a boolean if a field has been set.
+func (o *FileSchema) HasVisibility() bool {
+	if o != nil && o.Visibility.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetVisibility gets a reference to the given NullableFileVisibility and assigns it to the Visibility field.
+func (o *FileSchema) SetVisibility(v FileVisibility) {
+	o.Visibility.Set(&v)
+}
+// SetVisibilityNil sets the value for Visibility to be an explicit nil
+func (o *FileSchema) SetVisibilityNil() {
+	o.Visibility.Set(nil)
+}
+
+// UnsetVisibility ensures that no value is present for Visibility, not even an explicit nil
+func (o *FileSchema) UnsetVisibility() {
+	o.Visibility.Unset()
+}
+
 func (o FileSchema) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -398,22 +481,28 @@ func (o FileSchema) MarshalJSON() ([]byte, error) {
 
 func (o FileSchema) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["id"] = o.Id
-	toSerialize["object"] = o.Object
 	toSerialize["bytes"] = o.Bytes
 	toSerialize["created_at"] = o.CreatedAt
-	toSerialize["filename"] = o.Filename
-	toSerialize["purpose"] = o.Purpose
-	toSerialize["sample_type"] = o.SampleType
-	if o.NumLines.IsSet() {
-		toSerialize["num_lines"] = o.NumLines.Get()
+	if o.ExpiresAt.IsSet() {
+		toSerialize["expires_at"] = o.ExpiresAt.Get()
 	}
+	toSerialize["filename"] = o.Filename
+	toSerialize["id"] = o.Id
 	if o.Mimetype.IsSet() {
 		toSerialize["mimetype"] = o.Mimetype.Get()
 	}
-	toSerialize["source"] = o.Source
+	if o.NumLines.IsSet() {
+		toSerialize["num_lines"] = o.NumLines.Get()
+	}
+	toSerialize["object"] = o.Object
+	toSerialize["purpose"] = o.Purpose
+	toSerialize["sample_type"] = o.SampleType
 	if o.Signature.IsSet() {
 		toSerialize["signature"] = o.Signature.Get()
+	}
+	toSerialize["source"] = o.Source
+	if o.Visibility.IsSet() {
+		toSerialize["visibility"] = o.Visibility.Get()
 	}
 
 	for key, value := range o.AdditionalProperties {
@@ -428,11 +517,11 @@ func (o *FileSchema) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"id",
-		"object",
 		"bytes",
 		"created_at",
 		"filename",
+		"id",
+		"object",
 		"purpose",
 		"sample_type",
 		"source",
@@ -443,10 +532,10 @@ func (o *FileSchema) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -465,17 +554,19 @@ func (o *FileSchema) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "id")
-		delete(additionalProperties, "object")
 		delete(additionalProperties, "bytes")
 		delete(additionalProperties, "created_at")
+		delete(additionalProperties, "expires_at")
 		delete(additionalProperties, "filename")
+		delete(additionalProperties, "id")
+		delete(additionalProperties, "mimetype")
+		delete(additionalProperties, "num_lines")
+		delete(additionalProperties, "object")
 		delete(additionalProperties, "purpose")
 		delete(additionalProperties, "sample_type")
-		delete(additionalProperties, "num_lines")
-		delete(additionalProperties, "mimetype")
-		delete(additionalProperties, "source")
 		delete(additionalProperties, "signature")
+		delete(additionalProperties, "source")
+		delete(additionalProperties, "visibility")
 		o.AdditionalProperties = additionalProperties
 	}
 

@@ -21,7 +21,7 @@ var _ MappedNullable = &EmbeddingInputOneOf{}
 // EmbeddingInputOneOf A strings to be embedded. For best performance, prepend \"query: \" in front of query content and prepend \"passage: \" in front of passage/text
 type EmbeddingInputOneOf struct {
 	// A strings to be embedded. For best performance, prepend \"query: \" in front of query content and prepend \"passage: \" in front of passage/text
-	String               string `json:"String"`
+	String string `json:"String"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -70,7 +70,7 @@ func (o *EmbeddingInputOneOf) SetString(v string) {
 }
 
 func (o EmbeddingInputOneOf) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -101,10 +101,10 @@ func (o *EmbeddingInputOneOf) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

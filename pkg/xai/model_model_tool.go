@@ -25,6 +25,7 @@ type ModelTool struct {
 	ModelToolOneOf4 *ModelToolOneOf4
 	ModelToolOneOf5 *ModelToolOneOf5
 	ModelToolOneOf6 *ModelToolOneOf6
+	ModelToolOneOf7 *ModelToolOneOf7
 }
 
 // ModelToolOneOfAsModelTool is a convenience function that returns ModelToolOneOf wrapped in ModelTool
@@ -73,6 +74,13 @@ func ModelToolOneOf5AsModelTool(v *ModelToolOneOf5) ModelTool {
 func ModelToolOneOf6AsModelTool(v *ModelToolOneOf6) ModelTool {
 	return ModelTool{
 		ModelToolOneOf6: v,
+	}
+}
+
+// ModelToolOneOf7AsModelTool is a convenience function that returns ModelToolOneOf7 wrapped in ModelTool
+func ModelToolOneOf7AsModelTool(v *ModelToolOneOf7) ModelTool {
+	return ModelTool{
+		ModelToolOneOf7: v,
 	}
 }
 
@@ -199,6 +207,23 @@ func (dst *ModelTool) UnmarshalJSON(data []byte) error {
 		dst.ModelToolOneOf6 = nil
 	}
 
+	// try to unmarshal data into ModelToolOneOf7
+	err = newStrictDecoder(data).Decode(&dst.ModelToolOneOf7)
+	if err == nil {
+		jsonModelToolOneOf7, _ := json.Marshal(dst.ModelToolOneOf7)
+		if string(jsonModelToolOneOf7) == "{}" { // empty struct
+			dst.ModelToolOneOf7 = nil
+		} else {
+			if err = validator.Validate(dst.ModelToolOneOf7); err != nil {
+				dst.ModelToolOneOf7 = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.ModelToolOneOf7 = nil
+	}
+
 	if match > 1 { // more than 1 match
 		// reset to nil
 		dst.ModelToolOneOf = nil
@@ -208,12 +233,18 @@ func (dst *ModelTool) UnmarshalJSON(data []byte) error {
 		dst.ModelToolOneOf4 = nil
 		dst.ModelToolOneOf5 = nil
 		dst.ModelToolOneOf6 = nil
+		dst.ModelToolOneOf7 = nil
 
 		return fmt.Errorf("data matches more than one schema in oneOf(ModelTool)")
 	} else if match == 1 {
 		return nil // exactly one match
 	} else { // no match
-		return fmt.Errorf("data failed to match schemas in oneOf(ModelTool)")
+		if err != nil {
+			return fmt.Errorf("data failed to match schemas in oneOf(ModelTool): %v", err)
+		} else {
+			return fmt.Errorf("data failed to match schemas in oneOf(ModelTool)")
+		}
+
 	}
 }
 
@@ -245,6 +276,10 @@ func (src ModelTool) MarshalJSON() ([]byte, error) {
 
 	if src.ModelToolOneOf6 != nil {
 		return json.Marshal(&src.ModelToolOneOf6)
+	}
+
+	if src.ModelToolOneOf7 != nil {
+		return json.Marshal(&src.ModelToolOneOf7)
 	}
 
 	return nil, nil // no data in oneOf schemas
@@ -283,6 +318,10 @@ func (obj *ModelTool) GetActualInstance() interface{} {
 		return obj.ModelToolOneOf6
 	}
 
+	if obj.ModelToolOneOf7 != nil {
+		return obj.ModelToolOneOf7
+	}
+
 	// all schemas are nil
 	return nil
 }
@@ -315,6 +354,10 @@ func (obj ModelTool) GetActualInstanceValue() interface{} {
 
 	if obj.ModelToolOneOf6 != nil {
 		return *obj.ModelToolOneOf6
+	}
+
+	if obj.ModelToolOneOf7 != nil {
+		return *obj.ModelToolOneOf7
 	}
 
 	// all schemas are nil

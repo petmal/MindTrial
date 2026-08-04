@@ -27,7 +27,7 @@ type ShellCallOutput struct {
 	// An array of shell call output contents.
 	Output []ShellCallOutputResult `json:"output"`
 	// The type of the output item, which is always `shell_call_output`.
-	Type                 string `json:"type"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -109,7 +109,6 @@ func (o *ShellCallOutput) HasMaxOutputLength() bool {
 func (o *ShellCallOutput) SetMaxOutputLength(v int32) {
 	o.MaxOutputLength.Set(&v)
 }
-
 // SetMaxOutputLengthNil sets the value for MaxOutputLength to be an explicit nil
 func (o *ShellCallOutput) SetMaxOutputLengthNil() {
 	o.MaxOutputLength.Set(nil)
@@ -169,7 +168,7 @@ func (o *ShellCallOutput) SetType(v string) {
 }
 
 func (o ShellCallOutput) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -207,10 +206,10 @@ func (o *ShellCallOutput) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

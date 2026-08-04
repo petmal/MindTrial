@@ -21,7 +21,7 @@ type TimestampGranularity string
 // List of TimestampGranularity
 const (
 	TIMESTAMPGRANULARITY_SEGMENT TimestampGranularity = "segment"
-	TIMESTAMPGRANULARITY_WORD    TimestampGranularity = "word"
+	TIMESTAMPGRANULARITY_WORD TimestampGranularity = "word"
 )
 
 // All allowed values of TimestampGranularity enum

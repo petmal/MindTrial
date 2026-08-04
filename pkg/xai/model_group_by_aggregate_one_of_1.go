@@ -20,7 +20,7 @@ var _ MappedNullable = &GroupByAggregateOneOf1{}
 
 // GroupByAggregateOneOf1 Keep the k records with the largest values.
 type GroupByAggregateOneOf1 struct {
-	MaxK                 GroupByAggregateOneOfMinK `json:"max_k"`
+	MaxK GroupByAggregateOneOf1MaxK `json:"max_k"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -30,7 +30,7 @@ type _GroupByAggregateOneOf1 GroupByAggregateOneOf1
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewGroupByAggregateOneOf1(maxK GroupByAggregateOneOfMinK) *GroupByAggregateOneOf1 {
+func NewGroupByAggregateOneOf1(maxK GroupByAggregateOneOf1MaxK) *GroupByAggregateOneOf1 {
 	this := GroupByAggregateOneOf1{}
 	this.MaxK = maxK
 	return &this
@@ -45,9 +45,9 @@ func NewGroupByAggregateOneOf1WithDefaults() *GroupByAggregateOneOf1 {
 }
 
 // GetMaxK returns the MaxK field value
-func (o *GroupByAggregateOneOf1) GetMaxK() GroupByAggregateOneOfMinK {
+func (o *GroupByAggregateOneOf1) GetMaxK() GroupByAggregateOneOf1MaxK {
 	if o == nil {
-		var ret GroupByAggregateOneOfMinK
+		var ret GroupByAggregateOneOf1MaxK
 		return ret
 	}
 
@@ -56,7 +56,7 @@ func (o *GroupByAggregateOneOf1) GetMaxK() GroupByAggregateOneOfMinK {
 
 // GetMaxKOk returns a tuple with the MaxK field value
 // and a boolean to check if the value has been set.
-func (o *GroupByAggregateOneOf1) GetMaxKOk() (*GroupByAggregateOneOfMinK, bool) {
+func (o *GroupByAggregateOneOf1) GetMaxKOk() (*GroupByAggregateOneOf1MaxK, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -64,12 +64,12 @@ func (o *GroupByAggregateOneOf1) GetMaxKOk() (*GroupByAggregateOneOfMinK, bool) 
 }
 
 // SetMaxK sets field value
-func (o *GroupByAggregateOneOf1) SetMaxK(v GroupByAggregateOneOfMinK) {
+func (o *GroupByAggregateOneOf1) SetMaxK(v GroupByAggregateOneOf1MaxK) {
 	o.MaxK = v
 }
 
 func (o GroupByAggregateOneOf1) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -100,10 +100,10 @@ func (o *GroupByAggregateOneOf1) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

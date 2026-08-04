@@ -20,21 +20,23 @@ var _ MappedNullable = &ConversationStreamRequest{}
 
 // ConversationStreamRequest struct for ConversationStreamRequest
 type ConversationStreamRequest struct {
-	Inputs           ConversationInputs `json:"inputs"`
-	Stream           *bool              `json:"stream,omitempty"`
-	Store            *bool              `json:"store,omitempty"`
-	HandoffExecution *string            `json:"handoff_execution,omitempty"`
-	Instructions     *string            `json:"instructions,omitempty"`
-	// List of tools which are available to the model during the conversation.
-	Tools          []ToolsInner    `json:"tools,omitempty"`
+	AgentId *string `json:"agent_id,omitempty"`
+	AgentVersion NullableAgentVersion1 `json:"agent_version,omitempty"`
 	CompletionArgs *CompletionArgs `json:"completion_args,omitempty"`
-	Name           *string         `json:"name,omitempty"`
-	Description    *string         `json:"description,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Guardrails []GuardrailConfig `json:"guardrails,omitempty"`
+	HandoffExecution *string `json:"handoff_execution,omitempty"`
+	Inputs ConversationInputs `json:"inputs"`
+	// Workspace ID to filter results.
+	Instructions *string `json:"instructions,omitempty"`
 	// Custom type for metadata with embedded validation.
-	Metadata             map[string]interface{} `json:"metadata,omitempty"`
-	AgentId              *string                `json:"agent_id,omitempty"`
-	AgentVersion         NullableAgentVersion1  `json:"agent_version,omitempty"`
-	Model                *string                `json:"model,omitempty"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Model *string `json:"model,omitempty"`
+	Name *string `json:"name,omitempty"`
+	// Deprecated: this parameter will be removed in a future version.
+	Store *bool `json:"store,omitempty"`
+	Stream *bool `json:"stream,omitempty"`
+	Tools []ToolsInner `json:"tools,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -60,318 +62,6 @@ func NewConversationStreamRequestWithDefaults() *ConversationStreamRequest {
 	var stream bool = true
 	this.Stream = &stream
 	return &this
-}
-
-// GetInputs returns the Inputs field value
-func (o *ConversationStreamRequest) GetInputs() ConversationInputs {
-	if o == nil {
-		var ret ConversationInputs
-		return ret
-	}
-
-	return o.Inputs
-}
-
-// GetInputsOk returns a tuple with the Inputs field value
-// and a boolean to check if the value has been set.
-func (o *ConversationStreamRequest) GetInputsOk() (*ConversationInputs, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Inputs, true
-}
-
-// SetInputs sets field value
-func (o *ConversationStreamRequest) SetInputs(v ConversationInputs) {
-	o.Inputs = v
-}
-
-// GetStream returns the Stream field value if set, zero value otherwise.
-func (o *ConversationStreamRequest) GetStream() bool {
-	if o == nil || IsNil(o.Stream) {
-		var ret bool
-		return ret
-	}
-	return *o.Stream
-}
-
-// GetStreamOk returns a tuple with the Stream field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ConversationStreamRequest) GetStreamOk() (*bool, bool) {
-	if o == nil || IsNil(o.Stream) {
-		return nil, false
-	}
-	return o.Stream, true
-}
-
-// HasStream returns a boolean if a field has been set.
-func (o *ConversationStreamRequest) HasStream() bool {
-	if o != nil && !IsNil(o.Stream) {
-		return true
-	}
-
-	return false
-}
-
-// SetStream gets a reference to the given bool and assigns it to the Stream field.
-func (o *ConversationStreamRequest) SetStream(v bool) {
-	o.Stream = &v
-}
-
-// GetStore returns the Store field value if set, zero value otherwise.
-func (o *ConversationStreamRequest) GetStore() bool {
-	if o == nil || IsNil(o.Store) {
-		var ret bool
-		return ret
-	}
-	return *o.Store
-}
-
-// GetStoreOk returns a tuple with the Store field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ConversationStreamRequest) GetStoreOk() (*bool, bool) {
-	if o == nil || IsNil(o.Store) {
-		return nil, false
-	}
-	return o.Store, true
-}
-
-// HasStore returns a boolean if a field has been set.
-func (o *ConversationStreamRequest) HasStore() bool {
-	if o != nil && !IsNil(o.Store) {
-		return true
-	}
-
-	return false
-}
-
-// SetStore gets a reference to the given bool and assigns it to the Store field.
-func (o *ConversationStreamRequest) SetStore(v bool) {
-	o.Store = &v
-}
-
-// GetHandoffExecution returns the HandoffExecution field value if set, zero value otherwise.
-func (o *ConversationStreamRequest) GetHandoffExecution() string {
-	if o == nil || IsNil(o.HandoffExecution) {
-		var ret string
-		return ret
-	}
-	return *o.HandoffExecution
-}
-
-// GetHandoffExecutionOk returns a tuple with the HandoffExecution field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ConversationStreamRequest) GetHandoffExecutionOk() (*string, bool) {
-	if o == nil || IsNil(o.HandoffExecution) {
-		return nil, false
-	}
-	return o.HandoffExecution, true
-}
-
-// HasHandoffExecution returns a boolean if a field has been set.
-func (o *ConversationStreamRequest) HasHandoffExecution() bool {
-	if o != nil && !IsNil(o.HandoffExecution) {
-		return true
-	}
-
-	return false
-}
-
-// SetHandoffExecution gets a reference to the given string and assigns it to the HandoffExecution field.
-func (o *ConversationStreamRequest) SetHandoffExecution(v string) {
-	o.HandoffExecution = &v
-}
-
-// GetInstructions returns the Instructions field value if set, zero value otherwise.
-func (o *ConversationStreamRequest) GetInstructions() string {
-	if o == nil || IsNil(o.Instructions) {
-		var ret string
-		return ret
-	}
-	return *o.Instructions
-}
-
-// GetInstructionsOk returns a tuple with the Instructions field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ConversationStreamRequest) GetInstructionsOk() (*string, bool) {
-	if o == nil || IsNil(o.Instructions) {
-		return nil, false
-	}
-	return o.Instructions, true
-}
-
-// HasInstructions returns a boolean if a field has been set.
-func (o *ConversationStreamRequest) HasInstructions() bool {
-	if o != nil && !IsNil(o.Instructions) {
-		return true
-	}
-
-	return false
-}
-
-// SetInstructions gets a reference to the given string and assigns it to the Instructions field.
-func (o *ConversationStreamRequest) SetInstructions(v string) {
-	o.Instructions = &v
-}
-
-// GetTools returns the Tools field value if set, zero value otherwise.
-func (o *ConversationStreamRequest) GetTools() []ToolsInner {
-	if o == nil || IsNil(o.Tools) {
-		var ret []ToolsInner
-		return ret
-	}
-	return o.Tools
-}
-
-// GetToolsOk returns a tuple with the Tools field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ConversationStreamRequest) GetToolsOk() ([]ToolsInner, bool) {
-	if o == nil || IsNil(o.Tools) {
-		return nil, false
-	}
-	return o.Tools, true
-}
-
-// HasTools returns a boolean if a field has been set.
-func (o *ConversationStreamRequest) HasTools() bool {
-	if o != nil && !IsNil(o.Tools) {
-		return true
-	}
-
-	return false
-}
-
-// SetTools gets a reference to the given []ToolsInner and assigns it to the Tools field.
-func (o *ConversationStreamRequest) SetTools(v []ToolsInner) {
-	o.Tools = v
-}
-
-// GetCompletionArgs returns the CompletionArgs field value if set, zero value otherwise.
-func (o *ConversationStreamRequest) GetCompletionArgs() CompletionArgs {
-	if o == nil || IsNil(o.CompletionArgs) {
-		var ret CompletionArgs
-		return ret
-	}
-	return *o.CompletionArgs
-}
-
-// GetCompletionArgsOk returns a tuple with the CompletionArgs field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ConversationStreamRequest) GetCompletionArgsOk() (*CompletionArgs, bool) {
-	if o == nil || IsNil(o.CompletionArgs) {
-		return nil, false
-	}
-	return o.CompletionArgs, true
-}
-
-// HasCompletionArgs returns a boolean if a field has been set.
-func (o *ConversationStreamRequest) HasCompletionArgs() bool {
-	if o != nil && !IsNil(o.CompletionArgs) {
-		return true
-	}
-
-	return false
-}
-
-// SetCompletionArgs gets a reference to the given CompletionArgs and assigns it to the CompletionArgs field.
-func (o *ConversationStreamRequest) SetCompletionArgs(v CompletionArgs) {
-	o.CompletionArgs = &v
-}
-
-// GetName returns the Name field value if set, zero value otherwise.
-func (o *ConversationStreamRequest) GetName() string {
-	if o == nil || IsNil(o.Name) {
-		var ret string
-		return ret
-	}
-	return *o.Name
-}
-
-// GetNameOk returns a tuple with the Name field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ConversationStreamRequest) GetNameOk() (*string, bool) {
-	if o == nil || IsNil(o.Name) {
-		return nil, false
-	}
-	return o.Name, true
-}
-
-// HasName returns a boolean if a field has been set.
-func (o *ConversationStreamRequest) HasName() bool {
-	if o != nil && !IsNil(o.Name) {
-		return true
-	}
-
-	return false
-}
-
-// SetName gets a reference to the given string and assigns it to the Name field.
-func (o *ConversationStreamRequest) SetName(v string) {
-	o.Name = &v
-}
-
-// GetDescription returns the Description field value if set, zero value otherwise.
-func (o *ConversationStreamRequest) GetDescription() string {
-	if o == nil || IsNil(o.Description) {
-		var ret string
-		return ret
-	}
-	return *o.Description
-}
-
-// GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ConversationStreamRequest) GetDescriptionOk() (*string, bool) {
-	if o == nil || IsNil(o.Description) {
-		return nil, false
-	}
-	return o.Description, true
-}
-
-// HasDescription returns a boolean if a field has been set.
-func (o *ConversationStreamRequest) HasDescription() bool {
-	if o != nil && !IsNil(o.Description) {
-		return true
-	}
-
-	return false
-}
-
-// SetDescription gets a reference to the given string and assigns it to the Description field.
-func (o *ConversationStreamRequest) SetDescription(v string) {
-	o.Description = &v
-}
-
-// GetMetadata returns the Metadata field value if set, zero value otherwise.
-func (o *ConversationStreamRequest) GetMetadata() map[string]interface{} {
-	if o == nil || IsNil(o.Metadata) {
-		var ret map[string]interface{}
-		return ret
-	}
-	return o.Metadata
-}
-
-// GetMetadataOk returns a tuple with the Metadata field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ConversationStreamRequest) GetMetadataOk() (map[string]interface{}, bool) {
-	if o == nil || IsNil(o.Metadata) {
-		return map[string]interface{}{}, false
-	}
-	return o.Metadata, true
-}
-
-// HasMetadata returns a boolean if a field has been set.
-func (o *ConversationStreamRequest) HasMetadata() bool {
-	if o != nil && !IsNil(o.Metadata) {
-		return true
-	}
-
-	return false
-}
-
-// SetMetadata gets a reference to the given map[string]interface{} and assigns it to the Metadata field.
-func (o *ConversationStreamRequest) SetMetadata(v map[string]interface{}) {
-	o.Metadata = v
 }
 
 // GetAgentId returns the AgentId field value if set, zero value otherwise.
@@ -438,7 +128,6 @@ func (o *ConversationStreamRequest) HasAgentVersion() bool {
 func (o *ConversationStreamRequest) SetAgentVersion(v AgentVersion1) {
 	o.AgentVersion.Set(&v)
 }
-
 // SetAgentVersionNil sets the value for AgentVersion to be an explicit nil
 func (o *ConversationStreamRequest) SetAgentVersionNil() {
 	o.AgentVersion.Set(nil)
@@ -447,6 +136,222 @@ func (o *ConversationStreamRequest) SetAgentVersionNil() {
 // UnsetAgentVersion ensures that no value is present for AgentVersion, not even an explicit nil
 func (o *ConversationStreamRequest) UnsetAgentVersion() {
 	o.AgentVersion.Unset()
+}
+
+// GetCompletionArgs returns the CompletionArgs field value if set, zero value otherwise.
+func (o *ConversationStreamRequest) GetCompletionArgs() CompletionArgs {
+	if o == nil || IsNil(o.CompletionArgs) {
+		var ret CompletionArgs
+		return ret
+	}
+	return *o.CompletionArgs
+}
+
+// GetCompletionArgsOk returns a tuple with the CompletionArgs field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationStreamRequest) GetCompletionArgsOk() (*CompletionArgs, bool) {
+	if o == nil || IsNil(o.CompletionArgs) {
+		return nil, false
+	}
+	return o.CompletionArgs, true
+}
+
+// HasCompletionArgs returns a boolean if a field has been set.
+func (o *ConversationStreamRequest) HasCompletionArgs() bool {
+	if o != nil && !IsNil(o.CompletionArgs) {
+		return true
+	}
+
+	return false
+}
+
+// SetCompletionArgs gets a reference to the given CompletionArgs and assigns it to the CompletionArgs field.
+func (o *ConversationStreamRequest) SetCompletionArgs(v CompletionArgs) {
+	o.CompletionArgs = &v
+}
+
+// GetDescription returns the Description field value if set, zero value otherwise.
+func (o *ConversationStreamRequest) GetDescription() string {
+	if o == nil || IsNil(o.Description) {
+		var ret string
+		return ret
+	}
+	return *o.Description
+}
+
+// GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationStreamRequest) GetDescriptionOk() (*string, bool) {
+	if o == nil || IsNil(o.Description) {
+		return nil, false
+	}
+	return o.Description, true
+}
+
+// HasDescription returns a boolean if a field has been set.
+func (o *ConversationStreamRequest) HasDescription() bool {
+	if o != nil && !IsNil(o.Description) {
+		return true
+	}
+
+	return false
+}
+
+// SetDescription gets a reference to the given string and assigns it to the Description field.
+func (o *ConversationStreamRequest) SetDescription(v string) {
+	o.Description = &v
+}
+
+// GetGuardrails returns the Guardrails field value if set, zero value otherwise.
+func (o *ConversationStreamRequest) GetGuardrails() []GuardrailConfig {
+	if o == nil || IsNil(o.Guardrails) {
+		var ret []GuardrailConfig
+		return ret
+	}
+	return o.Guardrails
+}
+
+// GetGuardrailsOk returns a tuple with the Guardrails field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationStreamRequest) GetGuardrailsOk() ([]GuardrailConfig, bool) {
+	if o == nil || IsNil(o.Guardrails) {
+		return nil, false
+	}
+	return o.Guardrails, true
+}
+
+// HasGuardrails returns a boolean if a field has been set.
+func (o *ConversationStreamRequest) HasGuardrails() bool {
+	if o != nil && !IsNil(o.Guardrails) {
+		return true
+	}
+
+	return false
+}
+
+// SetGuardrails gets a reference to the given []GuardrailConfig and assigns it to the Guardrails field.
+func (o *ConversationStreamRequest) SetGuardrails(v []GuardrailConfig) {
+	o.Guardrails = v
+}
+
+// GetHandoffExecution returns the HandoffExecution field value if set, zero value otherwise.
+func (o *ConversationStreamRequest) GetHandoffExecution() string {
+	if o == nil || IsNil(o.HandoffExecution) {
+		var ret string
+		return ret
+	}
+	return *o.HandoffExecution
+}
+
+// GetHandoffExecutionOk returns a tuple with the HandoffExecution field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationStreamRequest) GetHandoffExecutionOk() (*string, bool) {
+	if o == nil || IsNil(o.HandoffExecution) {
+		return nil, false
+	}
+	return o.HandoffExecution, true
+}
+
+// HasHandoffExecution returns a boolean if a field has been set.
+func (o *ConversationStreamRequest) HasHandoffExecution() bool {
+	if o != nil && !IsNil(o.HandoffExecution) {
+		return true
+	}
+
+	return false
+}
+
+// SetHandoffExecution gets a reference to the given string and assigns it to the HandoffExecution field.
+func (o *ConversationStreamRequest) SetHandoffExecution(v string) {
+	o.HandoffExecution = &v
+}
+
+// GetInputs returns the Inputs field value
+func (o *ConversationStreamRequest) GetInputs() ConversationInputs {
+	if o == nil {
+		var ret ConversationInputs
+		return ret
+	}
+
+	return o.Inputs
+}
+
+// GetInputsOk returns a tuple with the Inputs field value
+// and a boolean to check if the value has been set.
+func (o *ConversationStreamRequest) GetInputsOk() (*ConversationInputs, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Inputs, true
+}
+
+// SetInputs sets field value
+func (o *ConversationStreamRequest) SetInputs(v ConversationInputs) {
+	o.Inputs = v
+}
+
+// GetInstructions returns the Instructions field value if set, zero value otherwise.
+func (o *ConversationStreamRequest) GetInstructions() string {
+	if o == nil || IsNil(o.Instructions) {
+		var ret string
+		return ret
+	}
+	return *o.Instructions
+}
+
+// GetInstructionsOk returns a tuple with the Instructions field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationStreamRequest) GetInstructionsOk() (*string, bool) {
+	if o == nil || IsNil(o.Instructions) {
+		return nil, false
+	}
+	return o.Instructions, true
+}
+
+// HasInstructions returns a boolean if a field has been set.
+func (o *ConversationStreamRequest) HasInstructions() bool {
+	if o != nil && !IsNil(o.Instructions) {
+		return true
+	}
+
+	return false
+}
+
+// SetInstructions gets a reference to the given string and assigns it to the Instructions field.
+func (o *ConversationStreamRequest) SetInstructions(v string) {
+	o.Instructions = &v
+}
+
+// GetMetadata returns the Metadata field value if set, zero value otherwise.
+func (o *ConversationStreamRequest) GetMetadata() map[string]interface{} {
+	if o == nil || IsNil(o.Metadata) {
+		var ret map[string]interface{}
+		return ret
+	}
+	return o.Metadata
+}
+
+// GetMetadataOk returns a tuple with the Metadata field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationStreamRequest) GetMetadataOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Metadata) {
+		return map[string]interface{}{}, false
+	}
+	return o.Metadata, true
+}
+
+// HasMetadata returns a boolean if a field has been set.
+func (o *ConversationStreamRequest) HasMetadata() bool {
+	if o != nil && !IsNil(o.Metadata) {
+		return true
+	}
+
+	return false
+}
+
+// SetMetadata gets a reference to the given map[string]interface{} and assigns it to the Metadata field.
+func (o *ConversationStreamRequest) SetMetadata(v map[string]interface{}) {
+	o.Metadata = v
 }
 
 // GetModel returns the Model field value if set, zero value otherwise.
@@ -481,8 +386,136 @@ func (o *ConversationStreamRequest) SetModel(v string) {
 	o.Model = &v
 }
 
+// GetName returns the Name field value if set, zero value otherwise.
+func (o *ConversationStreamRequest) GetName() string {
+	if o == nil || IsNil(o.Name) {
+		var ret string
+		return ret
+	}
+	return *o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationStreamRequest) GetNameOk() (*string, bool) {
+	if o == nil || IsNil(o.Name) {
+		return nil, false
+	}
+	return o.Name, true
+}
+
+// HasName returns a boolean if a field has been set.
+func (o *ConversationStreamRequest) HasName() bool {
+	if o != nil && !IsNil(o.Name) {
+		return true
+	}
+
+	return false
+}
+
+// SetName gets a reference to the given string and assigns it to the Name field.
+func (o *ConversationStreamRequest) SetName(v string) {
+	o.Name = &v
+}
+
+// GetStore returns the Store field value if set, zero value otherwise.
+func (o *ConversationStreamRequest) GetStore() bool {
+	if o == nil || IsNil(o.Store) {
+		var ret bool
+		return ret
+	}
+	return *o.Store
+}
+
+// GetStoreOk returns a tuple with the Store field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationStreamRequest) GetStoreOk() (*bool, bool) {
+	if o == nil || IsNil(o.Store) {
+		return nil, false
+	}
+	return o.Store, true
+}
+
+// HasStore returns a boolean if a field has been set.
+func (o *ConversationStreamRequest) HasStore() bool {
+	if o != nil && !IsNil(o.Store) {
+		return true
+	}
+
+	return false
+}
+
+// SetStore gets a reference to the given bool and assigns it to the Store field.
+func (o *ConversationStreamRequest) SetStore(v bool) {
+	o.Store = &v
+}
+
+// GetStream returns the Stream field value if set, zero value otherwise.
+func (o *ConversationStreamRequest) GetStream() bool {
+	if o == nil || IsNil(o.Stream) {
+		var ret bool
+		return ret
+	}
+	return *o.Stream
+}
+
+// GetStreamOk returns a tuple with the Stream field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationStreamRequest) GetStreamOk() (*bool, bool) {
+	if o == nil || IsNil(o.Stream) {
+		return nil, false
+	}
+	return o.Stream, true
+}
+
+// HasStream returns a boolean if a field has been set.
+func (o *ConversationStreamRequest) HasStream() bool {
+	if o != nil && !IsNil(o.Stream) {
+		return true
+	}
+
+	return false
+}
+
+// SetStream gets a reference to the given bool and assigns it to the Stream field.
+func (o *ConversationStreamRequest) SetStream(v bool) {
+	o.Stream = &v
+}
+
+// GetTools returns the Tools field value if set, zero value otherwise.
+func (o *ConversationStreamRequest) GetTools() []ToolsInner {
+	if o == nil || IsNil(o.Tools) {
+		var ret []ToolsInner
+		return ret
+	}
+	return o.Tools
+}
+
+// GetToolsOk returns a tuple with the Tools field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ConversationStreamRequest) GetToolsOk() ([]ToolsInner, bool) {
+	if o == nil || IsNil(o.Tools) {
+		return nil, false
+	}
+	return o.Tools, true
+}
+
+// HasTools returns a boolean if a field has been set.
+func (o *ConversationStreamRequest) HasTools() bool {
+	if o != nil && !IsNil(o.Tools) {
+		return true
+	}
+
+	return false
+}
+
+// SetTools gets a reference to the given []ToolsInner and assigns it to the Tools field.
+func (o *ConversationStreamRequest) SetTools(v []ToolsInner) {
+	o.Tools = v
+}
+
 func (o ConversationStreamRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -491,42 +524,45 @@ func (o ConversationStreamRequest) MarshalJSON() ([]byte, error) {
 
 func (o ConversationStreamRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["inputs"] = o.Inputs
-	if !IsNil(o.Stream) {
-		toSerialize["stream"] = o.Stream
-	}
-	if !IsNil(o.Store) {
-		toSerialize["store"] = o.Store
-	}
-	if !IsNil(o.HandoffExecution) {
-		toSerialize["handoff_execution"] = o.HandoffExecution
-	}
-	if !IsNil(o.Instructions) {
-		toSerialize["instructions"] = o.Instructions
-	}
-	if !IsNil(o.Tools) {
-		toSerialize["tools"] = o.Tools
-	}
-	if !IsNil(o.CompletionArgs) {
-		toSerialize["completion_args"] = o.CompletionArgs
-	}
-	if !IsNil(o.Name) {
-		toSerialize["name"] = o.Name
-	}
-	if !IsNil(o.Description) {
-		toSerialize["description"] = o.Description
-	}
-	if !IsNil(o.Metadata) {
-		toSerialize["metadata"] = o.Metadata
-	}
 	if !IsNil(o.AgentId) {
 		toSerialize["agent_id"] = o.AgentId
 	}
 	if o.AgentVersion.IsSet() {
 		toSerialize["agent_version"] = o.AgentVersion.Get()
 	}
+	if !IsNil(o.CompletionArgs) {
+		toSerialize["completion_args"] = o.CompletionArgs
+	}
+	if !IsNil(o.Description) {
+		toSerialize["description"] = o.Description
+	}
+	if !IsNil(o.Guardrails) {
+		toSerialize["guardrails"] = o.Guardrails
+	}
+	if !IsNil(o.HandoffExecution) {
+		toSerialize["handoff_execution"] = o.HandoffExecution
+	}
+	toSerialize["inputs"] = o.Inputs
+	if !IsNil(o.Instructions) {
+		toSerialize["instructions"] = o.Instructions
+	}
+	if !IsNil(o.Metadata) {
+		toSerialize["metadata"] = o.Metadata
+	}
 	if !IsNil(o.Model) {
 		toSerialize["model"] = o.Model
+	}
+	if !IsNil(o.Name) {
+		toSerialize["name"] = o.Name
+	}
+	if !IsNil(o.Store) {
+		toSerialize["store"] = o.Store
+	}
+	if !IsNil(o.Stream) {
+		toSerialize["stream"] = o.Stream
+	}
+	if !IsNil(o.Tools) {
+		toSerialize["tools"] = o.Tools
 	}
 
 	for key, value := range o.AdditionalProperties {
@@ -549,10 +585,10 @@ func (o *ConversationStreamRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -571,19 +607,20 @@ func (o *ConversationStreamRequest) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "inputs")
-		delete(additionalProperties, "stream")
-		delete(additionalProperties, "store")
-		delete(additionalProperties, "handoff_execution")
-		delete(additionalProperties, "instructions")
-		delete(additionalProperties, "tools")
-		delete(additionalProperties, "completion_args")
-		delete(additionalProperties, "name")
-		delete(additionalProperties, "description")
-		delete(additionalProperties, "metadata")
 		delete(additionalProperties, "agent_id")
 		delete(additionalProperties, "agent_version")
+		delete(additionalProperties, "completion_args")
+		delete(additionalProperties, "description")
+		delete(additionalProperties, "guardrails")
+		delete(additionalProperties, "handoff_execution")
+		delete(additionalProperties, "inputs")
+		delete(additionalProperties, "instructions")
+		delete(additionalProperties, "metadata")
 		delete(additionalProperties, "model")
+		delete(additionalProperties, "name")
+		delete(additionalProperties, "store")
+		delete(additionalProperties, "stream")
+		delete(additionalProperties, "tools")
 		o.AdditionalProperties = additionalProperties
 	}
 

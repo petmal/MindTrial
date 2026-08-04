@@ -22,6 +22,7 @@ type ModelOutput struct {
 	CustomToolCall      *CustomToolCall
 	FileSearchCall      *FileSearchCall
 	FunctionToolCall    *FunctionToolCall
+	ImageGenerationCall *ImageGenerationCall
 	McpCall             *McpCall
 	OutputMessage       *OutputMessage
 	Reasoning           *Reasoning
@@ -54,6 +55,13 @@ func FileSearchCallAsModelOutput(v *FileSearchCall) ModelOutput {
 func FunctionToolCallAsModelOutput(v *FunctionToolCall) ModelOutput {
 	return ModelOutput{
 		FunctionToolCall: v,
+	}
+}
+
+// ImageGenerationCallAsModelOutput is a convenience function that returns ImageGenerationCall wrapped in ModelOutput
+func ImageGenerationCallAsModelOutput(v *ImageGenerationCall) ModelOutput {
+	return ModelOutput{
+		ImageGenerationCall: v,
 	}
 }
 
@@ -164,6 +172,23 @@ func (dst *ModelOutput) UnmarshalJSON(data []byte) error {
 		dst.FunctionToolCall = nil
 	}
 
+	// try to unmarshal data into ImageGenerationCall
+	err = newStrictDecoder(data).Decode(&dst.ImageGenerationCall)
+	if err == nil {
+		jsonImageGenerationCall, _ := json.Marshal(dst.ImageGenerationCall)
+		if string(jsonImageGenerationCall) == "{}" { // empty struct
+			dst.ImageGenerationCall = nil
+		} else {
+			if err = validator.Validate(dst.ImageGenerationCall); err != nil {
+				dst.ImageGenerationCall = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.ImageGenerationCall = nil
+	}
+
 	// try to unmarshal data into McpCall
 	err = newStrictDecoder(data).Decode(&dst.McpCall)
 	if err == nil {
@@ -255,6 +280,7 @@ func (dst *ModelOutput) UnmarshalJSON(data []byte) error {
 		dst.CustomToolCall = nil
 		dst.FileSearchCall = nil
 		dst.FunctionToolCall = nil
+		dst.ImageGenerationCall = nil
 		dst.McpCall = nil
 		dst.OutputMessage = nil
 		dst.Reasoning = nil
@@ -265,7 +291,12 @@ func (dst *ModelOutput) UnmarshalJSON(data []byte) error {
 	} else if match == 1 {
 		return nil // exactly one match
 	} else { // no match
-		return fmt.Errorf("data failed to match schemas in oneOf(ModelOutput)")
+		if err != nil {
+			return fmt.Errorf("data failed to match schemas in oneOf(ModelOutput): %v", err)
+		} else {
+			return fmt.Errorf("data failed to match schemas in oneOf(ModelOutput)")
+		}
+
 	}
 }
 
@@ -285,6 +316,10 @@ func (src ModelOutput) MarshalJSON() ([]byte, error) {
 
 	if src.FunctionToolCall != nil {
 		return json.Marshal(&src.FunctionToolCall)
+	}
+
+	if src.ImageGenerationCall != nil {
+		return json.Marshal(&src.ImageGenerationCall)
 	}
 
 	if src.McpCall != nil {
@@ -331,6 +366,10 @@ func (obj *ModelOutput) GetActualInstance() interface{} {
 		return obj.FunctionToolCall
 	}
 
+	if obj.ImageGenerationCall != nil {
+		return obj.ImageGenerationCall
+	}
+
 	if obj.McpCall != nil {
 		return obj.McpCall
 	}
@@ -371,6 +410,10 @@ func (obj ModelOutput) GetActualInstanceValue() interface{} {
 
 	if obj.FunctionToolCall != nil {
 		return *obj.FunctionToolCall
+	}
+
+	if obj.ImageGenerationCall != nil {
+		return *obj.ImageGenerationCall
 	}
 
 	if obj.McpCall != nil {

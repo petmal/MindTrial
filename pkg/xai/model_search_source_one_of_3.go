@@ -21,8 +21,8 @@ var _ MappedNullable = &SearchSourceOneOf3{}
 // SearchSourceOneOf3 struct for SearchSourceOneOf3
 type SearchSourceOneOf3 struct {
 	// Links of the RSS feeds.
-	Links                []string `json:"links"`
-	Type                 string   `json:"type"`
+	Links []string `json:"links"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -96,7 +96,7 @@ func (o *SearchSourceOneOf3) SetType(v string) {
 }
 
 func (o SearchSourceOneOf3) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -129,10 +129,10 @@ func (o *SearchSourceOneOf3) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

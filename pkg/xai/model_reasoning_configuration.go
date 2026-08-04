@@ -24,7 +24,7 @@ type ReasoningConfiguration struct {
 	// Only included for compatibility.
 	GenerateSummary NullableString `json:"generate_summary,omitempty"`
 	// A summary of the model's reasoning process. Possible values are `auto`, `concise` and `detailed`. Only included for compatibility. The model shall always return `detailed`.
-	Summary              NullableString `json:"summary,omitempty"`
+	Summary NullableString `json:"summary,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -83,7 +83,6 @@ func (o *ReasoningConfiguration) HasEffort() bool {
 func (o *ReasoningConfiguration) SetEffort(v string) {
 	o.Effort.Set(&v)
 }
-
 // SetEffortNil sets the value for Effort to be an explicit nil
 func (o *ReasoningConfiguration) SetEffortNil() {
 	o.Effort.Set(nil)
@@ -126,7 +125,6 @@ func (o *ReasoningConfiguration) HasGenerateSummary() bool {
 func (o *ReasoningConfiguration) SetGenerateSummary(v string) {
 	o.GenerateSummary.Set(&v)
 }
-
 // SetGenerateSummaryNil sets the value for GenerateSummary to be an explicit nil
 func (o *ReasoningConfiguration) SetGenerateSummaryNil() {
 	o.GenerateSummary.Set(nil)
@@ -169,7 +167,6 @@ func (o *ReasoningConfiguration) HasSummary() bool {
 func (o *ReasoningConfiguration) SetSummary(v string) {
 	o.Summary.Set(&v)
 }
-
 // SetSummaryNil sets the value for Summary to be an explicit nil
 func (o *ReasoningConfiguration) SetSummaryNil() {
 	o.Summary.Set(nil)
@@ -181,7 +178,7 @@ func (o *ReasoningConfiguration) UnsetSummary() {
 }
 
 func (o ReasoningConfiguration) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

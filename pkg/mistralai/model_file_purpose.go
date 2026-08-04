@@ -21,8 +21,8 @@ type FilePurpose string
 // List of FilePurpose
 const (
 	FILEPURPOSE_FINE_TUNE FilePurpose = "fine-tune"
-	FILEPURPOSE_BATCH     FilePurpose = "batch"
-	FILEPURPOSE_OCR       FilePurpose = "ocr"
+	FILEPURPOSE_BATCH FilePurpose = "batch"
+	FILEPURPOSE_OCR FilePurpose = "ocr"
 )
 
 // All allowed values of FilePurpose enum

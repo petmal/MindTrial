@@ -20,8 +20,8 @@ type RequestSource string
 
 // List of RequestSource
 const (
-	REQUESTSOURCE_API              RequestSource = "api"
-	REQUESTSOURCE_PLAYGROUND       RequestSource = "playground"
+	REQUESTSOURCE_API RequestSource = "api"
+	REQUESTSOURCE_PLAYGROUND RequestSource = "playground"
 	REQUESTSOURCE_AGENT_BUILDER_V1 RequestSource = "agent_builder_v1"
 )
 

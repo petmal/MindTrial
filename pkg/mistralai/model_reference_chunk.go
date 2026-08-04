@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,8 +21,8 @@ var _ MappedNullable = &ReferenceChunk{}
 
 // ReferenceChunk struct for ReferenceChunk
 type ReferenceChunk struct {
-	ReferenceIds []int32 `json:"reference_ids"`
-	Type         *string `json:"type,omitempty"`
+	ReferenceIds []ReferenceIdsInner `json:"reference_ids"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _ReferenceChunk ReferenceChunk
@@ -31,7 +31,7 @@ type _ReferenceChunk ReferenceChunk
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewReferenceChunk(referenceIds []int32) *ReferenceChunk {
+func NewReferenceChunk(referenceIds []ReferenceIdsInner) *ReferenceChunk {
 	this := ReferenceChunk{}
 	this.ReferenceIds = referenceIds
 	var type_ string = "reference"
@@ -50,9 +50,9 @@ func NewReferenceChunkWithDefaults() *ReferenceChunk {
 }
 
 // GetReferenceIds returns the ReferenceIds field value
-func (o *ReferenceChunk) GetReferenceIds() []int32 {
+func (o *ReferenceChunk) GetReferenceIds() []ReferenceIdsInner {
 	if o == nil {
-		var ret []int32
+		var ret []ReferenceIdsInner
 		return ret
 	}
 
@@ -61,7 +61,7 @@ func (o *ReferenceChunk) GetReferenceIds() []int32 {
 
 // GetReferenceIdsOk returns a tuple with the ReferenceIds field value
 // and a boolean to check if the value has been set.
-func (o *ReferenceChunk) GetReferenceIdsOk() ([]int32, bool) {
+func (o *ReferenceChunk) GetReferenceIdsOk() ([]ReferenceIdsInner, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -69,7 +69,7 @@ func (o *ReferenceChunk) GetReferenceIdsOk() ([]int32, bool) {
 }
 
 // SetReferenceIds sets field value
-func (o *ReferenceChunk) SetReferenceIds(v []int32) {
+func (o *ReferenceChunk) SetReferenceIds(v []ReferenceIdsInner) {
 	o.ReferenceIds = v
 }
 
@@ -106,7 +106,7 @@ func (o *ReferenceChunk) SetType(v string) {
 }
 
 func (o ReferenceChunk) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -135,10 +135,10 @@ func (o *ReferenceChunk) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

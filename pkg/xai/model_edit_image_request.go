@@ -39,7 +39,7 @@ type EditImageRequest struct {
 	// Optional output storage configuration. When present, the generated image(s) are stored in the Files API and a `file_output` reference is returned in the response alongside the ephemeral URL.
 	StorageOptions NullableStorageOptions `json:"storage_options,omitempty"`
 	// A unique identifier representing your end-user, which can help xAI to monitor and detect abuse.
-	User                 NullableString `json:"user,omitempty"`
+	User NullableString `json:"user,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -99,7 +99,6 @@ func (o *EditImageRequest) HasAspectRatio() bool {
 func (o *EditImageRequest) SetAspectRatio(v ImageAspectRatio) {
 	o.AspectRatio.Set(&v)
 }
-
 // SetAspectRatioNil sets the value for AspectRatio to be an explicit nil
 func (o *EditImageRequest) SetAspectRatioNil() {
 	o.AspectRatio.Set(nil)
@@ -142,7 +141,6 @@ func (o *EditImageRequest) HasImage() bool {
 func (o *EditImageRequest) SetImage(v ImageUrl) {
 	o.Image.Set(&v)
 }
-
 // SetImageNil sets the value for Image to be an explicit nil
 func (o *EditImageRequest) SetImageNil() {
 	o.Image.Set(nil)
@@ -217,7 +215,6 @@ func (o *EditImageRequest) HasModel() bool {
 func (o *EditImageRequest) SetModel(v string) {
 	o.Model.Set(&v)
 }
-
 // SetModelNil sets the value for Model to be an explicit nil
 func (o *EditImageRequest) SetModelNil() {
 	o.Model.Set(nil)
@@ -260,7 +257,6 @@ func (o *EditImageRequest) HasN() bool {
 func (o *EditImageRequest) SetN(v int32) {
 	o.N.Set(&v)
 }
-
 // SetNNil sets the value for N to be an explicit nil
 func (o *EditImageRequest) SetNNil() {
 	o.N.Set(nil)
@@ -327,7 +323,6 @@ func (o *EditImageRequest) HasResolution() bool {
 func (o *EditImageRequest) SetResolution(v ImageResolution) {
 	o.Resolution.Set(&v)
 }
-
 // SetResolutionNil sets the value for Resolution to be an explicit nil
 func (o *EditImageRequest) SetResolutionNil() {
 	o.Resolution.Set(nil)
@@ -370,7 +365,6 @@ func (o *EditImageRequest) HasResponseFormat() bool {
 func (o *EditImageRequest) SetResponseFormat(v string) {
 	o.ResponseFormat.Set(&v)
 }
-
 // SetResponseFormatNil sets the value for ResponseFormat to be an explicit nil
 func (o *EditImageRequest) SetResponseFormatNil() {
 	o.ResponseFormat.Set(nil)
@@ -413,7 +407,6 @@ func (o *EditImageRequest) HasStorageOptions() bool {
 func (o *EditImageRequest) SetStorageOptions(v StorageOptions) {
 	o.StorageOptions.Set(&v)
 }
-
 // SetStorageOptionsNil sets the value for StorageOptions to be an explicit nil
 func (o *EditImageRequest) SetStorageOptionsNil() {
 	o.StorageOptions.Set(nil)
@@ -456,7 +449,6 @@ func (o *EditImageRequest) HasUser() bool {
 func (o *EditImageRequest) SetUser(v string) {
 	o.User.Set(&v)
 }
-
 // SetUserNil sets the value for User to be an explicit nil
 func (o *EditImageRequest) SetUserNil() {
 	o.User.Set(nil)
@@ -468,7 +460,7 @@ func (o *EditImageRequest) UnsetUser() {
 }
 
 func (o EditImageRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -526,10 +518,10 @@ func (o *EditImageRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

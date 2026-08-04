@@ -32,7 +32,7 @@ type ImageGenerationModel struct {
 	ImagePrice int64 `json:"image_price"`
 	// The input modalities supported by the model.
 	InputModalities []string `json:"input_modalities"`
-	MaxPromptLength int64    `json:"max_prompt_length"`
+	MaxPromptLength int64 `json:"max_prompt_length"`
 	// The object type, which is always `\"model\"`.
 	Object string `json:"object"`
 	// The output modalities supported by the model.
@@ -40,7 +40,7 @@ type ImageGenerationModel struct {
 	// Owner of the model.
 	OwnedBy string `json:"owned_by"`
 	// Version of the model.
-	Version              string `json:"version"`
+	Version string `json:"version"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -339,7 +339,7 @@ func (o *ImageGenerationModel) SetVersion(v string) {
 }
 
 func (o ImageGenerationModel) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -390,10 +390,10 @@ func (o *ImageGenerationModel) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

@@ -25,7 +25,7 @@ type TopLogProb struct {
 	// The log probability of returning this token.
 	Logprob float32 `json:"logprob"`
 	// The token.
-	Token                string `json:"token"`
+	Token string `json:"token"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -132,7 +132,7 @@ func (o *TopLogProb) SetToken(v string) {
 }
 
 func (o TopLogProb) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -168,10 +168,10 @@ func (o *TopLogProb) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

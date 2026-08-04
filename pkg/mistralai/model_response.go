@@ -13,57 +13,127 @@ package mistralai
 import (
 	"encoding/json"
 	"fmt"
+	"gopkg.in/validator.v2"
 )
 
-// Response struct for Response
+// Response - struct for Response
 type Response struct {
-	LegacyJobMetadataOut *LegacyJobMetadataOut
-	ResponseAnyOf        *ResponseAnyOf
+	ClassifierFineTunedModel *ClassifierFineTunedModel
+	CompletionFineTunedModel *CompletionFineTunedModel
 }
 
-// Unmarshal JSON data into any of the pointers in the struct
+// ClassifierFineTunedModelAsResponse is a convenience function that returns ClassifierFineTunedModel wrapped in Response
+func ClassifierFineTunedModelAsResponse(v *ClassifierFineTunedModel) Response {
+	return Response{
+		ClassifierFineTunedModel: v,
+	}
+}
+
+// CompletionFineTunedModelAsResponse is a convenience function that returns CompletionFineTunedModel wrapped in Response
+func CompletionFineTunedModelAsResponse(v *CompletionFineTunedModel) Response {
+	return Response{
+		CompletionFineTunedModel: v,
+	}
+}
+
+// Unmarshal JSON data into one of the pointers in the struct
 func (dst *Response) UnmarshalJSON(data []byte) error {
 	var err error
-	// try to unmarshal JSON data into LegacyJobMetadataOut
-	err = json.Unmarshal(data, &dst.LegacyJobMetadataOut)
+	match := 0
+	// try to unmarshal data into ClassifierFineTunedModel
+	err = newStrictDecoder(data).Decode(&dst.ClassifierFineTunedModel)
 	if err == nil {
-		jsonLegacyJobMetadataOut, _ := json.Marshal(dst.LegacyJobMetadataOut)
-		if string(jsonLegacyJobMetadataOut) == "{}" { // empty struct
-			dst.LegacyJobMetadataOut = nil
+		jsonClassifierFineTunedModel, _ := json.Marshal(dst.ClassifierFineTunedModel)
+		if string(jsonClassifierFineTunedModel) == "{}" { // empty struct
+			dst.ClassifierFineTunedModel = nil
 		} else {
-			return nil // data stored in dst.LegacyJobMetadataOut, return on the first match
+			if err = validator.Validate(dst.ClassifierFineTunedModel); err != nil {
+				dst.ClassifierFineTunedModel = nil
+			} else {
+				match++
+			}
 		}
 	} else {
-		dst.LegacyJobMetadataOut = nil
+		dst.ClassifierFineTunedModel = nil
 	}
 
-	// try to unmarshal JSON data into ResponseAnyOf
-	err = json.Unmarshal(data, &dst.ResponseAnyOf)
+	// try to unmarshal data into CompletionFineTunedModel
+	err = newStrictDecoder(data).Decode(&dst.CompletionFineTunedModel)
 	if err == nil {
-		jsonResponseAnyOf, _ := json.Marshal(dst.ResponseAnyOf)
-		if string(jsonResponseAnyOf) == "{}" { // empty struct
-			dst.ResponseAnyOf = nil
+		jsonCompletionFineTunedModel, _ := json.Marshal(dst.CompletionFineTunedModel)
+		if string(jsonCompletionFineTunedModel) == "{}" { // empty struct
+			dst.CompletionFineTunedModel = nil
 		} else {
-			return nil // data stored in dst.ResponseAnyOf, return on the first match
+			if err = validator.Validate(dst.CompletionFineTunedModel); err != nil {
+				dst.CompletionFineTunedModel = nil
+			} else {
+				match++
+			}
 		}
 	} else {
-		dst.ResponseAnyOf = nil
+		dst.CompletionFineTunedModel = nil
 	}
 
-	return fmt.Errorf("data failed to match schemas in anyOf(Response)")
+	if match > 1 { // more than 1 match
+		// reset to nil
+		dst.ClassifierFineTunedModel = nil
+		dst.CompletionFineTunedModel = nil
+
+		return fmt.Errorf("data matches more than one schema in oneOf(Response)")
+	} else if match == 1 {
+		return nil // exactly one match
+	} else { // no match
+		if err != nil {
+			return fmt.Errorf("data failed to match schemas in oneOf(Response): %v", err)
+		} else {
+			return fmt.Errorf("data failed to match schemas in oneOf(Response)")
+		}
+
+	}
 }
 
 // Marshal data from the first non-nil pointers in the struct to JSON
 func (src Response) MarshalJSON() ([]byte, error) {
-	if src.LegacyJobMetadataOut != nil {
-		return json.Marshal(&src.LegacyJobMetadataOut)
+	if src.ClassifierFineTunedModel != nil {
+		return json.Marshal(&src.ClassifierFineTunedModel)
 	}
 
-	if src.ResponseAnyOf != nil {
-		return json.Marshal(&src.ResponseAnyOf)
+	if src.CompletionFineTunedModel != nil {
+		return json.Marshal(&src.CompletionFineTunedModel)
 	}
 
-	return nil, nil // no data in anyOf schemas
+	return nil, nil // no data in oneOf schemas
+}
+
+// Get the actual instance
+func (obj *Response) GetActualInstance() interface{} {
+	if obj == nil {
+		return nil
+	}
+	if obj.ClassifierFineTunedModel != nil {
+		return obj.ClassifierFineTunedModel
+	}
+
+	if obj.CompletionFineTunedModel != nil {
+		return obj.CompletionFineTunedModel
+	}
+
+	// all schemas are nil
+	return nil
+}
+
+// Get the actual instance value
+func (obj Response) GetActualInstanceValue() interface{} {
+	if obj.ClassifierFineTunedModel != nil {
+		return *obj.ClassifierFineTunedModel
+	}
+
+	if obj.CompletionFineTunedModel != nil {
+		return *obj.CompletionFineTunedModel
+	}
+
+	// all schemas are nil
+	return nil
 }
 
 type NullableResponse struct {

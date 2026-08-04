@@ -31,7 +31,7 @@ type VideoResponse struct {
 	// Billing and cost information for this request.
 	Usage NullableMediaUsage `json:"usage,omitempty"`
 	// The generated video data. Omitted when status is \"failed\".
-	Video                NullableGeneratedVideo `json:"video,omitempty"`
+	Video NullableGeneratedVideo `json:"video,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -87,7 +87,6 @@ func (o *VideoResponse) HasError() bool {
 func (o *VideoResponse) SetError(v VideoError) {
 	o.Error.Set(&v)
 }
-
 // SetErrorNil sets the value for Error to be an explicit nil
 func (o *VideoResponse) SetErrorNil() {
 	o.Error.Set(nil)
@@ -130,7 +129,6 @@ func (o *VideoResponse) HasModel() bool {
 func (o *VideoResponse) SetModel(v string) {
 	o.Model.Set(&v)
 }
-
 // SetModelNil sets the value for Model to be an explicit nil
 func (o *VideoResponse) SetModelNil() {
 	o.Model.Set(nil)
@@ -173,7 +171,6 @@ func (o *VideoResponse) HasProgress() bool {
 func (o *VideoResponse) SetProgress(v int32) {
 	o.Progress.Set(&v)
 }
-
 // SetProgressNil sets the value for Progress to be an explicit nil
 func (o *VideoResponse) SetProgressNil() {
 	o.Progress.Set(nil)
@@ -240,7 +237,6 @@ func (o *VideoResponse) HasUsage() bool {
 func (o *VideoResponse) SetUsage(v MediaUsage) {
 	o.Usage.Set(&v)
 }
-
 // SetUsageNil sets the value for Usage to be an explicit nil
 func (o *VideoResponse) SetUsageNil() {
 	o.Usage.Set(nil)
@@ -283,7 +279,6 @@ func (o *VideoResponse) HasVideo() bool {
 func (o *VideoResponse) SetVideo(v GeneratedVideo) {
 	o.Video.Set(&v)
 }
-
 // SetVideoNil sets the value for Video to be an explicit nil
 func (o *VideoResponse) SetVideoNil() {
 	o.Video.Set(nil)
@@ -295,7 +290,7 @@ func (o *VideoResponse) UnsetVideo() {
 }
 
 func (o VideoResponse) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -341,10 +336,10 @@ func (o *VideoResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

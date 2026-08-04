@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,15 +21,16 @@ var _ MappedNullable = &EmbeddingRequest{}
 
 // EmbeddingRequest struct for EmbeddingRequest
 type EmbeddingRequest struct {
-	// The ID of the model to be used for embedding.
-	Model           string                 `json:"model"`
-	Metadata        map[string]interface{} `json:"metadata,omitempty"`
-	Input           Input2                 `json:"input"`
-	OutputDimension NullableInt32          `json:"output_dimension,omitempty"`
-	// The data type of the output embeddings when feature available. If not provided, a default output data type will be used.
-	OutputDtype *EmbeddingDtype `json:"output_dtype,omitempty"`
 	// The format of embeddings in the response.
 	EncodingFormat *EncodingFormat `json:"encoding_format,omitempty"`
+	Input Input1 `json:"input"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	// ID of the model to use.
+	Model string `json:"model"`
+	// The dimension of the output embeddings when feature available. If not provided, a default output dimension will be used.
+	OutputDimension NullableInt32 `json:"output_dimension,omitempty"`
+	// The data type of the output embeddings when feature available. If not provided, a default output data type will be used.
+	OutputDtype *EmbeddingDtype `json:"output_dtype,omitempty"`
 }
 
 type _EmbeddingRequest EmbeddingRequest
@@ -38,14 +39,14 @@ type _EmbeddingRequest EmbeddingRequest
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewEmbeddingRequest(model string, input Input2) *EmbeddingRequest {
+func NewEmbeddingRequest(input Input1, model string) *EmbeddingRequest {
 	this := EmbeddingRequest{}
-	this.Model = model
-	this.Input = input
-	var outputDtype EmbeddingDtype = EMBEDDINGDTYPE_FLOAT
-	this.OutputDtype = &outputDtype
 	var encodingFormat EncodingFormat = ENCODINGFORMAT_FLOAT
 	this.EncodingFormat = &encodingFormat
+	this.Input = input
+	this.Model = model
+	var outputDtype EmbeddingDtype = EMBEDDINGDTYPE_FLOAT
+	this.OutputDtype = &outputDtype
 	return &this
 }
 
@@ -54,35 +55,67 @@ func NewEmbeddingRequest(model string, input Input2) *EmbeddingRequest {
 // but it doesn't guarantee that properties required by API are set
 func NewEmbeddingRequestWithDefaults() *EmbeddingRequest {
 	this := EmbeddingRequest{}
-	var outputDtype EmbeddingDtype = EMBEDDINGDTYPE_FLOAT
-	this.OutputDtype = &outputDtype
 	var encodingFormat EncodingFormat = ENCODINGFORMAT_FLOAT
 	this.EncodingFormat = &encodingFormat
+	var outputDtype EmbeddingDtype = EMBEDDINGDTYPE_FLOAT
+	this.OutputDtype = &outputDtype
 	return &this
 }
 
-// GetModel returns the Model field value
-func (o *EmbeddingRequest) GetModel() string {
+// GetEncodingFormat returns the EncodingFormat field value if set, zero value otherwise.
+func (o *EmbeddingRequest) GetEncodingFormat() EncodingFormat {
+	if o == nil || IsNil(o.EncodingFormat) {
+		var ret EncodingFormat
+		return ret
+	}
+	return *o.EncodingFormat
+}
+
+// GetEncodingFormatOk returns a tuple with the EncodingFormat field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *EmbeddingRequest) GetEncodingFormatOk() (*EncodingFormat, bool) {
+	if o == nil || IsNil(o.EncodingFormat) {
+		return nil, false
+	}
+	return o.EncodingFormat, true
+}
+
+// HasEncodingFormat returns a boolean if a field has been set.
+func (o *EmbeddingRequest) HasEncodingFormat() bool {
+	if o != nil && !IsNil(o.EncodingFormat) {
+		return true
+	}
+
+	return false
+}
+
+// SetEncodingFormat gets a reference to the given EncodingFormat and assigns it to the EncodingFormat field.
+func (o *EmbeddingRequest) SetEncodingFormat(v EncodingFormat) {
+	o.EncodingFormat = &v
+}
+
+// GetInput returns the Input field value
+func (o *EmbeddingRequest) GetInput() Input1 {
 	if o == nil {
-		var ret string
+		var ret Input1
 		return ret
 	}
 
-	return o.Model
+	return o.Input
 }
 
-// GetModelOk returns a tuple with the Model field value
+// GetInputOk returns a tuple with the Input field value
 // and a boolean to check if the value has been set.
-func (o *EmbeddingRequest) GetModelOk() (*string, bool) {
+func (o *EmbeddingRequest) GetInputOk() (*Input1, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Model, true
+	return &o.Input, true
 }
 
-// SetModel sets field value
-func (o *EmbeddingRequest) SetModel(v string) {
-	o.Model = v
+// SetInput sets field value
+func (o *EmbeddingRequest) SetInput(v Input1) {
+	o.Input = v
 }
 
 // GetMetadata returns the Metadata field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -118,28 +151,28 @@ func (o *EmbeddingRequest) SetMetadata(v map[string]interface{}) {
 	o.Metadata = v
 }
 
-// GetInput returns the Input field value
-func (o *EmbeddingRequest) GetInput() Input2 {
+// GetModel returns the Model field value
+func (o *EmbeddingRequest) GetModel() string {
 	if o == nil {
-		var ret Input2
+		var ret string
 		return ret
 	}
 
-	return o.Input
+	return o.Model
 }
 
-// GetInputOk returns a tuple with the Input field value
+// GetModelOk returns a tuple with the Model field value
 // and a boolean to check if the value has been set.
-func (o *EmbeddingRequest) GetInputOk() (*Input2, bool) {
+func (o *EmbeddingRequest) GetModelOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Input, true
+	return &o.Model, true
 }
 
-// SetInput sets field value
-func (o *EmbeddingRequest) SetInput(v Input2) {
-	o.Input = v
+// SetModel sets field value
+func (o *EmbeddingRequest) SetModel(v string) {
+	o.Model = v
 }
 
 // GetOutputDimension returns the OutputDimension field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -174,7 +207,6 @@ func (o *EmbeddingRequest) HasOutputDimension() bool {
 func (o *EmbeddingRequest) SetOutputDimension(v int32) {
 	o.OutputDimension.Set(&v)
 }
-
 // SetOutputDimensionNil sets the value for OutputDimension to be an explicit nil
 func (o *EmbeddingRequest) SetOutputDimensionNil() {
 	o.OutputDimension.Set(nil)
@@ -217,40 +249,8 @@ func (o *EmbeddingRequest) SetOutputDtype(v EmbeddingDtype) {
 	o.OutputDtype = &v
 }
 
-// GetEncodingFormat returns the EncodingFormat field value if set, zero value otherwise.
-func (o *EmbeddingRequest) GetEncodingFormat() EncodingFormat {
-	if o == nil || IsNil(o.EncodingFormat) {
-		var ret EncodingFormat
-		return ret
-	}
-	return *o.EncodingFormat
-}
-
-// GetEncodingFormatOk returns a tuple with the EncodingFormat field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *EmbeddingRequest) GetEncodingFormatOk() (*EncodingFormat, bool) {
-	if o == nil || IsNil(o.EncodingFormat) {
-		return nil, false
-	}
-	return o.EncodingFormat, true
-}
-
-// HasEncodingFormat returns a boolean if a field has been set.
-func (o *EmbeddingRequest) HasEncodingFormat() bool {
-	if o != nil && !IsNil(o.EncodingFormat) {
-		return true
-	}
-
-	return false
-}
-
-// SetEncodingFormat gets a reference to the given EncodingFormat and assigns it to the EncodingFormat field.
-func (o *EmbeddingRequest) SetEncodingFormat(v EncodingFormat) {
-	o.EncodingFormat = &v
-}
-
 func (o EmbeddingRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -259,19 +259,19 @@ func (o EmbeddingRequest) MarshalJSON() ([]byte, error) {
 
 func (o EmbeddingRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["model"] = o.Model
+	if !IsNil(o.EncodingFormat) {
+		toSerialize["encoding_format"] = o.EncodingFormat
+	}
+	toSerialize["input"] = o.Input
 	if o.Metadata != nil {
 		toSerialize["metadata"] = o.Metadata
 	}
-	toSerialize["input"] = o.Input
+	toSerialize["model"] = o.Model
 	if o.OutputDimension.IsSet() {
 		toSerialize["output_dimension"] = o.OutputDimension.Get()
 	}
 	if !IsNil(o.OutputDtype) {
 		toSerialize["output_dtype"] = o.OutputDtype
-	}
-	if !IsNil(o.EncodingFormat) {
-		toSerialize["encoding_format"] = o.EncodingFormat
 	}
 	return toSerialize, nil
 }
@@ -281,8 +281,8 @@ func (o *EmbeddingRequest) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"model",
 		"input",
+		"model",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -290,10 +290,10 @@ func (o *EmbeddingRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

@@ -31,7 +31,7 @@ type GetMeResponse struct {
 	// User ID associated with the credentials.
 	UserId string `json:"user_id"`
 	// Zero Data Retention status: `\"no_zdr\"`, `\"zdr\"`, or `\"pii_scrubbing\"`.
-	ZdrStatus            ZdrStatus `json:"zdr_status"`
+	ZdrStatus ZdrStatus `json:"zdr_status"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -90,7 +90,6 @@ func (o *GetMeResponse) HasApiKey() bool {
 func (o *GetMeResponse) SetApiKey(v MeApiKeyInfo) {
 	o.ApiKey.Set(&v)
 }
-
 // SetApiKeyNil sets the value for ApiKey to be an explicit nil
 func (o *GetMeResponse) SetApiKeyNil() {
 	o.ApiKey.Set(nil)
@@ -133,7 +132,6 @@ func (o *GetMeResponse) HasOauth() bool {
 func (o *GetMeResponse) SetOauth(v MeOAuthInfo) {
 	o.Oauth.Set(&v)
 }
-
 // SetOauthNil sets the value for Oauth to be an explicit nil
 func (o *GetMeResponse) SetOauthNil() {
 	o.Oauth.Set(nil)
@@ -241,7 +239,7 @@ func (o *GetMeResponse) SetZdrStatus(v ZdrStatus) {
 }
 
 func (o GetMeResponse) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -284,10 +282,10 @@ func (o *GetMeResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

@@ -9,6 +9,7 @@ package providers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	openai "github.com/openai/openai-go/v3"
@@ -17,6 +18,19 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// mockChatCompletionChoice builds a minimal ChatCompletionChoice fixture for testing
+// CompletionHandler.IsTerminalStopReason implementations.
+func mockChatCompletionChoice(t *testing.T, finishReason string, hasToolCalls bool) openai.ChatCompletionChoice {
+	toolCalls := "[]"
+	if hasToolCalls {
+		toolCalls = `[{"id":"call_1","type":"function","function":{"name":"test_tool","arguments":"{}"}}]`
+	}
+	responseJSON := fmt.Sprintf(`{"finish_reason":%q,"message":{"role":"assistant","tool_calls":%s}}`, finishReason, toolCalls)
+	var choice openai.ChatCompletionChoice
+	require.NoError(t, json.Unmarshal([]byte(responseJSON), &choice))
+	return choice
+}
 
 func TestOpenAICompletions_Run_IncompatibleResponseFormat(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
@@ -125,10 +139,10 @@ func TestDefaultCompletionHandler_ToParam(t *testing.T) {
 	t.Run("terminal stop reasons", func(t *testing.T) {
 		handler := &defaultCompletionHandler{}
 
-		assert.True(t, handler.IsTerminalStopReason("stop"))
-		assert.True(t, handler.IsTerminalStopReason("length"))
-		assert.True(t, handler.IsTerminalStopReason("content_filter"))
-		assert.False(t, handler.IsTerminalStopReason("tool_calls"))
+		assert.True(t, handler.IsTerminalStopReason(mockChatCompletionChoice(t, "stop", false)))
+		assert.True(t, handler.IsTerminalStopReason(mockChatCompletionChoice(t, "length", false)))
+		assert.True(t, handler.IsTerminalStopReason(mockChatCompletionChoice(t, "content_filter", false)))
+		assert.False(t, handler.IsTerminalStopReason(mockChatCompletionChoice(t, "tool_calls", true)))
 	})
 
 	t.Run("accumulates streaming chunks", func(t *testing.T) {
@@ -174,6 +188,33 @@ func TestDefaultCompletionHandler_ToParam(t *testing.T) {
 		// The SDK's ChatCompletionAccumulator drops extra fields during streaming.
 		assert.Empty(t, result.Choices[0].Message.JSON.ExtraFields)
 	})
+}
+
+func TestDefaultCompletionHandler_InputCacheTokens(t *testing.T) {
+	tests := []struct {
+		name      string
+		usageJSON string
+		write     *int64
+		read      *int64
+	}{
+		{name: "omitted", usageJSON: `{"prompt_tokens":10,"completion_tokens":2,"total_tokens":12}`},
+		{name: "details without cache counters", usageJSON: `{"prompt_tokens":10,"completion_tokens":2,"total_tokens":12,"prompt_tokens_details":{"audio_tokens":1}}`},
+		{name: "reported", usageJSON: `{"prompt_tokens":10,"completion_tokens":2,"total_tokens":12,"prompt_tokens_details":{"cached_tokens":4,"cache_write_tokens":3}}`, write: testutils.Ptr(int64(3)), read: testutils.Ptr(int64(4))},
+		{name: "reported zero is not absent", usageJSON: `{"prompt_tokens":10,"completion_tokens":2,"total_tokens":12,"prompt_tokens_details":{"cached_tokens":0,"cache_write_tokens":0}}`, write: testutils.Ptr(int64(0)), read: testutils.Ptr(int64(0))},
+		{name: "explicit null is absent", usageJSON: `{"prompt_tokens":10,"completion_tokens":2,"total_tokens":12,"prompt_tokens_details":{"cached_tokens":null,"cache_write_tokens":null}}`},
+		{name: "read only", usageJSON: `{"prompt_tokens":10,"completion_tokens":2,"total_tokens":12,"prompt_tokens_details":{"cached_tokens":7}}`, read: testutils.Ptr(int64(7))},
+	}
+
+	handler := &defaultCompletionHandler{}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var usage openai.CompletionUsage
+			require.NoError(t, json.Unmarshal([]byte(test.usageJSON), &usage))
+			write, read := handler.InputCacheTokens(usage)
+			require.Equal(t, test.write, write)
+			require.Equal(t, test.read, read)
+		})
+	}
 }
 
 func TestMapImageDetailToOpenAI(t *testing.T) {

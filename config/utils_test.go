@@ -494,7 +494,8 @@ func TestLoadConfigFromFile(t *testing.T) {
                     presence-penalty: 0.1
                     frequency-penalty: 0.2
                     repetition-penalty: 1.1
-                    max-tokens: 2048
+                    max-completion-tokens: 2048
+                    reasoning-effort: xhigh
                     seed: 42
                     parallel-tool-calls: false
                     verbosity: low
@@ -585,6 +586,7 @@ func TestLoadConfigFromFile(t *testing.T) {
                     frequency-penalty: 0.2
                     random-seed: 42
                     prompt-mode: reasoning
+                    reasoning-effort: xhigh
                     safe-prompt: true
                 retry-policy:
                     max-retry-attempts: 3
@@ -619,6 +621,9 @@ func TestLoadConfigFromFile(t *testing.T) {
                     seed: 12345
                     disable-legacy-json-mode: true
                     stream: true
+                    enable-thinking: false
+                    preserve-thinking: true
+                    thinking-budget: 8192
         - name: moonshotai
           client-config:
               api-key: "sk-moonshot-test-key"
@@ -639,6 +644,13 @@ func TestLoadConfigFromFile(t *testing.T) {
                     max-tokens: 32000
                     thinking: enabled
                     preserve-thinking: all
+              - name: "Kimi K3"
+                model: "kimi-k3"
+                model-parameters:
+                    reasoning-effort: max
+                    max-completion-tokens: 65536
+                    response-format: text
+                    stream: true
 `)),
 			},
 			want: &Config{
@@ -686,19 +698,20 @@ func TestLoadConfigFromFile(t *testing.T) {
 									Model:                "openai/gpt-5",
 									MaxRequestsPerMinute: 0,
 									ModelParams: OpenRouterModelParams{
-										ResponseFormat:    testutils.Ptr(ModelResponseFormatJSONObject),
-										Temperature:       testutils.Ptr(float32(0.7)),
-										TopP:              testutils.Ptr(float32(0.95)),
-										TopK:              testutils.Ptr(int32(40)),
-										MinP:              testutils.Ptr(float32(0.05)),
-										TopA:              testutils.Ptr(float32(0.1)),
-										PresencePenalty:   testutils.Ptr(float32(0.1)),
-										FrequencyPenalty:  testutils.Ptr(float32(0.2)),
-										RepetitionPenalty: testutils.Ptr(float32(1.1)),
-										MaxTokens:         testutils.Ptr(int32(2048)),
-										Seed:              testutils.Ptr(int64(42)),
-										ParallelToolCalls: testutils.Ptr(false),
-										Verbosity:         testutils.Ptr("low"),
+										ResponseFormat:      testutils.Ptr(ModelResponseFormatJSONObject),
+										Temperature:         testutils.Ptr(float32(0.7)),
+										TopP:                testutils.Ptr(float32(0.95)),
+										TopK:                testutils.Ptr(int32(40)),
+										MinP:                testutils.Ptr(float32(0.05)),
+										TopA:                testutils.Ptr(float32(0.1)),
+										PresencePenalty:     testutils.Ptr(float32(0.1)),
+										FrequencyPenalty:    testutils.Ptr(float32(0.2)),
+										RepetitionPenalty:   testutils.Ptr(float32(1.1)),
+										MaxCompletionTokens: testutils.Ptr(int32(2048)),
+										ReasoningEffort:     testutils.Ptr("xhigh"),
+										Seed:                testutils.Ptr(int64(42)),
+										ParallelToolCalls:   testutils.Ptr(false),
+										Verbosity:           testutils.Ptr("low"),
 										ServerTools: []ServerToolConfig{
 											{
 												Type: "openrouter:fusion",
@@ -838,6 +851,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 										FrequencyPenalty: testutils.Ptr(float32(0.2)),
 										RandomSeed:       testutils.Ptr(int32(42)),
 										PromptMode:       testutils.Ptr("reasoning"),
+										ReasoningEffort:  testutils.Ptr("xhigh"),
 										SafePrompt:       testutils.Ptr(true),
 									},
 									RetryPolicy: &RetryPolicy{
@@ -885,6 +899,9 @@ func TestLoadConfigFromFile(t *testing.T) {
 									Model:                "qwen-turbo",
 									MaxRequestsPerMinute: 0,
 									ModelParams: AlibabaModelParams{
+										EnableThinking:        testutils.Ptr(false),
+										PreserveThinking:      testutils.Ptr(true),
+										ThinkingBudget:        testutils.Ptr(int32(8192)),
 										Temperature:           testutils.Ptr(float32(0.8)),
 										TopP:                  testutils.Ptr(float32(0.9)),
 										PresencePenalty:       testutils.Ptr(float32(0.1)),
@@ -927,6 +944,17 @@ func TestLoadConfigFromFile(t *testing.T) {
 										MaxTokens:        testutils.Ptr(int32(32000)),
 										Thinking:         testutils.Ptr("enabled"),
 										PreserveThinking: testutils.Ptr("all"),
+									},
+								},
+								{
+									Name:                 "Kimi K3",
+									Model:                "kimi-k3",
+									MaxRequestsPerMinute: 0,
+									ModelParams: MoonshotAIModelParams{
+										ReasoningEffort:     testutils.Ptr("max"),
+										MaxCompletionTokens: testutils.Ptr(int32(65536)),
+										ResponseFormat:      testutils.Ptr(ModelResponseFormatText),
+										Stream:              true,
 									},
 								},
 							},

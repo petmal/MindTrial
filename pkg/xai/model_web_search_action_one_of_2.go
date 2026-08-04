@@ -22,9 +22,9 @@ var _ MappedNullable = &WebSearchActionOneOf2{}
 type WebSearchActionOneOf2 struct {
 	// The pattern or text to search for within the page.
 	Pattern string `json:"pattern"`
-	Type    string `json:"type"`
+	Type string `json:"type"`
 	// The URL of the page being searched within.
-	Url                  string `json:"url"`
+	Url string `json:"url"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -123,7 +123,7 @@ func (o *WebSearchActionOneOf2) SetUrl(v string) {
 }
 
 func (o WebSearchActionOneOf2) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -158,10 +158,10 @@ func (o *WebSearchActionOneOf2) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

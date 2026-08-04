@@ -30,7 +30,7 @@ type EmbeddingRequest struct {
 	// Flag to use the new format of the API.
 	Preview NullableBool `json:"preview,omitempty"`
 	// A unique identifier representing your end-user, which can help xAI to monitor and detect abuse.
-	User                 NullableString `json:"user,omitempty"`
+	User NullableString `json:"user,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -85,7 +85,6 @@ func (o *EmbeddingRequest) HasDimensions() bool {
 func (o *EmbeddingRequest) SetDimensions(v int32) {
 	o.Dimensions.Set(&v)
 }
-
 // SetDimensionsNil sets the value for Dimensions to be an explicit nil
 func (o *EmbeddingRequest) SetDimensionsNil() {
 	o.Dimensions.Set(nil)
@@ -128,7 +127,6 @@ func (o *EmbeddingRequest) HasEncodingFormat() bool {
 func (o *EmbeddingRequest) SetEncodingFormat(v string) {
 	o.EncodingFormat.Set(&v)
 }
-
 // SetEncodingFormatNil sets the value for EncodingFormat to be an explicit nil
 func (o *EmbeddingRequest) SetEncodingFormatNil() {
 	o.EncodingFormat.Set(nil)
@@ -235,7 +233,6 @@ func (o *EmbeddingRequest) HasPreview() bool {
 func (o *EmbeddingRequest) SetPreview(v bool) {
 	o.Preview.Set(&v)
 }
-
 // SetPreviewNil sets the value for Preview to be an explicit nil
 func (o *EmbeddingRequest) SetPreviewNil() {
 	o.Preview.Set(nil)
@@ -278,7 +275,6 @@ func (o *EmbeddingRequest) HasUser() bool {
 func (o *EmbeddingRequest) SetUser(v string) {
 	o.User.Set(&v)
 }
-
 // SetUserNil sets the value for User to be an explicit nil
 func (o *EmbeddingRequest) SetUserNil() {
 	o.User.Set(nil)
@@ -290,7 +286,7 @@ func (o *EmbeddingRequest) UnsetUser() {
 }
 
 func (o EmbeddingRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

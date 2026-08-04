@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,8 +21,8 @@ var _ MappedNullable = &UserMessage{}
 
 // UserMessage struct for UserMessage
 type UserMessage struct {
-	Content NullableContent3 `json:"content"`
-	Role    *string          `json:"role,omitempty"`
+	Content NullableContent `json:"content"`
+	Role *string `json:"role,omitempty"`
 }
 
 type _UserMessage UserMessage
@@ -31,7 +31,7 @@ type _UserMessage UserMessage
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewUserMessage(content NullableContent3) *UserMessage {
+func NewUserMessage(content NullableContent) *UserMessage {
 	this := UserMessage{}
 	this.Content = content
 	var role string = "user"
@@ -50,10 +50,10 @@ func NewUserMessageWithDefaults() *UserMessage {
 }
 
 // GetContent returns the Content field value
-// If the value is explicit nil, the zero value for Content3 will be returned
-func (o *UserMessage) GetContent() Content3 {
+// If the value is explicit nil, the zero value for Content will be returned
+func (o *UserMessage) GetContent() Content {
 	if o == nil || o.Content.Get() == nil {
-		var ret Content3
+		var ret Content
 		return ret
 	}
 
@@ -63,7 +63,7 @@ func (o *UserMessage) GetContent() Content3 {
 // GetContentOk returns a tuple with the Content field value
 // and a boolean to check if the value has been set.
 // NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *UserMessage) GetContentOk() (*Content3, bool) {
+func (o *UserMessage) GetContentOk() (*Content, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -71,7 +71,7 @@ func (o *UserMessage) GetContentOk() (*Content3, bool) {
 }
 
 // SetContent sets field value
-func (o *UserMessage) SetContent(v Content3) {
+func (o *UserMessage) SetContent(v Content) {
 	o.Content.Set(&v)
 }
 
@@ -108,7 +108,7 @@ func (o *UserMessage) SetRole(v string) {
 }
 
 func (o UserMessage) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -137,10 +137,10 @@ func (o *UserMessage) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

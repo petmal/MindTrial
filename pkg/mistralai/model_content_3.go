@@ -15,35 +15,31 @@ import (
 	"fmt"
 )
 
+
 // Content3 struct for Content3
 type Content3 struct {
-	ArrayOfContentChunk *[]ContentChunk
-	String              *string
+	OutputContentChunks *OutputContentChunks
+	String *string
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
 func (dst *Content3) UnmarshalJSON(data []byte) error {
 	var err error
-	// this object is nullable so check if the payload is null or empty string
-	if string(data) == "" || string(data) == "{}" {
-		return nil
-	}
-
-	// try to unmarshal JSON data into ArrayOfContentChunk
-	err = json.Unmarshal(data, &dst.ArrayOfContentChunk)
+	// try to unmarshal JSON data into OutputContentChunks
+	err = json.Unmarshal(data, &dst.OutputContentChunks);
 	if err == nil {
-		jsonArrayOfContentChunk, _ := json.Marshal(dst.ArrayOfContentChunk)
-		if string(jsonArrayOfContentChunk) == "{}" { // empty struct
-			dst.ArrayOfContentChunk = nil
+		jsonOutputContentChunks, _ := json.Marshal(dst.OutputContentChunks)
+		if string(jsonOutputContentChunks) == "{}" { // empty struct
+			dst.OutputContentChunks = nil
 		} else {
-			return nil // data stored in dst.ArrayOfContentChunk, return on the first match
+			return nil // data stored in dst.OutputContentChunks, return on the first match
 		}
 	} else {
-		dst.ArrayOfContentChunk = nil
+		dst.OutputContentChunks = nil
 	}
 
 	// try to unmarshal JSON data into String
-	err = json.Unmarshal(data, &dst.String)
+	err = json.Unmarshal(data, &dst.String);
 	if err == nil {
 		jsonString, _ := json.Marshal(dst.String)
 		if string(jsonString) == "{}" { // empty struct
@@ -60,8 +56,8 @@ func (dst *Content3) UnmarshalJSON(data []byte) error {
 
 // Marshal data from the first non-nil pointers in the struct to JSON
 func (src Content3) MarshalJSON() ([]byte, error) {
-	if src.ArrayOfContentChunk != nil {
-		return json.Marshal(&src.ArrayOfContentChunk)
+	if src.OutputContentChunks != nil {
+		return json.Marshal(&src.OutputContentChunks)
 	}
 
 	if src.String != nil {
@@ -70,6 +66,7 @@ func (src Content3) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
+
 
 type NullableContent3 struct {
 	value *Content3

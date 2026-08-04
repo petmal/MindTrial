@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,12 +21,12 @@ var _ MappedNullable = &ToolReferenceChunk{}
 
 // ToolReferenceChunk struct for ToolReferenceChunk
 type ToolReferenceChunk struct {
-	Type        *string        `json:"type,omitempty"`
-	Tool        Tool1          `json:"tool"`
-	Title       string         `json:"title"`
-	Url         NullableString `json:"url,omitempty"`
-	Favicon     NullableString `json:"favicon,omitempty"`
 	Description NullableString `json:"description,omitempty"`
+	Favicon NullableString `json:"favicon,omitempty"`
+	Title string `json:"title"`
+	Tool Tool1 `json:"tool"`
+	Type *string `json:"type,omitempty"`
+	Url NullableString `json:"url,omitempty"`
 }
 
 type _ToolReferenceChunk ToolReferenceChunk
@@ -35,12 +35,12 @@ type _ToolReferenceChunk ToolReferenceChunk
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewToolReferenceChunk(tool Tool1, title string) *ToolReferenceChunk {
+func NewToolReferenceChunk(title string, tool Tool1) *ToolReferenceChunk {
 	this := ToolReferenceChunk{}
+	this.Title = title
+	this.Tool = tool
 	var type_ string = "tool_reference"
 	this.Type = &type_
-	this.Tool = tool
-	this.Title = title
 	return &this
 }
 
@@ -52,172 +52,6 @@ func NewToolReferenceChunkWithDefaults() *ToolReferenceChunk {
 	var type_ string = "tool_reference"
 	this.Type = &type_
 	return &this
-}
-
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *ToolReferenceChunk) GetType() string {
-	if o == nil || IsNil(o.Type) {
-		var ret string
-		return ret
-	}
-	return *o.Type
-}
-
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ToolReferenceChunk) GetTypeOk() (*string, bool) {
-	if o == nil || IsNil(o.Type) {
-		return nil, false
-	}
-	return o.Type, true
-}
-
-// HasType returns a boolean if a field has been set.
-func (o *ToolReferenceChunk) HasType() bool {
-	if o != nil && !IsNil(o.Type) {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given string and assigns it to the Type field.
-func (o *ToolReferenceChunk) SetType(v string) {
-	o.Type = &v
-}
-
-// GetTool returns the Tool field value
-func (o *ToolReferenceChunk) GetTool() Tool1 {
-	if o == nil {
-		var ret Tool1
-		return ret
-	}
-
-	return o.Tool
-}
-
-// GetToolOk returns a tuple with the Tool field value
-// and a boolean to check if the value has been set.
-func (o *ToolReferenceChunk) GetToolOk() (*Tool1, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Tool, true
-}
-
-// SetTool sets field value
-func (o *ToolReferenceChunk) SetTool(v Tool1) {
-	o.Tool = v
-}
-
-// GetTitle returns the Title field value
-func (o *ToolReferenceChunk) GetTitle() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Title
-}
-
-// GetTitleOk returns a tuple with the Title field value
-// and a boolean to check if the value has been set.
-func (o *ToolReferenceChunk) GetTitleOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Title, true
-}
-
-// SetTitle sets field value
-func (o *ToolReferenceChunk) SetTitle(v string) {
-	o.Title = v
-}
-
-// GetUrl returns the Url field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ToolReferenceChunk) GetUrl() string {
-	if o == nil || IsNil(o.Url.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.Url.Get()
-}
-
-// GetUrlOk returns a tuple with the Url field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ToolReferenceChunk) GetUrlOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Url.Get(), o.Url.IsSet()
-}
-
-// HasUrl returns a boolean if a field has been set.
-func (o *ToolReferenceChunk) HasUrl() bool {
-	if o != nil && o.Url.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetUrl gets a reference to the given NullableString and assigns it to the Url field.
-func (o *ToolReferenceChunk) SetUrl(v string) {
-	o.Url.Set(&v)
-}
-
-// SetUrlNil sets the value for Url to be an explicit nil
-func (o *ToolReferenceChunk) SetUrlNil() {
-	o.Url.Set(nil)
-}
-
-// UnsetUrl ensures that no value is present for Url, not even an explicit nil
-func (o *ToolReferenceChunk) UnsetUrl() {
-	o.Url.Unset()
-}
-
-// GetFavicon returns the Favicon field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ToolReferenceChunk) GetFavicon() string {
-	if o == nil || IsNil(o.Favicon.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.Favicon.Get()
-}
-
-// GetFaviconOk returns a tuple with the Favicon field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ToolReferenceChunk) GetFaviconOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Favicon.Get(), o.Favicon.IsSet()
-}
-
-// HasFavicon returns a boolean if a field has been set.
-func (o *ToolReferenceChunk) HasFavicon() bool {
-	if o != nil && o.Favicon.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetFavicon gets a reference to the given NullableString and assigns it to the Favicon field.
-func (o *ToolReferenceChunk) SetFavicon(v string) {
-	o.Favicon.Set(&v)
-}
-
-// SetFaviconNil sets the value for Favicon to be an explicit nil
-func (o *ToolReferenceChunk) SetFaviconNil() {
-	o.Favicon.Set(nil)
-}
-
-// UnsetFavicon ensures that no value is present for Favicon, not even an explicit nil
-func (o *ToolReferenceChunk) UnsetFavicon() {
-	o.Favicon.Unset()
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -252,7 +86,6 @@ func (o *ToolReferenceChunk) HasDescription() bool {
 func (o *ToolReferenceChunk) SetDescription(v string) {
 	o.Description.Set(&v)
 }
-
 // SetDescriptionNil sets the value for Description to be an explicit nil
 func (o *ToolReferenceChunk) SetDescriptionNil() {
 	o.Description.Set(nil)
@@ -263,8 +96,172 @@ func (o *ToolReferenceChunk) UnsetDescription() {
 	o.Description.Unset()
 }
 
+// GetFavicon returns the Favicon field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ToolReferenceChunk) GetFavicon() string {
+	if o == nil || IsNil(o.Favicon.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Favicon.Get()
+}
+
+// GetFaviconOk returns a tuple with the Favicon field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ToolReferenceChunk) GetFaviconOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Favicon.Get(), o.Favicon.IsSet()
+}
+
+// HasFavicon returns a boolean if a field has been set.
+func (o *ToolReferenceChunk) HasFavicon() bool {
+	if o != nil && o.Favicon.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetFavicon gets a reference to the given NullableString and assigns it to the Favicon field.
+func (o *ToolReferenceChunk) SetFavicon(v string) {
+	o.Favicon.Set(&v)
+}
+// SetFaviconNil sets the value for Favicon to be an explicit nil
+func (o *ToolReferenceChunk) SetFaviconNil() {
+	o.Favicon.Set(nil)
+}
+
+// UnsetFavicon ensures that no value is present for Favicon, not even an explicit nil
+func (o *ToolReferenceChunk) UnsetFavicon() {
+	o.Favicon.Unset()
+}
+
+// GetTitle returns the Title field value
+func (o *ToolReferenceChunk) GetTitle() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Title
+}
+
+// GetTitleOk returns a tuple with the Title field value
+// and a boolean to check if the value has been set.
+func (o *ToolReferenceChunk) GetTitleOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Title, true
+}
+
+// SetTitle sets field value
+func (o *ToolReferenceChunk) SetTitle(v string) {
+	o.Title = v
+}
+
+// GetTool returns the Tool field value
+func (o *ToolReferenceChunk) GetTool() Tool1 {
+	if o == nil {
+		var ret Tool1
+		return ret
+	}
+
+	return o.Tool
+}
+
+// GetToolOk returns a tuple with the Tool field value
+// and a boolean to check if the value has been set.
+func (o *ToolReferenceChunk) GetToolOk() (*Tool1, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Tool, true
+}
+
+// SetTool sets field value
+func (o *ToolReferenceChunk) SetTool(v Tool1) {
+	o.Tool = v
+}
+
+// GetType returns the Type field value if set, zero value otherwise.
+func (o *ToolReferenceChunk) GetType() string {
+	if o == nil || IsNil(o.Type) {
+		var ret string
+		return ret
+	}
+	return *o.Type
+}
+
+// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ToolReferenceChunk) GetTypeOk() (*string, bool) {
+	if o == nil || IsNil(o.Type) {
+		return nil, false
+	}
+	return o.Type, true
+}
+
+// HasType returns a boolean if a field has been set.
+func (o *ToolReferenceChunk) HasType() bool {
+	if o != nil && !IsNil(o.Type) {
+		return true
+	}
+
+	return false
+}
+
+// SetType gets a reference to the given string and assigns it to the Type field.
+func (o *ToolReferenceChunk) SetType(v string) {
+	o.Type = &v
+}
+
+// GetUrl returns the Url field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ToolReferenceChunk) GetUrl() string {
+	if o == nil || IsNil(o.Url.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Url.Get()
+}
+
+// GetUrlOk returns a tuple with the Url field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ToolReferenceChunk) GetUrlOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Url.Get(), o.Url.IsSet()
+}
+
+// HasUrl returns a boolean if a field has been set.
+func (o *ToolReferenceChunk) HasUrl() bool {
+	if o != nil && o.Url.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetUrl gets a reference to the given NullableString and assigns it to the Url field.
+func (o *ToolReferenceChunk) SetUrl(v string) {
+	o.Url.Set(&v)
+}
+// SetUrlNil sets the value for Url to be an explicit nil
+func (o *ToolReferenceChunk) SetUrlNil() {
+	o.Url.Set(nil)
+}
+
+// UnsetUrl ensures that no value is present for Url, not even an explicit nil
+func (o *ToolReferenceChunk) UnsetUrl() {
+	o.Url.Unset()
+}
+
 func (o ToolReferenceChunk) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -273,19 +270,19 @@ func (o ToolReferenceChunk) MarshalJSON() ([]byte, error) {
 
 func (o ToolReferenceChunk) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Type) {
-		toSerialize["type"] = o.Type
-	}
-	toSerialize["tool"] = o.Tool
-	toSerialize["title"] = o.Title
-	if o.Url.IsSet() {
-		toSerialize["url"] = o.Url.Get()
+	if o.Description.IsSet() {
+		toSerialize["description"] = o.Description.Get()
 	}
 	if o.Favicon.IsSet() {
 		toSerialize["favicon"] = o.Favicon.Get()
 	}
-	if o.Description.IsSet() {
-		toSerialize["description"] = o.Description.Get()
+	toSerialize["title"] = o.Title
+	toSerialize["tool"] = o.Tool
+	if !IsNil(o.Type) {
+		toSerialize["type"] = o.Type
+	}
+	if o.Url.IsSet() {
+		toSerialize["url"] = o.Url.Get()
 	}
 	return toSerialize, nil
 }
@@ -295,8 +292,8 @@ func (o *ToolReferenceChunk) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"tool",
 		"title",
+		"tool",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -304,10 +301,10 @@ func (o *ToolReferenceChunk) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

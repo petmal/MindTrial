@@ -31,8 +31,8 @@ type ModelToolOneOf2 struct {
 	// Date from which to consider the results in ISO-8601 YYYY-MM-DD. See <https://en.wikipedia.org/wiki/ISO_8601>.
 	FromDate NullableString `json:"from_date,omitempty"`
 	// Date up to which to consider the results in ISO-8601 YYYY-MM-DD. See <https://en.wikipedia.org/wiki/ISO_8601>.
-	ToDate               NullableString `json:"to_date,omitempty"`
-	Type                 string         `json:"type"`
+	ToDate NullableString `json:"to_date,omitempty"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -121,7 +121,6 @@ func (o *ModelToolOneOf2) HasEnableImageUnderstanding() bool {
 func (o *ModelToolOneOf2) SetEnableImageUnderstanding(v bool) {
 	o.EnableImageUnderstanding.Set(&v)
 }
-
 // SetEnableImageUnderstandingNil sets the value for EnableImageUnderstanding to be an explicit nil
 func (o *ModelToolOneOf2) SetEnableImageUnderstandingNil() {
 	o.EnableImageUnderstanding.Set(nil)
@@ -164,7 +163,6 @@ func (o *ModelToolOneOf2) HasEnableVideoUnderstanding() bool {
 func (o *ModelToolOneOf2) SetEnableVideoUnderstanding(v bool) {
 	o.EnableVideoUnderstanding.Set(&v)
 }
-
 // SetEnableVideoUnderstandingNil sets the value for EnableVideoUnderstanding to be an explicit nil
 func (o *ModelToolOneOf2) SetEnableVideoUnderstandingNil() {
 	o.EnableVideoUnderstanding.Set(nil)
@@ -240,7 +238,6 @@ func (o *ModelToolOneOf2) HasFromDate() bool {
 func (o *ModelToolOneOf2) SetFromDate(v string) {
 	o.FromDate.Set(&v)
 }
-
 // SetFromDateNil sets the value for FromDate to be an explicit nil
 func (o *ModelToolOneOf2) SetFromDateNil() {
 	o.FromDate.Set(nil)
@@ -283,7 +280,6 @@ func (o *ModelToolOneOf2) HasToDate() bool {
 func (o *ModelToolOneOf2) SetToDate(v string) {
 	o.ToDate.Set(&v)
 }
-
 // SetToDateNil sets the value for ToDate to be an explicit nil
 func (o *ModelToolOneOf2) SetToDateNil() {
 	o.ToDate.Set(nil)
@@ -319,7 +315,7 @@ func (o *ModelToolOneOf2) SetType(v string) {
 }
 
 func (o ModelToolOneOf2) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -368,10 +364,10 @@ func (o *ModelToolOneOf2) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

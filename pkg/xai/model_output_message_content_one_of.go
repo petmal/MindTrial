@@ -25,8 +25,8 @@ type OutputMessageContentOneOf struct {
 	// The log probabilities of each output token returned in the content of message.
 	Logprobs []TokenLogProb `json:"logprobs,omitempty"`
 	// The text output from the model.
-	Text                 string `json:"text"`
-	Type                 string `json:"type"`
+	Text string `json:"text"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -164,7 +164,7 @@ func (o *OutputMessageContentOneOf) SetType(v string) {
 }
 
 func (o OutputMessageContentOneOf) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -203,10 +203,10 @@ func (o *OutputMessageContentOneOf) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

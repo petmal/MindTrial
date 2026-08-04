@@ -18,11 +18,17 @@ import (
 // checks if the ModelToolOneOf6 type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &ModelToolOneOf6{}
 
-// ModelToolOneOf6 A local shell execution tool.
+// ModelToolOneOf6 A remote MCP server to use.
 type ModelToolOneOf6 struct {
-	// The environment configuration for the shell tool.
-	Environment          ShellEnvironment `json:"environment"`
-	Type                 string           `json:"type"`
+	AllowedTools []string `json:"allowed_tools,omitempty"`
+	Authorization NullableString `json:"authorization,omitempty"`
+	ConnectorId NullableString `json:"connector_id,omitempty"`
+	Headers map[string]string `json:"headers,omitempty"`
+	RequireApproval NullableString `json:"require_approval,omitempty"`
+	ServerDescription NullableString `json:"server_description,omitempty"`
+	ServerLabel string `json:"server_label"`
+	ServerUrl string `json:"server_url"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -32,9 +38,10 @@ type _ModelToolOneOf6 ModelToolOneOf6
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewModelToolOneOf6(environment ShellEnvironment, type_ string) *ModelToolOneOf6 {
+func NewModelToolOneOf6(serverLabel string, serverUrl string, type_ string) *ModelToolOneOf6 {
 	this := ModelToolOneOf6{}
-	this.Environment = environment
+	this.ServerLabel = serverLabel
+	this.ServerUrl = serverUrl
 	this.Type = type_
 	return &this
 }
@@ -47,28 +54,285 @@ func NewModelToolOneOf6WithDefaults() *ModelToolOneOf6 {
 	return &this
 }
 
-// GetEnvironment returns the Environment field value
-func (o *ModelToolOneOf6) GetEnvironment() ShellEnvironment {
+// GetAllowedTools returns the AllowedTools field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ModelToolOneOf6) GetAllowedTools() []string {
 	if o == nil {
-		var ret ShellEnvironment
+		var ret []string
 		return ret
 	}
-
-	return o.Environment
+	return o.AllowedTools
 }
 
-// GetEnvironmentOk returns a tuple with the Environment field value
+// GetAllowedToolsOk returns a tuple with the AllowedTools field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ModelToolOneOf6) GetEnvironmentOk() (*ShellEnvironment, bool) {
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ModelToolOneOf6) GetAllowedToolsOk() ([]string, bool) {
+	if o == nil || IsNil(o.AllowedTools) {
+		return nil, false
+	}
+	return o.AllowedTools, true
+}
+
+// HasAllowedTools returns a boolean if a field has been set.
+func (o *ModelToolOneOf6) HasAllowedTools() bool {
+	if o != nil && !IsNil(o.AllowedTools) {
+		return true
+	}
+
+	return false
+}
+
+// SetAllowedTools gets a reference to the given []string and assigns it to the AllowedTools field.
+func (o *ModelToolOneOf6) SetAllowedTools(v []string) {
+	o.AllowedTools = v
+}
+
+// GetAuthorization returns the Authorization field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ModelToolOneOf6) GetAuthorization() string {
+	if o == nil || IsNil(o.Authorization.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Authorization.Get()
+}
+
+// GetAuthorizationOk returns a tuple with the Authorization field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ModelToolOneOf6) GetAuthorizationOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Environment, true
+	return o.Authorization.Get(), o.Authorization.IsSet()
 }
 
-// SetEnvironment sets field value
-func (o *ModelToolOneOf6) SetEnvironment(v ShellEnvironment) {
-	o.Environment = v
+// HasAuthorization returns a boolean if a field has been set.
+func (o *ModelToolOneOf6) HasAuthorization() bool {
+	if o != nil && o.Authorization.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetAuthorization gets a reference to the given NullableString and assigns it to the Authorization field.
+func (o *ModelToolOneOf6) SetAuthorization(v string) {
+	o.Authorization.Set(&v)
+}
+// SetAuthorizationNil sets the value for Authorization to be an explicit nil
+func (o *ModelToolOneOf6) SetAuthorizationNil() {
+	o.Authorization.Set(nil)
+}
+
+// UnsetAuthorization ensures that no value is present for Authorization, not even an explicit nil
+func (o *ModelToolOneOf6) UnsetAuthorization() {
+	o.Authorization.Unset()
+}
+
+// GetConnectorId returns the ConnectorId field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ModelToolOneOf6) GetConnectorId() string {
+	if o == nil || IsNil(o.ConnectorId.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.ConnectorId.Get()
+}
+
+// GetConnectorIdOk returns a tuple with the ConnectorId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ModelToolOneOf6) GetConnectorIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ConnectorId.Get(), o.ConnectorId.IsSet()
+}
+
+// HasConnectorId returns a boolean if a field has been set.
+func (o *ModelToolOneOf6) HasConnectorId() bool {
+	if o != nil && o.ConnectorId.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetConnectorId gets a reference to the given NullableString and assigns it to the ConnectorId field.
+func (o *ModelToolOneOf6) SetConnectorId(v string) {
+	o.ConnectorId.Set(&v)
+}
+// SetConnectorIdNil sets the value for ConnectorId to be an explicit nil
+func (o *ModelToolOneOf6) SetConnectorIdNil() {
+	o.ConnectorId.Set(nil)
+}
+
+// UnsetConnectorId ensures that no value is present for ConnectorId, not even an explicit nil
+func (o *ModelToolOneOf6) UnsetConnectorId() {
+	o.ConnectorId.Unset()
+}
+
+// GetHeaders returns the Headers field value if set, zero value otherwise.
+func (o *ModelToolOneOf6) GetHeaders() map[string]string {
+	if o == nil || IsNil(o.Headers) {
+		var ret map[string]string
+		return ret
+	}
+	return o.Headers
+}
+
+// GetHeadersOk returns a tuple with the Headers field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelToolOneOf6) GetHeadersOk() (map[string]string, bool) {
+	if o == nil || IsNil(o.Headers) {
+		return map[string]string{}, false
+	}
+	return o.Headers, true
+}
+
+// HasHeaders returns a boolean if a field has been set.
+func (o *ModelToolOneOf6) HasHeaders() bool {
+	if o != nil && !IsNil(o.Headers) {
+		return true
+	}
+
+	return false
+}
+
+// SetHeaders gets a reference to the given map[string]string and assigns it to the Headers field.
+func (o *ModelToolOneOf6) SetHeaders(v map[string]string) {
+	o.Headers = v
+}
+
+// GetRequireApproval returns the RequireApproval field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ModelToolOneOf6) GetRequireApproval() string {
+	if o == nil || IsNil(o.RequireApproval.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.RequireApproval.Get()
+}
+
+// GetRequireApprovalOk returns a tuple with the RequireApproval field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ModelToolOneOf6) GetRequireApprovalOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.RequireApproval.Get(), o.RequireApproval.IsSet()
+}
+
+// HasRequireApproval returns a boolean if a field has been set.
+func (o *ModelToolOneOf6) HasRequireApproval() bool {
+	if o != nil && o.RequireApproval.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetRequireApproval gets a reference to the given NullableString and assigns it to the RequireApproval field.
+func (o *ModelToolOneOf6) SetRequireApproval(v string) {
+	o.RequireApproval.Set(&v)
+}
+// SetRequireApprovalNil sets the value for RequireApproval to be an explicit nil
+func (o *ModelToolOneOf6) SetRequireApprovalNil() {
+	o.RequireApproval.Set(nil)
+}
+
+// UnsetRequireApproval ensures that no value is present for RequireApproval, not even an explicit nil
+func (o *ModelToolOneOf6) UnsetRequireApproval() {
+	o.RequireApproval.Unset()
+}
+
+// GetServerDescription returns the ServerDescription field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ModelToolOneOf6) GetServerDescription() string {
+	if o == nil || IsNil(o.ServerDescription.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.ServerDescription.Get()
+}
+
+// GetServerDescriptionOk returns a tuple with the ServerDescription field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ModelToolOneOf6) GetServerDescriptionOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ServerDescription.Get(), o.ServerDescription.IsSet()
+}
+
+// HasServerDescription returns a boolean if a field has been set.
+func (o *ModelToolOneOf6) HasServerDescription() bool {
+	if o != nil && o.ServerDescription.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetServerDescription gets a reference to the given NullableString and assigns it to the ServerDescription field.
+func (o *ModelToolOneOf6) SetServerDescription(v string) {
+	o.ServerDescription.Set(&v)
+}
+// SetServerDescriptionNil sets the value for ServerDescription to be an explicit nil
+func (o *ModelToolOneOf6) SetServerDescriptionNil() {
+	o.ServerDescription.Set(nil)
+}
+
+// UnsetServerDescription ensures that no value is present for ServerDescription, not even an explicit nil
+func (o *ModelToolOneOf6) UnsetServerDescription() {
+	o.ServerDescription.Unset()
+}
+
+// GetServerLabel returns the ServerLabel field value
+func (o *ModelToolOneOf6) GetServerLabel() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.ServerLabel
+}
+
+// GetServerLabelOk returns a tuple with the ServerLabel field value
+// and a boolean to check if the value has been set.
+func (o *ModelToolOneOf6) GetServerLabelOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.ServerLabel, true
+}
+
+// SetServerLabel sets field value
+func (o *ModelToolOneOf6) SetServerLabel(v string) {
+	o.ServerLabel = v
+}
+
+// GetServerUrl returns the ServerUrl field value
+func (o *ModelToolOneOf6) GetServerUrl() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.ServerUrl
+}
+
+// GetServerUrlOk returns a tuple with the ServerUrl field value
+// and a boolean to check if the value has been set.
+func (o *ModelToolOneOf6) GetServerUrlOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.ServerUrl, true
+}
+
+// SetServerUrl sets field value
+func (o *ModelToolOneOf6) SetServerUrl(v string) {
+	o.ServerUrl = v
 }
 
 // GetType returns the Type field value
@@ -96,7 +360,7 @@ func (o *ModelToolOneOf6) SetType(v string) {
 }
 
 func (o ModelToolOneOf6) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -105,7 +369,26 @@ func (o ModelToolOneOf6) MarshalJSON() ([]byte, error) {
 
 func (o ModelToolOneOf6) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["environment"] = o.Environment
+	if o.AllowedTools != nil {
+		toSerialize["allowed_tools"] = o.AllowedTools
+	}
+	if o.Authorization.IsSet() {
+		toSerialize["authorization"] = o.Authorization.Get()
+	}
+	if o.ConnectorId.IsSet() {
+		toSerialize["connector_id"] = o.ConnectorId.Get()
+	}
+	if !IsNil(o.Headers) {
+		toSerialize["headers"] = o.Headers
+	}
+	if o.RequireApproval.IsSet() {
+		toSerialize["require_approval"] = o.RequireApproval.Get()
+	}
+	if o.ServerDescription.IsSet() {
+		toSerialize["server_description"] = o.ServerDescription.Get()
+	}
+	toSerialize["server_label"] = o.ServerLabel
+	toSerialize["server_url"] = o.ServerUrl
 	toSerialize["type"] = o.Type
 
 	for key, value := range o.AdditionalProperties {
@@ -120,7 +403,8 @@ func (o *ModelToolOneOf6) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"environment",
+		"server_label",
+		"server_url",
 		"type",
 	}
 
@@ -129,10 +413,10 @@ func (o *ModelToolOneOf6) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -151,7 +435,14 @@ func (o *ModelToolOneOf6) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
-		delete(additionalProperties, "environment")
+		delete(additionalProperties, "allowed_tools")
+		delete(additionalProperties, "authorization")
+		delete(additionalProperties, "connector_id")
+		delete(additionalProperties, "headers")
+		delete(additionalProperties, "require_approval")
+		delete(additionalProperties, "server_description")
+		delete(additionalProperties, "server_label")
+		delete(additionalProperties, "server_url")
 		delete(additionalProperties, "type")
 		o.AdditionalProperties = additionalProperties
 	}

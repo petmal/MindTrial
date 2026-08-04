@@ -21,9 +21,9 @@ var _ MappedNullable = &SharingDelete{}
 // SharingDelete struct for SharingDelete
 type SharingDelete struct {
 	OrgId NullableString `json:"org_id,omitempty"`
+	ShareWithType EntityType `json:"share_with_type"`
 	// The id of the entity (user, workspace or organization) to share with
-	ShareWithUuid        string     `json:"share_with_uuid"`
-	ShareWithType        EntityType `json:"share_with_type"`
+	ShareWithUuid string `json:"share_with_uuid"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -33,10 +33,10 @@ type _SharingDelete SharingDelete
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewSharingDelete(shareWithUuid string, shareWithType EntityType) *SharingDelete {
+func NewSharingDelete(shareWithType EntityType, shareWithUuid string) *SharingDelete {
 	this := SharingDelete{}
-	this.ShareWithUuid = shareWithUuid
 	this.ShareWithType = shareWithType
+	this.ShareWithUuid = shareWithUuid
 	return &this
 }
 
@@ -80,7 +80,6 @@ func (o *SharingDelete) HasOrgId() bool {
 func (o *SharingDelete) SetOrgId(v string) {
 	o.OrgId.Set(&v)
 }
-
 // SetOrgIdNil sets the value for OrgId to be an explicit nil
 func (o *SharingDelete) SetOrgIdNil() {
 	o.OrgId.Set(nil)
@@ -89,30 +88,6 @@ func (o *SharingDelete) SetOrgIdNil() {
 // UnsetOrgId ensures that no value is present for OrgId, not even an explicit nil
 func (o *SharingDelete) UnsetOrgId() {
 	o.OrgId.Unset()
-}
-
-// GetShareWithUuid returns the ShareWithUuid field value
-func (o *SharingDelete) GetShareWithUuid() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.ShareWithUuid
-}
-
-// GetShareWithUuidOk returns a tuple with the ShareWithUuid field value
-// and a boolean to check if the value has been set.
-func (o *SharingDelete) GetShareWithUuidOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.ShareWithUuid, true
-}
-
-// SetShareWithUuid sets field value
-func (o *SharingDelete) SetShareWithUuid(v string) {
-	o.ShareWithUuid = v
 }
 
 // GetShareWithType returns the ShareWithType field value
@@ -139,8 +114,32 @@ func (o *SharingDelete) SetShareWithType(v EntityType) {
 	o.ShareWithType = v
 }
 
+// GetShareWithUuid returns the ShareWithUuid field value
+func (o *SharingDelete) GetShareWithUuid() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.ShareWithUuid
+}
+
+// GetShareWithUuidOk returns a tuple with the ShareWithUuid field value
+// and a boolean to check if the value has been set.
+func (o *SharingDelete) GetShareWithUuidOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.ShareWithUuid, true
+}
+
+// SetShareWithUuid sets field value
+func (o *SharingDelete) SetShareWithUuid(v string) {
+	o.ShareWithUuid = v
+}
+
 func (o SharingDelete) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -152,8 +151,8 @@ func (o SharingDelete) ToMap() (map[string]interface{}, error) {
 	if o.OrgId.IsSet() {
 		toSerialize["org_id"] = o.OrgId.Get()
 	}
-	toSerialize["share_with_uuid"] = o.ShareWithUuid
 	toSerialize["share_with_type"] = o.ShareWithType
+	toSerialize["share_with_uuid"] = o.ShareWithUuid
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -167,8 +166,8 @@ func (o *SharingDelete) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"share_with_uuid",
 		"share_with_type",
+		"share_with_uuid",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -176,10 +175,10 @@ func (o *SharingDelete) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -199,8 +198,8 @@ func (o *SharingDelete) UnmarshalJSON(data []byte) (err error) {
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
 		delete(additionalProperties, "org_id")
-		delete(additionalProperties, "share_with_uuid")
 		delete(additionalProperties, "share_with_type")
+		delete(additionalProperties, "share_with_uuid")
 		o.AdditionalProperties = additionalProperties
 	}
 

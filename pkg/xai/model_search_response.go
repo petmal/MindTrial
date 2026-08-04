@@ -21,7 +21,7 @@ var _ MappedNullable = &SearchResponse{}
 // SearchResponse SearchResponse defines the response to a search request.
 type SearchResponse struct {
 	// The search matches.
-	Matches              []SearchMatch `json:"matches"`
+	Matches []SearchMatch `json:"matches"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -70,7 +70,7 @@ func (o *SearchResponse) SetMatches(v []SearchMatch) {
 }
 
 func (o SearchResponse) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -101,10 +101,10 @@ func (o *SearchResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

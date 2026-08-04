@@ -20,7 +20,7 @@ type ServiceTier string
 
 // List of ServiceTier
 const (
-	SERVICETIER_DEFAULT  ServiceTier = "default"
+	SERVICETIER_DEFAULT ServiceTier = "default"
 	SERVICETIER_PRIORITY ServiceTier = "priority"
 )
 

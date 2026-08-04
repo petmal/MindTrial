@@ -27,7 +27,7 @@ type ContentPart struct {
 	// Text prompt.
 	Text NullableString `json:"text,omitempty"`
 	// The type of the content part. Can be `text`, `image_url`, `text_file` or `file`.
-	Type                 string `json:"type"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -83,7 +83,6 @@ func (o *ContentPart) HasFile() bool {
 func (o *ContentPart) SetFile(v FileRef) {
 	o.File.Set(&v)
 }
-
 // SetFileNil sets the value for File to be an explicit nil
 func (o *ContentPart) SetFileNil() {
 	o.File.Set(nil)
@@ -126,7 +125,6 @@ func (o *ContentPart) HasImageUrl() bool {
 func (o *ContentPart) SetImageUrl(v ImageUrl) {
 	o.ImageUrl.Set(&v)
 }
-
 // SetImageUrlNil sets the value for ImageUrl to be an explicit nil
 func (o *ContentPart) SetImageUrlNil() {
 	o.ImageUrl.Set(nil)
@@ -169,7 +167,6 @@ func (o *ContentPart) HasText() bool {
 func (o *ContentPart) SetText(v string) {
 	o.Text.Set(&v)
 }
-
 // SetTextNil sets the value for Text to be an explicit nil
 func (o *ContentPart) SetTextNil() {
 	o.Text.Set(nil)
@@ -205,7 +202,7 @@ func (o *ContentPart) SetType(v string) {
 }
 
 func (o ContentPart) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -245,10 +242,10 @@ func (o *ContentPart) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

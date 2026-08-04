@@ -29,7 +29,7 @@ type WebSearchUserLocation struct {
 	// Timezone of the user's location, IANA timezone like America/Chicago, Europe/London, etc.
 	Timezone NullableString `json:"timezone,omitempty"`
 	// Type is always `\"approximate\"`.
-	Type                 string `json:"type"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -85,7 +85,6 @@ func (o *WebSearchUserLocation) HasCity() bool {
 func (o *WebSearchUserLocation) SetCity(v string) {
 	o.City.Set(&v)
 }
-
 // SetCityNil sets the value for City to be an explicit nil
 func (o *WebSearchUserLocation) SetCityNil() {
 	o.City.Set(nil)
@@ -128,7 +127,6 @@ func (o *WebSearchUserLocation) HasCountry() bool {
 func (o *WebSearchUserLocation) SetCountry(v string) {
 	o.Country.Set(&v)
 }
-
 // SetCountryNil sets the value for Country to be an explicit nil
 func (o *WebSearchUserLocation) SetCountryNil() {
 	o.Country.Set(nil)
@@ -171,7 +169,6 @@ func (o *WebSearchUserLocation) HasRegion() bool {
 func (o *WebSearchUserLocation) SetRegion(v string) {
 	o.Region.Set(&v)
 }
-
 // SetRegionNil sets the value for Region to be an explicit nil
 func (o *WebSearchUserLocation) SetRegionNil() {
 	o.Region.Set(nil)
@@ -214,7 +211,6 @@ func (o *WebSearchUserLocation) HasTimezone() bool {
 func (o *WebSearchUserLocation) SetTimezone(v string) {
 	o.Timezone.Set(&v)
 }
-
 // SetTimezoneNil sets the value for Timezone to be an explicit nil
 func (o *WebSearchUserLocation) SetTimezoneNil() {
 	o.Timezone.Set(nil)
@@ -250,7 +246,7 @@ func (o *WebSearchUserLocation) SetType(v string) {
 }
 
 func (o WebSearchUserLocation) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -293,10 +289,10 @@ func (o *WebSearchUserLocation) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

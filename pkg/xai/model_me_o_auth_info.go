@@ -21,7 +21,7 @@ var _ MappedNullable = &MeOAuthInfo{}
 // MeOAuthInfo OAuth token details nested in the `/v1/me` response.
 type MeOAuthInfo struct {
 	// The OAuth client_id of the application.
-	ClientId             string `json:"client_id"`
+	ClientId string `json:"client_id"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -70,7 +70,7 @@ func (o *MeOAuthInfo) SetClientId(v string) {
 }
 
 func (o MeOAuthInfo) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -101,10 +101,10 @@ func (o *MeOAuthInfo) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

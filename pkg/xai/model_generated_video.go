@@ -29,7 +29,7 @@ type GeneratedVideo struct {
 	// Human-readable error when `storage_options` was set but the upload failed. Absent on success or when storage was not requested.
 	StorageError NullableString `json:"storage_error,omitempty"`
 	// A url to the generated video.
-	Url                  NullableString `json:"url,omitempty"`
+	Url NullableString `json:"url,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -110,7 +110,6 @@ func (o *GeneratedVideo) HasFileOutput() bool {
 func (o *GeneratedVideo) SetFileOutput(v FileOutput) {
 	o.FileOutput.Set(&v)
 }
-
 // SetFileOutputNil sets the value for FileOutput to be an explicit nil
 func (o *GeneratedVideo) SetFileOutputNil() {
 	o.FileOutput.Set(nil)
@@ -177,7 +176,6 @@ func (o *GeneratedVideo) HasStorageError() bool {
 func (o *GeneratedVideo) SetStorageError(v string) {
 	o.StorageError.Set(&v)
 }
-
 // SetStorageErrorNil sets the value for StorageError to be an explicit nil
 func (o *GeneratedVideo) SetStorageErrorNil() {
 	o.StorageError.Set(nil)
@@ -220,7 +218,6 @@ func (o *GeneratedVideo) HasUrl() bool {
 func (o *GeneratedVideo) SetUrl(v string) {
 	o.Url.Set(&v)
 }
-
 // SetUrlNil sets the value for Url to be an explicit nil
 func (o *GeneratedVideo) SetUrlNil() {
 	o.Url.Set(nil)
@@ -232,7 +229,7 @@ func (o *GeneratedVideo) UnsetUrl() {
 }
 
 func (o GeneratedVideo) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -274,10 +271,10 @@ func (o *GeneratedVideo) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

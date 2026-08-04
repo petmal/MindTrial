@@ -23,7 +23,7 @@ type ContextDetails struct {
 	// Prompt tokens in the latest context (sourced from `SamplingUsage.context_prompt_tokens`).
 	InputTokens int32 `json:"input_tokens"`
 	// Completion + reasoning tokens in the latest context (sourced from `SamplingUsage.context_output_tokens`).
-	OutputTokens         int32 `json:"output_tokens"`
+	OutputTokens int32 `json:"output_tokens"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -97,7 +97,7 @@ func (o *ContextDetails) SetOutputTokens(v int32) {
 }
 
 func (o ContextDetails) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -130,10 +130,10 @@ func (o *ContextDetails) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

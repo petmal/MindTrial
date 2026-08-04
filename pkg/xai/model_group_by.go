@@ -23,7 +23,7 @@ type GroupBy struct {
 	// Aggregation function per group. Defaults to MinK(k=1, keys=[\"#score\"]).
 	Aggregate NullableGroupByAggregate `json:"aggregate,omitempty"`
 	// Metadata key(s) to group results by (e.g. \"category\", \"department\"). At least one key is required.
-	Keys                 []string `json:"keys"`
+	Keys []string `json:"keys"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -79,7 +79,6 @@ func (o *GroupBy) HasAggregate() bool {
 func (o *GroupBy) SetAggregate(v GroupByAggregate) {
 	o.Aggregate.Set(&v)
 }
-
 // SetAggregateNil sets the value for Aggregate to be an explicit nil
 func (o *GroupBy) SetAggregateNil() {
 	o.Aggregate.Set(nil)
@@ -115,7 +114,7 @@ func (o *GroupBy) SetKeys(v []string) {
 }
 
 func (o GroupBy) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -149,10 +148,10 @@ func (o *GroupBy) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

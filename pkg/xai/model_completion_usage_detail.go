@@ -28,7 +28,7 @@ type CompletionUsageDetail struct {
 	ReasoningTokens int32 `json:"reasoning_tokens"`
 	// The number of tokens in the prediction that did not appear in the completion.
 	RejectedPredictionTokens int32 `json:"rejected_prediction_tokens"`
-	AdditionalProperties     map[string]interface{}
+	AdditionalProperties map[string]interface{}
 }
 
 type _CompletionUsageDetail CompletionUsageDetail
@@ -151,7 +151,7 @@ func (o *CompletionUsageDetail) SetRejectedPredictionTokens(v int32) {
 }
 
 func (o CompletionUsageDetail) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -188,10 +188,10 @@ func (o *CompletionUsageDetail) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

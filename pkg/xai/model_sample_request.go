@@ -54,7 +54,7 @@ type SampleRequest struct {
 	// An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with `top_p` probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. We generally recommend altering this or temperature but not both.
 	TopP NullableFloat32 `json:"top_p,omitempty"`
 	// A unique identifier representing your end-user, which can help xAI to monitor and detect abuse.
-	User                 NullableString `json:"user,omitempty"`
+	User NullableString `json:"user,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -113,7 +113,6 @@ func (o *SampleRequest) HasBestOf() bool {
 func (o *SampleRequest) SetBestOf(v int32) {
 	o.BestOf.Set(&v)
 }
-
 // SetBestOfNil sets the value for BestOf to be an explicit nil
 func (o *SampleRequest) SetBestOfNil() {
 	o.BestOf.Set(nil)
@@ -156,7 +155,6 @@ func (o *SampleRequest) HasEcho() bool {
 func (o *SampleRequest) SetEcho(v bool) {
 	o.Echo.Set(&v)
 }
-
 // SetEchoNil sets the value for Echo to be an explicit nil
 func (o *SampleRequest) SetEchoNil() {
 	o.Echo.Set(nil)
@@ -199,7 +197,6 @@ func (o *SampleRequest) HasFrequencyPenalty() bool {
 func (o *SampleRequest) SetFrequencyPenalty(v float32) {
 	o.FrequencyPenalty.Set(&v)
 }
-
 // SetFrequencyPenaltyNil sets the value for FrequencyPenalty to be an explicit nil
 func (o *SampleRequest) SetFrequencyPenaltyNil() {
 	o.FrequencyPenalty.Set(nil)
@@ -274,7 +271,6 @@ func (o *SampleRequest) HasLogprobs() bool {
 func (o *SampleRequest) SetLogprobs(v bool) {
 	o.Logprobs.Set(&v)
 }
-
 // SetLogprobsNil sets the value for Logprobs to be an explicit nil
 func (o *SampleRequest) SetLogprobsNil() {
 	o.Logprobs.Set(nil)
@@ -317,7 +313,6 @@ func (o *SampleRequest) HasMaxTokens() bool {
 func (o *SampleRequest) SetMaxTokens(v int32) {
 	o.MaxTokens.Set(&v)
 }
-
 // SetMaxTokensNil sets the value for MaxTokens to be an explicit nil
 func (o *SampleRequest) SetMaxTokensNil() {
 	o.MaxTokens.Set(nil)
@@ -392,7 +387,6 @@ func (o *SampleRequest) HasN() bool {
 func (o *SampleRequest) SetN(v int32) {
 	o.N.Set(&v)
 }
-
 // SetNNil sets the value for N to be an explicit nil
 func (o *SampleRequest) SetNNil() {
 	o.N.Set(nil)
@@ -435,7 +429,6 @@ func (o *SampleRequest) HasPresencePenalty() bool {
 func (o *SampleRequest) SetPresencePenalty(v float32) {
 	o.PresencePenalty.Set(&v)
 }
-
 // SetPresencePenaltyNil sets the value for PresencePenalty to be an explicit nil
 func (o *SampleRequest) SetPresencePenaltyNil() {
 	o.PresencePenalty.Set(nil)
@@ -510,7 +503,6 @@ func (o *SampleRequest) HasSeed() bool {
 func (o *SampleRequest) SetSeed(v int32) {
 	o.Seed.Set(&v)
 }
-
 // SetSeedNil sets the value for Seed to be an explicit nil
 func (o *SampleRequest) SetSeedNil() {
 	o.Seed.Set(nil)
@@ -586,7 +578,6 @@ func (o *SampleRequest) HasStream() bool {
 func (o *SampleRequest) SetStream(v bool) {
 	o.Stream.Set(&v)
 }
-
 // SetStreamNil sets the value for Stream to be an explicit nil
 func (o *SampleRequest) SetStreamNil() {
 	o.Stream.Set(nil)
@@ -629,7 +620,6 @@ func (o *SampleRequest) HasStreamOptions() bool {
 func (o *SampleRequest) SetStreamOptions(v StreamOptions) {
 	o.StreamOptions.Set(&v)
 }
-
 // SetStreamOptionsNil sets the value for StreamOptions to be an explicit nil
 func (o *SampleRequest) SetStreamOptionsNil() {
 	o.StreamOptions.Set(nil)
@@ -672,7 +662,6 @@ func (o *SampleRequest) HasSuffix() bool {
 func (o *SampleRequest) SetSuffix(v string) {
 	o.Suffix.Set(&v)
 }
-
 // SetSuffixNil sets the value for Suffix to be an explicit nil
 func (o *SampleRequest) SetSuffixNil() {
 	o.Suffix.Set(nil)
@@ -715,7 +704,6 @@ func (o *SampleRequest) HasTemperature() bool {
 func (o *SampleRequest) SetTemperature(v float32) {
 	o.Temperature.Set(&v)
 }
-
 // SetTemperatureNil sets the value for Temperature to be an explicit nil
 func (o *SampleRequest) SetTemperatureNil() {
 	o.Temperature.Set(nil)
@@ -758,7 +746,6 @@ func (o *SampleRequest) HasTopP() bool {
 func (o *SampleRequest) SetTopP(v float32) {
 	o.TopP.Set(&v)
 }
-
 // SetTopPNil sets the value for TopP to be an explicit nil
 func (o *SampleRequest) SetTopPNil() {
 	o.TopP.Set(nil)
@@ -801,7 +788,6 @@ func (o *SampleRequest) HasUser() bool {
 func (o *SampleRequest) SetUser(v string) {
 	o.User.Set(&v)
 }
-
 // SetUserNil sets the value for User to be an explicit nil
 func (o *SampleRequest) SetUserNil() {
 	o.User.Set(nil)
@@ -813,7 +799,7 @@ func (o *SampleRequest) UnsetUser() {
 }
 
 func (o SampleRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

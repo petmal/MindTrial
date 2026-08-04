@@ -49,10 +49,10 @@ func (o GoogleAI) Name() string {
 }
 
 func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
-	// Create the generation config.
-	generateConfig := &genai.GenerateContentConfig{
-		CandidateCount: 1,
-	}
+	// Create the generation config. CandidateCount is left unset: the API already
+	// defaults to a single candidate, and Gemini 3.x rejects the field outright.
+	// See: https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.5#migration-checklist
+	generateConfig := &genai.GenerateContentConfig{}
 
 	forceTextResponseFormat := cfg.DisableStructuredOutput
 
@@ -233,7 +233,7 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 		// Parse the completion response.
 
 		if resp.UsageMetadata != nil {
-			recordUsage(&resp.UsageMetadata.PromptTokenCount, &resp.UsageMetadata.CandidatesTokenCount, nil, nil, &result.usage)
+			recordUsage(InputTokenAccountingCacheTokensIncluded, &resp.UsageMetadata.PromptTokenCount, &resp.UsageMetadata.CandidatesTokenCount, nil, &resp.UsageMetadata.CachedContentTokenCount, &result.usage)
 		}
 		if len(resp.Candidates) == 0 {
 			return result, ErrNoResponseCandidates

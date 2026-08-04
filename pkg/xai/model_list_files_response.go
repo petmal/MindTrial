@@ -23,7 +23,7 @@ type ListFilesResponse struct {
 	// List of files.
 	Data []File `json:"data"`
 	// Pagination token to use with next request.
-	PaginationToken      NullableString `json:"pagination_token,omitempty"`
+	PaginationToken NullableString `json:"pagination_token,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -103,7 +103,6 @@ func (o *ListFilesResponse) HasPaginationToken() bool {
 func (o *ListFilesResponse) SetPaginationToken(v string) {
 	o.PaginationToken.Set(&v)
 }
-
 // SetPaginationTokenNil sets the value for PaginationToken to be an explicit nil
 func (o *ListFilesResponse) SetPaginationTokenNil() {
 	o.PaginationToken.Set(nil)
@@ -115,7 +114,7 @@ func (o *ListFilesResponse) UnsetPaginationToken() {
 }
 
 func (o ListFilesResponse) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -149,10 +148,10 @@ func (o *ListFilesResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

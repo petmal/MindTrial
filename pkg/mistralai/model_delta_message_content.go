@@ -15,10 +15,11 @@ import (
 	"fmt"
 )
 
+
 // DeltaMessageContent struct for DeltaMessageContent
 type DeltaMessageContent struct {
 	ArrayOfContentChunk *[]ContentChunk
-	String              *string
+	String *string
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
@@ -30,7 +31,7 @@ func (dst *DeltaMessageContent) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into ArrayOfContentChunk
-	err = json.Unmarshal(data, &dst.ArrayOfContentChunk)
+	err = json.Unmarshal(data, &dst.ArrayOfContentChunk);
 	if err == nil {
 		jsonArrayOfContentChunk, _ := json.Marshal(dst.ArrayOfContentChunk)
 		if string(jsonArrayOfContentChunk) == "{}" { // empty struct
@@ -43,7 +44,7 @@ func (dst *DeltaMessageContent) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into String
-	err = json.Unmarshal(data, &dst.String)
+	err = json.Unmarshal(data, &dst.String);
 	if err == nil {
 		jsonString, _ := json.Marshal(dst.String)
 		if string(jsonString) == "{}" { // empty struct
@@ -70,6 +71,7 @@ func (src DeltaMessageContent) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
+
 
 type NullableDeltaMessageContent struct {
 	value *DeltaMessageContent

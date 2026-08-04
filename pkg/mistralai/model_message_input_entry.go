@@ -11,10 +11,10 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"time"
+	"bytes"
+	"fmt"
 )
 
 // checks if the MessageInputEntry type satisfies the MappedNullable interface at compile time
@@ -22,14 +22,14 @@ var _ MappedNullable = &MessageInputEntry{}
 
 // MessageInputEntry Representation of an input message inside the conversation.
 type MessageInputEntry struct {
-	Object      *string      `json:"object,omitempty"`
-	Type        *string      `json:"type,omitempty"`
-	CreatedAt   *time.Time   `json:"created_at,omitempty"`
 	CompletedAt NullableTime `json:"completed_at,omitempty"`
-	Id          *string      `json:"id,omitempty"`
-	Role        string       `json:"role"`
-	Content     Content      `json:"content"`
-	Prefix      *bool        `json:"prefix,omitempty"`
+	Content Content1 `json:"content"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	Id *string `json:"id,omitempty"`
+	Object *string `json:"object,omitempty"`
+	Prefix *bool `json:"prefix,omitempty"`
+	Role string `json:"role"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _MessageInputEntry MessageInputEntry
@@ -38,16 +38,16 @@ type _MessageInputEntry MessageInputEntry
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMessageInputEntry(role string, content Content) *MessageInputEntry {
+func NewMessageInputEntry(content Content1, role string) *MessageInputEntry {
 	this := MessageInputEntry{}
+	this.Content = content
 	var object string = "entry"
 	this.Object = &object
-	var type_ string = "message.input"
-	this.Type = &type_
-	this.Role = role
-	this.Content = content
 	var prefix bool = false
 	this.Prefix = &prefix
+	this.Role = role
+	var type_ string = "message.input"
+	this.Type = &type_
 	return &this
 }
 
@@ -58,107 +58,11 @@ func NewMessageInputEntryWithDefaults() *MessageInputEntry {
 	this := MessageInputEntry{}
 	var object string = "entry"
 	this.Object = &object
-	var type_ string = "message.input"
-	this.Type = &type_
 	var prefix bool = false
 	this.Prefix = &prefix
+	var type_ string = "message.input"
+	this.Type = &type_
 	return &this
-}
-
-// GetObject returns the Object field value if set, zero value otherwise.
-func (o *MessageInputEntry) GetObject() string {
-	if o == nil || IsNil(o.Object) {
-		var ret string
-		return ret
-	}
-	return *o.Object
-}
-
-// GetObjectOk returns a tuple with the Object field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *MessageInputEntry) GetObjectOk() (*string, bool) {
-	if o == nil || IsNil(o.Object) {
-		return nil, false
-	}
-	return o.Object, true
-}
-
-// HasObject returns a boolean if a field has been set.
-func (o *MessageInputEntry) HasObject() bool {
-	if o != nil && !IsNil(o.Object) {
-		return true
-	}
-
-	return false
-}
-
-// SetObject gets a reference to the given string and assigns it to the Object field.
-func (o *MessageInputEntry) SetObject(v string) {
-	o.Object = &v
-}
-
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *MessageInputEntry) GetType() string {
-	if o == nil || IsNil(o.Type) {
-		var ret string
-		return ret
-	}
-	return *o.Type
-}
-
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *MessageInputEntry) GetTypeOk() (*string, bool) {
-	if o == nil || IsNil(o.Type) {
-		return nil, false
-	}
-	return o.Type, true
-}
-
-// HasType returns a boolean if a field has been set.
-func (o *MessageInputEntry) HasType() bool {
-	if o != nil && !IsNil(o.Type) {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given string and assigns it to the Type field.
-func (o *MessageInputEntry) SetType(v string) {
-	o.Type = &v
-}
-
-// GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
-func (o *MessageInputEntry) GetCreatedAt() time.Time {
-	if o == nil || IsNil(o.CreatedAt) {
-		var ret time.Time
-		return ret
-	}
-	return *o.CreatedAt
-}
-
-// GetCreatedAtOk returns a tuple with the CreatedAt field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *MessageInputEntry) GetCreatedAtOk() (*time.Time, bool) {
-	if o == nil || IsNil(o.CreatedAt) {
-		return nil, false
-	}
-	return o.CreatedAt, true
-}
-
-// HasCreatedAt returns a boolean if a field has been set.
-func (o *MessageInputEntry) HasCreatedAt() bool {
-	if o != nil && !IsNil(o.CreatedAt) {
-		return true
-	}
-
-	return false
-}
-
-// SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
-func (o *MessageInputEntry) SetCreatedAt(v time.Time) {
-	o.CreatedAt = &v
 }
 
 // GetCompletedAt returns the CompletedAt field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -193,7 +97,6 @@ func (o *MessageInputEntry) HasCompletedAt() bool {
 func (o *MessageInputEntry) SetCompletedAt(v time.Time) {
 	o.CompletedAt.Set(&v)
 }
-
 // SetCompletedAtNil sets the value for CompletedAt to be an explicit nil
 func (o *MessageInputEntry) SetCompletedAtNil() {
 	o.CompletedAt.Set(nil)
@@ -202,6 +105,62 @@ func (o *MessageInputEntry) SetCompletedAtNil() {
 // UnsetCompletedAt ensures that no value is present for CompletedAt, not even an explicit nil
 func (o *MessageInputEntry) UnsetCompletedAt() {
 	o.CompletedAt.Unset()
+}
+
+// GetContent returns the Content field value
+func (o *MessageInputEntry) GetContent() Content1 {
+	if o == nil {
+		var ret Content1
+		return ret
+	}
+
+	return o.Content
+}
+
+// GetContentOk returns a tuple with the Content field value
+// and a boolean to check if the value has been set.
+func (o *MessageInputEntry) GetContentOk() (*Content1, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Content, true
+}
+
+// SetContent sets field value
+func (o *MessageInputEntry) SetContent(v Content1) {
+	o.Content = v
+}
+
+// GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
+func (o *MessageInputEntry) GetCreatedAt() time.Time {
+	if o == nil || IsNil(o.CreatedAt) {
+		var ret time.Time
+		return ret
+	}
+	return *o.CreatedAt
+}
+
+// GetCreatedAtOk returns a tuple with the CreatedAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *MessageInputEntry) GetCreatedAtOk() (*time.Time, bool) {
+	if o == nil || IsNil(o.CreatedAt) {
+		return nil, false
+	}
+	return o.CreatedAt, true
+}
+
+// HasCreatedAt returns a boolean if a field has been set.
+func (o *MessageInputEntry) HasCreatedAt() bool {
+	if o != nil && !IsNil(o.CreatedAt) {
+		return true
+	}
+
+	return false
+}
+
+// SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
+func (o *MessageInputEntry) SetCreatedAt(v time.Time) {
+	o.CreatedAt = &v
 }
 
 // GetId returns the Id field value if set, zero value otherwise.
@@ -236,52 +195,36 @@ func (o *MessageInputEntry) SetId(v string) {
 	o.Id = &v
 }
 
-// GetRole returns the Role field value
-func (o *MessageInputEntry) GetRole() string {
-	if o == nil {
+// GetObject returns the Object field value if set, zero value otherwise.
+func (o *MessageInputEntry) GetObject() string {
+	if o == nil || IsNil(o.Object) {
 		var ret string
 		return ret
 	}
-
-	return o.Role
+	return *o.Object
 }
 
-// GetRoleOk returns a tuple with the Role field value
+// GetObjectOk returns a tuple with the Object field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *MessageInputEntry) GetRoleOk() (*string, bool) {
-	if o == nil {
+func (o *MessageInputEntry) GetObjectOk() (*string, bool) {
+	if o == nil || IsNil(o.Object) {
 		return nil, false
 	}
-	return &o.Role, true
+	return o.Object, true
 }
 
-// SetRole sets field value
-func (o *MessageInputEntry) SetRole(v string) {
-	o.Role = v
-}
-
-// GetContent returns the Content field value
-func (o *MessageInputEntry) GetContent() Content {
-	if o == nil {
-		var ret Content
-		return ret
+// HasObject returns a boolean if a field has been set.
+func (o *MessageInputEntry) HasObject() bool {
+	if o != nil && !IsNil(o.Object) {
+		return true
 	}
 
-	return o.Content
+	return false
 }
 
-// GetContentOk returns a tuple with the Content field value
-// and a boolean to check if the value has been set.
-func (o *MessageInputEntry) GetContentOk() (*Content, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Content, true
-}
-
-// SetContent sets field value
-func (o *MessageInputEntry) SetContent(v Content) {
-	o.Content = v
+// SetObject gets a reference to the given string and assigns it to the Object field.
+func (o *MessageInputEntry) SetObject(v string) {
+	o.Object = &v
 }
 
 // GetPrefix returns the Prefix field value if set, zero value otherwise.
@@ -316,8 +259,64 @@ func (o *MessageInputEntry) SetPrefix(v bool) {
 	o.Prefix = &v
 }
 
+// GetRole returns the Role field value
+func (o *MessageInputEntry) GetRole() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Role
+}
+
+// GetRoleOk returns a tuple with the Role field value
+// and a boolean to check if the value has been set.
+func (o *MessageInputEntry) GetRoleOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Role, true
+}
+
+// SetRole sets field value
+func (o *MessageInputEntry) SetRole(v string) {
+	o.Role = v
+}
+
+// GetType returns the Type field value if set, zero value otherwise.
+func (o *MessageInputEntry) GetType() string {
+	if o == nil || IsNil(o.Type) {
+		var ret string
+		return ret
+	}
+	return *o.Type
+}
+
+// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *MessageInputEntry) GetTypeOk() (*string, bool) {
+	if o == nil || IsNil(o.Type) {
+		return nil, false
+	}
+	return o.Type, true
+}
+
+// HasType returns a boolean if a field has been set.
+func (o *MessageInputEntry) HasType() bool {
+	if o != nil && !IsNil(o.Type) {
+		return true
+	}
+
+	return false
+}
+
+// SetType gets a reference to the given string and assigns it to the Type field.
+func (o *MessageInputEntry) SetType(v string) {
+	o.Type = &v
+}
+
 func (o MessageInputEntry) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -326,25 +325,25 @@ func (o MessageInputEntry) MarshalJSON() ([]byte, error) {
 
 func (o MessageInputEntry) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Object) {
-		toSerialize["object"] = o.Object
-	}
-	if !IsNil(o.Type) {
-		toSerialize["type"] = o.Type
-	}
-	if !IsNil(o.CreatedAt) {
-		toSerialize["created_at"] = o.CreatedAt
-	}
 	if o.CompletedAt.IsSet() {
 		toSerialize["completed_at"] = o.CompletedAt.Get()
+	}
+	toSerialize["content"] = o.Content
+	if !IsNil(o.CreatedAt) {
+		toSerialize["created_at"] = o.CreatedAt
 	}
 	if !IsNil(o.Id) {
 		toSerialize["id"] = o.Id
 	}
-	toSerialize["role"] = o.Role
-	toSerialize["content"] = o.Content
+	if !IsNil(o.Object) {
+		toSerialize["object"] = o.Object
+	}
 	if !IsNil(o.Prefix) {
 		toSerialize["prefix"] = o.Prefix
+	}
+	toSerialize["role"] = o.Role
+	if !IsNil(o.Type) {
+		toSerialize["type"] = o.Type
 	}
 	return toSerialize, nil
 }
@@ -354,8 +353,8 @@ func (o *MessageInputEntry) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"role",
 		"content",
+		"role",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -363,10 +362,10 @@ func (o *MessageInputEntry) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

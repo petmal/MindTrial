@@ -1,7 +1,6 @@
 # MindTrial
 
 [![Build](https://github.com/petmal/mindtrial/actions/workflows/go.yml/badge.svg)](https://github.com/petmal/mindtrial/actions/workflows/go.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/petmal/mindtrial)](https://goreportcard.com/report/github.com/petmal/mindtrial)
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL_2.0-brightgreen.svg)](https://mozilla.org/MPL/2.0/)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/petmal/mindtrial)](https://go.dev/)
 [![Go Reference](https://pkg.go.dev/badge/github.com/petmal/mindtrial.svg)](https://pkg.go.dev/github.com/petmal/mindtrial)
@@ -203,6 +202,8 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **frequency-penalty**: Penalizes token repetition based on frequency in input (range: -2.0 to 2.0, default: 0.0).
 > - **repetition-penalty**: Reduces repetition of tokens from input (range: 0.0 to 2.0, default: 1.0).
 > - **max-tokens**: Sets upper limit on generated tokens (range: 1 or above, limited by model context).
+> - **max-completion-tokens**: Sets the modern upper limit on generated tokens. It cannot be combined with `max-tokens`.
+> - **reasoning-effort**: Controls reasoning depth (values: `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`). It maps to OpenRouter's native top-level `reasoning_effort` field.
 > - **seed**: Enables deterministic sampling when supported.
 > - **parallel-tool-calls**: Enables parallel function calling during tool use (default: true).
 > - **verbosity**: Controls response verbosity (values: `low`, `medium`, `high`, default: `medium`).
@@ -254,6 +255,7 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **frequency-penalty**: Penalizes new tokens based on their frequency in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use less frequent tokens.
 > - **random-seed**: Provides the seed to use for random sampling. If set, requests will generate deterministic results.
 > - **prompt-mode**: When set to "reasoning", instructs the model to reason if supported.
+> - **reasoning-effort**: Controls reasoning depth for current models (values: `none`, `minimal`, `low`, `medium`, `high`, `xhigh`). This is independent of the legacy `prompt-mode`; `high` can increase output-token cost.
 > - **safe-prompt**: Enables content filtering to ensure outputs comply with usage policies.
 >
 > Currently supported parameters for **xAI** models include:
@@ -270,6 +272,9 @@ This file defines the tool's settings and target model configurations evaluated 
 >
 > - **text-response-format**: If `true`, use plain-text response format (less reliable) for compatibility with models that do not support `JSON` (for example, when thinking is enabled on certain Qwen models).
 > - **stream**: If `true`, enables streaming mode for the API response. Some models (e.g. QwQ, QVQ, and Qwen-Omni) require streaming to be enabled. Responses are streamed incrementally and buffered internally before processing.
+> - **enable-thinking**: Enables hybrid thinking on supported Qwen models.
+> - **preserve-thinking**: Preserves `reasoning_content` across tool-call turns. Preserved reasoning is included in later input-token counts and billing.
+> - **thinking-budget**: Optional positive token budget for thinking. This is distinct from `max-tokens`, which limits the complete generated response.
 > - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 2.0, default: 1.0). Lower values produce more focused and deterministic outputs.
 > - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0). Lower values produce more focused outputs.
 > - **max-tokens**: Controls the maximum number of tokens available to the model for generating a response.
@@ -283,6 +288,10 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 1.0, default: 0.0). Higher values make output more random, while lower values make it more focused and deterministic. Moonshot AI recommends 0.6 for `kimi-k2` models and 1.0 for `kimi-k2-thinking` models.
 > - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0, default: 1.0). Lower values produce more focused outputs. Generally, change either this or temperature, but not both at the same time.
 > - **max-tokens**: Controls the maximum number of tokens to generate for the chat completion.
+> - **max-completion-tokens**: Controls the modern maximum number of generated tokens. It cannot be combined with deprecated `max-tokens`.
+> - **reasoning-effort**: Controls Kimi K3 reasoning depth (values: `low`, `high`, `max`).
+> - **response-format**: Selects `json-schema`, `json-object`, or `text`. MindTrial applies `json-object` when this is omitted (unless structured output is disabled). Kimi K3 can use native `json-schema`.
+> - **stream**: Enables streaming and usage accumulation for long-running responses.
 > - **presence-penalty**: Penalizes new tokens based on whether they appear in the text (range: -2.0 to 2.0, default: 0.0). Positive values increase the likelihood of the model discussing new topics.
 > - **frequency-penalty**: Penalizes new tokens based on their existing frequency in the text (range: -2.0 to 2.0, default: 0.0). Positive values reduce the likelihood of the model repeating the same phrases verbatim.
 > - **thinking**: Toggles the reasoning (thinking) capability for thinking-capable models such as `kimi-k2.6`. Accepted values are `enabled` (default for `kimi-k2.6`) and `disabled`. Older Kimi models that do not support this parameter should omit it.
@@ -476,6 +485,12 @@ config:
           retry-policy:
             max-retry-attempts: 5
             initial-delay-seconds: 30
+        - name: "Mistral Medium 3.5 - latest (high reasoning)"
+          model: "mistral-medium-3-5"
+          max-requests-per-minute: 5
+          model-parameters:
+            max-tokens: 65536
+            reasoning-effort: "high"
     - name: alibaba
       client-config:
         api-key: "<your-api-key>"
@@ -506,6 +521,14 @@ config:
           max-requests-per-minute: 30
           model-parameters:
             stream: true  # Required for QvQ models
+        - name: "Qwen3.7 Plus - latest (thinking)"
+          model: "qwen3.7-plus"
+          max-requests-per-minute: 30
+          model-parameters:
+            enable-thinking: true
+            preserve-thinking: true
+            max-tokens: 65536
+            stream: true
     - name: moonshotai
       client-config:
         api-key: "<your-api-key>"
@@ -524,6 +547,14 @@ config:
             max-tokens: 32000
             thinking: enabled     # default for kimi-k2.6; "disabled" turns off reasoning
             preserve-thinking: all  # preserve chain-of-thought across model calls (Preserved Thinking)
+        - name: "Kimi K3 - latest (max reasoning)"
+          model: "kimi-k3"
+          max-requests-per-minute: 3
+          model-parameters:
+            reasoning-effort: "max"
+            max-completion-tokens: 65536
+            response-format: "json-schema"
+            stream: true
 ```
 
 ### tasks.yaml

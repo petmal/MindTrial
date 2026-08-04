@@ -23,8 +23,8 @@ type WebSearchActionOneOf struct {
 	// The search query.
 	Query string `json:"query"`
 	// The sources used in the search.
-	Sources              []WebSearchSource `json:"sources,omitempty"`
-	Type                 string            `json:"type"`
+	Sources []WebSearchSource `json:"sources,omitempty"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -130,7 +130,7 @@ func (o *WebSearchActionOneOf) SetType(v string) {
 }
 
 func (o WebSearchActionOneOf) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -166,10 +166,10 @@ func (o *WebSearchActionOneOf) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

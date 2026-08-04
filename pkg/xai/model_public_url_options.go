@@ -20,7 +20,7 @@ var _ MappedNullable = &PublicUrlOptions{}
 // PublicUrlOptions Configuration for creating a public URL alongside file storage.
 type PublicUrlOptions struct {
 	// Seconds from now until the public URL expires. Must be between 3600 (1 hour) and 2592000 (30 days).  If omitted and the file has a TTL (`expires_after` on the file), the public URL inherits the file's expiry. If omitted and the file has no TTL, the public URL remains valid indefinitely until the file is deleted or the URL is explicitly revoked via `POST /v1/files/{file_id}/public-url/revoke`.
-	ExpiresAfter         NullableInt64 `json:"expires_after,omitempty"`
+	ExpiresAfter NullableInt64 `json:"expires_after,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -75,7 +75,6 @@ func (o *PublicUrlOptions) HasExpiresAfter() bool {
 func (o *PublicUrlOptions) SetExpiresAfter(v int64) {
 	o.ExpiresAfter.Set(&v)
 }
-
 // SetExpiresAfterNil sets the value for ExpiresAfter to be an explicit nil
 func (o *PublicUrlOptions) SetExpiresAfterNil() {
 	o.ExpiresAfter.Set(nil)
@@ -87,7 +86,7 @@ func (o *PublicUrlOptions) UnsetExpiresAfter() {
 }
 
 func (o PublicUrlOptions) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

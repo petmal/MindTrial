@@ -25,7 +25,7 @@ type FunctionToolCallOutput struct {
 	// The output of the function tool call. Can be a plain string or a list of content items (`input_text`, `input_image`, `input_file`).
 	Output ModelInputContent `json:"output"`
 	// The type of the function tool call, which is always `function_call_output`.
-	Type                 string `json:"type"`
+	Type string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -124,7 +124,7 @@ func (o *FunctionToolCallOutput) SetType(v string) {
 }
 
 func (o FunctionToolCallOutput) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -159,10 +159,10 @@ func (o *FunctionToolCallOutput) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

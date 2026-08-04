@@ -20,7 +20,7 @@ type ResponseFormats string
 
 // List of ResponseFormats
 const (
-	RESPONSEFORMATS_TEXT        ResponseFormats = "text"
+	RESPONSEFORMATS_TEXT ResponseFormats = "text"
 	RESPONSEFORMATS_JSON_OBJECT ResponseFormats = "json_object"
 	RESPONSEFORMATS_JSON_SCHEMA ResponseFormats = "json_schema"
 )

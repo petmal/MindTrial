@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,8 +21,8 @@ var _ MappedNullable = &ChatClassificationRequest{}
 
 // ChatClassificationRequest struct for ChatClassificationRequest
 type ChatClassificationRequest struct {
-	Model string                          `json:"model"`
 	Input ChatClassificationRequestInputs `json:"input"`
+	Model string `json:"model"`
 }
 
 type _ChatClassificationRequest ChatClassificationRequest
@@ -31,10 +31,10 @@ type _ChatClassificationRequest ChatClassificationRequest
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewChatClassificationRequest(model string, input ChatClassificationRequestInputs) *ChatClassificationRequest {
+func NewChatClassificationRequest(input ChatClassificationRequestInputs, model string) *ChatClassificationRequest {
 	this := ChatClassificationRequest{}
-	this.Model = model
 	this.Input = input
+	this.Model = model
 	return &this
 }
 
@@ -44,30 +44,6 @@ func NewChatClassificationRequest(model string, input ChatClassificationRequestI
 func NewChatClassificationRequestWithDefaults() *ChatClassificationRequest {
 	this := ChatClassificationRequest{}
 	return &this
-}
-
-// GetModel returns the Model field value
-func (o *ChatClassificationRequest) GetModel() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Model
-}
-
-// GetModelOk returns a tuple with the Model field value
-// and a boolean to check if the value has been set.
-func (o *ChatClassificationRequest) GetModelOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Model, true
-}
-
-// SetModel sets field value
-func (o *ChatClassificationRequest) SetModel(v string) {
-	o.Model = v
 }
 
 // GetInput returns the Input field value
@@ -94,8 +70,32 @@ func (o *ChatClassificationRequest) SetInput(v ChatClassificationRequestInputs) 
 	o.Input = v
 }
 
+// GetModel returns the Model field value
+func (o *ChatClassificationRequest) GetModel() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Model
+}
+
+// GetModelOk returns a tuple with the Model field value
+// and a boolean to check if the value has been set.
+func (o *ChatClassificationRequest) GetModelOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Model, true
+}
+
+// SetModel sets field value
+func (o *ChatClassificationRequest) SetModel(v string) {
+	o.Model = v
+}
+
 func (o ChatClassificationRequest) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -104,8 +104,8 @@ func (o ChatClassificationRequest) MarshalJSON() ([]byte, error) {
 
 func (o ChatClassificationRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["model"] = o.Model
 	toSerialize["input"] = o.Input
+	toSerialize["model"] = o.Model
 	return toSerialize, nil
 }
 
@@ -114,8 +114,8 @@ func (o *ChatClassificationRequest) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"model",
 		"input",
+		"model",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -123,10 +123,10 @@ func (o *ChatClassificationRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

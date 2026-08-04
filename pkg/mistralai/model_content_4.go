@@ -15,17 +15,18 @@ import (
 	"fmt"
 )
 
+
 // Content4 struct for Content4
 type Content4 struct {
 	ArrayOfSystemMessageContentChunks *[]SystemMessageContentChunks
-	String                            *string
+	String *string
 }
 
 // Unmarshal JSON data into any of the pointers in the struct
 func (dst *Content4) UnmarshalJSON(data []byte) error {
 	var err error
 	// try to unmarshal JSON data into ArrayOfSystemMessageContentChunks
-	err = json.Unmarshal(data, &dst.ArrayOfSystemMessageContentChunks)
+	err = json.Unmarshal(data, &dst.ArrayOfSystemMessageContentChunks);
 	if err == nil {
 		jsonArrayOfSystemMessageContentChunks, _ := json.Marshal(dst.ArrayOfSystemMessageContentChunks)
 		if string(jsonArrayOfSystemMessageContentChunks) == "{}" { // empty struct
@@ -38,7 +39,7 @@ func (dst *Content4) UnmarshalJSON(data []byte) error {
 	}
 
 	// try to unmarshal JSON data into String
-	err = json.Unmarshal(data, &dst.String)
+	err = json.Unmarshal(data, &dst.String);
 	if err == nil {
 		jsonString, _ := json.Marshal(dst.String)
 		if string(jsonString) == "{}" { // empty struct
@@ -65,6 +66,7 @@ func (src Content4) MarshalJSON() ([]byte, error) {
 
 	return nil, nil // no data in anyOf schemas
 }
+
 
 type NullableContent4 struct {
 	value *Content4

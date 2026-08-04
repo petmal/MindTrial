@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,10 +21,12 @@ var _ MappedNullable = &ThinkChunk{}
 
 // ThinkChunk struct for ThinkChunk
 type ThinkChunk struct {
-	Thinking []ThinkingInner `json:"thinking"`
 	// Whether the thinking chunk is closed or not. Currently only used for prefixing.
-	Closed *bool   `json:"closed,omitempty"`
-	Type   *string `json:"type,omitempty"`
+	Closed *bool `json:"closed,omitempty"`
+	// Signature to replay some reasoning blocks across turns.
+	Signature NullableString `json:"signature,omitempty"`
+	Thinking []ThinkingInner `json:"thinking"`
+	Type *string `json:"type,omitempty"`
 }
 
 type _ThinkChunk ThinkChunk
@@ -35,9 +37,9 @@ type _ThinkChunk ThinkChunk
 // will change when the set of required properties is changed
 func NewThinkChunk(thinking []ThinkingInner) *ThinkChunk {
 	this := ThinkChunk{}
-	this.Thinking = thinking
 	var closed bool = true
 	this.Closed = &closed
+	this.Thinking = thinking
 	var type_ string = "thinking"
 	this.Type = &type_
 	return &this
@@ -53,30 +55,6 @@ func NewThinkChunkWithDefaults() *ThinkChunk {
 	var type_ string = "thinking"
 	this.Type = &type_
 	return &this
-}
-
-// GetThinking returns the Thinking field value
-func (o *ThinkChunk) GetThinking() []ThinkingInner {
-	if o == nil {
-		var ret []ThinkingInner
-		return ret
-	}
-
-	return o.Thinking
-}
-
-// GetThinkingOk returns a tuple with the Thinking field value
-// and a boolean to check if the value has been set.
-func (o *ThinkChunk) GetThinkingOk() ([]ThinkingInner, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Thinking, true
-}
-
-// SetThinking sets field value
-func (o *ThinkChunk) SetThinking(v []ThinkingInner) {
-	o.Thinking = v
 }
 
 // GetClosed returns the Closed field value if set, zero value otherwise.
@@ -109,6 +87,72 @@ func (o *ThinkChunk) HasClosed() bool {
 // SetClosed gets a reference to the given bool and assigns it to the Closed field.
 func (o *ThinkChunk) SetClosed(v bool) {
 	o.Closed = &v
+}
+
+// GetSignature returns the Signature field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ThinkChunk) GetSignature() string {
+	if o == nil || IsNil(o.Signature.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Signature.Get()
+}
+
+// GetSignatureOk returns a tuple with the Signature field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ThinkChunk) GetSignatureOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Signature.Get(), o.Signature.IsSet()
+}
+
+// HasSignature returns a boolean if a field has been set.
+func (o *ThinkChunk) HasSignature() bool {
+	if o != nil && o.Signature.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetSignature gets a reference to the given NullableString and assigns it to the Signature field.
+func (o *ThinkChunk) SetSignature(v string) {
+	o.Signature.Set(&v)
+}
+// SetSignatureNil sets the value for Signature to be an explicit nil
+func (o *ThinkChunk) SetSignatureNil() {
+	o.Signature.Set(nil)
+}
+
+// UnsetSignature ensures that no value is present for Signature, not even an explicit nil
+func (o *ThinkChunk) UnsetSignature() {
+	o.Signature.Unset()
+}
+
+// GetThinking returns the Thinking field value
+func (o *ThinkChunk) GetThinking() []ThinkingInner {
+	if o == nil {
+		var ret []ThinkingInner
+		return ret
+	}
+
+	return o.Thinking
+}
+
+// GetThinkingOk returns a tuple with the Thinking field value
+// and a boolean to check if the value has been set.
+func (o *ThinkChunk) GetThinkingOk() ([]ThinkingInner, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Thinking, true
+}
+
+// SetThinking sets field value
+func (o *ThinkChunk) SetThinking(v []ThinkingInner) {
+	o.Thinking = v
 }
 
 // GetType returns the Type field value if set, zero value otherwise.
@@ -144,7 +188,7 @@ func (o *ThinkChunk) SetType(v string) {
 }
 
 func (o ThinkChunk) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -153,10 +197,13 @@ func (o ThinkChunk) MarshalJSON() ([]byte, error) {
 
 func (o ThinkChunk) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["thinking"] = o.Thinking
 	if !IsNil(o.Closed) {
 		toSerialize["closed"] = o.Closed
 	}
+	if o.Signature.IsSet() {
+		toSerialize["signature"] = o.Signature.Get()
+	}
+	toSerialize["thinking"] = o.Thinking
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
 	}
@@ -176,10 +223,10 @@ func (o *ThinkChunk) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

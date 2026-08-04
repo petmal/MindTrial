@@ -11,8 +11,8 @@ API version: 1.0.0
 package mistralai
 
 import (
-	"bytes"
 	"encoding/json"
+	"bytes"
 	"fmt"
 )
 
@@ -21,8 +21,8 @@ var _ MappedNullable = &ImageURLStruct{}
 
 // ImageURLStruct struct for ImageURLStruct
 type ImageURLStruct struct {
-	Url    string         `json:"url"`
-	Detail NullableString `json:"detail,omitempty"`
+	Detail NullableImageDetail `json:"detail,omitempty"`
+	Url string `json:"url"`
 }
 
 type _ImageURLStruct ImageURLStruct
@@ -43,6 +43,48 @@ func NewImageURLStruct(url string) *ImageURLStruct {
 func NewImageURLStructWithDefaults() *ImageURLStruct {
 	this := ImageURLStruct{}
 	return &this
+}
+
+// GetDetail returns the Detail field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ImageURLStruct) GetDetail() ImageDetail {
+	if o == nil || IsNil(o.Detail.Get()) {
+		var ret ImageDetail
+		return ret
+	}
+	return *o.Detail.Get()
+}
+
+// GetDetailOk returns a tuple with the Detail field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ImageURLStruct) GetDetailOk() (*ImageDetail, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Detail.Get(), o.Detail.IsSet()
+}
+
+// HasDetail returns a boolean if a field has been set.
+func (o *ImageURLStruct) HasDetail() bool {
+	if o != nil && o.Detail.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetDetail gets a reference to the given NullableImageDetail and assigns it to the Detail field.
+func (o *ImageURLStruct) SetDetail(v ImageDetail) {
+	o.Detail.Set(&v)
+}
+// SetDetailNil sets the value for Detail to be an explicit nil
+func (o *ImageURLStruct) SetDetailNil() {
+	o.Detail.Set(nil)
+}
+
+// UnsetDetail ensures that no value is present for Detail, not even an explicit nil
+func (o *ImageURLStruct) UnsetDetail() {
+	o.Detail.Unset()
 }
 
 // GetUrl returns the Url field value
@@ -69,51 +111,8 @@ func (o *ImageURLStruct) SetUrl(v string) {
 	o.Url = v
 }
 
-// GetDetail returns the Detail field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *ImageURLStruct) GetDetail() string {
-	if o == nil || IsNil(o.Detail.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.Detail.Get()
-}
-
-// GetDetailOk returns a tuple with the Detail field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *ImageURLStruct) GetDetailOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Detail.Get(), o.Detail.IsSet()
-}
-
-// HasDetail returns a boolean if a field has been set.
-func (o *ImageURLStruct) HasDetail() bool {
-	if o != nil && o.Detail.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetDetail gets a reference to the given NullableString and assigns it to the Detail field.
-func (o *ImageURLStruct) SetDetail(v string) {
-	o.Detail.Set(&v)
-}
-
-// SetDetailNil sets the value for Detail to be an explicit nil
-func (o *ImageURLStruct) SetDetailNil() {
-	o.Detail.Set(nil)
-}
-
-// UnsetDetail ensures that no value is present for Detail, not even an explicit nil
-func (o *ImageURLStruct) UnsetDetail() {
-	o.Detail.Unset()
-}
-
 func (o ImageURLStruct) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -122,10 +121,10 @@ func (o ImageURLStruct) MarshalJSON() ([]byte, error) {
 
 func (o ImageURLStruct) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["url"] = o.Url
 	if o.Detail.IsSet() {
 		toSerialize["detail"] = o.Detail.Get()
 	}
+	toSerialize["url"] = o.Url
 	return toSerialize, nil
 }
 
@@ -142,10 +141,10 @@ func (o *ImageURLStruct) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

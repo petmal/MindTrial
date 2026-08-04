@@ -21,10 +21,13 @@ var _ MappedNullable = &UsageInfo{}
 
 // UsageInfo struct for UsageInfo
 type UsageInfo struct {
-	PromptTokens       int32         `json:"prompt_tokens"`
-	CompletionTokens   int32         `json:"completion_tokens"`
-	TotalTokens        int32         `json:"total_tokens"`
-	PromptAudioSeconds NullableInt32 `json:"prompt_audio_seconds,omitempty"`
+	CompletionTokens    int32                       `json:"completion_tokens"`
+	PromptAudioSeconds  NullableInt32               `json:"prompt_audio_seconds,omitempty"`
+	PromptTokens        int32                       `json:"prompt_tokens"`
+	PromptTokensDetails NullablePromptTokensDetails `json:"prompt_tokens_details,omitempty"`
+	TotalTokens         int32                       `json:"total_tokens"`
+	// ServiceTier is undeclared in the spec but returned by the API; hand-maintained like PromptTokensDetails above.
+	ServiceTier *string `json:"service_tier,omitempty"`
 }
 
 type _UsageInfo UsageInfo
@@ -33,10 +36,10 @@ type _UsageInfo UsageInfo
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewUsageInfo(promptTokens int32, completionTokens int32, totalTokens int32) *UsageInfo {
+func NewUsageInfo(completionTokens int32, promptTokens int32, totalTokens int32) *UsageInfo {
 	this := UsageInfo{}
-	this.PromptTokens = promptTokens
 	this.CompletionTokens = completionTokens
+	this.PromptTokens = promptTokens
 	this.TotalTokens = totalTokens
 	return &this
 }
@@ -46,37 +49,13 @@ func NewUsageInfo(promptTokens int32, completionTokens int32, totalTokens int32)
 // but it doesn't guarantee that properties required by API are set
 func NewUsageInfoWithDefaults() *UsageInfo {
 	this := UsageInfo{}
-	var promptTokens int32 = 0
-	this.PromptTokens = promptTokens
 	var completionTokens int32 = 0
 	this.CompletionTokens = completionTokens
+	var promptTokens int32 = 0
+	this.PromptTokens = promptTokens
 	var totalTokens int32 = 0
 	this.TotalTokens = totalTokens
 	return &this
-}
-
-// GetPromptTokens returns the PromptTokens field value
-func (o *UsageInfo) GetPromptTokens() int32 {
-	if o == nil {
-		var ret int32
-		return ret
-	}
-
-	return o.PromptTokens
-}
-
-// GetPromptTokensOk returns a tuple with the PromptTokens field value
-// and a boolean to check if the value has been set.
-func (o *UsageInfo) GetPromptTokensOk() (*int32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.PromptTokens, true
-}
-
-// SetPromptTokens sets field value
-func (o *UsageInfo) SetPromptTokens(v int32) {
-	o.PromptTokens = v
 }
 
 // GetCompletionTokens returns the CompletionTokens field value
@@ -101,30 +80,6 @@ func (o *UsageInfo) GetCompletionTokensOk() (*int32, bool) {
 // SetCompletionTokens sets field value
 func (o *UsageInfo) SetCompletionTokens(v int32) {
 	o.CompletionTokens = v
-}
-
-// GetTotalTokens returns the TotalTokens field value
-func (o *UsageInfo) GetTotalTokens() int32 {
-	if o == nil {
-		var ret int32
-		return ret
-	}
-
-	return o.TotalTokens
-}
-
-// GetTotalTokensOk returns a tuple with the TotalTokens field value
-// and a boolean to check if the value has been set.
-func (o *UsageInfo) GetTotalTokensOk() (*int32, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.TotalTokens, true
-}
-
-// SetTotalTokens sets field value
-func (o *UsageInfo) SetTotalTokens(v int32) {
-	o.TotalTokens = v
 }
 
 // GetPromptAudioSeconds returns the PromptAudioSeconds field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -170,6 +125,129 @@ func (o *UsageInfo) UnsetPromptAudioSeconds() {
 	o.PromptAudioSeconds.Unset()
 }
 
+// GetPromptTokens returns the PromptTokens field value
+func (o *UsageInfo) GetPromptTokens() int32 {
+	if o == nil {
+		var ret int32
+		return ret
+	}
+
+	return o.PromptTokens
+}
+
+// GetPromptTokensOk returns a tuple with the PromptTokens field value
+// and a boolean to check if the value has been set.
+func (o *UsageInfo) GetPromptTokensOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.PromptTokens, true
+}
+
+// SetPromptTokens sets field value
+func (o *UsageInfo) SetPromptTokens(v int32) {
+	o.PromptTokens = v
+}
+
+// GetPromptTokensDetails returns the PromptTokensDetails field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *UsageInfo) GetPromptTokensDetails() PromptTokensDetails {
+	if o == nil || IsNil(o.PromptTokensDetails.Get()) {
+		var ret PromptTokensDetails
+		return ret
+	}
+	return *o.PromptTokensDetails.Get()
+}
+
+// GetPromptTokensDetailsOk returns a tuple with the PromptTokensDetails field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *UsageInfo) GetPromptTokensDetailsOk() (*PromptTokensDetails, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.PromptTokensDetails.Get(), o.PromptTokensDetails.IsSet()
+}
+
+// HasPromptTokensDetails returns a boolean if a field has been set.
+func (o *UsageInfo) HasPromptTokensDetails() bool {
+	if o != nil && o.PromptTokensDetails.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetPromptTokensDetails gets a reference to the given NullablePromptTokensDetails and assigns it to the PromptTokensDetails field.
+func (o *UsageInfo) SetPromptTokensDetails(v PromptTokensDetails) {
+	o.PromptTokensDetails.Set(&v)
+}
+
+// SetPromptTokensDetailsNil sets the value for PromptTokensDetails to be an explicit nil
+func (o *UsageInfo) SetPromptTokensDetailsNil() {
+	o.PromptTokensDetails.Set(nil)
+}
+
+// UnsetPromptTokensDetails ensures that no value is present for PromptTokensDetails, not even an explicit nil
+func (o *UsageInfo) UnsetPromptTokensDetails() {
+	o.PromptTokensDetails.Unset()
+}
+
+// GetServiceTier returns the ServiceTier field value if set, zero value otherwise.
+func (o *UsageInfo) GetServiceTier() string {
+	if o == nil || IsNil(o.ServiceTier) {
+		var ret string
+		return ret
+	}
+	return *o.ServiceTier
+}
+
+// GetServiceTierOk returns a tuple with the ServiceTier field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *UsageInfo) GetServiceTierOk() (*string, bool) {
+	if o == nil || IsNil(o.ServiceTier) {
+		return nil, false
+	}
+	return o.ServiceTier, true
+}
+
+// HasServiceTier returns a boolean if a field has been set.
+func (o *UsageInfo) HasServiceTier() bool {
+	if o != nil && !IsNil(o.ServiceTier) {
+		return true
+	}
+
+	return false
+}
+
+// SetServiceTier gets a reference to the given string and assigns it to the ServiceTier field.
+func (o *UsageInfo) SetServiceTier(v string) {
+	o.ServiceTier = &v
+}
+
+// GetTotalTokens returns the TotalTokens field value
+func (o *UsageInfo) GetTotalTokens() int32 {
+	if o == nil {
+		var ret int32
+		return ret
+	}
+
+	return o.TotalTokens
+}
+
+// GetTotalTokensOk returns a tuple with the TotalTokens field value
+// and a boolean to check if the value has been set.
+func (o *UsageInfo) GetTotalTokensOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.TotalTokens, true
+}
+
+// SetTotalTokens sets field value
+func (o *UsageInfo) SetTotalTokens(v int32) {
+	o.TotalTokens = v
+}
+
 func (o UsageInfo) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -180,11 +258,17 @@ func (o UsageInfo) MarshalJSON() ([]byte, error) {
 
 func (o UsageInfo) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["prompt_tokens"] = o.PromptTokens
 	toSerialize["completion_tokens"] = o.CompletionTokens
-	toSerialize["total_tokens"] = o.TotalTokens
 	if o.PromptAudioSeconds.IsSet() {
 		toSerialize["prompt_audio_seconds"] = o.PromptAudioSeconds.Get()
+	}
+	toSerialize["prompt_tokens"] = o.PromptTokens
+	if o.PromptTokensDetails.IsSet() {
+		toSerialize["prompt_tokens_details"] = o.PromptTokensDetails.Get()
+	}
+	toSerialize["total_tokens"] = o.TotalTokens
+	if !IsNil(o.ServiceTier) {
+		toSerialize["service_tier"] = o.ServiceTier
 	}
 	return toSerialize, nil
 }
@@ -194,8 +278,8 @@ func (o *UsageInfo) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"prompt_tokens",
 		"completion_tokens",
+		"prompt_tokens",
 		"total_tokens",
 	}
 
@@ -216,6 +300,7 @@ func (o *UsageInfo) UnmarshalJSON(data []byte) (err error) {
 	varUsageInfo := _UsageInfo{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
 	err = decoder.Decode(&varUsageInfo)
 
 	if err != nil {

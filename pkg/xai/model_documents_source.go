@@ -23,7 +23,7 @@ type DocumentsSource struct {
 	// The collection IDs to search in.
 	CollectionIds []string `json:"collection_ids"`
 	// Which RAG pipeline to use. Defaults to `chroma_db` when unset.
-	RagPipeline          NullableRagPipeline `json:"rag_pipeline,omitempty"`
+	RagPipeline NullableRagPipeline `json:"rag_pipeline,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -103,7 +103,6 @@ func (o *DocumentsSource) HasRagPipeline() bool {
 func (o *DocumentsSource) SetRagPipeline(v RagPipeline) {
 	o.RagPipeline.Set(&v)
 }
-
 // SetRagPipelineNil sets the value for RagPipeline to be an explicit nil
 func (o *DocumentsSource) SetRagPipelineNil() {
 	o.RagPipeline.Set(nil)
@@ -115,7 +114,7 @@ func (o *DocumentsSource) UnsetRagPipeline() {
 }
 
 func (o DocumentsSource) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -149,10 +148,10 @@ func (o *DocumentsSource) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err
+		return err;
 	}
 
-	for _, requiredProperty := range requiredProperties {
+	for _, requiredProperty := range(requiredProperties) {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
