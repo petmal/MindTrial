@@ -821,12 +821,26 @@ type AlibabaModelParams struct {
 
 	// ThinkingBudget limits thinking tokens when explicitly configured.
 	// Range: 1 or above. When omitted, the provider uses the model's default budget.
-	ThinkingBudget *int32 `yaml:"thinking-budget" validate:"omitempty,gt=0"`
+	// Mutually exclusive with ReasoningEffort.
+	ThinkingBudget *int32 `yaml:"thinking-budget" validate:"omitempty,gt=0,excluded_with=ReasoningEffort"`
+
+	// ReasoningEffort controls reasoning depth for supported Qwen models (e.g. Qwen 3.8 Max).
+	// Valid values: "none", "minimal", "low", "medium", "high", "xhigh", "max". Default: model-dependent.
+	// Mutually exclusive with ThinkingBudget.
+	ReasoningEffort *string `yaml:"reasoning-effort" validate:"omitempty,oneof=none minimal low medium high xhigh max,excluded_with=ThinkingBudget"`
+
+	// ResponseFormat selects the API response format.
+	// Valid values: "json-schema", "json-object", "text".
+	// MindTrial applies the legacy schema-instruction behavior when this is omitted and structured output is not disabled.
+	// Cannot be combined with the deprecated TextResponseFormat or DisableLegacyJsonMode properties.
+	ResponseFormat *ModelResponseFormat `yaml:"response-format" validate:"omitempty,oneof=json-schema json-object text,excluded_with=TextResponseFormat DisableLegacyJsonMode"`
 
 	// TextResponseFormat indicates whether to use plain-text response format
 	// for compatibility with models that do not support JSON mode (e.g., when
 	// thinking is enabled on certain Qwen models).
-	TextResponseFormat bool `yaml:"text-response-format" validate:"omitempty"`
+	//
+	// Deprecated: use ResponseFormat="text" instead.
+	TextResponseFormat *bool `yaml:"text-response-format" validate:"omitempty,excluded_with=ResponseFormat"`
 
 	// Temperature controls the randomness or "creativity" of the model's outputs.
 	// Notes: Higher values (e.g. 0.8) make outputs more random; lower values
@@ -851,7 +865,13 @@ type AlibabaModelParams struct {
 	FrequencyPenalty *float32 `yaml:"frequency-penalty" validate:"omitempty,min=-2,max=2"`
 
 	// MaxTokens controls the maximum number of tokens available to the model for generating a response.
-	MaxTokens *int32 `yaml:"max-tokens" validate:"omitempty,min=0"`
+	//
+	// Deprecated: use MaxCompletionTokens instead. Mutually exclusive with MaxCompletionTokens.
+	MaxTokens *int32 `yaml:"max-tokens" validate:"omitempty,min=0,excluded_with=MaxCompletionTokens"`
+
+	// MaxCompletionTokens controls the maximum number of tokens available to the model for generating
+	// a response, including reasoning tokens for thinking models. Mutually exclusive with MaxTokens.
+	MaxCompletionTokens *int32 `yaml:"max-completion-tokens" validate:"omitempty,min=1,excluded_with=MaxTokens"`
 
 	// Seed makes text generation more deterministic. If specified, the system will
 	// attempt to return the same result for the same inputs with the same seed value and parameters.
@@ -861,7 +881,9 @@ type AlibabaModelParams struct {
 	// In the legacy mode (default), a standard response format instruction is included
 	// in the prompt to guide the model to respond in a structured JSON format.
 	// This is necessary for models that do not fully support schema-based structured JSON output.
-	DisableLegacyJsonMode *bool `yaml:"disable-legacy-json-mode" validate:"omitempty"`
+	//
+	// Deprecated: use ResponseFormat="json-schema" instead.
+	DisableLegacyJsonMode *bool `yaml:"disable-legacy-json-mode" validate:"omitempty,excluded_with=ResponseFormat"`
 
 	// Stream enables streaming mode for the API response.
 	// Some models (e.g. QvQ, QwQ) require streaming to be enabled.

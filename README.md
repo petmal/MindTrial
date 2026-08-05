@@ -270,18 +270,22 @@ This file defines the tool's settings and target model configurations evaluated 
 >
 > Currently supported parameters for **Alibaba** models include:
 >
-> - **text-response-format**: If `true`, use plain-text response format (less reliable) for compatibility with models that do not support `JSON` (for example, when thinking is enabled on certain Qwen models).
+> - **response-format**: Selects `json-schema`, `json-object`, or `text`. MindTrial applies its legacy schema-instruction behavior when this is omitted and structured output is not disabled. Cannot be combined with the deprecated `text-response-format` or `disable-legacy-json-mode` properties.
 > - **stream**: If `true`, enables streaming mode for the API response. Some models (e.g. QwQ, QVQ, and Qwen-Omni) require streaming to be enabled. Responses are streamed incrementally and buffered internally before processing.
 > - **enable-thinking**: Enables hybrid thinking on supported Qwen models.
 > - **preserve-thinking**: Preserves `reasoning_content` across tool-call turns. Preserved reasoning is included in later input-token counts and billing.
-> - **thinking-budget**: Optional positive token budget for thinking. This is distinct from `max-tokens`, which limits the complete generated response.
+> - **thinking-budget**: Optional positive token budget for thinking. This is distinct from `max-tokens`/`max-completion-tokens`, which limit the complete generated response. Mutually exclusive with `reasoning-effort`.
+> - **reasoning-effort**: Controls reasoning depth for supported Qwen models (e.g. Qwen 3.8 Max) (values: `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`). Mutually exclusive with `thinking-budget`.
 > - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 2.0, default: 1.0). Lower values produce more focused and deterministic outputs.
 > - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0). Lower values produce more focused outputs.
-> - **max-tokens**: Controls the maximum number of tokens available to the model for generating a response.
+> - **max-tokens**: Controls the maximum number of tokens available to the model for generating a response. **Deprecated**: use `max-completion-tokens` instead. Mutually exclusive with `max-completion-tokens`.
+> - **max-completion-tokens**: Controls the maximum number of tokens available to the model for generating a response, including reasoning tokens for thinking models. Mutually exclusive with `max-tokens`.
 > - **presence-penalty**: Penalizes new tokens based on whether they appear in the text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage introducing new topics.
 > - **frequency-penalty**: Penalizes new tokens based on their frequency in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use less frequent tokens.
 > - **seed**: Makes text generation more deterministic by using the same seed value. When using the same seed and keeping other parameters unchanged, the model makes best-effort to return consistent outputs for identical inputs.
-> - **disable-legacy-json-mode**: Compatibility toggle that controls legacy prompt injection for JSON formatting. Default: `false` (legacy mode on), which adds an explicit JSON formatting instruction to the prompt for improved compatibility with most Qwen models. Setting this to `true` disables the legacy prompt injection. For best compatibility and reliable JSON responses, keep this set to `false` unless you are certain the target model works correctly without legacy prompt injection.
+> - **text-response-format**: If `true`, use plain-text response format (less reliable) for compatibility with models that do not support `JSON` (for example, when thinking is enabled on certain Qwen models). **Deprecated**: use `response-format: text` instead. Cannot be combined with `response-format`.
+> - **disable-legacy-json-mode**: Compatibility toggle that controls legacy prompt injection for JSON formatting. Default: `false` (legacy mode on), which adds an explicit JSON formatting instruction to the prompt for improved compatibility with most Qwen models. Setting this to `true` disables the legacy prompt injection. For best compatibility and reliable JSON responses, keep this set to `false` unless you are certain the target model works correctly without legacy prompt injection. **Deprecated**: use `response-format: json-schema` instead. Cannot be combined with `response-format`.
+
 >
 > Currently supported parameters for **Moonshot AI** models include:
 >
@@ -528,6 +532,15 @@ config:
             enable-thinking: true
             preserve-thinking: true
             max-tokens: 65536
+            stream: true
+        - name: "Qwen3.8 Max - latest (xhigh reasoning)"
+          model: "qwen3.8-max"
+          max-requests-per-minute: 30
+          model-parameters:
+            reasoning-effort: "xhigh"
+            preserve-thinking: true
+            max-completion-tokens: 65536
+            response-format: "json-object"
             stream: true
     - name: moonshotai
       client-config:

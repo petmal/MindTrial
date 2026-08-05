@@ -624,6 +624,14 @@ func TestLoadConfigFromFile(t *testing.T) {
                     enable-thinking: false
                     preserve-thinking: true
                     thinking-budget: 8192
+              - name: "Qwen3.8 Max"
+                model: "qwen3.8-max"
+                model-parameters:
+                    reasoning-effort: xhigh
+                    preserve-thinking: true
+                    max-completion-tokens: 65536
+                    response-format: json-object
+                    stream: true
         - name: moonshotai
           client-config:
               api-key: "sk-moonshot-test-key"
@@ -910,6 +918,18 @@ func TestLoadConfigFromFile(t *testing.T) {
 										Seed:                  testutils.Ptr(uint32(12345)),
 										DisableLegacyJsonMode: testutils.Ptr(true),
 										Stream:                true,
+									},
+								},
+								{
+									Name:                 "Qwen3.8 Max",
+									Model:                "qwen3.8-max",
+									MaxRequestsPerMinute: 0,
+									ModelParams: AlibabaModelParams{
+										ReasoningEffort:     testutils.Ptr("xhigh"),
+										PreserveThinking:    testutils.Ptr(true),
+										MaxCompletionTokens: testutils.Ptr(int32(65536)),
+										ResponseFormat:      testutils.Ptr(ModelResponseFormatJSONObject),
+										Stream:              true,
 									},
 								},
 							},

@@ -40,6 +40,32 @@ func TestAlibaba_Run_IncompatibleResponseFormat(t *testing.T) {
 	require.NotErrorIs(t, err, ErrIncompatibleResponseFormat)
 }
 
+// TestAlibaba_Run_DeprecatedDisableLegacyJsonMode_CompatibleWithDisabledStructuredOutput guards against a
+// regression where mapping the deprecated DisableLegacyJsonMode flag to a non-nil ResponseFormat would
+// incorrectly trigger ErrIncompatibleResponseFormat when combined with DisableStructuredOutput.
+func TestAlibaba_Run_DeprecatedDisableLegacyJsonMode_CompatibleWithDisabledStructuredOutput(t *testing.T) {
+	logger := testutils.NewTestLogger(t)
+	p := &Alibaba{} // nil client is sufficient to exercise parameter mapping and validation
+
+	runCfg := config.RunConfig{
+		Name:                    "test-run",
+		Model:                   "qwen-test",
+		DisableStructuredOutput: true,
+		ModelParams: config.AlibabaModelParams{
+			DisableLegacyJsonMode: utils.Ptr(true),
+		},
+	}
+	task := config.Task{
+		Name: "t",
+		Files: []config.TaskFile{
+			mockTaskFile(t, "test.txt", "file://test.txt", "text/plain"), // Unsupported file type to cause early error
+		},
+	}
+	_, err := p.Run(context.Background(), logger, runCfg, task)
+	require.Error(t, err) // Should error due to unsupported file type
+	require.NotErrorIs(t, err, ErrIncompatibleResponseFormat)
+}
+
 func TestAlibaba_FileTypeNotSupported(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
 	p := &Alibaba{} // nil client is sufficient to exercise early validation
@@ -81,12 +107,44 @@ func TestAlibabaCopyToOpenAIV3Params(t *testing.T) {
 		cfg := config.RunConfig{
 			Name: "run",
 			ModelParams: config.AlibabaModelParams{
-				TextResponseFormat: true,
+				TextResponseFormat: utils.Ptr(true),
 			},
 		}
 		params := buildParams(t, cfg)
 		require.NotNil(t, params.ResponseFormat)
 		require.Equal(t, ResponseFormatText, *params.ResponseFormat)
+	})
+
+	t.Run("ResponseFormat maps modern values", func(t *testing.T) {
+		for modelFormat, wantFormat := range map[config.ModelResponseFormat]ResponseFormat{
+			config.ModelResponseFormatJSONSchema: ResponseFormatJSONSchema,
+			config.ModelResponseFormatJSONObject: ResponseFormatJSONObject,
+			config.ModelResponseFormatText:       ResponseFormatText,
+		} {
+			cfg := config.RunConfig{
+				Name: "run",
+				ModelParams: config.AlibabaModelParams{
+					ResponseFormat: utils.Ptr(modelFormat),
+				},
+			}
+			params := buildParams(t, cfg)
+			require.NotNil(t, params.ResponseFormat)
+			require.Equal(t, wantFormat, *params.ResponseFormat)
+		}
+	})
+
+	t.Run("ResponseFormat takes precedence over deprecated properties", func(t *testing.T) {
+		cfg := config.RunConfig{
+			Name: "run",
+			ModelParams: config.AlibabaModelParams{
+				DisableLegacyJsonMode: utils.Ptr(true),
+				TextResponseFormat:    utils.Ptr(true),
+				ResponseFormat:        utils.Ptr(config.ModelResponseFormatJSONObject),
+			},
+		}
+		params := buildParams(t, cfg)
+		require.NotNil(t, params.ResponseFormat)
+		require.Equal(t, ResponseFormatJSONObject, *params.ResponseFormat)
 	})
 
 	t.Run("numeric parameters with type conversion", func(t *testing.T) {
@@ -124,7 +182,7 @@ func TestAlibabaCopyToOpenAIV3Params(t *testing.T) {
 			Name: "run",
 			ModelParams: config.AlibabaModelParams{
 				DisableLegacyJsonMode: utils.Ptr(true),
-				TextResponseFormat:    true,
+				TextResponseFormat:    utils.Ptr(true),
 			},
 		}
 		params := buildParams(t, cfg)
@@ -167,6 +225,18 @@ func TestAlibabaCopyToOpenAIV3Params(t *testing.T) {
 		require.Equal(t, int32(8192), params.ExtraFields["thinking_budget"])
 	})
 
+	t.Run("ReasoningEffort and MaxCompletionTokens copied", func(t *testing.T) {
+		modelParams := config.AlibabaModelParams{
+			ReasoningEffort:     utils.Ptr("xhigh"),
+			MaxCompletionTokens: utils.Ptr(int32(65536)),
+		}
+		params := buildParams(t, config.RunConfig{ModelParams: modelParams})
+		require.NotNil(t, params.ReasoningEffort)
+		require.Equal(t, "xhigh", *params.ReasoningEffort)
+		require.NotNil(t, params.MaxCompletionTokens)
+		require.Equal(t, int64(65536), *params.MaxCompletionTokens)
+	})
+
 	t.Run("nil parameters remain nil", func(t *testing.T) {
 		cfg := config.RunConfig{
 			Name:        "run",
@@ -179,6 +249,8 @@ func TestAlibabaCopyToOpenAIV3Params(t *testing.T) {
 		require.Nil(t, params.PresencePenalty)
 		require.Nil(t, params.FrequencyPenalty)
 		require.Nil(t, params.MaxTokens)
+		require.Nil(t, params.MaxCompletionTokens)
+		require.Nil(t, params.ReasoningEffort)
 		require.Nil(t, params.Seed)
 		require.Nil(t, params.Stream)
 	})

@@ -365,6 +365,15 @@ config:
             preserve-thinking: true
             max-tokens: 65536
             stream: true
+        - name: "Qwen3.8 Max - latest (xhigh reasoning)"
+          model: "qwen3.8-max"
+          max-requests-per-minute: 30
+          model-parameters:
+            reasoning-effort: "xhigh"
+            preserve-thinking: true
+            max-completion-tokens: 65536
+            response-format: "json-object"
+            stream: true
     - name: moonshotai
       retry-policy:
         max-retry-attempts: 5

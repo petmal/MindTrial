@@ -109,11 +109,23 @@ func (a *Alibaba) Close(ctx context.Context) error {
 
 // copyToOpenAIV3Params copies relevant fields from AlibabaModelParams to openAIV3ModelParams.
 func (a *Alibaba) copyToOpenAIV3Params(alibabaParams config.AlibabaModelParams, openAIV3Params *openAIV3ModelParams) {
-	if alibabaParams.DisableLegacyJsonMode != nil && *alibabaParams.DisableLegacyJsonMode {
-		openAIV3Params.ResponseFormat = nil // disable legacy mode; use Open AI default instead
-	}
-	if alibabaParams.TextResponseFormat {
-		openAIV3Params.ResponseFormat = ResponseFormatText.Ptr()
+	if alibabaParams.ResponseFormat != nil {
+		switch *alibabaParams.ResponseFormat {
+		case config.ModelResponseFormatJSONSchema:
+			openAIV3Params.ResponseFormat = ResponseFormatJSONSchema.Ptr()
+		case config.ModelResponseFormatJSONObject:
+			openAIV3Params.ResponseFormat = ResponseFormatJSONObject.Ptr()
+		case config.ModelResponseFormatText:
+			openAIV3Params.ResponseFormat = ResponseFormatText.Ptr()
+		}
+	} else {
+		// Deprecated compatibility path.
+		if alibabaParams.DisableLegacyJsonMode != nil && *alibabaParams.DisableLegacyJsonMode {
+			openAIV3Params.ResponseFormat = nil // disable legacy mode; use the provider's strict schema default instead
+		}
+		if alibabaParams.TextResponseFormat != nil && *alibabaParams.TextResponseFormat {
+			openAIV3Params.ResponseFormat = ResponseFormatText.Ptr()
+		}
 	}
 	if alibabaParams.Stream {
 		openAIV3Params.Stream = utils.Ptr(true)
@@ -127,6 +139,7 @@ func (a *Alibaba) copyToOpenAIV3Params(alibabaParams config.AlibabaModelParams, 
 	if alibabaParams.ThinkingBudget != nil {
 		openAIV3Params.ExtraFields["thinking_budget"] = *alibabaParams.ThinkingBudget
 	}
+	openAIV3Params.ReasoningEffort = alibabaParams.ReasoningEffort
 	if alibabaParams.Temperature != nil {
 		openAIV3Params.Temperature = utils.Ptr(float64(*alibabaParams.Temperature))
 	}
@@ -135,6 +148,9 @@ func (a *Alibaba) copyToOpenAIV3Params(alibabaParams config.AlibabaModelParams, 
 	}
 	if alibabaParams.MaxTokens != nil {
 		openAIV3Params.MaxTokens = utils.Ptr(int64(*alibabaParams.MaxTokens))
+	}
+	if alibabaParams.MaxCompletionTokens != nil {
+		openAIV3Params.MaxCompletionTokens = utils.Ptr(int64(*alibabaParams.MaxCompletionTokens))
 	}
 	if alibabaParams.PresencePenalty != nil {
 		openAIV3Params.PresencePenalty = utils.Ptr(float64(*alibabaParams.PresencePenalty))
