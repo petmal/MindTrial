@@ -155,12 +155,13 @@ func TestRunnerRun(t *testing.T) {
 			want: Results{
 				"mock provider 1": []RunResult{
 					{
-						Kind:     Success,
-						Task:     "success",
-						Provider: "mock provider 1",
-						Run:      "mock",
-						Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
-						Want:     utils.NewValueSet("provident quas tenetur repellat deserunt ut neque culpa."),
+						Kind:      Success,
+						Task:      "success",
+						Provider:  "mock provider 1",
+						Run:       "mock",
+						RunConfig: RunConfigSnapshot{Name: "mock", Model: "microchip", MaxRequestsPerMinute: 50},
+						Got:       "provident quas tenetur repellat deserunt ut neque culpa.",
+						Want:      utils.NewValueSet("provident quas tenetur repellat deserunt ut neque culpa."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "success",
@@ -180,12 +181,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Failure,
-						Task:     "failure",
-						Provider: "mock provider 1",
-						Run:      "mock",
-						Got:      "facere aperiam recusandae totam magnam nulla corrupti.",
-						Want:     utils.NewValueSet("aperiam assumenda id provident ratione eos molestiae."),
+						Kind:      Failure,
+						Task:      "failure",
+						Provider:  "mock provider 1",
+						Run:       "mock",
+						RunConfig: RunConfigSnapshot{Name: "mock", Model: "microchip", MaxRequestsPerMinute: 50},
+						Got:       "facere aperiam recusandae totam magnam nulla corrupti.",
+						Want:      utils.NewValueSet("aperiam assumenda id provident ratione eos molestiae."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "failure",
@@ -205,12 +207,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Error,
-						Task:     "error",
-						Provider: "mock provider 1",
-						Run:      "mock",
-						Got:      "mock error",
-						Want:     utils.NewValueSet("doloribus quis incidunt velit quia."),
+						Kind:      Error,
+						Task:      "error",
+						Provider:  "mock provider 1",
+						Run:       "mock",
+						RunConfig: RunConfigSnapshot{Name: "mock", Model: "microchip", MaxRequestsPerMinute: 50},
+						Got:       "mock error",
+						Want:      utils.NewValueSet("doloribus quis incidunt velit quia."),
 						Details: Details{
 							Answer:     AnswerDetails{},
 							Validation: ValidationDetails{},
@@ -224,12 +227,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Failure,
-						Task:     "failure",
-						Provider: "mock provider 1",
-						Run:      "mock",
-						Got:      "facere aperiam recusandae totam magnam nulla corrupti.",
-						Want:     utils.NewValueSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
+						Kind:      Failure,
+						Task:      "failure",
+						Provider:  "mock provider 1",
+						Run:       "mock",
+						RunConfig: RunConfigSnapshot{Name: "mock", Model: "microchip", MaxRequestsPerMinute: 50},
+						Got:       "facere aperiam recusandae totam magnam nulla corrupti.",
+						Want:      utils.NewValueSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "failure",
@@ -249,12 +253,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Success,
-						Task:     "success",
-						Provider: "mock provider 1",
-						Run:      "mock",
-						Got:      "omnis omnis ea quia et ut est.",
-						Want:     utils.NewValueSet("omnis omnis ea quia et ut est."),
+						Kind:      Success,
+						Task:      "success",
+						Provider:  "mock provider 1",
+						Run:       "mock",
+						RunConfig: RunConfigSnapshot{Name: "mock", Model: "microchip", MaxRequestsPerMinute: 50},
+						Got:       "omnis omnis ea quia et ut est.",
+						Want:      utils.NewValueSet("omnis omnis ea quia et ut est."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "success",
@@ -274,12 +279,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     NotSupported,
-						Task:     "not_supported",
-						Provider: "mock provider 1",
-						Run:      "mock",
-						Got:      "feature not supported by provider: mock not supported",
-						Want:     utils.NewValueSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
+						Kind:      NotSupported,
+						Task:      "not_supported",
+						Provider:  "mock provider 1",
+						Run:       "mock",
+						RunConfig: RunConfigSnapshot{Name: "mock", Model: "microchip", MaxRequestsPerMinute: 50},
+						Got:       "feature not supported by provider: mock not supported",
+						Want:      utils.NewValueSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
 						Details: Details{
 							Answer:     AnswerDetails{},
 							Validation: ValidationDetails{},
@@ -294,12 +300,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Failure,
-						Task:     "failure",
-						Provider: "mock provider 1",
-						Run:      "mock",
-						Got:      "Facere aperiam recusandae totam magnam nulla corrupti.",
-						Want:     utils.NewValueSet("rerum nam illo", "dolore praesentium non"),
+						Kind:      Failure,
+						Task:      "failure",
+						Provider:  "mock provider 1",
+						Run:       "mock",
+						RunConfig: RunConfigSnapshot{Name: "mock", Model: "microchip", MaxRequestsPerMinute: 50},
+						Got:       "Facere aperiam recusandae totam magnam nulla corrupti.",
+						Want:      utils.NewValueSet("rerum nam illo", "dolore praesentium non"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "failure",
@@ -320,12 +327,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Success,
-						Task:     "success",
-						Provider: "mock provider 1",
-						Run:      "mock",
-						Got:      "corporis et ipsa",
-						Want:     utils.NewValueSet("corporis et ipsa", "nesciunt sed quia"),
+						Kind:      Success,
+						Task:      "success",
+						Provider:  "mock provider 1",
+						Run:       "mock",
+						RunConfig: RunConfigSnapshot{Name: "mock", Model: "microchip", MaxRequestsPerMinute: 50},
+						Got:       "corporis et ipsa",
+						Want:      utils.NewValueSet("corporis et ipsa", "nesciunt sed quia"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "success",
@@ -346,12 +354,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Success,
-						Task:     "success",
-						Provider: "mock provider 1",
-						Run:      "pass",
-						Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
-						Want:     utils.NewValueSet("provident quas tenetur repellat deserunt ut neque culpa."),
+						Kind:      Success,
+						Task:      "success",
+						Provider:  "mock provider 1",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", Model: "parsing"},
+						Got:       "provident quas tenetur repellat deserunt ut neque culpa.",
+						Want:      utils.NewValueSet("provident quas tenetur repellat deserunt ut neque culpa."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "success",
@@ -371,12 +380,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Success,
-						Task:     "failure",
-						Provider: "mock provider 1",
-						Run:      "pass",
-						Got:      "aperiam assumenda id provident ratione eos molestiae.",
-						Want:     utils.NewValueSet("aperiam assumenda id provident ratione eos molestiae."),
+						Kind:      Success,
+						Task:      "failure",
+						Provider:  "mock provider 1",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", Model: "parsing"},
+						Got:       "aperiam assumenda id provident ratione eos molestiae.",
+						Want:      utils.NewValueSet("aperiam assumenda id provident ratione eos molestiae."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "failure",
@@ -396,12 +406,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Success,
-						Task:     "error",
-						Provider: "mock provider 1",
-						Run:      "pass",
-						Got:      "doloribus quis incidunt velit quia.",
-						Want:     utils.NewValueSet("doloribus quis incidunt velit quia."),
+						Kind:      Success,
+						Task:      "error",
+						Provider:  "mock provider 1",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", Model: "parsing"},
+						Got:       "doloribus quis incidunt velit quia.",
+						Want:      utils.NewValueSet("doloribus quis incidunt velit quia."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "error",
@@ -421,12 +432,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Success,
-						Task:     "failure",
-						Provider: "mock provider 1",
-						Run:      "pass",
-						Got:      "veritatis aliquid accusantium dolore voluptate optio dolor.",
-						Want:     utils.NewValueSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
+						Kind:      Success,
+						Task:      "failure",
+						Provider:  "mock provider 1",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", Model: "parsing"},
+						Got:       "veritatis aliquid accusantium dolore voluptate optio dolor.",
+						Want:      utils.NewValueSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "failure",
@@ -446,12 +458,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Success,
-						Task:     "success",
-						Provider: "mock provider 1",
-						Run:      "pass",
-						Got:      "omnis omnis ea quia et ut est.",
-						Want:     utils.NewValueSet("omnis omnis ea quia et ut est."),
+						Kind:      Success,
+						Task:      "success",
+						Provider:  "mock provider 1",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", Model: "parsing"},
+						Got:       "omnis omnis ea quia et ut est.",
+						Want:      utils.NewValueSet("omnis omnis ea quia et ut est."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "success",
@@ -471,12 +484,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Success,
-						Task:     "not_supported",
-						Provider: "mock provider 1",
-						Run:      "pass",
-						Got:      "unde accusantium sit et enim temporibus qui distinctio assumenda.",
-						Want:     utils.NewValueSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
+						Kind:      Success,
+						Task:      "not_supported",
+						Provider:  "mock provider 1",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", Model: "parsing"},
+						Got:       "unde accusantium sit et enim temporibus qui distinctio assumenda.",
+						Want:      utils.NewValueSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "not_supported",
@@ -496,12 +510,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Success,
-						Task:     "failure",
-						Provider: "mock provider 1",
-						Run:      "pass",
-						Got:      "rerum nam illo",
-						Want:     utils.NewValueSet("rerum nam illo", "dolore praesentium non"),
+						Kind:      Success,
+						Task:      "failure",
+						Provider:  "mock provider 1",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", Model: "parsing"},
+						Got:       "rerum nam illo",
+						Want:      utils.NewValueSet("rerum nam illo", "dolore praesentium non"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "failure",
@@ -522,12 +537,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Success,
-						Task:     "success",
-						Provider: "mock provider 1",
-						Run:      "pass",
-						Got:      "corporis et ipsa",
-						Want:     utils.NewValueSet("corporis et ipsa", "nesciunt sed quia"),
+						Kind:      Success,
+						Task:      "success",
+						Provider:  "mock provider 1",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", Model: "parsing"},
+						Got:       "corporis et ipsa",
+						Want:      utils.NewValueSet("corporis et ipsa", "nesciunt sed quia"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "success",
@@ -550,12 +566,13 @@ func TestRunnerRun(t *testing.T) {
 				},
 				"mock provider 2": []RunResult{
 					{
-						Kind:     Success,
-						Task:     "success",
-						Provider: "mock provider 2",
-						Run:      "pass",
-						Got:      "provident quas tenetur repellat deserunt ut neque culpa.",
-						Want:     utils.NewValueSet("provident quas tenetur repellat deserunt ut neque culpa."),
+						Kind:      Success,
+						Task:      "success",
+						Provider:  "mock provider 2",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", Model: "parsing"},
+						Got:       "provident quas tenetur repellat deserunt ut neque culpa.",
+						Want:      utils.NewValueSet("provident quas tenetur repellat deserunt ut neque culpa."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "success",
@@ -575,12 +592,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Success,
-						Task:     "failure",
-						Provider: "mock provider 2",
-						Run:      "pass",
-						Got:      "aperiam assumenda id provident ratione eos molestiae.",
-						Want:     utils.NewValueSet("aperiam assumenda id provident ratione eos molestiae."),
+						Kind:      Success,
+						Task:      "failure",
+						Provider:  "mock provider 2",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", Model: "parsing"},
+						Got:       "aperiam assumenda id provident ratione eos molestiae.",
+						Want:      utils.NewValueSet("aperiam assumenda id provident ratione eos molestiae."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "failure",
@@ -600,12 +618,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Success,
-						Task:     "error",
-						Provider: "mock provider 2",
-						Run:      "pass",
-						Got:      "doloribus quis incidunt velit quia.",
-						Want:     utils.NewValueSet("doloribus quis incidunt velit quia."),
+						Kind:      Success,
+						Task:      "error",
+						Provider:  "mock provider 2",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", Model: "parsing"},
+						Got:       "doloribus quis incidunt velit quia.",
+						Want:      utils.NewValueSet("doloribus quis incidunt velit quia."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "error",
@@ -625,12 +644,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Success,
-						Task:     "failure",
-						Provider: "mock provider 2",
-						Run:      "pass",
-						Got:      "veritatis aliquid accusantium dolore voluptate optio dolor.",
-						Want:     utils.NewValueSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
+						Kind:      Success,
+						Task:      "failure",
+						Provider:  "mock provider 2",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", Model: "parsing"},
+						Got:       "veritatis aliquid accusantium dolore voluptate optio dolor.",
+						Want:      utils.NewValueSet("veritatis aliquid accusantium dolore voluptate optio dolor."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "failure",
@@ -650,12 +670,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Success,
-						Task:     "success",
-						Provider: "mock provider 2",
-						Run:      "pass",
-						Got:      "omnis omnis ea quia et ut est.",
-						Want:     utils.NewValueSet("omnis omnis ea quia et ut est."),
+						Kind:      Success,
+						Task:      "success",
+						Provider:  "mock provider 2",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", Model: "parsing"},
+						Got:       "omnis omnis ea quia et ut est.",
+						Want:      utils.NewValueSet("omnis omnis ea quia et ut est."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "success",
@@ -675,12 +696,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Success,
-						Task:     "not_supported",
-						Provider: "mock provider 2",
-						Run:      "pass",
-						Got:      "unde accusantium sit et enim temporibus qui distinctio assumenda.",
-						Want:     utils.NewValueSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
+						Kind:      Success,
+						Task:      "not_supported",
+						Provider:  "mock provider 2",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", Model: "parsing"},
+						Got:       "unde accusantium sit et enim temporibus qui distinctio assumenda.",
+						Want:      utils.NewValueSet("unde accusantium sit et enim temporibus qui distinctio assumenda."),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "not_supported",
@@ -700,12 +722,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Success,
-						Task:     "failure",
-						Provider: "mock provider 2",
-						Run:      "pass",
-						Got:      "rerum nam illo",
-						Want:     utils.NewValueSet("rerum nam illo", "dolore praesentium non"),
+						Kind:      Success,
+						Task:      "failure",
+						Provider:  "mock provider 2",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", Model: "parsing"},
+						Got:       "rerum nam illo",
+						Want:      utils.NewValueSet("rerum nam illo", "dolore praesentium non"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "failure",
@@ -726,12 +749,13 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Success,
-						Task:     "success",
-						Provider: "mock provider 2",
-						Run:      "pass",
-						Got:      "corporis et ipsa",
-						Want:     utils.NewValueSet("corporis et ipsa", "nesciunt sed quia"),
+						Kind:      Success,
+						Task:      "success",
+						Provider:  "mock provider 2",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", Model: "parsing"},
+						Got:       "corporis et ipsa",
+						Want:      utils.NewValueSet("corporis et ipsa", "nesciunt sed quia"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "success",
@@ -800,12 +824,13 @@ func TestRunnerRun(t *testing.T) {
 			want: Results{
 				"mock provider 1": []RunResult{
 					{
-						Kind:     Error,
-						Task:     "error",
-						Provider: "mock provider 1",
-						Run:      "custom",
-						Got:      "error", // provider returns task name ("error") as response
-						Want:     utils.NewValueSet("Expected answer"),
+						Kind:      Error,
+						Task:      "error",
+						Provider:  "mock provider 1",
+						Run:       "custom",
+						RunConfig: RunConfigSnapshot{Name: "custom", Model: "custom-model"},
+						Got:       "error", // provider returns task name ("error") as response
+						Want:      utils.NewValueSet("Expected answer"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "error",
@@ -890,8 +915,11 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "string_task",
 						Provider: "mock",
 						Run:      "pass",
-						Got:      "string answer",
-						Want:     utils.NewValueSet("string answer"),
+						RunConfig: RunConfigSnapshot{
+							Name: "pass",
+						},
+						Got:  "string answer",
+						Want: utils.NewValueSet("string answer"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "string_task",
@@ -915,8 +943,11 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "schema_task",
 						Provider: "mock",
 						Run:      "pass",
-						Got:      "schema answer",
-						Want:     utils.NewValueSet("schema answer"),
+						RunConfig: RunConfigSnapshot{
+							Name: "pass",
+						},
+						Got:  "schema answer",
+						Want: utils.NewValueSet("schema answer"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "schema_task",
@@ -940,8 +971,11 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "judge_task",
 						Provider: "mock",
 						Run:      "pass",
-						Got:      "judge answer",
-						Want:     utils.NewValueSet("judge answer"),
+						RunConfig: RunConfigSnapshot{
+							Name: "pass",
+						},
+						Got:  "judge answer",
+						Want: utils.NewValueSet("judge answer"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "judge_task",
@@ -967,8 +1001,12 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "string_task",
 						Provider: "mock",
 						Run:      "pass",
-						Got:      "string answer",
-						Want:     utils.NewValueSet("string answer"),
+						RunConfig: RunConfigSnapshot{
+							Name:                    "pass",
+							DisableStructuredOutput: true,
+						},
+						Got:  "string answer",
+						Want: utils.NewValueSet("string answer"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "string_task",
@@ -992,7 +1030,11 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "schema_task",
 						Provider: "mock",
 						Run:      "pass",
-						Got:      "task requires schema response format but disable-structured-output is enabled for this configuration",
+						RunConfig: RunConfigSnapshot{
+							Name:                    "pass",
+							DisableStructuredOutput: true,
+						},
+						Got: "task requires schema response format but disable-structured-output is enabled for this configuration",
 						Details: Details{
 							Answer:     AnswerDetails{},
 							Validation: ValidationDetails{},
@@ -1009,8 +1051,12 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "judge_task",
 						Provider: "mock",
 						Run:      "pass",
-						Got:      "judge answer",
-						Want:     utils.NewValueSet("judge answer"),
+						RunConfig: RunConfigSnapshot{
+							Name:                    "pass",
+							DisableStructuredOutput: true,
+						},
+						Got:  "judge answer",
+						Want: utils.NewValueSet("judge answer"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "judge_task",
@@ -1074,8 +1120,11 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "text_task",
 						Provider: "mock",
 						Run:      "pass",
-						Got:      "text answer",
-						Want:     utils.NewValueSet("text answer"),
+						RunConfig: RunConfigSnapshot{
+							Name: "pass",
+						},
+						Got:  "text answer",
+						Want: utils.NewValueSet("text answer"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "text_task",
@@ -1099,8 +1148,11 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "file_task",
 						Provider: "mock",
 						Run:      "pass",
-						Got:      "file answer",
-						Want:     utils.NewValueSet("file answer"),
+						RunConfig: RunConfigSnapshot{
+							Name: "pass",
+						},
+						Got:  "file answer",
+						Want: utils.NewValueSet("file answer"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "file_task",
@@ -1125,8 +1177,12 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "text_task",
 						Provider: "mock",
 						Run:      "pass",
-						Got:      "text answer",
-						Want:     utils.NewValueSet("text answer"),
+						RunConfig: RunConfigSnapshot{
+							Name:     "pass",
+							TextOnly: true,
+						},
+						Got:  "text answer",
+						Want: utils.NewValueSet("text answer"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "text_task",
@@ -1150,7 +1206,11 @@ func TestRunnerRun(t *testing.T) {
 						Task:     "file_task",
 						Provider: "mock",
 						Run:      "pass",
-						Got:      "task requires file attachments but text-only mode is enabled for this configuration",
+						RunConfig: RunConfigSnapshot{
+							Name:     "pass",
+							TextOnly: true,
+						},
+						Got: "task requires file attachments but text-only mode is enabled for this configuration",
 						Details: Details{
 							Answer:     AnswerDetails{},
 							Validation: ValidationDetails{},
@@ -1854,6 +1914,55 @@ func (s *stubToolValidator) ValidateTool(ctx context.Context, cfg config.ToolCon
 func (s *stubToolValidator) Close() error {
 	s.closed = true
 	return nil
+}
+
+func TestRunnerRun_JudgeValidationErrorSetsResponseParsing(t *testing.T) {
+	r := createMockRunnerFromConfig(t, []config.ProviderConfig{
+		{
+			Name: "mock provider 1",
+			Runs: []config.RunConfig{{
+				Name:  "mock",
+				Model: "microchip",
+			}},
+		},
+	}, []config.JudgeConfig{
+		{
+			Name: "test-judge",
+			Provider: config.ProviderConfig{
+				Name: "mock",
+				Runs: []config.RunConfig{{
+					Name:  "judge_evaluation",
+					Model: "judge-model-default",
+				}},
+			},
+		},
+	}, nil, zerolog.New(zerolog.NewTestWriter(t)))
+
+	task := config.Task{
+		Name:           "judge_response_malformed",
+		ExpectedResult: utils.NewValueSet("Expected answer"),
+		ValidationRules: &config.ValidationRules{
+			Judge: config.JudgeSelector{
+				Enabled: testutils.Ptr(true),
+				Name:    testutils.Ptr("test-judge"),
+				Variant: testutils.Ptr("judge_evaluation"),
+			},
+		},
+	}
+	require.NoError(t, task.ResolveValidationRules(config.ValidationRules{}))
+
+	results, err := r.Run(context.Background(), []config.Task{task})
+	require.NoError(t, err)
+	allResults := results.GetResults()
+	require.Contains(t, allResults, "mock provider 1")
+	require.Len(t, allResults["mock provider 1"], 1)
+
+	result := allResults["mock provider 1"][0]
+	require.Equal(t, Error, result.Kind)
+	require.Equal(t, "Validation Response Parsing Error", result.Details.Error.Title)
+	require.NotNil(t, result.Details.Error.ResponseParsing)
+	assert.True(t, *result.Details.Error.ResponseParsing)
+	assert.Contains(t, result.Details.Error.Message, "unsupported operation")
 }
 
 func TestDefaultRunnerAssertCanRun(t *testing.T) {

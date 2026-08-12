@@ -106,6 +106,9 @@ type RunResult struct {
 	Provider string
 	// Run is the name of the provider's run configuration used.
 	Run string
+	// RunConfig contains the effective run configuration used to produce this result,
+	// with any API keys or other secrets omitted.
+	RunConfig RunConfigSnapshot
 	// Got is the actual answer received from the AI model.
 	// For plain text response format, this should be a string that follows the format instruction precisely.
 	// For structured schema-based response format, this will be any object that conforms to the schema.
@@ -123,6 +126,25 @@ type RunResult struct {
 	// It excludes local tool execution time (see ToolCalls/ToolUsage) and any subsequent
 	// validation time, so it is not the total wall-clock time spent processing the task.
 	Duration time.Duration
+}
+
+// RunConfigSnapshot is an artifact-safe representation of the effective run configuration,
+// suitable for persisting in results without leaking API keys or other secrets.
+type RunConfigSnapshot struct {
+	Name                    string
+	Model                   string
+	MaxRequestsPerMinute    int
+	TextOnly                bool
+	DisableStructuredOutput bool
+	ModelParameters         map[string]interface{}
+	RetryPolicy             RetryPolicy
+}
+
+// RetryPolicy mirrors config.RetryPolicy for use in RunConfigSnapshot, keeping this
+// package's result types free of a dependency on the config package's own types.
+type RetryPolicy struct {
+	MaxRetryAttempts    uint
+	InitialDelaySeconds int
 }
 
 // TaskMetadata carries optional descriptive labels from the originating task into the result.
@@ -214,6 +236,11 @@ type ErrorDetails struct {
 	// error, including attempts that never actually ran. Tracked separately from ToolUsage,
 	// which only reflects invocations that actually ran.
 	ToolCalls []ToolCallSummary `json:"ToolCalls,omitempty"`
+	// ResponseParsing is true when a model response was received but MindTrial could not
+	// parse or unmarshal it into the expected result structure; nil otherwise. When
+	// Transient is also nil, this kind of failure should generally be treated as
+	// non-transient (retrying with the same input is unlikely to help).
+	ResponseParsing *bool `json:"ResponseParsing,omitempty"`
 	// Transient indicates whether the error appears temporary/external (true), appears
 	// permanent/hard (false), or is unknown (nil). This is a best-effort classification,
 	// not a complete error taxonomy.

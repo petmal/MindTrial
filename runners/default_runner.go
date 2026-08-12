@@ -24,6 +24,7 @@ import (
 	"github.com/petmal/mindtrial/validators"
 	"github.com/rs/zerolog"
 	"golang.org/x/time/rate"
+	"gopkg.in/yaml.v3"
 )
 
 const asyncEventBufferSize = 3
@@ -332,6 +333,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 	runResult.Task = task.Name
 	runResult.Provider = executor.Provider.Name()
 	runResult.Run = executor.RunConfig.Name
+	runResult.RunConfig = snapshotRunConfig(ctx, logger, executor.RunConfig)
 	runResult.TaskMetadata = TaskMetadata{
 		Suite:      task.Suite,
 		Category:   task.Category,
@@ -424,12 +426,13 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 			var unmarshalErr *providers.ErrUnmarshalResponse
 			if errors.As(err, &unmarshalErr) {
 				runResult.Details.Error = ErrorDetails{
-					Title:     "Response Parsing Error",
-					Message:   unmarshalErr.Cause.Error(),
-					Usage:     toTokenUsage(usage),
-					ToolUsage: toToolUsage(usage),
-					ToolCalls: toToolCallSummaries(toolCalls),
-					Transient: transientFlagFor(err),
+					Title:           "Response Parsing Error",
+					Message:         unmarshalErr.Cause.Error(),
+					Usage:           toTokenUsage(usage),
+					ToolUsage:       toToolUsage(usage),
+					ToolCalls:       toToolCallSummaries(toolCalls),
+					ResponseParsing: utils.Ptr(true),
+					Transient:       transientFlagFor(err),
 				}
 			} else {
 				runResult.Details.Error = ErrorDetails{
@@ -451,13 +454,27 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 		if err != nil { //nolint:gocritic
 			runResult.Kind = Error
 			runResult.Got = result.GetFinalAnswerContent()
-			runResult.Details.Error = ErrorDetails{
-				Title:     "Validation Error",
-				Message:   err.Error(),
-				Usage:     toTokenUsage(validationResult.Usage),
-				ToolUsage: toToolUsage(validationResult.Usage),
-				ToolCalls: toToolCallSummaries(validationResult.ToolCalls),
-				Transient: transientFlagFor(err),
+
+			var unmarshalErr *providers.ErrUnmarshalResponse
+			if errors.As(err, &unmarshalErr) {
+				runResult.Details.Error = ErrorDetails{
+					Title:           "Validation Response Parsing Error",
+					Message:         unmarshalErr.Cause.Error(),
+					Usage:           toTokenUsage(validationResult.Usage),
+					ToolUsage:       toToolUsage(validationResult.Usage),
+					ToolCalls:       toToolCallSummaries(validationResult.ToolCalls),
+					ResponseParsing: utils.Ptr(true),
+					Transient:       transientFlagFor(err),
+				}
+			} else {
+				runResult.Details.Error = ErrorDetails{
+					Title:     "Validation Error",
+					Message:   err.Error(),
+					Usage:     toTokenUsage(validationResult.Usage),
+					ToolUsage: toToolUsage(validationResult.Usage),
+					ToolCalls: toToolCallSummaries(validationResult.ToolCalls),
+					Transient: transientFlagFor(err),
+				}
 			}
 			populateErrorDetails(&runResult.Details.Error, err)
 		} else {
@@ -488,6 +505,45 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 		}
 	}
 	runResult.Duration = result.GetDuration()
+}
+
+// snapshotRunConfig returns an artifact-safe projection of cfg, suitable for persisting in
+// results without leaking API keys or other secrets. cfg is always loaded from
+// validated YAML, so re-marshaling ModelParams back through YAML is not expected to fail;
+// if it somehow does, ModelParameters is left nil and the error is logged rather than
+// propagated, since there is no unsafe state to report to the caller.
+func snapshotRunConfig(ctx context.Context, logger logging.Logger, cfg config.RunConfig) RunConfigSnapshot {
+	snapshot := RunConfigSnapshot{
+		Name:                    cfg.Name,
+		Model:                   cfg.Model,
+		MaxRequestsPerMinute:    cfg.MaxRequestsPerMinute,
+		TextOnly:                cfg.TextOnly,
+		DisableStructuredOutput: cfg.DisableStructuredOutput,
+	}
+	if cfg.RetryPolicy != nil {
+		snapshot.RetryPolicy = RetryPolicy{
+			MaxRetryAttempts:    cfg.RetryPolicy.MaxRetryAttempts,
+			InitialDelaySeconds: cfg.RetryPolicy.InitialDelaySeconds,
+		}
+	}
+	if cfg.ModelParams == nil {
+		return snapshot
+	}
+
+	data, err := yaml.Marshal(cfg.ModelParams)
+	if err != nil {
+		logger.Error(ctx, logging.LevelWarn, err, "%s: failed to marshal model parameters for run config snapshot", cfg.Name)
+		return snapshot
+	}
+
+	var modelParams map[string]interface{}
+	if err := yaml.Unmarshal(data, &modelParams); err != nil {
+		logger.Error(ctx, logging.LevelWarn, err, "%s: failed to unmarshal model parameters for run config snapshot", cfg.Name)
+		return snapshot
+	}
+
+	snapshot.ModelParameters = modelParams
+	return snapshot
 }
 
 func (r *defaultRunner) Close(ctx context.Context) {

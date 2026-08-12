@@ -10,6 +10,7 @@ package providers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -109,6 +110,12 @@ func (m *MockProvider) handleMockMode(result Result, cfg config.RunConfig, task 
 		return result, err
 	}
 
+	if task.Name == "judge_response_malformed" {
+		result.Explanation = "mock valid candidate response"
+		result.FinalAnswer = Answer{Content: "malformed_json"}
+		return result, nil
+	}
+
 	if parsedResponse == "failure" {
 		result.Explanation = "mock failure"
 		result.FinalAnswer = Answer{Content: "Facere aperiam recusandae totam magnam nulla corrupti."}
@@ -199,6 +206,8 @@ func (m *MockProvider) parseResponseFromExpression(cfg config.RunConfig, taskNam
 		return responseValue, retryKey, fmt.Errorf("mock error")
 	case "not_supported":
 		return responseValue, retryKey, fmt.Errorf("%w: %s", ErrFeatureNotSupported, "mock not supported")
+	case "malformed_json":
+		return responseValue, retryKey, NewErrUnmarshalResponse(errors.ErrUnsupported, []byte("{not-json}"), []byte("judge-malformed"))
 	}
 
 	return

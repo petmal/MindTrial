@@ -103,6 +103,7 @@
     .error-category-badge { display:inline-block; font-size:0.7em; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; padding:0.15em 0.5em; border-radius:3px; margin:0 0 0.6em 0; cursor:help; }
     .error-category-badge.category-transient { background:#fff3cd; color:#8a6100; border:1px solid #ffe08a; }
     .error-category-badge.category-permanent { background:#eee; color:#555; border:1px solid #ccc; }
+    .error-category-badge.category-parsing { background:#e2e3fc; color:#3d3d8a; border:1px solid #c3c5f7; }
     .details-content pre { background:#fff; border:1px solid var(--border-color); padding:6px 8px; overflow:auto; border-radius:4px; max-height:300px; white-space:pre-wrap; word-break:break-word; }
     .details-content code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 0.85em; }
     .details-content dl { margin:0.5em 0 0 0; }
@@ -2565,6 +2566,7 @@ Id est laborum et dolorum fuga
                             <div id="details-run-provider-name-run-parsing-error-task-name" class="details-content">
                                 <section class="section-error">
                                     <h4>Parsing Errorem Responsi</h4>
+                                    <span class="error-category-badge category-parsing" title="The model response was received but could not be parsed as expected; transience is otherwise unknown.">Parsing Error</span>
                                     <p class="para" style="margin:0 0 0.6em 0;">Duis aute irure dolor in reprehenderit in voluptate velit esse.</p>
                                     <details open>
                                         <summary>Technical Details</summary>

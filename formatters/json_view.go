@@ -36,11 +36,28 @@ type resultView struct {
 	Task         string            `json:"Task" jsonschema:"title=Task Name" jsonschema_description:"The name of the executed task."`
 	Provider     string            `json:"Provider" jsonschema:"title=Provider Name" jsonschema_description:"The name of the AI provider that executed the task."`
 	Run          string            `json:"Run" jsonschema:"title=Run Name" jsonschema_description:"The name of the provider's run configuration used."`
+	RunConfig    *runConfigView    `json:"RunConfig,omitempty" jsonschema:"title=Run Configuration" jsonschema_description:"The effective run configuration used to produce this result (e.g. model, rate limits, retry policy), with any API keys or other secrets omitted."`
 	Got          interface{}       `json:"Got" jsonschema:"title=Actual Answer" jsonschema_description:"The actual answer received from the AI model. For plain text response format, a string that follows the format instruction precisely. For structured schema-based response format, any object that conforms to the task's response schema."`
 	Want         utils.ValueSet    `json:"Want" jsonschema:"title=Expected Answer(s)" jsonschema_description:"The accepted valid answer(s) for the task, as a single value or an array of values. For plain text response format: string values that should follow the format instruction precisely. For structured schema-based response format: object values that conform to the task's response schema."`
 	TaskMetadata *taskMetadataView `json:"TaskMetadata,omitempty" jsonschema:"title=Task Metadata" jsonschema_description:"Optional descriptive labels copied from the originating task."`
 	Details      detailsView       `json:"Details" jsonschema:"title=Details" jsonschema_description:"Comprehensive information about the generated response and validation assessment."`
 	DurationNS   int64             `json:"DurationNS" jsonschema:"title=Duration (ns)" jsonschema_description:"The cumulative time the AI model itself spent generating a response, in nanoseconds, summed across every conversation turn's model request (network + inference). Excludes local tool execution time (see ToolCalls/ToolUsage) and any subsequent validation time, so this is not the total wall-clock time spent processing the task."`
+}
+
+// runConfigView is the view model for runners.RunConfigSnapshot.
+type runConfigView struct {
+	Model                   string                 `json:"Model,omitempty" jsonschema:"title=Model" jsonschema_description:"The provider model identifier used by the run."`
+	MaxRequestsPerMinute    int                    `json:"MaxRequestsPerMinute,omitempty" jsonschema:"title=Max Requests Per Minute" jsonschema_description:"The maximum number of API requests per minute that was permitted for this run. A value of 0 (or absent) means no rate limiting was applied."`
+	TextOnly                bool                   `json:"TextOnly,omitempty" jsonschema:"title=Text Only" jsonschema_description:"Whether this run was restricted to text-only tasks (i.e. tasks without file attachments)."`
+	DisableStructuredOutput bool                   `json:"DisableStructuredOutput,omitempty" jsonschema:"title=Disable Structured Output" jsonschema_description:"Whether this run used plain text responses instead of the structured title/explanation/final-answer format, skipping tasks that require schema-based output."`
+	ModelParameters         map[string]interface{} `json:"ModelParameters,omitempty" jsonschema:"title=Model Parameters" jsonschema_description:"The public subset of model parameters used by the run, with secrets omitted."`
+	RetryPolicy             *retryPolicyView       `json:"RetryPolicy,omitempty" jsonschema:"title=Retry Policy" jsonschema_description:"The effective retry policy for the run, if configured."`
+}
+
+// retryPolicyView is the view model for runners.RetryPolicy.
+type retryPolicyView struct {
+	MaxRetryAttempts    uint `json:"MaxRetryAttempts,omitempty" jsonschema:"title=Max Retry Attempts" jsonschema_description:"The maximum number of retry attempts for a transient failure."`
+	InitialDelaySeconds int  `json:"InitialDelaySeconds,omitempty" jsonschema:"title=Initial Delay Seconds" jsonschema_description:"The initial backoff delay before the first retry attempt."`
 }
 
 // taskMetadataView is the view model for runners.TaskMetadata.
@@ -80,13 +97,14 @@ type validationDetailsView struct {
 
 // errorDetailsView is the view model for runners.ErrorDetails.
 type errorDetailsView struct {
-	Title     string                   `json:"Title,omitempty" jsonschema:"title=Title" jsonschema_description:"A summary description of the error."`
-	Message   string                   `json:"Message,omitempty" jsonschema:"title=Message" jsonschema_description:"The primary error message."`
-	Details   map[string][]string      `json:"Details,omitempty" jsonschema:"title=Details" jsonschema_description:"Any additional error information in a generic structure."`
-	Usage     *runners.TokenUsage      `json:"Usage,omitempty" jsonschema:"title=Token Usage" jsonschema_description:"Token usage statistics if available even in error scenarios. Typically populated if the error occurs when parsing the generated response."`
-	ToolUsage map[string]toolUsageView `json:"ToolUsage,omitempty" jsonschema:"title=Tool Usage" jsonschema_description:"Aggregated execution statistics, keyed by tool name, for any tools invoked prior to the error."`
-	ToolCalls []toolCallSummaryView    `json:"ToolCalls,omitempty" jsonschema:"title=Tool Calls" jsonschema_description:"A log of every individual invocation attempt made prior to the error, including attempts that never actually ran. Tracked separately from ToolUsage, which only reflects invocations that actually ran."`
-	Transient *bool                    `json:"Transient,omitempty" jsonschema:"title=Transient" jsonschema_description:"Whether the error appears temporary/external (true), appears permanent/hard (false), or is unknown (field absent). A best-effort classification, not a complete error taxonomy."`
+	Title           string                   `json:"Title,omitempty" jsonschema:"title=Title" jsonschema_description:"A summary description of the error."`
+	Message         string                   `json:"Message,omitempty" jsonschema:"title=Message" jsonschema_description:"The primary error message."`
+	Details         map[string][]string      `json:"Details,omitempty" jsonschema:"title=Details" jsonschema_description:"Any additional error information in a generic structure."`
+	Usage           *runners.TokenUsage      `json:"Usage,omitempty" jsonschema:"title=Token Usage" jsonschema_description:"Token usage statistics if available even in error scenarios. Typically populated if the error occurs when parsing the generated response."`
+	ToolUsage       map[string]toolUsageView `json:"ToolUsage,omitempty" jsonschema:"title=Tool Usage" jsonschema_description:"Aggregated execution statistics, keyed by tool name, for any tools invoked prior to the error."`
+	ToolCalls       []toolCallSummaryView    `json:"ToolCalls,omitempty" jsonschema:"title=Tool Calls" jsonschema_description:"A log of every individual invocation attempt made prior to the error, including attempts that never actually ran. Tracked separately from ToolUsage, which only reflects invocations that actually ran."`
+	ResponseParsing *bool                    `json:"ResponseParsing,omitempty" jsonschema:"title=Response Parsing" jsonschema_description:"True when the model response was received but failed to parse into the expected structure; absent otherwise. When Transient is also absent, this failure should generally be treated as non-transient (retrying with the same input is unlikely to help)."`
+	Transient       *bool                    `json:"Transient,omitempty" jsonschema:"title=Transient" jsonschema_description:"Whether the error appears temporary/external (true), appears permanent/hard (false), or is unknown (field absent). A best-effort classification, not a complete error taxonomy."`
 }
 
 // toolUsageView is the view model for runners.ToolUsage.
@@ -138,12 +156,33 @@ func newResultView(r runners.RunResult) resultView {
 		Task:         r.Task,
 		Provider:     r.Provider,
 		Run:          r.Run,
+		RunConfig:    newRunConfigView(r.RunConfig),
 		Got:          r.Got,
 		Want:         r.Want,
 		TaskMetadata: newTaskMetadataView(r.TaskMetadata),
 		Details:      newDetailsView(r.Details),
 		DurationNS:   r.Duration.Nanoseconds(),
 	}
+}
+
+func newRunConfigView(rc runners.RunConfigSnapshot) *runConfigView {
+	if rc.Model == "" && len(rc.ModelParameters) == 0 && rc.RetryPolicy == (runners.RetryPolicy{}) && !rc.TextOnly && !rc.DisableStructuredOutput && rc.MaxRequestsPerMinute == 0 {
+		return nil
+	}
+	view := &runConfigView{
+		Model:                   rc.Model,
+		MaxRequestsPerMinute:    rc.MaxRequestsPerMinute,
+		TextOnly:                rc.TextOnly,
+		DisableStructuredOutput: rc.DisableStructuredOutput,
+		ModelParameters:         rc.ModelParameters,
+	}
+	if rc.RetryPolicy != (runners.RetryPolicy{}) {
+		view.RetryPolicy = &retryPolicyView{
+			MaxRetryAttempts:    rc.RetryPolicy.MaxRetryAttempts,
+			InitialDelaySeconds: rc.RetryPolicy.InitialDelaySeconds,
+		}
+	}
+	return view
 }
 
 // newTaskMetadataView converts runners.TaskMetadata to its view model.
@@ -202,15 +241,16 @@ func newValidationDetailsView(v runners.ValidationDetails) *validationDetailsVie
 
 func newErrorDetailsView(e runners.ErrorDetails) *errorDetailsView {
 	v := errorDetailsView{
-		Title:     e.Title,
-		Message:   e.Message,
-		Details:   e.Details,
-		Usage:     tokenUsageToPtr(e.Usage),
-		ToolUsage: newToolUsageMapView(e.ToolUsage),
-		ToolCalls: newToolCallSummaryViews(e.ToolCalls),
-		Transient: e.Transient,
+		Title:           e.Title,
+		Message:         e.Message,
+		Details:         e.Details,
+		Usage:           tokenUsageToPtr(e.Usage),
+		ToolUsage:       newToolUsageMapView(e.ToolUsage),
+		ToolCalls:       newToolCallSummaryViews(e.ToolCalls),
+		ResponseParsing: e.ResponseParsing,
+		Transient:       e.Transient,
 	}
-	if v.Title == "" && v.Message == "" && len(v.Details) == 0 && v.Usage == nil && len(v.ToolUsage) == 0 && len(v.ToolCalls) == 0 && v.Transient == nil {
+	if v.Title == "" && v.Message == "" && len(v.Details) == 0 && v.Usage == nil && len(v.ToolUsage) == 0 && len(v.ToolCalls) == 0 && v.ResponseParsing == nil && v.Transient == nil {
 		return nil
 	}
 	return &v
@@ -326,18 +366,44 @@ func fromResultView(v resultView) (runners.RunResult, error) {
 	if !ok {
 		return runners.RunResult{}, fmt.Errorf("%w: %q", errUnknownResultKind, v.Kind)
 	}
-	return runners.RunResult{
+	result := runners.RunResult{
 		TraceID:      v.TraceID,
 		Kind:         kind,
 		Task:         v.Task,
 		Provider:     v.Provider,
 		Run:          v.Run,
+		RunConfig:    fromRunConfigView(v.RunConfig, v.Run),
 		Got:          v.Got,
 		Want:         v.Want,
 		TaskMetadata: fromTaskMetadataView(v.TaskMetadata),
 		Details:      fromDetailsView(v.Details),
 		Duration:     time.Duration(v.DurationNS),
-	}, nil
+	}
+	return result, nil
+}
+
+// fromRunConfigView converts a runConfigView back to runners.RunConfigSnapshot.
+// fallbackName rehydrates Name, which the view never serializes since it always
+// matches the enclosing resultView's Run field.
+func fromRunConfigView(v *runConfigView, fallbackName string) runners.RunConfigSnapshot {
+	if v == nil {
+		return runners.RunConfigSnapshot{Name: fallbackName}
+	}
+	out := runners.RunConfigSnapshot{
+		Name:                    fallbackName,
+		Model:                   v.Model,
+		MaxRequestsPerMinute:    v.MaxRequestsPerMinute,
+		TextOnly:                v.TextOnly,
+		DisableStructuredOutput: v.DisableStructuredOutput,
+		ModelParameters:         v.ModelParameters,
+	}
+	if v.RetryPolicy != nil {
+		out.RetryPolicy = runners.RetryPolicy{
+			MaxRetryAttempts:    v.RetryPolicy.MaxRetryAttempts,
+			InitialDelaySeconds: v.RetryPolicy.InitialDelaySeconds,
+		}
+	}
+	return out
 }
 
 // fromTaskMetadataView converts a taskMetadataView back to runners.TaskMetadata.
@@ -378,13 +444,14 @@ func fromDetailsView(d detailsView) runners.Details {
 	}
 	if d.Error != nil {
 		result.Error = runners.ErrorDetails{
-			Title:     d.Error.Title,
-			Message:   d.Error.Message,
-			Details:   d.Error.Details,
-			Usage:     tokenUsageFromPtr(d.Error.Usage),
-			ToolUsage: fromToolUsageMapView(d.Error.ToolUsage),
-			ToolCalls: fromToolCallSummaryViews(d.Error.ToolCalls),
-			Transient: d.Error.Transient,
+			Title:           d.Error.Title,
+			Message:         d.Error.Message,
+			Details:         d.Error.Details,
+			Usage:           tokenUsageFromPtr(d.Error.Usage),
+			ToolUsage:       fromToolUsageMapView(d.Error.ToolUsage),
+			ToolCalls:       fromToolCallSummaryViews(d.Error.ToolCalls),
+			ResponseParsing: d.Error.ResponseParsing,
+			Transient:       d.Error.Transient,
 		}
 	}
 	return result

@@ -319,7 +319,8 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details,Suite,Category,Diffic
     },
     ""Usage"": {
       ""OutputTokens"": 333
-    }
+    },
+    ""ResponseParsing"": true
   }
 }",,,,
 01JEDE7Z8X0000000000000009,provider-name,run-structured-success,task-name,Passed,42000,"[

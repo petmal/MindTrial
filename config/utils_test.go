@@ -93,6 +93,149 @@ func TestJudgeConfigValidate(t *testing.T) {
 	}
 }
 
+func TestLoadConfigFromFileResolvesEnvironmentAPIKeys(t *testing.T) {
+	t.Setenv("OPENAI_API_KEY", "env-openai-key")
+	t.Setenv("GOOGLE_API_KEY", "env-google-key")
+	t.Setenv("ANTHROPIC_API_KEY", "env-anthropic-key")
+
+	path := createMockFile(t, []byte(`config:
+  task-source: "tasks.yaml"
+  output-dir: "."
+  providers:
+    - name: openai
+      client-config:
+        api-key: "{{.Env.OPENAI_API_KEY}}"
+      runs:
+        - name: "default"
+          model: "gpt-4o"
+    - name: google
+      client-config:
+        api-key: ""
+      runs:
+        - name: "default"
+          model: "gemini-2.5-flash"
+    - name: anthropic
+      client-config:
+        api-key: "literal-key"
+      runs:
+        - name: "default"
+          model: "claude-4-sonnet"
+  judges:
+    - name: "judge-1"
+      provider:
+        name: anthropic
+        client-config:
+          api-key: "{{.Env.ANTHROPIC_API_KEY}}"
+        runs:
+          - name: "default"
+            model: "claude-4-sonnet"
+`))
+
+	cfg, err := LoadConfigFromFile(context.Background(), path)
+	require.NoError(t, err)
+	require.Len(t, cfg.Config.Providers, 3)
+	assert.Equal(t, "env-openai-key", cfg.Config.Providers[0].ClientConfig.(OpenAIClientConfig).APIKey)
+	assert.Equal(t, "env-google-key", cfg.Config.Providers[1].ClientConfig.(GoogleAIClientConfig).APIKey)
+	assert.Equal(t, "literal-key", cfg.Config.Providers[2].ClientConfig.(AnthropicClientConfig).APIKey)
+	assert.Equal(t, "env-anthropic-key", cfg.Config.Judges[0].Provider.ClientConfig.(AnthropicClientConfig).APIKey)
+
+	_, err = LoadConfigFromFile(context.Background(), createMockFile(t, []byte(`config:
+  task-source: "tasks.yaml"
+  output-dir: "."
+  providers:
+    - name: openai
+      client-config:
+        api-key: "{{.Env.MISSING_KEY}}"
+      runs:
+        - name: "default"
+          model: "gpt-4o"
+`)))
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "MISSING_KEY")
+}
+
+func TestResolveAPIKeyValue(t *testing.T) {
+	envMap := map[string]string{
+		"OPENAI_API_KEY": "env-openai-key",
+		"EMPTY_KEY":      "",
+		"BLANK_KEY":      "   ",
+	}
+
+	tests := []struct {
+		name            string
+		raw             string
+		fallbackEnvName string
+		want            string
+		wantErr         bool
+	}{
+		{
+			name:            "exact placeholder resolves to env value",
+			raw:             "{{.Env.OPENAI_API_KEY}}",
+			fallbackEnvName: "OPENAI_API_KEY",
+			want:            "env-openai-key",
+		},
+		{
+			name:            "blank value falls back to default env name",
+			raw:             "",
+			fallbackEnvName: "OPENAI_API_KEY",
+			want:            "env-openai-key",
+		},
+		{
+			name:            "literal value is used as-is",
+			raw:             "literal-key",
+			fallbackEnvName: "OPENAI_API_KEY",
+			want:            "literal-key",
+		},
+		{
+			name:            "placeholder referencing a different variable resolves that variable",
+			raw:             "{{.Env.OPENAI_API_KEY}}",
+			fallbackEnvName: "SOME_OTHER_KEY",
+			want:            "env-openai-key",
+		},
+		{
+			name:            "placeholder with extra nesting is used as-is",
+			raw:             "{{.Env.OPENAI_API_KEY.Nested}}",
+			fallbackEnvName: "OPENAI_API_KEY",
+			want:            "{{.Env.OPENAI_API_KEY.Nested}}",
+		},
+		{
+			name:            "placeholder with extra surrounding whitespace resolves normally",
+			raw:             "{{ .Env.OPENAI_API_KEY }}",
+			fallbackEnvName: "OPENAI_API_KEY",
+			want:            "env-openai-key",
+		},
+		{
+			name:            "missing environment variable fails",
+			raw:             "{{.Env.MISSING_KEY}}",
+			fallbackEnvName: "OPENAI_API_KEY",
+			wantErr:         true,
+		},
+		{
+			name:            "empty environment variable fails",
+			raw:             "{{.Env.EMPTY_KEY}}",
+			fallbackEnvName: "EMPTY_KEY",
+			wantErr:         true,
+		},
+		{
+			name:            "blank environment variable fails",
+			raw:             "{{.Env.BLANK_KEY}}",
+			fallbackEnvName: "BLANK_KEY",
+			wantErr:         true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := resolveAPIKeyValue(tt.raw, tt.fallbackEnvName, envMap)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 func TestLoadConfigFromFile(t *testing.T) {
 	type args struct {
 		ctx  context.Context

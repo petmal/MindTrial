@@ -28,7 +28,7 @@
     "CreatedAt": {
       "type": "string",
       "title": "Created At",
-      "description": "The timestamp at which this document was generated."
+      "description": "The timestamp at which this document was generated, formatted per RFC 1123 with numeric time zone (e.g. \"Mon, 02 Jan 2006 15:04:05 -0700\")."
     },
     "Results": {
       "additionalProperties": {
@@ -58,6 +58,57 @@
               "type": "string",
               "title": "Run Name",
               "description": "The name of the provider's run configuration used."
+            },
+            "RunConfig": {
+              "properties": {
+                "Model": {
+                  "type": "string",
+                  "title": "Model",
+                  "description": "The provider model identifier used by the run."
+                },
+                "MaxRequestsPerMinute": {
+                  "type": "integer",
+                  "title": "Max Requests Per Minute",
+                  "description": "The maximum number of API requests per minute that was permitted for this run. A value of 0 (or absent) means no rate limiting was applied."
+                },
+                "TextOnly": {
+                  "type": "boolean",
+                  "title": "Text Only",
+                  "description": "Whether this run was restricted to text-only tasks (i.e. tasks without file attachments)."
+                },
+                "DisableStructuredOutput": {
+                  "type": "boolean",
+                  "title": "Disable Structured Output",
+                  "description": "Whether this run used plain text responses instead of the structured title/explanation/final-answer format, skipping tasks that require schema-based output."
+                },
+                "ModelParameters": {
+                  "type": "object",
+                  "title": "Model Parameters",
+                  "description": "The public subset of model parameters used by the run, with secrets omitted."
+                },
+                "RetryPolicy": {
+                  "properties": {
+                    "MaxRetryAttempts": {
+                      "type": "integer",
+                      "title": "Max Retry Attempts",
+                      "description": "The maximum number of retry attempts for a transient failure."
+                    },
+                    "InitialDelaySeconds": {
+                      "type": "integer",
+                      "title": "Initial Delay Seconds",
+                      "description": "The initial backoff delay before the first retry attempt."
+                    }
+                  },
+                  "additionalProperties": false,
+                  "type": "object",
+                  "title": "Retry Policy",
+                  "description": "The effective retry policy for the run, if configured."
+                }
+              },
+              "additionalProperties": false,
+              "type": "object",
+              "title": "Run Configuration",
+              "description": "The effective run configuration used to produce this result (e.g. model, rate limits, retry policy), with any API keys or other secrets omitted."
             },
             "Got": {
               "title": "Actual Answer",
@@ -762,6 +813,11 @@
                       "type": "array",
                       "title": "Tool Calls",
                       "description": "A log of every individual invocation attempt made prior to the error, including attempts that never actually ran. Tracked separately from ToolUsage, which only reflects invocations that actually ran."
+                    },
+                    "ResponseParsing": {
+                      "type": "boolean",
+                      "title": "Response Parsing",
+                      "description": "True when the model response was received but failed to parse into the expected structure; absent otherwise. When Transient is also absent, this failure should generally be treated as non-transient (retrying with the same input is unlikely to help)."
                     },
                     "Transient": {
                       "type": "boolean",

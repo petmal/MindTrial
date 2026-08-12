@@ -162,6 +162,21 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **moonshotai**: Moonshot AI (Kimi) models
 > - **openrouter**: OpenRouter-hosted models
 
+> [!TIP]
+> Instead of a literal value, `client-config.api-key` can reference an environment variable using the `{{.Env.NAME}}` placeholder (e.g. `"{{.Env.OPENAI_API_KEY}}"`), so secrets don't need to be committed to the config file. If `api-key` is omitted entirely (or left blank), each provider falls back to its own default environment variable:
+>
+> - **openai**: `OPENAI_API_KEY`
+> - **google**: `GOOGLE_API_KEY`
+> - **anthropic**: `ANTHROPIC_API_KEY`
+> - **deepseek**: `DEEPSEEK_API_KEY`
+> - **mistralai**: `MISTRAL_API_KEY`
+> - **xai**: `XAI_API_KEY`
+> - **alibaba**: `DASHSCOPE_API_KEY`
+> - **moonshotai**: `MOONSHOT_API_KEY`
+> - **openrouter**: `OPENROUTER_API_KEY`
+>
+> This fallback also applies to judge provider configurations under `judges[].provider.client-config`.
+
 > [!NOTE]
 > **Anthropic** and **DeepSeek** providers support configurable request timeout in the `client-config` section:
 >
@@ -356,7 +371,8 @@ config:
     - name: openai
       disabled: true
       client-config:
-        api-key: "<your-api-key>"
+        # Resolved from the OPENAI_API_KEY environment variable at load time.
+        api-key: "{{.Env.OPENAI_API_KEY}}"
       retry-policy:
         max-retry-attempts: 5
         initial-delay-seconds: 30

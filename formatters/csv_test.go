@@ -52,8 +52,17 @@ var mockResults = runners.Results{
 			Run:      "run-success",
 			Kind:     runners.Success,
 			Duration: 95 * time.Second,
-			Want:     utils.NewValueSet("Quos aut rerum quaerat qui ad culpa."),
-			Got:      "Quos aut rerum quaerat qui ad culpa.",
+			RunConfig: runners.RunConfigSnapshot{
+				Name:                 "run-success",
+				Model:                "gpt-4o-mini",
+				MaxRequestsPerMinute: 60,
+				RetryPolicy: runners.RetryPolicy{
+					MaxRetryAttempts:    3,
+					InitialDelaySeconds: 5,
+				},
+			},
+			Want: utils.NewValueSet("Quos aut rerum quaerat qui ad culpa."),
+			Got:  "Quos aut rerum quaerat qui ad culpa.",
 			TaskMetadata: runners.TaskMetadata{
 				Suite:      "core-suite",
 				Category:   "reasoning",
@@ -160,8 +169,12 @@ var mockResults = runners.Results{
 			Run:      "run-failure",
 			Kind:     runners.Failure,
 			Duration: 10 * time.Second,
-			Want:     utils.NewValueSet("Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui."),
-			Got:      "Ipsam ea et optio explicabo eius et.",
+			RunConfig: runners.RunConfigSnapshot{
+				Name:  "run-failure",
+				Model: "gpt-4o-mini",
+			},
+			Want: utils.NewValueSet("Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui."),
+			Got:  "Ipsam ea et optio explicabo eius et.",
 			Details: runners.Details{
 				Answer: runners.AnswerDetails{
 					Title:          "Generatio Responsi",
@@ -193,8 +206,12 @@ var mockResults = runners.Results{
 			Run:      "run-success-multiple-answers",
 			Kind:     runners.Success,
 			Duration: 17 * time.Second,
-			Want:     utils.NewValueSet("Deserunt quo sint minus eos officiis et.", "Quos aut rerum quaerat qui ad culpa."),
-			Got:      "Quos aut rerum quaerat qui ad culpa.",
+			RunConfig: runners.RunConfigSnapshot{
+				Name:  "run-success-multiple-answers",
+				Model: "gpt-4o",
+			},
+			Want: utils.NewValueSet("Deserunt quo sint minus eos officiis et.", "Quos aut rerum quaerat qui ad culpa."),
+			Got:  "Quos aut rerum quaerat qui ad culpa.",
 			Details: runners.Details{
 				Answer: runners.AnswerDetails{
 					Title:          "Multiplex Responsio",
@@ -220,8 +237,12 @@ var mockResults = runners.Results{
 			Run:      "run-failure-multiple-answers",
 			Kind:     runners.Failure,
 			Duration: 3*time.Minute + 800*time.Millisecond,
-			Want:     utils.NewValueSet("Dolores saepe ad sed rerum autem iure minima et.", "Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui."),
-			Got:      "Ipsam ea et optio explicabo eius et.",
+			RunConfig: runners.RunConfigSnapshot{
+				Name:  "run-failure-multiple-answers",
+				Model: "gpt-4o-mini",
+			},
+			Want: utils.NewValueSet("Dolores saepe ad sed rerum autem iure minima et.", "Nihil reprehenderit enim voluptatum dolore nisi neque quia aut qui."),
+			Got:  "Ipsam ea et optio explicabo eius et.",
 			Details: runners.Details{
 				Answer: runners.AnswerDetails{
 					Title:          "Responsum Generatum",
@@ -257,8 +278,12 @@ var mockResults = runners.Results{
 			Run:      "run-error",
 			Kind:     runners.Error,
 			Duration: 0 * time.Second,
-			Want:     utils.NewValueSet("Cum et rem."),
-			Got:      "error message",
+			RunConfig: runners.RunConfigSnapshot{
+				Name:  "run-error",
+				Model: "claude-3-7-sonnet",
+			},
+			Want: utils.NewValueSet("Cum et rem."),
+			Got:  "error message",
 			Details: runners.Details{
 				Answer:     runners.AnswerDetails{},
 				Validation: runners.ValidationDetails{},
@@ -294,8 +319,12 @@ var mockResults = runners.Results{
 			Run:      "run-not-supported",
 			Kind:     runners.NotSupported,
 			Duration: 500 * time.Millisecond,
-			Want:     utils.NewValueSet("Animi aut eligendi repellendus debitis harum aut."),
-			Got:      "Sequi molestiae iusto sit sit dolorum aut.",
+			RunConfig: runners.RunConfigSnapshot{
+				Name:  "run-not-supported",
+				Model: "claude-4-sonnet",
+			},
+			Want: utils.NewValueSet("Animi aut eligendi repellendus debitis harum aut."),
+			Got:  "Sequi molestiae iusto sit sit dolorum aut.",
 			Details: runners.Details{
 				Answer:     runners.AnswerDetails{},
 				Validation: runners.ValidationDetails{},
@@ -325,8 +354,12 @@ var mockResults = runners.Results{
 			Run:      "run-validation-error",
 			Kind:     runners.Error,
 			Duration: 2 * time.Second,
-			Want:     utils.NewValueSet("Lorem ipsum dolor sit amet consectetur."),
-			Got:      "Adipiscing elit sed do eiusmod tempor.",
+			RunConfig: runners.RunConfigSnapshot{
+				Name:  "run-validation-error",
+				Model: "gemini-2.5-flash",
+			},
+			Want: utils.NewValueSet("Lorem ipsum dolor sit amet consectetur."),
+			Got:  "Adipiscing elit sed do eiusmod tempor.",
 			Details: runners.Details{
 				Answer:     runners.AnswerDetails{},
 				Validation: runners.ValidationDetails{},
@@ -359,8 +392,12 @@ var mockResults = runners.Results{
 			Run:      "run-parsing-error",
 			Kind:     runners.Error,
 			Duration: 314159 * time.Millisecond,
-			Want:     utils.NewValueSet("Sed do eiusmod tempor incididunt ut."),
-			Got:      "Invalid JSON: {broken",
+			RunConfig: runners.RunConfigSnapshot{
+				Name:  "run-parsing-error",
+				Model: "mistral-small",
+			},
+			Want: utils.NewValueSet("Sed do eiusmod tempor incididunt ut."),
+			Got:  "Invalid JSON: {broken",
 			Details: runners.Details{
 				Answer:     runners.AnswerDetails{},
 				Validation: runners.ValidationDetails{},
@@ -387,6 +424,7 @@ var mockResults = runners.Results{
 					Usage: runners.TokenUsage{
 						OutputTokens: testutils.Ptr(int64(333)),
 					},
+					ResponseParsing: testutils.Ptr(true),
 				},
 			},
 		},
@@ -397,6 +435,10 @@ var mockResults = runners.Results{
 			Run:      "run-structured-success",
 			Kind:     runners.Success,
 			Duration: 42 * time.Second,
+			RunConfig: runners.RunConfigSnapshot{
+				Name:  "run-structured-success",
+				Model: "gpt-4.1",
+			},
 			Want: utils.NewValueSet(
 				[]interface{}{
 					map[string]interface{}{
@@ -497,6 +539,10 @@ var mockResults = runners.Results{
 			Run:      "run-structured-failure",
 			Kind:     runners.Failure,
 			Duration: 38 * time.Second,
+			RunConfig: runners.RunConfigSnapshot{
+				Name:  "run-structured-failure",
+				Model: "grok-3-mini",
+			},
 			Want: utils.NewValueSet(
 				map[string]interface{}{
 					"timestamp": "2025-09-14T10:30:00Z",

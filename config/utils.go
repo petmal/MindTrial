@@ -9,10 +9,12 @@ package config
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -25,6 +27,19 @@ import (
 )
 
 var validate = validator.New(validator.WithRequiredStructEnabled())
+
+// envPlaceholderMatcher matches an exact {{.Env.NAME}} template placeholder (tolerating
+// extra whitespace around the field, e.g. {{ .Env.NAME }}) referencing any single
+// environment variable name, rejecting any other template expression (e.g. a nested
+// field or an additional pipeline).
+var envPlaceholderMatcher = regexp.MustCompile(`^\{\{\s*\.Env\.[A-Za-z_][A-Za-z0-9_]*\s*\}\}$`)
+
+var (
+	// ErrResolveConfigValue indicates that a configuration value could not be resolved.
+	ErrResolveConfigValue = errors.New("failed to resolve configuration value")
+	// ErrMissingEnvironmentVariable indicates an explicit environment-backed config value was unresolved or empty.
+	ErrMissingEnvironmentVariable = errors.New("missing environment variable")
+)
 
 // LoadConfigFromFile reads and validates application configuration from the specified file path.
 // Returns error if the file cannot be read or contains invalid configuration.
@@ -43,6 +58,10 @@ func LoadConfigFromFile(ctx context.Context, path string) (*Config, error) {
 	cfg := &Config{}
 	if err := yamlUnmarshalStrict(fileContents, cfg); err != nil {
 		return nil, fmt.Errorf("malformed configuration file: %w", err)
+	}
+
+	if err := resolveEnvironmentConfigValues(cfg, os.Environ()); err != nil {
+		return cfg, fmt.Errorf("invalid configuration definition: %w", err)
 	}
 
 	if err := validate.Struct(cfg); err != nil {
@@ -64,6 +83,126 @@ func LoadConfigFromFile(ctx context.Context, path string) (*Config, error) {
 	}
 
 	return cfg, nil
+}
+
+// resolveEnvironmentConfigValues resolves environment-backed configuration values.
+func resolveEnvironmentConfigValues(cfg *Config, env []string) error {
+	envMap := make(map[string]string, len(env))
+	for _, entry := range env {
+		parts := strings.SplitN(entry, "=", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		envMap[parts[0]] = parts[1]
+	}
+
+	for i := range cfg.Config.Providers {
+		if err := resolveProviderEnvironmentConfig(&cfg.Config.Providers[i], envMap); err != nil {
+			return err
+		}
+	}
+	for i := range cfg.Config.Judges {
+		if err := resolveProviderEnvironmentConfig(&cfg.Config.Judges[i].Provider, envMap); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func resolveProviderEnvironmentConfig(cfg *ProviderConfig, envMap map[string]string) error {
+	switch clientConfig := cfg.ClientConfig.(type) {
+	case OpenAIClientConfig:
+		resolvedKey, err := resolveAPIKeyValue(clientConfig.APIKey, "OPENAI_API_KEY", envMap)
+		if err != nil {
+			return fmt.Errorf("%w: provider %q: %w", ErrResolveConfigValue, cfg.Name, err)
+		}
+		clientConfig.APIKey = resolvedKey
+		cfg.ClientConfig = clientConfig
+	case OpenRouterClientConfig:
+		resolvedKey, err := resolveAPIKeyValue(clientConfig.APIKey, "OPENROUTER_API_KEY", envMap)
+		if err != nil {
+			return fmt.Errorf("%w: provider %q: %w", ErrResolveConfigValue, cfg.Name, err)
+		}
+		clientConfig.APIKey = resolvedKey
+		cfg.ClientConfig = clientConfig
+	case GoogleAIClientConfig:
+		resolvedKey, err := resolveAPIKeyValue(clientConfig.APIKey, "GOOGLE_API_KEY", envMap)
+		if err != nil {
+			return fmt.Errorf("%w: provider %q: %w", ErrResolveConfigValue, cfg.Name, err)
+		}
+		clientConfig.APIKey = resolvedKey
+		cfg.ClientConfig = clientConfig
+	case AnthropicClientConfig:
+		resolvedKey, err := resolveAPIKeyValue(clientConfig.APIKey, "ANTHROPIC_API_KEY", envMap)
+		if err != nil {
+			return fmt.Errorf("%w: provider %q: %w", ErrResolveConfigValue, cfg.Name, err)
+		}
+		clientConfig.APIKey = resolvedKey
+		cfg.ClientConfig = clientConfig
+	case DeepseekClientConfig:
+		resolvedKey, err := resolveAPIKeyValue(clientConfig.APIKey, "DEEPSEEK_API_KEY", envMap)
+		if err != nil {
+			return fmt.Errorf("%w: provider %q: %w", ErrResolveConfigValue, cfg.Name, err)
+		}
+		clientConfig.APIKey = resolvedKey
+		cfg.ClientConfig = clientConfig
+	case MistralAIClientConfig:
+		resolvedKey, err := resolveAPIKeyValue(clientConfig.APIKey, "MISTRAL_API_KEY", envMap)
+		if err != nil {
+			return fmt.Errorf("%w: provider %q: %w", ErrResolveConfigValue, cfg.Name, err)
+		}
+		clientConfig.APIKey = resolvedKey
+		cfg.ClientConfig = clientConfig
+	case XAIClientConfig:
+		resolvedKey, err := resolveAPIKeyValue(clientConfig.APIKey, "XAI_API_KEY", envMap)
+		if err != nil {
+			return fmt.Errorf("%w: provider %q: %w", ErrResolveConfigValue, cfg.Name, err)
+		}
+		clientConfig.APIKey = resolvedKey
+		cfg.ClientConfig = clientConfig
+	case AlibabaClientConfig:
+		resolvedKey, err := resolveAPIKeyValue(clientConfig.APIKey, "DASHSCOPE_API_KEY", envMap)
+		if err != nil {
+			return fmt.Errorf("%w: provider %q: %w", ErrResolveConfigValue, cfg.Name, err)
+		}
+		clientConfig.APIKey = resolvedKey
+		cfg.ClientConfig = clientConfig
+	case MoonshotAIClientConfig:
+		resolvedKey, err := resolveAPIKeyValue(clientConfig.APIKey, "MOONSHOT_API_KEY", envMap)
+		if err != nil {
+			return fmt.Errorf("%w: provider %q: %w", ErrResolveConfigValue, cfg.Name, err)
+		}
+		clientConfig.APIKey = resolvedKey
+		cfg.ClientConfig = clientConfig
+	}
+	return nil
+}
+
+func resolveAPIKeyValue(raw string, fallbackEnvName string, envMap map[string]string) (string, error) {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		if value, ok := envMap[fallbackEnvName]; ok && strings.TrimSpace(value) != "" {
+			return value, nil
+		}
+		return "", nil
+	}
+
+	if !envPlaceholderMatcher.MatchString(trimmed) {
+		return raw, nil
+	}
+
+	var resolved strings.Builder
+	tmpl, err := template.New("api-key").Option("missingkey=error").Parse(trimmed)
+	if err != nil {
+		return "", fmt.Errorf("%w: invalid template for environment-backed API key: %v", ErrResolveConfigValue, err)
+	}
+	if err := tmpl.Execute(&resolved, struct{ Env map[string]string }{Env: envMap}); err != nil {
+		return "", fmt.Errorf("%w: %w", ErrMissingEnvironmentVariable, err)
+	}
+	if strings.TrimSpace(resolved.String()) == "" {
+		return "", fmt.Errorf("%w: environment-backed API key resolved to an empty value", ErrMissingEnvironmentVariable)
+	}
+	return resolved.String(), nil
 }
 
 // validateToolParameters validates that the tool parameters map is a valid JSON schema.

@@ -38,6 +38,10 @@ const (
 	// Permanent identifies an error category: the error appears permanent and a retry is
 	// unlikely to succeed. See ToErrorCategory.
 	Permanent = "Permanent"
+	// ParsingError identifies an error category: the model response was received but could
+	// not be parsed into the expected structure, and transience is otherwise unknown.
+	// See ToErrorCategory.
+	ParsingError = "Parsing Error"
 
 	// htmlDiffContentPrefix is an HTML comment prefix added to HTML diff content
 	// to disable html-validate inline style warnings for generated diff markup.
@@ -280,18 +284,22 @@ func Timestamp() string {
 }
 
 // ToErrorCategory returns a short, human-readable error category label for the given
-// error details: Permanent when Transient is false, Transient when true, and "" (no
-// category) when transience is unknown (nil). Takes the whole ErrorDetails, rather than
-// just its Transient field, so future categorization can draw on other attributes (e.g.
-// Title) without changing the function's signature again. Modeled as a small, named set
-// of constants (like ToStatus) so additional error categories can be introduced later
-// without changing callers' string literals.
+// error details: Permanent when Transient is false, Transient when true, ParsingError
+// when transience is unknown but the response failed to parse, and "" (no category)
+// when nothing is known. Takes the whole ErrorDetails, rather than just its Transient
+// field, so future categorization can draw on other attributes (e.g. Title) without
+// changing the function's signature again. Modeled as a small, named set of constants
+// (like ToStatus) so additional error categories can be introduced later without
+// changing callers' string literals.
 func ToErrorCategory(details runners.ErrorDetails) string {
-	if details.Transient == nil {
-		return ""
+	if details.Transient != nil {
+		if *details.Transient {
+			return Transient
+		}
+		return Permanent
 	}
-	if *details.Transient {
-		return Transient
+	if details.ResponseParsing != nil && *details.ResponseParsing {
+		return ParsingError
 	}
-	return Permanent
+	return ""
 }

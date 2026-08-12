@@ -34,7 +34,7 @@ type jsonDocument struct {
 	FormatVersion int         `json:"FormatVersion" jsonschema:"title=Format Version,enum=1" jsonschema_description:"The version of this JSON document's structure. Readers should reject documents with an unrecognized version rather than guessing at compatibility."`
 	AppName       string      `json:"AppName,omitempty" jsonschema:"title=Application Name" jsonschema_description:"The name of the application that produced this document."`
 	AppVersion    string      `json:"AppVersion,omitempty" jsonschema:"title=Application Version" jsonschema_description:"The version of the application that produced this document."`
-	CreatedAt     string      `json:"CreatedAt,omitempty" jsonschema:"title=Created At" jsonschema_description:"The timestamp at which this document was generated."`
+	CreatedAt     string      `json:"CreatedAt,omitempty" jsonschema:"title=Created At" jsonschema_description:"The timestamp at which this document was generated, formatted per RFC 1123 with numeric time zone (e.g. \"Mon, 02 Jan 2006 15:04:05 -0700\")."`
 	Results       resultsView `json:"Results" jsonschema:"title=Results" jsonschema_description:"Task results, keyed by provider name."`
 }
 
