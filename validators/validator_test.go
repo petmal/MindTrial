@@ -1416,7 +1416,23 @@ Validation flags:
 Procedure
 1. Normalize candidate and each expected answer per the flags.
 2. Compare the candidate to each expected answer independently for semantic equivalence.
-3. Set "correct" to true if ANY match, false otherwise.`,
+3. Produce the verdict exactly according to the Verdict Format below.
+
+Verdict Format:
+{
+  "additionalProperties": false,
+  "properties": {
+    "correct": {
+      "description": "True if the candidate response is semantically equivalent to any expected answer, false otherwise. Follow the provided evaluation criteria and normalization rules.",
+      "title": "Semantic Equivalence Verdict",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "correct"
+  ],
+  "type": "object"
+}`,
 		},
 		{
 			name: "custom judge prompt with string format",
@@ -1715,14 +1731,24 @@ func TestJudgeValidatorIsCorrect(t *testing.T) {
 			logger := testutils.NewTestLogger(t)
 			result, err := validator.IsCorrect(context.Background(), logger, config.ValidationRules{}, expectedTaskValues, actualTaskResult, tt.originalPrompt, config.NewResponseFormat("json"))
 
+			// Semantic provenance is set from the executor's own config before the judge task
+			// even runs, so it must be present on both the success and error return paths.
+			require.NotNil(t, result.Semantic)
+			assert.Equal(t, "mock-judge", result.Semantic.JudgeName)
+			assert.Equal(t, "mock-judge", result.Semantic.Provider)
+			assert.Equal(t, tt.judgeConfigName, result.Semantic.Variant)
+			assert.Equal(t, judgeRunVariant, result.Semantic.VariantConfig)
+
 			if tt.expectError {
 				require.Error(t, err)
 				assert.False(t, result.IsCorrect, "Expected result to be incorrect when error is expected")
+				assert.Nil(t, result.Semantic.Verdict, "Verdict is only set once the judge task actually completes")
 				return
 			}
 
 			require.NoError(t, err)
 			assert.Equal(t, tt.expectCorrect, result.IsCorrect)
+			assert.Equal(t, map[string]interface{}{"correct": tt.expectCorrect}, result.Semantic.Verdict)
 		})
 	}
 

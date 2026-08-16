@@ -242,3 +242,50 @@ func TestErrorDetailsViewTransientRoundTrip(t *testing.T) {
 		assert.Equal(t, details, fromDetailsView(view))
 	})
 }
+
+func TestValidationDetailsViewSemanticRoundTrip(t *testing.T) {
+	t.Run("semantic details round-trip", func(t *testing.T) {
+		details := runners.Details{
+			Validation: runners.ValidationDetails{
+				Title:       "Semantic Assessment",
+				Explanation: []string{"Response is semantically equivalent."},
+				Semantic: &runners.SemanticValidationDetails{
+					Verdict:   map[string]interface{}{"correct": true},
+					JudgeName: "mistral-judge",
+					Provider:  "mistralai",
+					Variant:   "reasoning",
+					VariantConfig: runners.RunConfigSnapshot{
+						Name:  "reasoning",
+						Model: "mistral-large",
+					},
+				},
+			},
+		}
+		view := newDetailsView(details)
+		require.NotNil(t, view.Validation)
+		require.NotNil(t, view.Validation.Semantic)
+		assert.Equal(t, "mistral-judge", view.Validation.Semantic.JudgeName)
+		assert.Equal(t, details, fromDetailsView(view))
+	})
+
+	t.Run("semantic details preserved even when validation otherwise empty", func(t *testing.T) {
+		details := runners.Details{
+			Validation: runners.ValidationDetails{
+				Semantic: &runners.SemanticValidationDetails{Verdict: "no", JudgeName: "judge"},
+			},
+		}
+		view := newDetailsView(details)
+		require.NotNil(t, view.Validation)
+		assert.Equal(t, details, fromDetailsView(view))
+	})
+
+	t.Run("nil semantic details maps to nil view field", func(t *testing.T) {
+		details := runners.Details{
+			Validation: runners.ValidationDetails{Title: "Response Assessment"},
+		}
+		view := newDetailsView(details)
+		require.NotNil(t, view.Validation)
+		assert.Nil(t, view.Validation.Semantic)
+		assert.Equal(t, details, fromDetailsView(view))
+	})
+}

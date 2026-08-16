@@ -179,7 +179,18 @@
             "Title": "Validatio Defecit",
             "Explanation": [
               "At vero eos et accusamus et iusto odio dignissimos ducimus qui."
-            ]
+            ],
+            "Semantic": {
+              "Verdict": {
+                "correct": false
+              },
+              "JudgeName": "mistral-judge",
+              "Provider": "mistralai",
+              "Variant": "reasoning",
+              "VariantConfig": {
+                "Model": "mistral-large-latest"
+              }
+            }
           }
         },
         "DurationNS": 10000000000

@@ -477,6 +477,10 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 				}
 			}
 			populateErrorDetails(&runResult.Details.Error, err)
+			// Preserve judge provenance/verdict even when validation itself errored out.
+			runResult.Details.Validation = ValidationDetails{
+				Semantic: toSemanticValidationDetails(ctx, logger, validationResult.Semantic),
+			}
 		} else {
 			if !validationResult.IsCorrect {
 				runResult.Kind = Failure
@@ -491,6 +495,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 				Usage:       toTokenUsage(validationResult.Usage),
 				ToolUsage:   toToolUsage(validationResult.Usage),
 				ToolCalls:   toToolCallSummaries(validationResult.ToolCalls),
+				Semantic:    toSemanticValidationDetails(ctx, logger, validationResult.Semantic),
 			}
 		}
 
@@ -617,6 +622,23 @@ func pluralize(tokens ...any) []interface{} {
 	}
 
 	return pluralized
+}
+
+// toSemanticValidationDetails converts a validators.SemanticValidationDetails to its
+// artifact-safe runners.SemanticValidationDetails projection, using the same
+// snapshotRunConfig logic applied to the primary variant configuration. Returns nil when
+// details is nil (validation was not performed by a judge).
+func toSemanticValidationDetails(ctx context.Context, logger logging.Logger, details *validators.SemanticValidationDetails) *SemanticValidationDetails {
+	if details == nil {
+		return nil
+	}
+	return &SemanticValidationDetails{
+		Verdict:       details.Verdict,
+		JudgeName:     details.JudgeName,
+		Provider:      details.Provider,
+		Variant:       details.Variant,
+		VariantConfig: snapshotRunConfig(ctx, logger, details.VariantConfig),
+	}
 }
 
 func toTokenUsage(u providers.Usage) TokenUsage {

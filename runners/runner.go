@@ -216,6 +216,25 @@ type ValidationDetails struct {
 	// validation, including attempts that never actually ran. Tracked separately from
 	// ToolUsage, which only reflects invocations that actually ran.
 	ToolCalls []ToolCallSummary `json:"ToolCalls,omitempty"`
+	// Semantic contains the judge's raw verdict and variant provenance, populated
+	// when validation was performed by an LLM judge; nil otherwise.
+	Semantic *SemanticValidationDetails `json:"Semantic,omitempty"`
+}
+
+// SemanticValidationDetails identifies the judge variant that evaluated a response
+// and the raw verdict it produced.
+type SemanticValidationDetails struct {
+	// Verdict contains the raw verdict produced by the judge.
+	Verdict interface{}
+	// JudgeName identifies the judge configuration used.
+	JudgeName string
+	// Provider is the name of the AI provider that executed the judge task.
+	Provider string
+	// Variant is the name of the judge's configuration variant used.
+	Variant string
+	// VariantConfig is the effective variant configuration used by the judge, with any
+	// API keys or other secrets omitted.
+	VariantConfig RunConfigSnapshot
 }
 
 // ErrorDetails defines structured information about errors that occurred during execution.

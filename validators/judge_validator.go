@@ -25,10 +25,13 @@ const judgeTaskName = "response assessment"
 // using another AI model as a judge, rather than relying on exact value matching.
 type judgeValidator struct {
 	executor *execution.Executor
-	name     string
+	// name is the validator's display string (e.g. "<variant> <judge> judge").
+	name string
+	// judgeName is the judge configuration's own name, as it appears in config.JudgeConfig.Name.
+	judgeName string
 }
 
-// NewJudgeValidator creates a new semantic Validator with the given judge configuration and run variant.
+// NewJudgeValidator creates a new semantic Validator with the given judge configuration and variant.
 // The judge provider will be initialized from the configuration and used to evaluate responses
 // for semantic equivalence.
 func NewJudgeValidator(ctx context.Context, judgeConfig *config.JudgeConfig, judgeRunVariant config.RunConfig, availableTools []config.ToolConfig) (Validator, error) {
@@ -41,8 +44,9 @@ func NewJudgeValidator(ctx context.Context, judgeConfig *config.JudgeConfig, jud
 	name := fmt.Sprintf("%s %s judge", judgeRunVariant.Name, judgeConfig.Name)
 
 	return &judgeValidator{
-		executor: executor,
-		name:     name,
+		executor:  executor,
+		name:      name,
+		judgeName: judgeConfig.Name,
 	}, nil
 }
 
@@ -86,40 +90,49 @@ func (v *judgeValidator) IsCorrect(ctx context.Context, logger logging.Logger, r
 		ExpectedResult:       rules.Judge.Prompt.GetPassingVerdicts(),
 	}
 
+	semantic := &SemanticValidationDetails{
+		JudgeName:     v.judgeName,
+		Provider:      v.executor.Provider.Name(),
+		Variant:       v.executor.RunConfig.Name,
+		VariantConfig: v.executor.RunConfig,
+	}
+
 	// Execute the judge task and evaluate the response.
 	judgeTaskResult, err := v.executor.Execute(ctx, judgeLogger, judgeTask)
 	usage := judgeTaskResult.GetUsage()
 	toolCalls := judgeTaskResult.GetToolCalls()
 	if err != nil {
 		judgeLogger.Error(ctx, logging.LevelError, err, "finished with error")
-		return ValidationResult{Usage: usage, ToolCalls: toolCalls}, fmt.Errorf("judge evaluation failed: %w", err)
+		return ValidationResult{Usage: usage, ToolCalls: toolCalls, Semantic: semantic}, fmt.Errorf("judge evaluation failed: %w", err)
 	}
 
-	judgeLogger.Message(ctx, logging.LevelTrace, "verdict: %s", utils.ToString(judgeTaskResult.GetFinalAnswerContent()))
+	semantic.Verdict = judgeTaskResult.GetFinalAnswerContent()
+	judgeLogger.Message(ctx, logging.LevelTrace, "verdict: %s", utils.ToString(semantic.Verdict))
 
 	// Log statistics about the judge task execution.
 	judgeLogger.Message(ctx, logging.LevelDebug, "completed in %s", judgeTaskResult.GetDuration())
 	judgeLogger.Message(ctx, logging.LevelDebug, "token usage: [in:%s, out:%s]", logging.FormatLogInt64(usage.InputTokens), logging.FormatLogInt64(usage.OutputTokens))
 	judgeLogger.Message(ctx, logging.LevelTrace, "prompts:\n%s", logging.FormatLogText(judgeTaskResult.GetPrompts()))
 
-	validationResult, err := NewValueMatchValidator().IsCorrect(ctx, judgeLogger, config.ValidationRules{}, judgeTask.ExpectedResult, judgeTaskResult, judgeTask.Prompt, judgeTask.ResponseResultFormat)
+	isCorrect, err := GradeVerdict(config.ValidationRules{}, rules.Judge.Prompt.GetPassingVerdicts(), semantic.Verdict)
 	if err != nil {
-		return ValidationResult{Usage: usage, ToolCalls: toolCalls}, fmt.Errorf("failed to evaluate judge response: %w", err)
+		return ValidationResult{Usage: usage, ToolCalls: toolCalls, Semantic: semantic}, fmt.Errorf("failed to evaluate judge response: %w", err)
 	}
 
 	var explanation string
-	if validationResult.IsCorrect {
+	if isCorrect {
 		explanation = fmt.Sprintf("Response is semantically equivalent to one of the accepted answers.\n\nJudge reasoning:\n%s", judgeTaskResult.Explanation)
 	} else {
 		explanation = fmt.Sprintf("Response is not semantically equivalent to any of the accepted answers.\n\nJudge reasoning:\n%s", judgeTaskResult.Explanation)
 	}
 
 	return ValidationResult{
-		IsCorrect:   validationResult.IsCorrect,
+		IsCorrect:   isCorrect,
 		Title:       "Semantic Assessment",
 		Explanation: explanation,
 		Usage:       usage,
 		ToolCalls:   toolCalls,
+		Semantic:    semantic,
 	}, nil
 }
 
@@ -163,11 +176,21 @@ type judgeTemplateRules struct {
 	TrimLines        bool
 }
 
+// judgeTemplateVerdict exposes the resolved verdict format to the judge template.
+// It deliberately excludes the passing-verdicts criterion: a verdict should be produced
+// independently of knowing the pass/fail boundary that will later be applied to it.
+type judgeTemplateVerdict struct {
+	// Format is the resolved verdict format, rendered as a plain instruction string or
+	// pretty-printed JSON schema.
+	Format string
+}
+
 // judgeTemplateContext is the nested, sanitized data passed to the judge prompt template.
 type judgeTemplateContext struct {
 	OriginalTask judgeTemplateOriginalTask
 	Candidate    judgeTemplateCandidate
 	Rules        judgeTemplateRules
+	Verdict      judgeTemplateVerdict
 }
 
 // createJudgePrompt creates a prompt for the judge to evaluate semantic equivalence.
@@ -187,6 +210,9 @@ func (v *judgeValidator) createJudgePrompt(rules config.ValidationRules, expecte
 			CaseSensitive:    rules.IsCaseSensitive(),
 			IgnoreWhitespace: rules.IsIgnoreWhitespace(),
 			TrimLines:        rules.IsTrimLines(),
+		},
+		Verdict: judgeTemplateVerdict{
+			Format: rules.Judge.Prompt.GetVerdictFormat().String(),
 		},
 	}
 

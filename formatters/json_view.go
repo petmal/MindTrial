@@ -44,14 +44,16 @@ type resultView struct {
 	DurationNS   int64             `json:"DurationNS" jsonschema:"title=Duration (ns)" jsonschema_description:"The cumulative time the AI model itself spent generating a response, in nanoseconds, summed across every conversation turn's model request (network + inference). Excludes local tool execution time (see ToolCalls/ToolUsage) and any subsequent validation time, so this is not the total wall-clock time spent processing the task."`
 }
 
-// runConfigView is the view model for runners.RunConfigSnapshot.
+// runConfigView is the view model for runners.RunConfigSnapshot. Shared by the top-level
+// task run configuration and a judge's variant configuration, so field descriptions are
+// deliberately configuration-context-agnostic rather than saying "run" or "task".
 type runConfigView struct {
-	Model                   string                 `json:"Model,omitempty" jsonschema:"title=Model" jsonschema_description:"The provider model identifier used by the run."`
-	MaxRequestsPerMinute    int                    `json:"MaxRequestsPerMinute,omitempty" jsonschema:"title=Max Requests Per Minute" jsonschema_description:"The maximum number of API requests per minute that was permitted for this run. A value of 0 (or absent) means no rate limiting was applied."`
-	TextOnly                bool                   `json:"TextOnly,omitempty" jsonschema:"title=Text Only" jsonschema_description:"Whether this run was restricted to text-only tasks (i.e. tasks without file attachments)."`
-	DisableStructuredOutput bool                   `json:"DisableStructuredOutput,omitempty" jsonschema:"title=Disable Structured Output" jsonschema_description:"Whether this run used plain text responses instead of the structured title/explanation/final-answer format, skipping tasks that require schema-based output."`
-	ModelParameters         map[string]interface{} `json:"ModelParameters,omitempty" jsonschema:"title=Model Parameters" jsonschema_description:"The public subset of model parameters used by the run, with secrets omitted."`
-	RetryPolicy             *retryPolicyView       `json:"RetryPolicy,omitempty" jsonschema:"title=Retry Policy" jsonschema_description:"The effective retry policy for the run, if configured."`
+	Model                   string                 `json:"Model,omitempty" jsonschema:"title=Model" jsonschema_description:"The provider model identifier used."`
+	MaxRequestsPerMinute    int                    `json:"MaxRequestsPerMinute,omitempty" jsonschema:"title=Max Requests Per Minute" jsonschema_description:"The maximum number of API requests per minute that was permitted for this configuration. A value of 0 (or absent) means no rate limiting was applied."`
+	TextOnly                bool                   `json:"TextOnly,omitempty" jsonschema:"title=Text Only" jsonschema_description:"Whether this configuration was restricted to text-only tasks (i.e. tasks without file attachments)."`
+	DisableStructuredOutput bool                   `json:"DisableStructuredOutput,omitempty" jsonschema:"title=Disable Structured Output" jsonschema_description:"Whether this configuration used plain text responses instead of the structured title/explanation/final-answer format, skipping tasks that require schema-based output."`
+	ModelParameters         map[string]interface{} `json:"ModelParameters,omitempty" jsonschema:"title=Model Parameters" jsonschema_description:"The public subset of model parameters used by this configuration, with secrets omitted."`
+	RetryPolicy             *retryPolicyView       `json:"RetryPolicy,omitempty" jsonschema:"title=Retry Policy" jsonschema_description:"The effective retry policy for this configuration, if configured."`
 }
 
 // retryPolicyView is the view model for runners.RetryPolicy.
@@ -88,11 +90,21 @@ type answerDetailsView struct {
 
 // validationDetailsView is the view model for runners.ValidationDetails.
 type validationDetailsView struct {
-	Title       string                   `json:"Title,omitempty" jsonschema:"title=Title" jsonschema_description:"Identifies the type of validation assessment performed."`
-	Explanation []string                 `json:"Explanation,omitempty" jsonschema:"title=Explanation" jsonschema_description:"Detailed analysis of why the validation succeeded or failed, split into lines."`
-	Usage       *runners.TokenUsage      `json:"Usage,omitempty" jsonschema:"title=Token Usage" jsonschema_description:"Token usage statistics for the response validation step. Typically populated when using an LLM judge validator."`
-	ToolUsage   map[string]toolUsageView `json:"ToolUsage,omitempty" jsonschema:"title=Tool Usage" jsonschema_description:"Aggregated execution statistics, keyed by tool name, for any tools invoked during validation."`
-	ToolCalls   []toolCallSummaryView    `json:"ToolCalls,omitempty" jsonschema:"title=Tool Calls" jsonschema_description:"A log of every individual invocation attempt made during validation, including attempts that never actually ran. Tracked separately from ToolUsage, which only reflects invocations that actually ran."`
+	Title       string                         `json:"Title,omitempty" jsonschema:"title=Title" jsonschema_description:"Identifies the type of validation assessment performed."`
+	Explanation []string                       `json:"Explanation,omitempty" jsonschema:"title=Explanation" jsonschema_description:"Detailed analysis of why the validation succeeded or failed, split into lines."`
+	Usage       *runners.TokenUsage            `json:"Usage,omitempty" jsonschema:"title=Token Usage" jsonschema_description:"Token usage statistics for the response validation step. Typically populated when using an LLM judge validator."`
+	ToolUsage   map[string]toolUsageView       `json:"ToolUsage,omitempty" jsonschema:"title=Tool Usage" jsonschema_description:"Aggregated execution statistics, keyed by tool name, for any tools invoked during validation."`
+	ToolCalls   []toolCallSummaryView          `json:"ToolCalls,omitempty" jsonschema:"title=Tool Calls" jsonschema_description:"A log of every individual invocation attempt made during validation, including attempts that never actually ran. Tracked separately from ToolUsage, which only reflects invocations that actually ran."`
+	Semantic    *semanticValidationDetailsView `json:"Semantic,omitempty" jsonschema:"title=Semantic Validation" jsonschema_description:"The judge's raw verdict and variant provenance, present only when validation was performed by an LLM judge."`
+}
+
+// semanticValidationDetailsView is the view model for runners.SemanticValidationDetails.
+type semanticValidationDetailsView struct {
+	Verdict       interface{}    `json:"Verdict,omitempty" jsonschema:"title=Judge Verdict" jsonschema_description:"The raw verdict produced by the judge."`
+	JudgeName     string         `json:"JudgeName,omitempty" jsonschema:"title=Judge Name" jsonschema_description:"The name of the judge configuration used."`
+	Provider      string         `json:"Provider,omitempty" jsonschema:"title=Provider Name" jsonschema_description:"The name of the AI provider that executed the judge task."`
+	Variant       string         `json:"Variant,omitempty" jsonschema:"title=Variant Name" jsonschema_description:"The name of the judge's configuration variant used."`
+	VariantConfig *runConfigView `json:"VariantConfig,omitempty" jsonschema:"title=Variant Configuration" jsonschema_description:"The effective variant configuration used by the judge, with any API keys or other secrets omitted."`
 }
 
 // errorDetailsView is the view model for runners.ErrorDetails.
@@ -232,11 +244,28 @@ func newValidationDetailsView(v runners.ValidationDetails) *validationDetailsVie
 		Usage:       tokenUsageToPtr(v.Usage),
 		ToolUsage:   newToolUsageMapView(v.ToolUsage),
 		ToolCalls:   newToolCallSummaryViews(v.ToolCalls),
+		Semantic:    newSemanticValidationDetailsView(v.Semantic),
 	}
-	if rv.Title == "" && len(rv.Explanation) == 0 && rv.Usage == nil && len(rv.ToolUsage) == 0 && len(rv.ToolCalls) == 0 {
+	if rv.Title == "" && len(rv.Explanation) == 0 && rv.Usage == nil && len(rv.ToolUsage) == 0 &&
+		len(rv.ToolCalls) == 0 && rv.Semantic == nil {
 		return nil
 	}
 	return &rv
+}
+
+// newSemanticValidationDetailsView converts a runners.SemanticValidationDetails to its
+// view model. Returns nil when s is nil (validation was not performed by a judge).
+func newSemanticValidationDetailsView(s *runners.SemanticValidationDetails) *semanticValidationDetailsView {
+	if s == nil {
+		return nil
+	}
+	return &semanticValidationDetailsView{
+		Verdict:       s.Verdict,
+		JudgeName:     s.JudgeName,
+		Provider:      s.Provider,
+		Variant:       s.Variant,
+		VariantConfig: newRunConfigView(s.VariantConfig),
+	}
 }
 
 func newErrorDetailsView(e runners.ErrorDetails) *errorDetailsView {
@@ -406,6 +435,23 @@ func fromRunConfigView(v *runConfigView, fallbackName string) runners.RunConfigS
 	return out
 }
 
+// fromSemanticValidationDetailsView converts a semanticValidationDetailsView back to
+// runners.SemanticValidationDetails. Returns nil when v is nil. Variant rehydrates
+// VariantConfig.Name, which the nested runConfigView never serializes, mirroring how the
+// top-level resultView.Run rehydrates RunConfig.Name.
+func fromSemanticValidationDetailsView(v *semanticValidationDetailsView) *runners.SemanticValidationDetails {
+	if v == nil {
+		return nil
+	}
+	return &runners.SemanticValidationDetails{
+		Verdict:       v.Verdict,
+		JudgeName:     v.JudgeName,
+		Provider:      v.Provider,
+		Variant:       v.Variant,
+		VariantConfig: fromRunConfigView(v.VariantConfig, v.Variant),
+	}
+}
+
 // fromTaskMetadataView converts a taskMetadataView back to runners.TaskMetadata.
 // A nil view produces a zero-value TaskMetadata.
 func fromTaskMetadataView(v *taskMetadataView) runners.TaskMetadata {
@@ -440,6 +486,7 @@ func fromDetailsView(d detailsView) runners.Details {
 			Usage:       tokenUsageFromPtr(d.Validation.Usage),
 			ToolUsage:   fromToolUsageMapView(d.Validation.ToolUsage),
 			ToolCalls:   fromToolCallSummaryViews(d.Validation.ToolCalls),
+			Semantic:    fromSemanticValidationDetailsView(d.Validation.Semantic),
 		}
 	}
 	if d.Error != nil {

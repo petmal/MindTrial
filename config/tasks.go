@@ -73,7 +73,10 @@ Validation flags:
 Procedure
 1. Normalize candidate and each expected answer per the flags.
 2. Compare the candidate to each expected answer independently for semantic equivalence.
-3. Set "correct" to true if ANY match, false otherwise.`))
+3. Produce the verdict exactly according to the Verdict Format below.
+
+Verdict Format:
+{{.Verdict.Format}}`))
 
 	// defaultJudgeVerdictFormat is the default response format for judge evaluation.
 	defaultJudgeVerdictFormat = sync.OnceValue(func() ResponseFormat {
@@ -330,33 +333,65 @@ func (o TaskConfig) validateTask(task Task) error {
 	// Validate judge prompt configuration.
 	if resolvedValidationRules.UseJudge() {
 		judgePrompt := resolvedValidationRules.Judge.Prompt
-		if _, ok := judgePrompt.GetTemplate(); ok {
-			// If template is provided, verdict-format and passing-verdicts must also be provided.
-			if judgePrompt.VerdictFormat == nil {
-				return fmt.Errorf("%w: judge prompt template requires verdict-format to be specified", ErrInvalidTaskProperty)
-			}
-			if judgePrompt.PassingVerdicts == nil {
-				return fmt.Errorf("%w: judge prompt template requires passing-verdicts to be specified", ErrInvalidTaskProperty)
-			}
-		} else {
-			// If no template is provided (using fallback), verdict-format and passing-verdicts should not be overridden.
-			if judgePrompt.VerdictFormat != nil {
-				return fmt.Errorf("%w: judge verdict-format should not be specified when using default judge prompt template", ErrInvalidTaskProperty)
-			}
-			if judgePrompt.PassingVerdicts != nil {
-				return fmt.Errorf("%w: judge passing-verdicts should not be specified when using default judge prompt template", ErrInvalidTaskProperty)
-			}
+		// Template is independently optional: verdict-format and passing-verdicts must
+		// either both be specified (a complete custom pair) or both be left unset (falling
+		// back to the built-in defaults). Specifying only one half of the pair leaves the
+		// other half implicit and is rejected as ambiguous, regardless of Template.
+		if (judgePrompt.VerdictFormat == nil) != (judgePrompt.PassingVerdicts == nil) {
+			return fmt.Errorf("%w: judge verdict-format and passing-verdicts must either both be specified or both be left unset", ErrInvalidTaskProperty)
 		}
 
-		// Validate that judge prompt expected result conforms to response format.
-		// This will also validate fallback values if not overridden.
-		// `useJudge` is always `false` here because judge validators use exact matching to assert the semantic evaluation result.
-		if err := validateFormatAndExpectedResults(judgePrompt.GetVerdictFormat(), judgePrompt.GetPassingVerdicts(), false, "judge verdict-format", "judge passing-verdicts"); err != nil {
-			return err
+		// An empty passing-verdicts set (e.g. explicitly configured as `[]`) would compile to
+		// an unsatisfiable "enum: []" grading schema that always rejects every verdict, so
+		// reject it here rather than let every judge grading call silently fail at runtime.
+		if len(judgePrompt.GetPassingVerdicts().Values()) == 0 {
+			return fmt.Errorf("%w: judge passing-verdicts must specify at least one value", ErrInvalidTaskProperty)
+		}
+
+		if schema, ok := ExplicitSchema(judgePrompt.GetPassingVerdicts()); ok {
+			// passing-verdicts is an explicit JSON Schema describing passing verdicts (e.g. a
+			// score threshold), not a literal value to match exactly. Validate verdict-format
+			// on its own (using an empty expected-result set) and passing-verdicts as a
+			// standalone schema, rather than feeding the schema object itself into
+			// verdict-format's expected-result check. The two are intentionally not checked
+			// against each other for logical compatibility.
+			if err := validateFormatAndExpectedResults(judgePrompt.GetVerdictFormat(), utils.NewValueSet(), false, "judge verdict-format", "judge passing-verdicts"); err != nil {
+				return err
+			}
+			if err := utils.ValidateAgainstSchema(schema); err != nil {
+				return fmt.Errorf("%w: judge passing-verdicts contains an invalid JSON schema: %v", ErrInvalidTaskProperty, err)
+			}
+		} else {
+			// Validate that judge prompt expected result conforms to response format.
+			// This will also validate fallback values if not overridden.
+			// `useJudge` is always `false` here because judge validators use exact matching to assert the semantic evaluation result.
+			if err := validateFormatAndExpectedResults(judgePrompt.GetVerdictFormat(), judgePrompt.GetPassingVerdicts(), false, "judge verdict-format", "judge passing-verdicts"); err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
+}
+
+// ExplicitSchema detects whether an expected utils.ValueSet (e.g. a judge's
+// passing-verdicts, or a task's expected-result) specifies an explicit JSON Schema rather
+// than literal value(s) to be matched exactly: a single object value containing a
+// nonblank "$schema" field. Returns the schema and true if so, or (nil, false) otherwise.
+func ExplicitSchema(expected utils.ValueSet) (schema map[string]interface{}, ok bool) {
+	values := expected.Values()
+	if len(values) != 1 {
+		return nil, false
+	}
+	m, isMap := values[0].(map[string]interface{})
+	if !isMap {
+		return nil, false
+	}
+	schemaField, hasSchemaField := m["$schema"].(string)
+	if !hasSchemaField || !IsNotBlank(schemaField) {
+		return nil, false
+	}
+	return m, true
 }
 
 // validateFormatAndExpectedResults validates that a response format is compatible with expected results.
@@ -615,6 +650,12 @@ func (r ResponseFormat) AsSchema() (schema map[string]interface{}, ok bool) {
 	return
 }
 
+// String returns a display-friendly representation of the format: the instruction
+// string as-is for a string format, or the schema pretty-printed as JSON for a schema format.
+func (r ResponseFormat) String() string {
+	return utils.ToString(r.raw)
+}
+
 // NewResponseFormat creates a ResponseFormat from an instruction string or schema object.
 func NewResponseFormat(value interface{}) ResponseFormat {
 	return ResponseFormat{raw: value}
@@ -807,7 +848,7 @@ type JudgeSelector struct {
 	// Name specifies the name of the judge configuration to use.
 	Name *string `yaml:"name" validate:"omitempty"`
 
-	// Variant specifies the run variant name from the judge's provider configuration.
+	// Variant specifies the variant name from the judge's provider configuration.
 	Variant *string `yaml:"variant" validate:"omitempty"`
 
 	// Prompt specifies the judge prompt configuration.
@@ -827,7 +868,7 @@ func (js JudgeSelector) GetName() (name string) {
 	return
 }
 
-// GetVariant returns the judge run variant, or empty string if not set.
+// GetVariant returns the judge variant, or empty string if not set.
 func (js JudgeSelector) GetVariant() (variant string) {
 	if js.Variant != nil {
 		variant = *js.Variant

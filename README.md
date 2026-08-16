@@ -838,13 +838,14 @@ Judge prompts can be customized in the `validation-rules.judge.prompt` section o
 
 - **template**: Custom prompt template for the judge (supports template variables listed below).
 - **verdict-format**: Expected response format from the judge (plain text instruction or JSON schema).
-- **passing-verdicts**: Set of verdict values that indicate a passing evaluation.
+- **passing-verdicts**: Set of verdict values that indicate a passing evaluation, or a single explicit [JSON Schema](https://json-schema.org/) object (identified by a `$schema` field) for threshold-style criteria (e.g. a minimum score).
 
 > [!IMPORTANT]
 >
-> - If you provide a custom `template`, you **must** also specify both `verdict-format` and `passing-verdicts`.
-> - You **cannot** override just `verdict-format` or `passing-verdicts` unless you also override the `template`.
-> - All `passing-verdicts` values must conform to the `verdict-format` structure.
+> - **template** is independently optional: you can customize it without also overriding `verdict-format`/`passing-verdicts`, and vice versa.
+> - `verdict-format` and `passing-verdicts` must either both be specified together, or both left unset to fall back to the built-in defaults; specifying only one leaves the other ambiguous and is rejected.
+> - When `passing-verdicts` is a set of literal value(s) (the common case), each value must conform to the `verdict-format` structure.
+> - When `passing-verdicts` is an explicit JSON Schema, it is validated as a standalone schema and matched directly against the judge's raw verdict, without any case/whitespace normalization.
 
 > [!TIP]
 > The following template variables are available for judge prompts:
@@ -856,6 +857,7 @@ Judge prompts can be customized in the `validation-rules.judge.prompt` section o
 > - **{{.Rules.CaseSensitive}}**: Boolean case-sensitive validation flag
 > - **{{.Rules.IgnoreWhitespace}}**: Boolean ignore whitespace flag
 > - **{{.Rules.TrimLines}}**: Boolean trim lines flag
+> - **{{.Verdict.Format}}**: The resolved verdict format, rendered as plain text or pretty-printed JSON schema
 
 A sample task from `tasks.yaml`:
 
@@ -969,6 +971,41 @@ task-config:
             passing-verdicts:
               - quality_score: "excellent"
               - quality_score: "good"
+    - name: "essay quality - score threshold"
+      prompt: |-
+        Write a short essay explaining photosynthesis for a middle school audience.
+      response-result-format: |-
+        a clear, well-organized short essay
+      expected-result: |-
+        A clear and accurate explanation of photosynthesis appropriate for the target audience
+      validation-rules:
+        judge:
+          enabled: true
+          name: "mistral-judge"
+          variant: "reasoning"
+          prompt:
+            template: |-
+              Score this essay from 0 to 100 for clarity, accuracy, and audience appropriateness:
+              {{.Candidate.Response}}
+            verdict-format:
+              type: object
+              properties:
+                score:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+              required: ["score"]
+              additionalProperties: false
+            passing-verdicts:
+              # An explicit JSON Schema (identified by "$schema") is matched directly against
+              # the judge's raw verdict, enabling threshold-style criteria.
+              $schema: "https://json-schema.org/draft/2020-12/schema"
+              type: object
+              properties:
+                score:
+                  type: integer
+                  exclusiveMinimum: 80
+              required: ["score"]
     - name: "structured response - log parsing"
       prompt: |-
         Parse the following log lines and extract the timestamp, log level, and message for each. If a user ID is present, extract that as well.

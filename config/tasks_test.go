@@ -2064,6 +2064,83 @@ func TestResponseFormat(t *testing.T) {
 	})
 }
 
+func TestResponseFormat_String(t *testing.T) {
+	t.Run("string format returns instruction as-is", func(t *testing.T) {
+		format := NewResponseFormat("Provide answer as: YES or NO")
+		assert.Equal(t, "Provide answer as: YES or NO", format.String())
+	})
+
+	t.Run("schema format returns pretty-printed JSON", func(t *testing.T) {
+		format := NewResponseFormat(map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"answer": map[string]interface{}{"type": "string"},
+			},
+			"required": []interface{}{"answer"},
+		})
+		got := format.String()
+		assert.Contains(t, got, "\"type\": \"object\"")
+		assert.Contains(t, got, "\"answer\"")
+	})
+}
+
+func TestExplicitSchema(t *testing.T) {
+	tests := []struct {
+		name       string
+		passing    utils.ValueSet
+		wantSchema map[string]interface{}
+		wantOk     bool
+	}{
+		{
+			name:    "single object with $schema field is an explicit schema",
+			passing: utils.NewValueSet(map[string]interface{}{"$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object"}),
+			wantSchema: map[string]interface{}{
+				"$schema": "https://json-schema.org/draft/2020-12/schema",
+				"type":    "object",
+			},
+			wantOk: true,
+		},
+		{
+			name:    "single object without $schema field is a literal value",
+			passing: utils.NewValueSet(map[string]interface{}{"correct": true}),
+			wantOk:  false,
+		},
+		{
+			name:    "blank $schema field is a literal value",
+			passing: utils.NewValueSet(map[string]interface{}{"$schema": "   ", "type": "object"}),
+			wantOk:  false,
+		},
+		{
+			name:    "multiple values is never an explicit schema",
+			passing: utils.NewValueSet("Yes", "Y"),
+			wantOk:  false,
+		},
+		{
+			name:    "single string value is a literal value",
+			passing: utils.NewValueSet("Yes"),
+			wantOk:  false,
+		},
+		{
+			name: "multiple object values is never an explicit schema",
+			passing: utils.NewValueSet(
+				map[string]interface{}{"$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object"},
+				map[string]interface{}{"$schema": "https://json-schema.org/draft/2020-12/schema", "type": "string"},
+			),
+			wantOk: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			schema, ok := ExplicitSchema(tt.passing)
+			assert.Equal(t, tt.wantOk, ok)
+			if tt.wantOk {
+				assert.Equal(t, tt.wantSchema, schema)
+			}
+		})
+	}
+}
+
 func TestValueSet(t *testing.T) {
 	t.Run("string values", func(t *testing.T) {
 		expected := utils.NewValueSet("YES", "NO")
@@ -2344,7 +2421,7 @@ func TestValidateTaskConfiguration(t *testing.T) {
 		assert.Contains(t, err.Error(), "judge verdict-format must be either plain text or a JSON schema object")
 	})
 
-	t.Run("invalid - judge response format specified without custom template", func(t *testing.T) {
+	t.Run("invalid - judge verdict-format specified without passing-verdicts", func(t *testing.T) {
 		task := Task{
 			Name:                 "test",
 			Prompt:               "What is 2+2?",
@@ -2354,7 +2431,7 @@ func TestValidateTaskConfiguration(t *testing.T) {
 				Judge: JudgeSelector{
 					Enabled: testutils.Ptr(true),
 					Prompt: JudgePrompt{
-						VerdictFormat: testutils.Ptr(NewResponseFormat("Yes or No")), // should not be specified without custom template
+						VerdictFormat: testutils.Ptr(NewResponseFormat("Yes or No")), // missing passing-verdicts half of the pair
 					},
 				},
 			},
@@ -2366,10 +2443,10 @@ func TestValidateTaskConfiguration(t *testing.T) {
 		}
 		err := taskConfig.Validate()
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "judge verdict-format should not be specified when using default judge prompt template")
+		assert.Contains(t, err.Error(), "judge verdict-format and passing-verdicts must either both be specified or both be left unset")
 	})
 
-	t.Run("invalid - judge expected result specified without custom template", func(t *testing.T) {
+	t.Run("invalid - judge passing-verdicts specified without verdict-format", func(t *testing.T) {
 		task := Task{
 			Name:                 "test",
 			Prompt:               "What is 2+2?",
@@ -2379,7 +2456,7 @@ func TestValidateTaskConfiguration(t *testing.T) {
 				Judge: JudgeSelector{
 					Enabled: testutils.Ptr(true),
 					Prompt: JudgePrompt{
-						PassingVerdicts: testutils.Ptr(utils.NewValueSet("correct")), // should not be specified without custom template
+						PassingVerdicts: testutils.Ptr(utils.NewValueSet("correct")), // missing verdict-format half of the pair
 					},
 				},
 			},
@@ -2391,7 +2468,134 @@ func TestValidateTaskConfiguration(t *testing.T) {
 		}
 		err := taskConfig.Validate()
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "judge passing-verdicts should not be specified when using default judge prompt template")
+		assert.Contains(t, err.Error(), "judge verdict-format and passing-verdicts must either both be specified or both be left unset")
+	})
+
+	t.Run("invalid - judge passing-verdicts is empty", func(t *testing.T) {
+		task := Task{
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat("Number"),
+			ExpectedResult:       utils.NewValueSet("4"),
+			ValidationRules: &ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(true),
+					Prompt: JudgePrompt{
+						VerdictFormat:   testutils.Ptr(NewResponseFormat("Yes or No")),
+						PassingVerdicts: testutils.Ptr(utils.NewValueSet()), // no values accepted as passing
+					},
+				},
+			},
+		}
+
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "judge passing-verdicts must specify at least one value")
+	})
+
+	t.Run("valid - custom verdict-format/passing-verdicts pair without custom template", func(t *testing.T) {
+		task := Task{
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat("Number"),
+			ExpectedResult:       utils.NewValueSet("4"),
+			ValidationRules: &ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(true),
+					Prompt: JudgePrompt{
+						VerdictFormat:   testutils.Ptr(NewResponseFormat("Yes or No")),
+						PassingVerdicts: testutils.Ptr(utils.NewValueSet("Yes")),
+					},
+				},
+			},
+		}
+
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		assert.NoError(t, err)
+	})
+
+	t.Run("valid - passing-verdicts explicit schema for score threshold", func(t *testing.T) {
+		task := Task{
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat("Number"),
+			ExpectedResult:       utils.NewValueSet("4"),
+			ValidationRules: &ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(true),
+					Prompt: JudgePrompt{
+						VerdictFormat: testutils.Ptr(NewResponseFormat(map[string]interface{}{
+							"type": "object",
+							"properties": map[string]interface{}{
+								"score": map[string]interface{}{"type": "integer", "minimum": 0, "maximum": 100},
+							},
+							"required":             []interface{}{"score"},
+							"additionalProperties": false,
+						})),
+						// An explicit JSON Schema (identified by "$schema") is a threshold
+						// criterion matched directly against the raw verdict, not a literal
+						// value expected to conform to verdict-format itself.
+						PassingVerdicts: testutils.Ptr(utils.NewValueSet(map[string]interface{}{
+							"$schema": "https://json-schema.org/draft/2020-12/schema",
+							"type":    "object",
+							"properties": map[string]interface{}{
+								"score": map[string]interface{}{"type": "integer", "exclusiveMinimum": 80},
+							},
+							"required": []interface{}{"score"},
+						})),
+					},
+				},
+			},
+		}
+
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		assert.NoError(t, err)
+	})
+
+	t.Run("invalid - passing-verdicts explicit schema is malformed", func(t *testing.T) {
+		task := Task{
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat("Number"),
+			ExpectedResult:       utils.NewValueSet("4"),
+			ValidationRules: &ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(true),
+					Prompt: JudgePrompt{
+						VerdictFormat: testutils.Ptr(NewResponseFormat(map[string]interface{}{
+							"type": "object",
+							"properties": map[string]interface{}{
+								"score": map[string]interface{}{"type": "integer"},
+							},
+						})),
+						PassingVerdicts: testutils.Ptr(utils.NewValueSet(map[string]interface{}{
+							"$schema":    "https://json-schema.org/draft/2020-12/schema",
+							"properties": "this_should_be_an_object_not_a_string",
+						})),
+					},
+				},
+			},
+		}
+
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "judge passing-verdicts contains an invalid JSON schema")
 	})
 }
 

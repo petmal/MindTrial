@@ -195,6 +195,16 @@ var mockResults = runners.Results{
 				Validation: runners.ValidationDetails{
 					Title:       "Validatio Defecit",
 					Explanation: []string{"At vero eos et accusamus et iusto odio dignissimos ducimus qui."},
+					Semantic: &runners.SemanticValidationDetails{
+						Verdict:   map[string]interface{}{"correct": false},
+						JudgeName: "mistral-judge",
+						Provider:  "mistralai",
+						Variant:   "reasoning",
+						VariantConfig: runners.RunConfigSnapshot{
+							Name:  "reasoning",
+							Model: "mistral-large-latest",
+						},
+					},
 				},
 				Error: runners.ErrorDetails{},
 			},

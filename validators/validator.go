@@ -35,6 +35,24 @@ type ValidationResult struct {
 	Usage providers.Usage
 	// ToolCalls contains the per-invocation tool call log for the validation step when available.
 	ToolCalls []tools.ToolCallSummary
+	// Semantic contains verdict and provenance details, populated when validation was
+	// performed by an LLM judge; nil otherwise.
+	Semantic *SemanticValidationDetails
+}
+
+// SemanticValidationDetails identifies the judge variant that evaluated a response
+// and the raw verdict it produced.
+type SemanticValidationDetails struct {
+	// Verdict contains the raw verdict produced by the judge.
+	Verdict interface{}
+	// JudgeName identifies the judge configuration used.
+	JudgeName string
+	// Provider is the name of the AI provider that executed the judge task.
+	Provider string
+	// Variant is the name of the judge's configuration variant used.
+	Variant string
+	// VariantConfig is the effective variant configuration used by the judge.
+	VariantConfig config.RunConfig
 }
 
 // Validator verifies AI model responses.

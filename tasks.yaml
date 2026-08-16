@@ -46,7 +46,10 @@ task-config:
           Procedure
           1. Normalize candidate and each expected answer per the flags.
           2. Compare the candidate to each expected answer independently for semantic equivalence.
-          3. Set "correct" to true if ANY match, false otherwise.
+          3. Produce the verdict exactly according to the Verdict Format below.
+
+          Verdict Format:
+          {{.Verdict.Format}}
         verdict-format:
           type: object
           properties:

@@ -64,27 +64,27 @@
                 "Model": {
                   "type": "string",
                   "title": "Model",
-                  "description": "The provider model identifier used by the run."
+                  "description": "The provider model identifier used."
                 },
                 "MaxRequestsPerMinute": {
                   "type": "integer",
                   "title": "Max Requests Per Minute",
-                  "description": "The maximum number of API requests per minute that was permitted for this run. A value of 0 (or absent) means no rate limiting was applied."
+                  "description": "The maximum number of API requests per minute that was permitted for this configuration. A value of 0 (or absent) means no rate limiting was applied."
                 },
                 "TextOnly": {
                   "type": "boolean",
                   "title": "Text Only",
-                  "description": "Whether this run was restricted to text-only tasks (i.e. tasks without file attachments)."
+                  "description": "Whether this configuration was restricted to text-only tasks (i.e. tasks without file attachments)."
                 },
                 "DisableStructuredOutput": {
                   "type": "boolean",
                   "title": "Disable Structured Output",
-                  "description": "Whether this run used plain text responses instead of the structured title/explanation/final-answer format, skipping tasks that require schema-based output."
+                  "description": "Whether this configuration used plain text responses instead of the structured title/explanation/final-answer format, skipping tasks that require schema-based output."
                 },
                 "ModelParameters": {
                   "type": "object",
                   "title": "Model Parameters",
-                  "description": "The public subset of model parameters used by the run, with secrets omitted."
+                  "description": "The public subset of model parameters used by this configuration, with secrets omitted."
                 },
                 "RetryPolicy": {
                   "properties": {
@@ -102,7 +102,7 @@
                   "additionalProperties": false,
                   "type": "object",
                   "title": "Retry Policy",
-                  "description": "The effective retry policy for the run, if configured."
+                  "description": "The effective retry policy for this configuration, if configured."
                 }
               },
               "additionalProperties": false,
@@ -591,6 +591,84 @@
                       "type": "array",
                       "title": "Tool Calls",
                       "description": "A log of every individual invocation attempt made during validation, including attempts that never actually ran. Tracked separately from ToolUsage, which only reflects invocations that actually ran."
+                    },
+                    "Semantic": {
+                      "properties": {
+                        "Verdict": {
+                          "title": "Judge Verdict",
+                          "description": "The raw verdict produced by the judge."
+                        },
+                        "JudgeName": {
+                          "type": "string",
+                          "title": "Judge Name",
+                          "description": "The name of the judge configuration used."
+                        },
+                        "Provider": {
+                          "type": "string",
+                          "title": "Provider Name",
+                          "description": "The name of the AI provider that executed the judge task."
+                        },
+                        "Variant": {
+                          "type": "string",
+                          "title": "Variant Name",
+                          "description": "The name of the judge's configuration variant used."
+                        },
+                        "VariantConfig": {
+                          "properties": {
+                            "Model": {
+                              "type": "string",
+                              "title": "Model",
+                              "description": "The provider model identifier used."
+                            },
+                            "MaxRequestsPerMinute": {
+                              "type": "integer",
+                              "title": "Max Requests Per Minute",
+                              "description": "The maximum number of API requests per minute that was permitted for this configuration. A value of 0 (or absent) means no rate limiting was applied."
+                            },
+                            "TextOnly": {
+                              "type": "boolean",
+                              "title": "Text Only",
+                              "description": "Whether this configuration was restricted to text-only tasks (i.e. tasks without file attachments)."
+                            },
+                            "DisableStructuredOutput": {
+                              "type": "boolean",
+                              "title": "Disable Structured Output",
+                              "description": "Whether this configuration used plain text responses instead of the structured title/explanation/final-answer format, skipping tasks that require schema-based output."
+                            },
+                            "ModelParameters": {
+                              "type": "object",
+                              "title": "Model Parameters",
+                              "description": "The public subset of model parameters used by this configuration, with secrets omitted."
+                            },
+                            "RetryPolicy": {
+                              "properties": {
+                                "MaxRetryAttempts": {
+                                  "type": "integer",
+                                  "title": "Max Retry Attempts",
+                                  "description": "The maximum number of retry attempts for a transient failure."
+                                },
+                                "InitialDelaySeconds": {
+                                  "type": "integer",
+                                  "title": "Initial Delay Seconds",
+                                  "description": "The initial backoff delay before the first retry attempt."
+                                }
+                              },
+                              "additionalProperties": false,
+                              "type": "object",
+                              "title": "Retry Policy",
+                              "description": "The effective retry policy for this configuration, if configured."
+                            }
+                          },
+                          "additionalProperties": false,
+                          "type": "object",
+                          "title": "Variant Configuration",
+                          "description": "The effective variant configuration used by the judge, with any API keys or other secrets omitted."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "type": "object",
+                      "title": "Semantic Validation",
+                      "description": "The judge's raw verdict and variant provenance, present only when validation was performed by an LLM judge."
                     }
                   },
                   "additionalProperties": false,

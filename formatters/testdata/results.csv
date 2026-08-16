@@ -138,7 +138,18 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details,Suite,Category,Diffic
     ""Title"": ""Validatio Defecit"",
     ""Explanation"": [
       ""At vero eos et accusamus et iusto odio dignissimos ducimus qui.""
-    ]
+    ],
+    ""Semantic"": {
+      ""Verdict"": {
+        ""correct"": false
+      },
+      ""JudgeName"": ""mistral-judge"",
+      ""Provider"": ""mistralai"",
+      ""Variant"": ""reasoning"",
+      ""VariantConfig"": {
+        ""Model"": ""mistral-large-latest""
+      }
+    }
   }
 }",,,,
 01JEDE7Z8X0000000000000003,provider-name,run-success-multiple-answers,task-name,Passed,17000,Quos aut rerum quaerat qui ad culpa.,"{

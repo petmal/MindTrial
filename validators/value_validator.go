@@ -60,23 +60,21 @@ func (v valueMatchValidator) IsCorrect(ctx context.Context, _ logging.Logger, ru
 }
 
 func (v valueMatchValidator) ToCanonical(rules config.ValidationRules, value interface{}) interface{} {
-	// For string values, apply string normalization.
-	if str, ok := value.(string); ok {
-		return v.toCanonicalString(rules, str)
-	}
-	// For objects, apply recursive canonicalization.
-	return v.toCanonicalObject(rules, value)
+	return canonicalizeValue(rules, value)
 }
 
-// toCanonicalObject recursively converts an object to canonical form by normalizing string values.
-func (v valueMatchValidator) toCanonicalObject(rules config.ValidationRules, value interface{}) interface{} {
+// canonicalizeValue recursively converts a value to canonical form by normalizing string
+// values and numeric types, according to the given validation rules. Shared by
+// valueMatchValidator.ToCanonical and the schema validator, so both apply identical
+// normalization semantics.
+func canonicalizeValue(rules config.ValidationRules, value interface{}) interface{} {
 	if value == nil {
 		return nil
 	}
 
 	switch val := value.(type) {
 	case string:
-		return v.toCanonicalString(rules, val)
+		return canonicalizeString(rules, val)
 
 	case map[string]interface{}:
 		result := make(map[string]interface{})
@@ -84,14 +82,14 @@ func (v valueMatchValidator) toCanonicalObject(rules config.ValidationRules, val
 		keys := utils.SortedKeys(val)
 
 		for _, k := range keys {
-			result[k] = v.toCanonicalObject(rules, val[k])
+			result[k] = canonicalizeValue(rules, val[k])
 		}
 		return result
 
 	case []interface{}:
 		result := make([]interface{}, len(val))
 		for i, elem := range val {
-			result[i] = v.toCanonicalObject(rules, elem)
+			result[i] = canonicalizeValue(rules, elem)
 		}
 		return result
 
@@ -110,7 +108,7 @@ func (v valueMatchValidator) toCanonicalObject(rules config.ValidationRules, val
 	}
 }
 
-func (v valueMatchValidator) toCanonicalString(rules config.ValidationRules, value string) string {
+func canonicalizeString(rules config.ValidationRules, value string) string {
 	canonical := value
 
 	// Trim each line's leading/trailing whitespace.
