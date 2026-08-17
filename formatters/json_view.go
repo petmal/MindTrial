@@ -117,6 +117,7 @@ type errorDetailsView struct {
 	ToolCalls       []toolCallSummaryView    `json:"ToolCalls,omitempty" jsonschema:"title=Tool Calls" jsonschema_description:"A log of every individual invocation attempt made prior to the error, including attempts that never actually ran. Tracked separately from ToolUsage, which only reflects invocations that actually ran."`
 	ResponseParsing *bool                    `json:"ResponseParsing,omitempty" jsonschema:"title=Response Parsing" jsonschema_description:"True when the model response was received but failed to parse into the expected structure; absent otherwise. When Transient is also absent, this failure should generally be treated as non-transient (retrying with the same input is unlikely to help)."`
 	Transient       *bool                    `json:"Transient,omitempty" jsonschema:"title=Transient" jsonschema_description:"Whether the error appears temporary/external (true), appears permanent/hard (false), or is unknown (field absent). A best-effort classification, not a complete error taxonomy."`
+	FromValidation  bool                     `json:"FromValidation,omitempty" jsonschema:"title=From Validation" jsonschema_description:"True when Usage/ToolUsage/ToolCalls above belong to the judge's validation attempt rather than the candidate response, so aggregate consumers must not attribute them to the candidate."`
 }
 
 // toolUsageView is the view model for runners.ToolUsage.
@@ -278,8 +279,9 @@ func newErrorDetailsView(e runners.ErrorDetails) *errorDetailsView {
 		ToolCalls:       newToolCallSummaryViews(e.ToolCalls),
 		ResponseParsing: e.ResponseParsing,
 		Transient:       e.Transient,
+		FromValidation:  e.FromValidation,
 	}
-	if v.Title == "" && v.Message == "" && len(v.Details) == 0 && v.Usage == nil && len(v.ToolUsage) == 0 && len(v.ToolCalls) == 0 && v.ResponseParsing == nil && v.Transient == nil {
+	if v.Title == "" && v.Message == "" && len(v.Details) == 0 && v.Usage == nil && len(v.ToolUsage) == 0 && len(v.ToolCalls) == 0 && v.ResponseParsing == nil && v.Transient == nil && !v.FromValidation {
 		return nil
 	}
 	return &v
@@ -499,6 +501,7 @@ func fromDetailsView(d detailsView) runners.Details {
 			ToolCalls:       fromToolCallSummaryViews(d.Error.ToolCalls),
 			ResponseParsing: d.Error.ResponseParsing,
 			Transient:       d.Error.Transient,
+			FromValidation:  d.Error.FromValidation,
 		}
 	}
 	return result

@@ -1,0 +1,5 @@
+provider,run,Count,Passed,Failed,Error,Skipped,PassRate,Accuracy,ErrorRate,TotalDuration,MedianDuration,StddevDuration,TotalInputTokens,MedianInputTokens,StddevInputTokens,TotalOutputTokens,MedianOutputTokens,StddevOutputTokens,TotalToolCalls,MedianToolCalls,StddevToolCalls,TransientErrors,ResponseParsingErrors
+anthropic,Claude Sonnet 5 - latest (xhigh adaptive thinking),6,5,1,0,0,83.33,83.33,0.00,16m28.7943464s,29.75105825s,4m45.787645473s,1082234,19180.00,340056.91,90514,2504.00,26712.77,24,6.50,4.06,0,0
+deepseek,"DeepSeek V4 Pro - latest (thinking, max effort)",3,2,1,0,3,66.67,66.67,0.00,50.1069609s,21.425943s,8.092370791s,8552,1304.00,2300.66,4112,1621.00,688.19,1,,,0,0
+google,Gemini 3.6 Flash - latest (high thinking),6,6,0,0,0,100.00,100.00,0.00,3m0.9686421s,21.64553485s,20.068181261s,178597,13600.50,33747.89,18473,2335.50,2586.57,28,3.00,3.86,0,0
+mistralai,Mistral Medium 3.5 - latest (high reasoning),6,0,0,6,0,0.00,0.00,100.00,51m9.4196018s,8m23.5302605s,1m50.395288853s,119145,7381.50,23844.56,456173,70581.50,10929.83,7,1.00,0.80,0,0

@@ -392,6 +392,7 @@ var mockResults = runners.Results{
 						InputTokens:  testutils.Ptr(int64(1234)),
 						OutputTokens: testutils.Ptr(int64(5678)),
 					},
+					FromValidation: true,
 				},
 			},
 		},

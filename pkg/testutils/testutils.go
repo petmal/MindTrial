@@ -23,6 +23,7 @@ import (
 
 var (
 	stdoutLock sync.Mutex
+	stderrLock sync.Mutex
 	osArgsLock sync.Mutex
 )
 
@@ -30,37 +31,50 @@ var (
 // and returns it as a string. This function is synchronized to prevent concurrent stdout capture.
 func CaptureStdout(t *testing.T, fn func()) (stdout string) {
 	SyncCall(&stdoutLock, func() {
-		// Create a temporary file to capture os.Stdout.
-		fp, err := os.CreateTemp("", "*.stdout")
-		if err != nil {
-			t.Fatalf("failed to create stdout capture file: %v\n", err)
-		}
-		defer fp.Close()
-
-		// Save the original os.Stdout.
-		originalStdout := os.Stdout
-		defer func() { os.Stdout = originalStdout }()
-
-		os.Stdout = fp
-
-		// Call the tested function.
-		fn()
-
-		// Read the output.
-		if err := fp.Sync(); err != nil {
-			t.Fatalf("failed to sync stdout capture file: %v\n", err)
-		}
-		if _, err := fp.Seek(0, io.SeekStart); err != nil {
-			t.Fatalf("failed to set read offset in stdout capture file: %v\n", err)
-		}
-		contents, err := io.ReadAll(fp)
-		if err != nil {
-			t.Fatalf("failed to read stdout capture file: %v\n", err)
-		}
-
-		stdout = string(contents)
+		stdout = captureFile(t, &os.Stdout, "*.stdout", fn)
 	})
 	return
+}
+
+// CaptureStderr captures standard error during the execution of the provided function
+// and returns it as a string. This function is synchronized to prevent concurrent stderr capture.
+func CaptureStderr(t *testing.T, fn func()) (stderr string) {
+	SyncCall(&stderrLock, func() {
+		stderr = captureFile(t, &os.Stderr, "*.stderr", fn)
+	})
+	return
+}
+
+// captureFile redirects *target to a temporary file for the duration of fn and returns
+// what was written to it. Callers must hold a lock appropriate for the redirected stream.
+func captureFile(t *testing.T, target **os.File, namePattern string, fn func()) string {
+	fp, err := os.CreateTemp("", namePattern)
+	if err != nil {
+		t.Fatalf("failed to create capture file: %v\n", err)
+	}
+	defer fp.Close()
+
+	// Save and redirect the original stream.
+	original := *target
+	defer func() { *target = original }()
+	*target = fp
+
+	// Call the tested function.
+	fn()
+
+	// Read the output.
+	if err := fp.Sync(); err != nil {
+		t.Fatalf("failed to sync capture file: %v\n", err)
+	}
+	if _, err := fp.Seek(0, io.SeekStart); err != nil {
+		t.Fatalf("failed to set read offset in capture file: %v\n", err)
+	}
+	contents, err := io.ReadAll(fp)
+	if err != nil {
+		t.Fatalf("failed to read capture file: %v\n", err)
+	}
+
+	return string(contents)
 }
 
 // WithArgs temporarily replaces os.Args with the provided arguments while executing

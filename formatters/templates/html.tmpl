@@ -704,7 +704,7 @@
             const detailsDiv = document.getElementById('details-' + row.id);
             if (!detailsDiv) return { inputTokens, outputTokens };
             detailsDiv.querySelectorAll('details').forEach(det => {
-                if (det.closest('.section-validation')) return;
+                if (det.closest('.section-validation') || det.closest('[data-from-validation="true"]')) return;
                 const summary = det.querySelector('summary');
                 if (!summary || summary.textContent.trim() !== 'Token Usage') return;
                 const dl = det.querySelector('dl');
@@ -758,7 +758,7 @@
             const detailsDiv = document.getElementById('details-' + row.id);
             if (!detailsDiv) return null;
             detailsDiv.querySelectorAll('details').forEach(det => {
-                if (det.closest('.section-validation')) return;
+                if (det.closest('.section-validation') || det.closest('[data-from-validation="true"]')) return;
                 const summary = det.querySelector('summary');
                 if (!summary || summary.textContent.trim() !== 'Tool Usage') return;
                 const dl = det.querySelector('dl');
@@ -2082,7 +2082,7 @@
                                 {{- end -}}
                                 {{- with $ed := $result.Details.Error -}}
                                 {{- if $ed.Message }}
-                                <section class="section-error">
+                                <section class="section-error"{{if $ed.FromValidation}} data-from-validation="true"{{end}}>
                                     {{if $ed.Title}}<h4>{{$ed.Title}}</h4>{{end}}
                                     {{- with $category := ErrorCategory $ed }}
                                     <span class="error-category-badge category-{{if eq $category "Transient"}}transient{{else if eq $category "Permanent"}}permanent{{else}}parsing{{end}}" title="{{if eq $category "Transient"}}This error appears temporary/external; retrying the task may succeed.{{else if eq $category "Permanent"}}This error appears permanent; retrying the task is unlikely to succeed.{{else}}The model response was received but could not be parsed as expected; transience is otherwise unknown.{{end}}">{{$category}}</span>

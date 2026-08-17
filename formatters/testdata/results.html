@@ -698,7 +698,7 @@
             const detailsDiv = document.getElementById('details-' + row.id);
             if (!detailsDiv) return { inputTokens, outputTokens };
             detailsDiv.querySelectorAll('details').forEach(det => {
-                if (det.closest('.section-validation')) return;
+                if (det.closest('.section-validation') || det.closest('[data-from-validation="true"]')) return;
                 const summary = det.querySelector('summary');
                 if (!summary || summary.textContent.trim() !== 'Token Usage') return;
                 const dl = det.querySelector('dl');
@@ -752,7 +752,7 @@
             const detailsDiv = document.getElementById('details-' + row.id);
             if (!detailsDiv) return null;
             detailsDiv.querySelectorAll('details').forEach(det => {
-                if (det.closest('.section-validation')) return;
+                if (det.closest('.section-validation') || det.closest('[data-from-validation="true"]')) return;
                 const summary = det.querySelector('summary');
                 if (!summary || summary.textContent.trim() !== 'Tool Usage') return;
                 const dl = det.querySelector('dl');
@@ -2507,7 +2507,7 @@ Sunt in culpa qui officia deserunt mollit anim.
                         <td class="details-toggle-cell">
                             <button class="details" onclick="toggleDetails('details-run-provider-name-run-validation-error-task-name', this)" aria-expanded="false" aria-controls="details-run-provider-name-run-validation-error-task-name">Show Details</button>
                             <div id="details-run-provider-name-run-validation-error-task-name" class="details-content">
-                                <section class="section-error">
+                                <section class="section-error" data-from-validation="true">
                                     <h4>Validatio Deficiens</h4>
                                     <p class="para" style="margin:0 0 0.6em 0;">Ut enim ad minim veniam quis nostrud exercitation ullamco laboris.</p>
                                     <details open>

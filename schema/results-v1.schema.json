@@ -901,6 +901,11 @@
                       "type": "boolean",
                       "title": "Transient",
                       "description": "Whether the error appears temporary/external (true), appears permanent/hard (false), or is unknown (field absent). A best-effort classification, not a complete error taxonomy."
+                    },
+                    "FromValidation": {
+                      "type": "boolean",
+                      "title": "From Validation",
+                      "description": "True when Usage/ToolUsage/ToolCalls above belong to the judge's validation attempt rather than the candidate response, so aggregate consumers must not attribute them to the candidate."
                     }
                   },
                   "additionalProperties": false,

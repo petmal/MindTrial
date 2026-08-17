@@ -25,18 +25,23 @@ import (
 	"github.com/petmal/mindtrial/formatters"
 	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/petmal/mindtrial/runners"
+	"github.com/petmal/mindtrial/stats"
 	"github.com/petmal/mindtrial/version"
 )
 
 const (
 	runCommandName             = "run"
 	mergeResultsCommandName    = "merge-results"
+	statsCommandName           = "stats"
 	helpCommandName            = "help"
 	versionCommandName         = "version"
 	unsetFlagValue             = "\x00"
 	exitCodeBadCommand         = 2
 	exitCodeFinishedWithErrors = 3
 	defaultConfigFile          = "config.yaml"
+	defaultStatsGroupBy        = "provider,run"
+	defaultStatsFormat         = "text"
+	defaultStatsTagMode        = "all"
 	msgInteractiveExited       = "Interactive session exited by user."
 )
 
@@ -44,6 +49,7 @@ var (
 	commandDoc = map[string]string{
 		runCommandName:          "start the trials",
 		mergeResultsCommandName: "merge results from multiple runs",
+		statsCommandName:        "compute derived statistics from result files",
 		helpCommandName:         "show help",
 		versionCommandName:      "show version",
 	}
@@ -69,9 +75,22 @@ var (
 	verbose            *bool
 	debug              *bool
 	interactive        *bool
+	statsGroupBy       *string
+	statsFormat        *string
+	statsTagMode       *string
 )
 
-var inputFiles stringSliceFlag
+var (
+	inputFiles        stringSliceFlag
+	statsProviders    stringSliceFlag
+	statsRuns         stringSliceFlag
+	statsModels       stringSliceFlag
+	statsSuites       stringSliceFlag
+	statsCategories   stringSliceFlag
+	statsDifficulties stringSliceFlag
+	statsStatuses     stringSliceFlag
+	statsTags         stringSliceFlag
+)
 
 // stringSliceFlag implements flag.Value for collecting multiple string flag values.
 type stringSliceFlag []string
@@ -120,14 +139,25 @@ func registerFlags() {
 	verbose = flag.Bool("verbose", false, "enable detailed logging")
 	debug = flag.Bool("debug", false, "enable low-level debug logging")
 	interactive = flag.Bool("interactive", false, "enable interactive interface for run configuration, and real-time progress monitoring")
-	flag.Var(&inputFiles, "input", "input result file path for merge-results; can be specified multiple times")
+	flag.Var(&inputFiles, "input", "input result file path for merge-results/stats; can be specified multiple times")
+	statsGroupBy = flag.String("group-by", defaultStatsGroupBy, "comma-separated stats grouping dimensions: provider, run, model, suite, category, difficulty, tag")
+	statsFormat = flag.String("stats-format", defaultStatsFormat, "stats output format: text, csv, json, or jsonl")
+	statsTagMode = flag.String("tag-mode", defaultStatsTagMode, "how multiple --tag filters combine for stats: all or any")
+	flag.Var(&statsProviders, "provider", "filter stats to this provider; can be specified multiple times")
+	flag.Var(&statsRuns, "run", "filter stats to this run configuration; can be specified multiple times")
+	flag.Var(&statsModels, "model", "filter stats to this model; can be specified multiple times")
+	flag.Var(&statsSuites, "suite", "filter stats to this task suite; can be specified multiple times")
+	flag.Var(&statsCategories, "category", "filter stats to this task category; can be specified multiple times")
+	flag.Var(&statsDifficulties, "difficulty", "filter stats to this task difficulty; can be specified multiple times")
+	flag.Var(&statsStatuses, "status", "filter stats to this result status (passed, failed, error, skipped); can be specified multiple times")
+	flag.Var(&statsTags, "tag", "filter stats to results tagged with this value; can be specified multiple times")
 
 	flag.Usage = func() {
 		w := flag.CommandLine.Output()
 		fmt.Fprintf(w, "Usage: %s [options] [command]\n", os.Args[0])
 		fmt.Fprintln(w)
 		fmt.Fprintln(w, "Commands:")
-		printCommandHelp(w, runCommandName, mergeResultsCommandName, helpCommandName, versionCommandName)
+		printCommandHelp(w, runCommandName, mergeResultsCommandName, statsCommandName, helpCommandName, versionCommandName)
 		fmt.Fprintln(w)
 		fmt.Fprintln(w, "Options:")
 		flag.PrintDefaults()
@@ -164,6 +194,13 @@ func main() {
 			return
 		case mergeResultsCommandName:
 			if ok, err := mergeResults(context.Background()); err != nil {
+				stderr.Fatal().Err(err).Send()
+			} else if !ok {
+				os.Exit(exitCodeFinishedWithErrors)
+			}
+			return
+		case statsCommandName:
+			if ok, err := runStats(context.Background()); err != nil {
 				stderr.Fatal().Err(err).Send()
 			} else if !ok {
 				os.Exit(exitCodeFinishedWithErrors)
@@ -480,7 +517,7 @@ func mergeResults(_ context.Context) (ok bool, err error) {
 	}
 
 	// Merge results.
-	results, stats := runners.MergeResults(resultSets...)
+	results, mergeStats := runners.MergeResults(resultSets...)
 
 	// Time to be used to resolve name patterns.
 	timeRef := time.Now()
@@ -509,10 +546,10 @@ func mergeResults(_ context.Context) (ok bool, err error) {
 	// Print merge summary.
 	fmt.Println()
 	fmt.Println("Merged results:")
-	for _, provider := range utils.SortedKeys(stats.Runs) {
+	for _, provider := range utils.SortedKeys(mergeStats.Runs) {
 		fmt.Printf("  %s:\n", provider)
-		for _, run := range utils.SortedKeys(stats.Runs[provider]) {
-			rs := stats.Runs[provider][run]
+		for _, run := range utils.SortedKeys(mergeStats.Runs[provider]) {
+			rs := mergeStats.Runs[provider][run]
 			if rs.Updated > 0 {
 				fmt.Printf("    %s: %d total, %d updated\n", run, rs.Total, rs.Updated)
 			} else {
@@ -527,4 +564,73 @@ func mergeResults(_ context.Context) (ok bool, err error) {
 	ok = ok && !saveResults(results, outputWriters)
 
 	return
+}
+
+func runStats(_ context.Context) (ok bool, err error) {
+	if err = validateFlags(statsCommandName,
+		"input", "group-by", "stats-format", "tag-mode",
+		"provider", "run", "model", "suite", "category", "difficulty", "status", "tag",
+	); err != nil {
+		return
+	}
+
+	if len(inputFiles) < 1 {
+		fmt.Println("Nothing to analyze: no input files provided.")
+		return true, nil
+	}
+
+	groupBy, err := stats.ParseDimensions(*statsGroupBy)
+	if err != nil {
+		return false, err
+	}
+
+	tagMode, err := stats.ParseTagMode(*statsTagMode)
+	if err != nil {
+		return false, err
+	}
+
+	format, err := stats.ParseOutputFormat(*statsFormat)
+	if err != nil {
+		return false, err
+	}
+
+	filters := stats.Filters{
+		Providers:    statsProviders,
+		Runs:         statsRuns,
+		Models:       statsModels,
+		Suites:       statsSuites,
+		Categories:   statsCategories,
+		Difficulties: statsDifficulties,
+		Statuses:     statsStatuses,
+		Tags:         statsTags,
+		TagMode:      tagMode,
+	}
+	if err = filters.Validate(); err != nil {
+		return false, err
+	}
+
+	// Read and merge all input files; last-input-wins for duplicate (Provider, Run, Task) tuples.
+	// Progress goes to stderr, not stdout: stdout carries only the requested stats-format
+	// output, so json/jsonl/csv redirected to a file remain machine-readable.
+	resultSets := make([]runners.Results, 0, len(inputFiles))
+	for _, inputPath := range inputFiles {
+		fmt.Fprintf(os.Stderr, "Loading results from file: %s\n", inputPath)
+		rs, readErr := formatters.ReadResultsFromFile(inputPath)
+		if readErr != nil {
+			return false, readErr
+		}
+		resultSets = append(resultSets, rs)
+	}
+	results, _ := runners.MergeResults(resultSets...)
+
+	records, err := stats.ComputeStats(results, groupBy, filters)
+	if err != nil {
+		return false, err
+	}
+
+	if err = stats.Write(format, groupBy, records, os.Stdout); err != nil {
+		return false, err
+	}
+
+	return true, nil
 }

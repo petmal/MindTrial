@@ -891,10 +891,11 @@ func TestRunnerRun(t *testing.T) {
 								},
 							},
 							Error: ErrorDetails{
-								Title:     "Validation Error",
-								Message:   "judge evaluation failed: mock error",
-								Usage:     expectedUsage,
-								ToolUsage: map[string]ToolUsage{},
+								Title:          "Validation Error",
+								Message:        "judge evaluation failed: mock error",
+								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
+								FromValidation: true,
 							},
 						},
 						Duration: 7211609999927884 * time.Nanosecond,
@@ -2039,6 +2040,7 @@ func TestRunnerRun_JudgeValidationErrorSetsResponseParsing(t *testing.T) {
 	require.Equal(t, "Validation Response Parsing Error", result.Details.Error.Title)
 	require.NotNil(t, result.Details.Error.ResponseParsing)
 	assert.True(t, *result.Details.Error.ResponseParsing)
+	assert.True(t, result.Details.Error.FromValidation)
 	assert.Contains(t, result.Details.Error.Message, "unsupported operation")
 }
 

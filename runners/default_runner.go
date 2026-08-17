@@ -465,15 +465,17 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 					ToolCalls:       toToolCallSummaries(validationResult.ToolCalls),
 					ResponseParsing: utils.Ptr(true),
 					Transient:       transientFlagFor(err),
+					FromValidation:  true, // Usage above is the judge's, not the candidate's.
 				}
 			} else {
 				runResult.Details.Error = ErrorDetails{
-					Title:     "Validation Error",
-					Message:   err.Error(),
-					Usage:     toTokenUsage(validationResult.Usage),
-					ToolUsage: toToolUsage(validationResult.Usage),
-					ToolCalls: toToolCallSummaries(validationResult.ToolCalls),
-					Transient: transientFlagFor(err),
+					Title:          "Validation Error",
+					Message:        err.Error(),
+					Usage:          toTokenUsage(validationResult.Usage),
+					ToolUsage:      toToolUsage(validationResult.Usage),
+					ToolCalls:      toToolCallSummaries(validationResult.ToolCalls),
+					Transient:      transientFlagFor(err),
+					FromValidation: true, // Usage above is the judge's, not the candidate's.
 				}
 			}
 			populateErrorDetails(&runResult.Details.Error, err)

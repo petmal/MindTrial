@@ -3,3 +3,5 @@ formatters/testdata/*.csv -text
 formatters/testdata/*.json -text
 formatters/testdata/*.log -text
 schema/*.json -text
+stats/testdata/*.csv -text
+stats/testdata/*.json -text

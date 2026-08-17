@@ -302,7 +302,8 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details,Suite,Category,Diffic
     ""Usage"": {
       ""InputTokens"": 1234,
       ""OutputTokens"": 5678
-    }
+    },
+    ""FromValidation"": true
   }
 }",,,,
 01JEDE7Z8X0000000000000008,provider-name,run-parsing-error,task-name,Error,314159,Invalid JSON: {broken,"{

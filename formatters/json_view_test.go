@@ -243,6 +243,38 @@ func TestErrorDetailsViewTransientRoundTrip(t *testing.T) {
 	})
 }
 
+func TestErrorDetailsViewFromValidationRoundTrip(t *testing.T) {
+	tests := []struct {
+		name           string
+		fromValidation bool
+	}{
+		{name: "from validation", fromValidation: true},
+		{name: "not from validation", fromValidation: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			details := runners.Details{
+				Error: runners.ErrorDetails{
+					Title:          "Validation Error",
+					Message:        "judge evaluation failed",
+					FromValidation: tt.fromValidation,
+				},
+			}
+			view := newDetailsView(details)
+			require.NotNil(t, view.Error)
+			assert.Equal(t, tt.fromValidation, view.Error.FromValidation)
+			assert.Equal(t, details, fromDetailsView(view))
+		})
+	}
+
+	t.Run("from validation alone is not treated as an empty error", func(t *testing.T) {
+		details := runners.Details{Error: runners.ErrorDetails{FromValidation: true}}
+		view := newDetailsView(details)
+		require.NotNil(t, view.Error)
+		assert.Equal(t, details, fromDetailsView(view))
+	})
+}
+
 func TestValidationDetailsViewSemanticRoundTrip(t *testing.T) {
 	t.Run("semantic details round-trip", func(t *testing.T) {
 		details := runners.Details{

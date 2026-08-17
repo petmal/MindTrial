@@ -8,11 +8,13 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/petmal/mindtrial/pkg/testutils"
+	"github.com/petmal/mindtrial/stats"
 	"github.com/petmal/mindtrial/version"
 )
 
@@ -149,6 +152,14 @@ var (
 func resetFlags() {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	inputFiles = nil
+	statsProviders = nil
+	statsRuns = nil
+	statsModels = nil
+	statsSuites = nil
+	statsCategories = nil
+	statsDifficulties = nil
+	statsStatuses = nil
+	statsTags = nil
 	registerFlags()
 }
 
@@ -161,7 +172,7 @@ func TestCommands(t *testing.T) {
 		{
 			name:               "display help",
 			commands:           []string{"help"},
-			wantStdoutContains: []string{"Usage:"},
+			wantStdoutContains: []string{"Usage:", statsCommandName, mergeResultsCommandName, runCommandName},
 		},
 		{
 			name:               "display version",
@@ -807,6 +818,248 @@ func TestMergeResults(t *testing.T) {
 				require.NoError(t, flag.Set(name, "true"))
 
 				_, err := mergeResults(context.Background())
+				require.ErrorIs(t, err, errUnsupportedFlag)
+			})
+		}
+	})
+}
+
+func TestStats(t *testing.T) {
+	fixture := `{
+  "FormatVersion": 1,
+  "Results": {
+    "ProviderA": [
+      {
+        "TraceID": "trace-1",
+        "Kind": "Passed",
+        "Task": "task-alpha",
+        "Provider": "ProviderA",
+        "Run": "run1",
+        "RunConfig": {"Model": "model-1"},
+        "Got": "answer-a1",
+        "Want": "expected-a1",
+        "TaskMetadata": {"Suite": "bench", "Tags": ["visual"]},
+        "Details": {},
+        "DurationNS": 1000000000
+      },
+      {
+        "TraceID": "trace-2",
+        "Kind": "Failed",
+        "Task": "task-beta",
+        "Provider": "ProviderA",
+        "Run": "run1",
+        "RunConfig": {"Model": "model-1"},
+        "Got": "answer-a2",
+        "Want": "expected-a2",
+        "TaskMetadata": {"Suite": "bench", "Tags": ["text"]},
+        "Details": {},
+        "DurationNS": 3000000000
+      }
+    ],
+    "ProviderB": [
+      {
+        "TraceID": "trace-3",
+        "Kind": "Passed",
+        "Task": "task-gamma",
+        "Provider": "ProviderB",
+        "Run": "run2",
+        "RunConfig": {"Model": "model-2"},
+        "Got": "answer-b1",
+        "Want": "expected-b1",
+        "Details": {},
+        "DurationNS": 2000000000
+      }
+    ]
+  }
+}`
+
+	t.Run("text output grouped by provider and run", func(t *testing.T) {
+		resetFlags()
+		inputFile := testutils.CreateMockFile(t, "*.json", []byte(fixture))
+
+		require.NoError(t, flag.Set("input", inputFile))
+
+		var sout string
+		serr := testutils.CaptureStderr(t, func() {
+			sout = testutils.CaptureStdout(t, func() { testutils.WithArgs(t, main, "stats") })
+		})
+		testutils.AssertContainsAll(t, serr, []string{
+			fmt.Sprintf("Loading results from file: %s", inputFile),
+		})
+		testutils.AssertContainsNone(t, sout, []string{
+			"Loading results from file:",
+		})
+		testutils.AssertContainsAll(t, sout, []string{
+			"provider", "run", "Count", "PassRate",
+			"ProviderA", "run1",
+			"ProviderB", "run2",
+		})
+	})
+
+	t.Run("csv output", func(t *testing.T) {
+		resetFlags()
+		inputFile := testutils.CreateMockFile(t, "*.json", []byte(fixture))
+
+		require.NoError(t, flag.Set("input", inputFile))
+		require.NoError(t, flag.Set("stats-format", "csv"))
+
+		sout := testutils.CaptureStdout(t, func() { testutils.WithArgs(t, main, "stats") })
+		testutils.AssertContainsAll(t, sout, []string{
+			"provider,run,Count",
+			"ProviderA,run1,2",
+			"ProviderB,run2,1",
+		})
+	})
+
+	t.Run("json output", func(t *testing.T) {
+		resetFlags()
+		inputFile := testutils.CreateMockFile(t, "*.json", []byte(fixture))
+
+		require.NoError(t, flag.Set("input", inputFile))
+		require.NoError(t, flag.Set("stats-format", "json"))
+
+		sout := testutils.CaptureStdout(t, func() { testutils.WithArgs(t, main, "stats") })
+		testutils.AssertContainsAll(t, sout, []string{
+			"\"provider\": \"ProviderA\"",
+			"\"provider\": \"ProviderB\"",
+		})
+
+		// Stdout must be nothing but the JSON output: no progress messages mixed in
+		// (regression test for progress messages contaminating machine-readable output).
+		var records []stats.Record
+		require.NoError(t, json.Unmarshal([]byte(sout), &records), "stdout must be valid, parseable JSON")
+	})
+
+	t.Run("jsonl output", func(t *testing.T) {
+		resetFlags()
+		inputFile := testutils.CreateMockFile(t, "*.json", []byte(fixture))
+
+		require.NoError(t, flag.Set("input", inputFile))
+		require.NoError(t, flag.Set("stats-format", "jsonl"))
+
+		sout := testutils.CaptureStdout(t, func() { testutils.WithArgs(t, main, "stats") })
+
+		lines := strings.Split(strings.TrimRight(sout, "\n"), "\n")
+		require.Len(t, lines, 2)
+		for _, line := range lines {
+			var record stats.Record
+			require.NoError(t, json.Unmarshal([]byte(line), &record), "every stdout line must be valid, parseable JSON")
+		}
+	})
+
+	t.Run("group by model", func(t *testing.T) {
+		resetFlags()
+		inputFile := testutils.CreateMockFile(t, "*.json", []byte(fixture))
+
+		require.NoError(t, flag.Set("input", inputFile))
+		require.NoError(t, flag.Set("group-by", "model"))
+		require.NoError(t, flag.Set("stats-format", "csv"))
+
+		sout := testutils.CaptureStdout(t, func() { testutils.WithArgs(t, main, "stats") })
+		testutils.AssertContainsAll(t, sout, []string{
+			"model,Count",
+			"model-1,2",
+			"model-2,1",
+		})
+	})
+
+	t.Run("filter by suite excludes non-matching provider", func(t *testing.T) {
+		resetFlags()
+		inputFile := testutils.CreateMockFile(t, "*.json", []byte(fixture))
+
+		require.NoError(t, flag.Set("input", inputFile))
+		require.NoError(t, flag.Set("suite", "bench"))
+		require.NoError(t, flag.Set("stats-format", "csv"))
+
+		sout := testutils.CaptureStdout(t, func() { testutils.WithArgs(t, main, "stats") })
+		testutils.AssertContainsAll(t, sout, []string{"ProviderA"})
+		testutils.AssertContainsNone(t, sout, []string{"ProviderB"})
+	})
+
+	t.Run("filter by tag", func(t *testing.T) {
+		resetFlags()
+		inputFile := testutils.CreateMockFile(t, "*.json", []byte(fixture))
+
+		require.NoError(t, flag.Set("input", inputFile))
+		require.NoError(t, flag.Set("tag", "visual"))
+		require.NoError(t, flag.Set("group-by", "run"))
+		require.NoError(t, flag.Set("stats-format", "csv"))
+
+		sout := testutils.CaptureStdout(t, func() { testutils.WithArgs(t, main, "stats") })
+		testutils.AssertContainsAll(t, sout, []string{"run,Count", "run1,1"})
+		testutils.AssertContainsNone(t, sout, []string{"run2"})
+	})
+
+	t.Run("no input files", func(t *testing.T) {
+		resetFlags()
+
+		sout := testutils.CaptureStdout(t, func() { testutils.WithArgs(t, main, "stats") })
+		testutils.AssertContainsAll(t, sout, []string{
+			"Nothing to analyze: no input files provided.",
+		})
+	})
+
+	t.Run("invalid group-by dimension", func(t *testing.T) {
+		resetFlags()
+		require.NoError(t, flag.Set("input", "file.json"))
+		require.NoError(t, flag.Set("group-by", "bogus"))
+
+		_, err := runStats(context.Background())
+		require.ErrorIs(t, err, stats.ErrInvalidDimension)
+	})
+
+	t.Run("duplicate group-by dimension", func(t *testing.T) {
+		resetFlags()
+		require.NoError(t, flag.Set("input", "file.json"))
+		require.NoError(t, flag.Set("group-by", "provider,provider"))
+
+		_, err := runStats(context.Background())
+		require.ErrorIs(t, err, stats.ErrInvalidDimension)
+	})
+
+	t.Run("invalid status filter", func(t *testing.T) {
+		resetFlags()
+		require.NoError(t, flag.Set("input", "file.json"))
+		require.NoError(t, flag.Set("status", "bogus"))
+
+		_, err := runStats(context.Background())
+		require.ErrorIs(t, err, stats.ErrInvalidStatus)
+	})
+
+	t.Run("invalid tag-mode", func(t *testing.T) {
+		resetFlags()
+		require.NoError(t, flag.Set("input", "file.json"))
+		require.NoError(t, flag.Set("tag-mode", "bogus"))
+
+		_, err := runStats(context.Background())
+		require.ErrorIs(t, err, stats.ErrInvalidTagMode)
+	})
+
+	t.Run("invalid stats-format", func(t *testing.T) {
+		resetFlags()
+		require.NoError(t, flag.Set("input", "file.json"))
+		require.NoError(t, flag.Set("stats-format", "bogus"))
+
+		_, err := runStats(context.Background())
+		require.ErrorIs(t, err, stats.ErrInvalidOutputFormat)
+	})
+
+	t.Run("nonexistent input file", func(t *testing.T) {
+		resetFlags()
+		require.NoError(t, flag.Set("input", filepath.Join(os.TempDir(), uuid.NewString(), "nonexistent.json")))
+
+		_, err := runStats(context.Background())
+		require.Error(t, err)
+	})
+
+	t.Run("unsupported flags", func(t *testing.T) {
+		unsupported := []string{"config", "tasks", "log", "debug", "interactive", "output-dir", "output-basename", "html", "csv", "json"}
+		for _, name := range unsupported {
+			t.Run(name, func(t *testing.T) {
+				resetFlags()
+				require.NoError(t, flag.Set(name, "true"))
+
+				_, err := runStats(context.Background())
 				require.ErrorIs(t, err, errUnsupportedFlag)
 			})
 		}

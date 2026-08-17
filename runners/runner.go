@@ -264,6 +264,13 @@ type ErrorDetails struct {
 	// permanent/hard (false), or is unknown (nil). This is a best-effort classification,
 	// not a complete error taxonomy.
 	Transient *bool `json:"Transient,omitempty"`
+	// FromValidation is true when Usage/ToolUsage/ToolCalls above belong to the judge's
+	// validation attempt rather than the candidate response (i.e. validation itself
+	// failed, after a candidate answer was already produced), so aggregate consumers
+	// (e.g. the stats package, the HTML report's dynamic summary) must not attribute them
+	// to the candidate. False (the default) covers every other error, whose usage, if any,
+	// is the candidate's own.
+	FromValidation bool `json:"FromValidation,omitempty"`
 }
 
 // TokenUsage represents token usage consumed by an LLM request.

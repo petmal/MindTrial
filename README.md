@@ -72,6 +72,12 @@
    mindtrial --input="results-1.json" --input="results-2.json" --html=true --csv=true --output-basename="merged" merge-results
    ```
 
+6. Compute derived statistics (pass rate, durations, token usage, and more) grouped by provider and run:
+
+   ```bash
+   mindtrial --input="results.json" stats
+   ```
+
 ### Merging Results
 
 The `merge-results` command combines results from multiple trial runs into a single output. Input files are specified with the `--input` flag (can be repeated). Currently, only **JSON** is supported as the input format. Use the `--json=true` flag during trial runs to generate JSON output files that can later be merged. The merged output can be generated in any of the supported formats (HTML, CSV, JSON) using the corresponding flags.
@@ -85,6 +91,50 @@ The `merge-results` command combines results from multiple trial runs into a sin
 
 > [!TIP]
 > If some results failed due to transient errors (e.g., network timeouts), you can re-run only the failed tasks and merge the new results into the original set. Because `merge-results` uses a **last-in-wins** strategy for duplicate entries (same provider, run, and task), the corrected results will replace the failed ones.
+
+### Computing Statistics
+
+The `stats` command computes derived statistics (pass rate, accuracy, error rate, duration, token usage, tool calls, and error diagnostics) over one or more result files, filtered and grouped by task/run metadata. Like `merge-results`, input files are specified with the `--input` flag (can be repeated); when multiple files are given, they are merged first using the same **last-in-wins** strategy before stats are computed. This is derived analytical output, not a canonical result format, so it is only written to `stdout` and is not persisted back into result artifacts. Progress messages are written to `stderr`, so `stdout` stays safe to redirect straight into a file or parser for every `--stats-format`.
+
+```bash
+mindtrial --input="results.json" --group-by="provider,run,model" --stats-format="csv" stats
+```
+
+- **--group-by**: Comma-separated grouping dimensions: `provider`, `run`, `model`, `suite`, `category`, `difficulty`, `tag` (default: `provider,run`); each dimension may appear at most once. Grouping by `tag` is exploded: a task tagged with multiple tags contributes to each of those tag groups, so tag groups overlap and are not additive; duplicate tags on the same task count once. Results missing a value for a grouping dimension are grouped under `(unspecified)` rather than dropped.
+- **--stats-format**: Output format: `text`, `csv`, `json`, or `jsonl` (default: `text`).
+- **--provider**, **--run**, **--model**, **--suite**, **--category**, **--difficulty**, **--status**: Restrict stats to matching results; each can be specified multiple times (combined with OR). `--status` accepts `passed`, `failed`, `error`, or `skipped`. Pass `(unspecified)` to match results missing a value for that field.
+- **--tag**: Restrict stats to results carrying the given tag; can be specified multiple times. Combined according to `--tag-mode`. Pass `(unspecified)` to match untagged results.
+- **--tag-mode**: How multiple `--tag` filters combine: `all` (default, every tag must be present) or `any` (at least one tag must be present).
+
+> [!NOTE]
+> Token, tool-call, and duration metrics reflect only the candidate answer and any subsequent error (not judge/validation usage), matching the HTML report's dynamic summary. `Median*`/`Stddev*` metrics require at least two contributing samples; otherwise they are omitted.
+
+**Example:** given a result file with these three tasks:
+
+| Provider  | Run    | Status | Tags            |
+|-----------|--------|--------|-----------------|
+| openai    | gpt-4  | Passed | visual, spatial |
+| openai    | gpt-4  | Failed | visual          |
+| anthropic | claude | Passed | text            |
+
+Grouping by the default `provider,run` treats each provider/run combination as one group:
+
+```bash
+$ mindtrial --input="results.json" --stats-format="csv" stats
+provider,run,Count,Passed,Failed,...
+anthropic,claude,1,1,0,...
+openai,gpt-4,2,1,1,...
+```
+
+Grouping by `tag` instead **explodes** each task into every tag it carries, so tag groups overlap rather than partition the input (the first task counts toward both `visual` and `spatial`):
+
+```bash
+$ mindtrial --input="results.json" --group-by="tag" --stats-format="csv" stats
+tag,Count,Passed,Failed,...
+spatial,1,1,0,...
+text,1,1,0,...
+visual,2,1,1,...
+```
 
 ## Configuration Guide
 
@@ -1175,6 +1225,7 @@ mindtrial [options] [command]
 Commands:
   run                       Start the trials
   merge-results             Merge results from multiple runs
+  stats                     Compute derived statistics from result files
   help                      Show help
   version                   Show version
 
@@ -1186,11 +1237,22 @@ Options:
   --html                    Generate HTML output (default: true)
   --csv                     Generate CSV output (default: false)
   --json                    Generate JSON output (default: false)
-  --input string            Input result file path for merge-results; can be specified multiple times
+  --input string            Input result file path for merge-results/stats; can be specified multiple times
   --log string              Log file path; append if exists; blank = stdout
   --verbose                 Enable detailed logging
   --debug                   Enable low-level debug logging (implies --verbose)
   --interactive             Enable interactive interface for run configuration, and real-time progress monitoring (default: false)
+  --group-by string         Comma-separated stats grouping dimensions: provider, run, model, suite, category, difficulty, tag (default: provider,run)
+  --stats-format string     Stats output format: text, csv, json, or jsonl (default: text)
+  --provider string         Filter stats to this provider; can be specified multiple times
+  --run string              Filter stats to this run configuration; can be specified multiple times
+  --model string            Filter stats to this model; can be specified multiple times
+  --suite string            Filter stats to this task suite; can be specified multiple times
+  --category string         Filter stats to this task category; can be specified multiple times
+  --difficulty string       Filter stats to this task difficulty; can be specified multiple times
+  --status string           Filter stats to this result status (passed, failed, error, skipped); can be specified multiple times
+  --tag string              Filter stats to results tagged with this value; can be specified multiple times
+  --tag-mode string         How multiple --tag filters combine for stats: all or any (default: all)
 ```
 
 ## Contributing
@@ -1229,6 +1291,7 @@ go test -tags=test -race -v ./...
 │   ├── execution/       # Provider run execution utilities and coordination
 │   └── tools/           # Execution engine for external tools used by models
 ├── runners/             # Task execution and result aggregation
+├── stats/               # Derived statistics (filtering, grouping, aggregation) for the stats command
 ├── taskdata/            # Auxiliary files referenced by tasks in tasks.yaml
 ├── validators/          # Result validation logic
 └── version/             # Application metadata
