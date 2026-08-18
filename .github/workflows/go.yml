@@ -5,24 +5,37 @@ name: Go
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          persist-credentials: false
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: 'stable'
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: |
+            go.sum
 
-    - name: Build
-      run: go build -v ./...
+      - name: Build
+        run: go build -v ./...
 
-    - name: Test
-      run: go test -tags=test -race -v ./...
+      - name: Test
+        run: go test -tags=test -race -v ./...
