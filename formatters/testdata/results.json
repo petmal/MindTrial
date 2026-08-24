@@ -18,6 +18,14 @@
           "RetryPolicy": {
             "MaxRetryAttempts": 3,
             "InitialDelaySeconds": 5
+          },
+          "Pricing": {
+            "Currency": "USD",
+            "InputPerMillion": 1.25,
+            "OutputPerMillion": 5,
+            "CacheReadPerMillion": 0.125,
+            "CacheWritePerMillion": 1.5625,
+            "ReasoningPerMillion": 7.5
           }
         },
         "Got": "Quos aut rerum quaerat qui ad culpa.",
@@ -49,9 +57,11 @@
             "Usage": {
               "InputTokens": 9876543210,
               "OutputTokens": 1234567890,
+              "ReasoningTokens": 456789012,
               "InputCacheWriteTokens": 9757309999902428,
               "InputCacheReadTokens": 91835,
-              "InputTokenAccounting": "cache_tokens_separate"
+              "InputTokenAccounting": "cache_tokens_separate",
+              "OutputTokenAccounting": "reasoning_tokens_included"
             },
             "ToolUsage": {
               "calculator": {

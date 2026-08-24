@@ -57,6 +57,24 @@ func Ptr[T any](value T) *T {
 	return &value
 }
 
+// SumPtr totals the given values, treating a nil operand as absent rather than zero.
+// Returns nil only when every operand is nil, so callers can distinguish "nothing
+// reported" from a genuine zero total.
+func SumPtr[T constraints.Integer | constraints.Float](values ...*T) *T {
+	var total T
+	var reported bool
+	for _, v := range values {
+		if v != nil {
+			total += *v
+			reported = true
+		}
+	}
+	if !reported {
+		return nil
+	}
+	return &total
+}
+
 // NoPanic executes the provided function and recovers from any panic by converting it to error if that occurs.
 func NoPanic(fn func() error) (err error) {
 	defer func() {

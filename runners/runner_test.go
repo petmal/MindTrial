@@ -2583,6 +2583,172 @@ func TestProviderResultsByRunAndKind(t *testing.T) {
 	}
 }
 
+func TestTokenUsageEffectiveInputTokens(t *testing.T) {
+	tests := []struct {
+		name  string
+		usage TokenUsage
+		want  *int64
+	}{
+		{
+			name: "separate accounting adds the cache counters to input",
+			usage: TokenUsage{
+				InputTokens:           testutils.Ptr(int64(100)),
+				InputCacheWriteTokens: testutils.Ptr(int64(20)),
+				InputCacheReadTokens:  testutils.Ptr(int64(30)),
+				InputTokenAccounting:  InputTokenAccountingCacheTokensSeparate,
+			},
+			want: testutils.Ptr(int64(150)),
+		},
+		{
+			name: "absent accounting is treated as separate",
+			usage: TokenUsage{
+				InputTokens:          testutils.Ptr(int64(100)),
+				InputCacheReadTokens: testutils.Ptr(int64(30)),
+			},
+			want: testutils.Ptr(int64(130)),
+		},
+		{
+			name: "absent accounting with only an input count matches legacy pre-cache data",
+			usage: TokenUsage{
+				InputTokens: testutils.Ptr(int64(100)),
+			},
+			want: testutils.Ptr(int64(100)),
+		},
+		{
+			name: "included accounting reports input alone",
+			usage: TokenUsage{
+				InputTokens:           testutils.Ptr(int64(100)),
+				InputCacheWriteTokens: testutils.Ptr(int64(20)),
+				InputCacheReadTokens:  testutils.Ptr(int64(30)),
+				InputTokenAccounting:  InputTokenAccountingCacheTokensIncluded,
+			},
+			want: testutils.Ptr(int64(100)),
+		},
+		{
+			name: "separate accounting with cache counters only",
+			usage: TokenUsage{
+				InputCacheReadTokens: testutils.Ptr(int64(30)),
+				InputTokenAccounting: InputTokenAccountingCacheTokensSeparate,
+			},
+			want: testutils.Ptr(int64(30)),
+		},
+		{
+			name: "separate accounting without any cache counters falls back to input alone",
+			usage: TokenUsage{
+				InputTokens:          testutils.Ptr(int64(100)),
+				InputTokenAccounting: InputTokenAccountingCacheTokensSeparate,
+			},
+			want: testutils.Ptr(int64(100)),
+		},
+		{
+			name: "separate accounting with a reported zero cache counter",
+			usage: TokenUsage{
+				InputTokens:          testutils.Ptr(int64(100)),
+				InputCacheReadTokens: testutils.Ptr(int64(0)),
+				InputTokenAccounting: InputTokenAccountingCacheTokensSeparate,
+			},
+			want: testutils.Ptr(int64(100)),
+		},
+		{
+			name:  "nothing reported",
+			usage: TokenUsage{InputTokenAccounting: InputTokenAccountingCacheTokensSeparate},
+		},
+		{
+			name:  "included accounting without an input count",
+			usage: TokenUsage{InputCacheReadTokens: testutils.Ptr(int64(30)), InputTokenAccounting: InputTokenAccountingCacheTokensIncluded},
+		},
+		{
+			name:  "included accounting without an input count and without cache counters",
+			usage: TokenUsage{InputTokenAccounting: InputTokenAccountingCacheTokensIncluded},
+		},
+		{
+			name:  "unrecognized accounting is unknown",
+			usage: TokenUsage{InputTokens: testutils.Ptr(int64(100)), InputTokenAccounting: InputTokenAccounting("future_mode")},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.usage.EffectiveInputTokens())
+		})
+	}
+}
+
+func TestTokenUsageGeneratedTokens(t *testing.T) {
+	tests := []struct {
+		name  string
+		usage TokenUsage
+		want  *int64
+	}{
+		{
+			name: "included accounting never double counts reasoning",
+			usage: TokenUsage{
+				OutputTokens:          testutils.Ptr(int64(100)),
+				ReasoningTokens:       testutils.Ptr(int64(40)),
+				OutputTokenAccounting: OutputTokenAccountingReasoningTokensIncluded,
+			},
+			want: testutils.Ptr(int64(100)),
+		},
+		{
+			name: "absent accounting is treated as included",
+			usage: TokenUsage{
+				OutputTokens: testutils.Ptr(int64(100)),
+			},
+			want: testutils.Ptr(int64(100)),
+		},
+		{
+			name: "separate accounting adds reasoning to output",
+			usage: TokenUsage{
+				OutputTokens:          testutils.Ptr(int64(100)),
+				ReasoningTokens:       testutils.Ptr(int64(40)),
+				OutputTokenAccounting: OutputTokenAccountingReasoningTokensSeparate,
+			},
+			want: testutils.Ptr(int64(140)),
+		},
+		{
+			name: "separate accounting with a reported zero reasoning count",
+			usage: TokenUsage{
+				OutputTokens:          testutils.Ptr(int64(100)),
+				ReasoningTokens:       testutils.Ptr(int64(0)),
+				OutputTokenAccounting: OutputTokenAccountingReasoningTokensSeparate,
+			},
+			want: testutils.Ptr(int64(100)),
+		},
+		{
+			name: "separate accounting without a reasoning count falls back to output alone",
+			usage: TokenUsage{
+				OutputTokens:          testutils.Ptr(int64(100)),
+				OutputTokenAccounting: OutputTokenAccountingReasoningTokensSeparate,
+			},
+			want: testutils.Ptr(int64(100)),
+		},
+		{
+			name: "separate accounting with a reasoning counter only",
+			usage: TokenUsage{
+				ReasoningTokens:       testutils.Ptr(int64(40)),
+				OutputTokenAccounting: OutputTokenAccountingReasoningTokensSeparate,
+			},
+			want: testutils.Ptr(int64(40)),
+		},
+		{
+			name:  "nothing reported",
+			usage: TokenUsage{OutputTokenAccounting: OutputTokenAccountingReasoningTokensIncluded},
+		},
+		{
+			name:  "included accounting without an output count",
+			usage: TokenUsage{ReasoningTokens: testutils.Ptr(int64(40)), OutputTokenAccounting: OutputTokenAccountingReasoningTokensIncluded},
+		},
+		{
+			name:  "unrecognized accounting is unknown",
+			usage: TokenUsage{OutputTokens: testutils.Ptr(int64(100)), OutputTokenAccounting: OutputTokenAccounting("future_mode")},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.usage.GeneratedTokens())
+		})
+	}
+}
+
 func TestRunResultGetID(t *testing.T) {
 	tests := []struct {
 		name      string

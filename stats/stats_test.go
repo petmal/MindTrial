@@ -574,6 +574,213 @@ func TestComputeStatsErrorDiagnostics(t *testing.T) {
 	assert.Equal(t, 2, rec.ResponseParsingErrors) // "parsing" + "both"
 }
 
+func TestComputeStatsReasoningAndOutputTokens(t *testing.T) {
+	results := runners.Results{
+		"openai": {
+			{
+				Provider: "openai", Run: "r1", Kind: runners.Success,
+				Details: runners.Details{
+					Answer: runners.AnswerDetails{
+						Usage: runners.TokenUsage{
+							OutputTokens:          testutils.Ptr(int64(100)),
+							ReasoningTokens:       testutils.Ptr(int64(40)),
+							OutputTokenAccounting: runners.OutputTokenAccountingReasoningTokensSeparate,
+							InputCacheReadTokens:  testutils.Ptr(int64(7)),
+							InputCacheWriteTokens: testutils.Ptr(int64(3)),
+							InputTokenAccounting:  runners.InputTokenAccountingCacheTokensSeparate,
+						},
+					},
+				},
+			},
+			{
+				Provider: "openai", Run: "r1", Kind: runners.Success,
+				Details: runners.Details{
+					Answer: runners.AnswerDetails{
+						Usage: runners.TokenUsage{
+							OutputTokens:          testutils.Ptr(int64(200)),
+							ReasoningTokens:       testutils.Ptr(int64(50)),
+							OutputTokenAccounting: runners.OutputTokenAccountingReasoningTokensIncluded,
+							InputCacheReadTokens:  testutils.Ptr(int64(5)),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	records, err := ComputeStats(results, []Dimension{DimensionProvider}, Filters{})
+	require.NoError(t, err)
+	require.Len(t, records, 1)
+	rec := records[0]
+
+	// TotalOutputTokens is normalized: only the separate-accounting result adds reasoning on top.
+	require.NotNil(t, rec.TotalOutputTokens)
+	assert.Equal(t, int64(340), *rec.TotalOutputTokens)
+	require.NotNil(t, rec.TotalReasoningTokens)
+	assert.Equal(t, int64(90), *rec.TotalReasoningTokens)
+	require.NotNil(t, rec.MedianReasoningTokens)
+	assert.InDelta(t, 45.0, *rec.MedianReasoningTokens, 0.001)
+	require.NotNil(t, rec.StddevReasoningTokens)
+	assert.InDelta(t, 5.0, *rec.StddevReasoningTokens, 0.000001)
+
+	require.NotNil(t, rec.TotalCacheReadTokens)
+	assert.Equal(t, int64(12), *rec.TotalCacheReadTokens)
+	require.NotNil(t, rec.MedianCacheReadTokens)
+	assert.InDelta(t, 6.0, *rec.MedianCacheReadTokens, 0.001)
+	require.NotNil(t, rec.StddevCacheReadTokens)
+	assert.InDelta(t, 1.0, *rec.StddevCacheReadTokens, 0.000001)
+
+	require.NotNil(t, rec.TotalCacheWriteTokens)
+	assert.Equal(t, int64(3), *rec.TotalCacheWriteTokens)
+	// Only one result reports a cache-write count, so Median/Stddev require a second sample.
+	assert.Nil(t, rec.MedianCacheWriteTokens)
+	assert.Nil(t, rec.StddevCacheWriteTokens)
+}
+
+func TestComputeStatsReasoningTotalStaysUnknownWhenUnreported(t *testing.T) {
+	results := runners.Results{
+		"openai": {
+			{
+				Provider: "openai", Run: "r1", Kind: runners.Success,
+				Details: runners.Details{
+					Answer: runners.AnswerDetails{
+						Usage: runners.TokenUsage{OutputTokens: testutils.Ptr(int64(100))},
+					},
+				},
+			},
+		},
+	}
+
+	records, err := ComputeStats(results, []Dimension{DimensionProvider}, Filters{})
+	require.NoError(t, err)
+	require.Len(t, records, 1)
+
+	assert.Nil(t, records[0].TotalReasoningTokens)
+	// Absent output accounting means reasoning was never separated out.
+	require.NotNil(t, records[0].TotalOutputTokens)
+	assert.Equal(t, int64(100), *records[0].TotalOutputTokens)
+}
+
+func TestComputeStatsEstimatedCosts(t *testing.T) {
+	results := runners.Results{
+		"openai": {
+			{
+				Provider: "openai", Run: "r1", Kind: runners.Success,
+				RunConfig: runners.RunConfigSnapshot{
+					Pricing: &runners.Pricing{
+						Currency:         "USD",
+						InputPerMillion:  testutils.Ptr(2.0),
+						OutputPerMillion: testutils.Ptr(10.0),
+					},
+				},
+				Details: runners.Details{
+					Answer: runners.AnswerDetails{
+						Usage: runners.TokenUsage{
+							InputTokens:  testutils.Ptr(int64(1_000_000)),
+							OutputTokens: testutils.Ptr(int64(500_000)),
+						},
+					},
+					Validation: runners.ValidationDetails{
+						Usage: runners.TokenUsage{
+							InputTokens:  testutils.Ptr(int64(200_000)),
+							OutputTokens: testutils.Ptr(int64(100_000)),
+						},
+						Semantic: &runners.SemanticValidationDetails{
+							JudgeName: "judge",
+							VariantConfig: runners.RunConfigSnapshot{
+								Pricing: &runners.Pricing{
+									Currency:         "USD",
+									InputPerMillion:  testutils.Ptr(1.0),
+									OutputPerMillion: testutils.Ptr(4.0),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	records, err := ComputeStats(results, []Dimension{DimensionProvider}, Filters{})
+	require.NoError(t, err)
+	require.Len(t, records, 1)
+	rec := records[0]
+
+	// Validation/judge usage is excluded; only the candidate's own usage is priced.
+	require.NotNil(t, rec.EstimatedCandidateCost)
+	assert.InDelta(t, 7.0, *rec.EstimatedCandidateCost, 0.000001) // 2.00 input + 5.00 output
+	assert.Equal(t, "USD", rec.CandidateCostCurrency)
+}
+
+func TestComputeStatsCostUnknownPropagates(t *testing.T) {
+	priced := runners.RunResult{
+		Provider: "openai", Run: "r1", Kind: runners.Success,
+		RunConfig: runners.RunConfigSnapshot{
+			Pricing: &runners.Pricing{Currency: "USD", InputPerMillion: testutils.Ptr(2.0)},
+		},
+		Details: runners.Details{
+			Answer: runners.AnswerDetails{
+				Usage: runners.TokenUsage{InputTokens: testutils.Ptr(int64(1_000_000))},
+			},
+		},
+	}
+	unpriced := runners.RunResult{
+		Provider: "openai", Run: "r1", Kind: runners.Success,
+		Details: runners.Details{
+			Answer: runners.AnswerDetails{
+				Usage: runners.TokenUsage{InputTokens: testutils.Ptr(int64(1_000_000))},
+			},
+		},
+	}
+
+	records, err := ComputeStats(runners.Results{"openai": {priced, unpriced}}, []Dimension{DimensionProvider}, Filters{})
+	require.NoError(t, err)
+	require.Len(t, records, 1)
+
+	// A partial total would understate the group, so it is reported as unknown instead.
+	assert.Nil(t, records[0].EstimatedCandidateCost)
+	// The currency of the priced result must not leak out alongside an unknown total.
+	assert.Empty(t, records[0].CandidateCostCurrency)
+}
+
+func TestComputeStatsCostMixedCurrenciesAreNotSummed(t *testing.T) {
+	newResult := func(currency string) runners.RunResult {
+		return runners.RunResult{
+			Provider: "openai", Run: "r1", Kind: runners.Success,
+			RunConfig: runners.RunConfigSnapshot{
+				Pricing: &runners.Pricing{Currency: currency, InputPerMillion: testutils.Ptr(2.0)},
+			},
+			Details: runners.Details{
+				Answer: runners.AnswerDetails{
+					Usage: runners.TokenUsage{InputTokens: testutils.Ptr(int64(1_000_000))},
+				},
+			},
+		}
+	}
+
+	records, err := ComputeStats(runners.Results{"openai": {newResult("USD"), newResult("EUR")}}, []Dimension{DimensionProvider}, Filters{})
+	require.NoError(t, err)
+	require.Len(t, records, 1)
+
+	assert.Nil(t, records[0].EstimatedCandidateCost)
+	assert.Empty(t, records[0].CandidateCostCurrency)
+}
+
+func TestComputeStatsCostsAbsentWithoutPricing(t *testing.T) {
+	results := runners.Results{
+		"openai": {
+			{Provider: "openai", Run: "r1", Kind: runners.Success},
+		},
+	}
+
+	records, err := ComputeStats(results, []Dimension{DimensionProvider}, Filters{})
+	require.NoError(t, err)
+	require.Len(t, records, 1)
+
+	assert.Nil(t, records[0].EstimatedCandidateCost)
+	assert.Empty(t, records[0].CandidateCostCurrency)
+}
+
 func TestComputeStatsInvalidGroupBy(t *testing.T) {
 	results := runners.Results{"openai": {{Provider: "openai", Kind: runners.Success}}}
 	records, err := ComputeStats(results, []Dimension{"bogus"}, Filters{})

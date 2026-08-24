@@ -100,6 +100,51 @@ func TestPtr(t *testing.T) {
 	}
 }
 
+func TestSumPtr(t *testing.T) {
+	tests := []struct {
+		name   string
+		values []*int64
+		want   *int64
+	}{
+		{
+			name:   "all nil",
+			values: []*int64{nil, nil, nil},
+			want:   nil,
+		},
+		{
+			name:   "single value",
+			values: []*int64{Ptr(int64(5))},
+			want:   Ptr(int64(5)),
+		},
+		{
+			name:   "nil operand treated as absent, not zero",
+			values: []*int64{Ptr(int64(5)), nil},
+			want:   Ptr(int64(5)),
+		},
+		{
+			name:   "sums every reported value",
+			values: []*int64{Ptr(int64(5)), Ptr(int64(7)), nil, Ptr(int64(3))},
+			want:   Ptr(int64(15)),
+		},
+		{
+			name:   "a reported zero still counts as reported",
+			values: []*int64{nil, Ptr(int64(0))},
+			want:   Ptr(int64(0)),
+		},
+		{
+			name:   "no arguments",
+			values: nil,
+			want:   nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, SumPtr(tt.values...))
+		})
+	}
+}
+
 func TestJSONFromMarkdown(t *testing.T) {
 	type args struct {
 		content string

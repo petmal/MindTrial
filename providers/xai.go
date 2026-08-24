@@ -197,8 +197,9 @@ func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConf
 			if u := resp.Usage.Get(); u != nil {
 				promptTokens := int64(u.PromptTokens)
 				completionTokens := int64(u.CompletionTokens)
+				reasoningTokens := int64(u.CompletionTokensDetails.ReasoningTokens)
 				cachedTokens := int64(u.PromptTokensDetails.CachedTokens)
-				recordUsage(InputTokenAccountingCacheTokensIncluded, &promptTokens, &completionTokens, nil, &cachedTokens, &result.usage)
+				recordUsage(InputTokenAccountingCacheTokensIncluded, OutputTokenAccountingReasoningTokensSeparate, &promptTokens, &completionTokens, &reasoningTokens, nil, &cachedTokens, &result.usage)
 			}
 		}
 		if len(resp.Choices) == 0 {

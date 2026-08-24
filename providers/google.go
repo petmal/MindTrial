@@ -233,7 +233,7 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 		// Parse the completion response.
 
 		if resp.UsageMetadata != nil {
-			recordUsage(InputTokenAccountingCacheTokensIncluded, &resp.UsageMetadata.PromptTokenCount, &resp.UsageMetadata.CandidatesTokenCount, nil, &resp.UsageMetadata.CachedContentTokenCount, &result.usage)
+			recordUsage(InputTokenAccountingCacheTokensIncluded, OutputTokenAccountingReasoningTokensSeparate, &resp.UsageMetadata.PromptTokenCount, &resp.UsageMetadata.CandidatesTokenCount, &resp.UsageMetadata.ThoughtsTokenCount, nil, &resp.UsageMetadata.CachedContentTokenCount, &result.usage)
 		}
 		if len(resp.Candidates) == 0 {
 			return result, ErrNoResponseCandidates

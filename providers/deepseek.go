@@ -181,7 +181,7 @@ func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 			return result, nil // return current result state
 		}
 
-		recordUsage(InputTokenAccountingCacheTokensIncluded, &resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, nil, &resp.Usage.PromptCacheHitTokens, &result.usage)
+		recordUsage(InputTokenAccountingCacheTokensIncluded, OutputTokenAccountingReasoningTokensIncluded, &resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, &resp.Usage.CompletionTokensDetails.ReasoningTokens, nil, &resp.Usage.PromptCacheHitTokens, &result.usage)
 		if len(resp.Choices) == 0 {
 			return result, ErrNoResponseCandidates
 		}

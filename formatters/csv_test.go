@@ -60,6 +60,14 @@ var mockResults = runners.Results{
 					MaxRetryAttempts:    3,
 					InitialDelaySeconds: 5,
 				},
+				Pricing: &runners.Pricing{
+					Currency:             "USD",
+					InputPerMillion:      testutils.Ptr(1.25),
+					OutputPerMillion:     testutils.Ptr(5.0),
+					CacheReadPerMillion:  testutils.Ptr(0.125),
+					CacheWritePerMillion: testutils.Ptr(1.5625),
+					ReasoningPerMillion:  testutils.Ptr(7.5),
+				},
 			},
 			Want: utils.NewValueSet("Quos aut rerum quaerat qui ad culpa."),
 			Got:  "Quos aut rerum quaerat qui ad culpa.",
@@ -81,6 +89,8 @@ var mockResults = runners.Results{
 						InputCacheReadTokens:  testutils.Ptr(int64(91835)),
 						InputTokenAccounting:  runners.InputTokenAccountingCacheTokensSeparate,
 						OutputTokens:          testutils.Ptr(int64(1234567890)),
+						ReasoningTokens:       testutils.Ptr(int64(456789012)),
+						OutputTokenAccounting: runners.OutputTokenAccountingReasoningTokensIncluded,
 					},
 					ToolUsage: map[string]runners.ToolUsage{
 						"calculator": {

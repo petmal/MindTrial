@@ -364,6 +364,10 @@ type Usage struct {
 	// OutputTokens used by the output if available.
 	OutputTokens *int64 `json:"-"`
 
+	// ReasoningTokens is the number of reasoning (thinking) tokens if reported.
+	// Interpret it according to OutputTokenAccounting.
+	ReasoningTokens *int64 `json:"-"`
+
 	// InputCacheWriteTokens is the number of input tokens written
 	// into a provider prompt cache if reported.
 	InputCacheWriteTokens *int64 `json:"-"`
@@ -374,6 +378,9 @@ type Usage struct {
 
 	// InputTokenAccounting describes how the cache token counts relate to InputTokens.
 	InputTokenAccounting InputTokenAccounting `json:"-"`
+
+	// OutputTokenAccounting describes how ReasoningTokens relates to OutputTokens.
+	OutputTokenAccounting OutputTokenAccounting `json:"-"`
 
 	// ToolUsage contains per-tool aggregate execution statistics collected during
 	// the run if available.
@@ -391,6 +398,20 @@ const (
 	// InputTokenAccountingCacheTokensIncluded indicates that cache read and write
 	// tokens are informational subsets already included in InputTokens.
 	InputTokenAccountingCacheTokensIncluded InputTokenAccounting = "cache_tokens_included"
+)
+
+// OutputTokenAccounting describes how reasoning token counts relate to OutputTokens.
+type OutputTokenAccounting string
+
+const (
+	// OutputTokenAccountingReasoningTokensIncluded indicates that any reasoning used for this
+	// generation is already represented by OutputTokens, so ReasoningTokens, when
+	// available, is an informational subset of it.
+	OutputTokenAccountingReasoningTokensIncluded OutputTokenAccounting = "reasoning_tokens_included"
+
+	// OutputTokenAccountingReasoningTokensSeparate indicates that reasoning is not included in
+	// OutputTokens and must be added to obtain total generated usage.
+	OutputTokenAccountingReasoningTokensSeparate OutputTokenAccounting = "reasoning_tokens_separate"
 )
 
 // Answer wraps the final answer content to separate it from response metadata.
@@ -530,10 +551,12 @@ func (r *Result) recordToolCalls(calls []tools.ToolCallSummary) {
 	r.toolCalls = calls
 }
 
-func recordUsage[T constraints.Signed](inputTokenAccounting InputTokenAccounting, inputTokens *T, outputTokens *T, inputCacheWriteTokens *T, inputCacheReadTokens *T, out *Usage) {
+func recordUsage[T constraints.Signed](inputTokenAccounting InputTokenAccounting, outputTokenAccounting OutputTokenAccounting, inputTokens *T, outputTokens *T, reasoningTokens *T, inputCacheWriteTokens *T, inputCacheReadTokens *T, out *Usage) {
 	out.InputTokenAccounting = inputTokenAccounting
+	out.OutputTokenAccounting = outputTokenAccounting
 	addIfNotNil(&out.InputTokens, inputTokens)
 	addIfNotNil(&out.OutputTokens, outputTokens)
+	addIfNotNil(&out.ReasoningTokens, reasoningTokens)
 	addIfNotNil(&out.InputCacheWriteTokens, inputCacheWriteTokens)
 	addIfNotNil(&out.InputCacheReadTokens, inputCacheReadTokens)
 }

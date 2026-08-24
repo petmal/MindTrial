@@ -56,8 +56,12 @@ var metricColumns = []string{
 	"TotalDuration", "MedianDuration", "StddevDuration",
 	"TotalInputTokens", "MedianInputTokens", "StddevInputTokens",
 	"TotalOutputTokens", "MedianOutputTokens", "StddevOutputTokens",
+	"TotalReasoningTokens", "MedianReasoningTokens", "StddevReasoningTokens",
+	"TotalCacheReadTokens", "MedianCacheReadTokens", "StddevCacheReadTokens",
+	"TotalCacheWriteTokens", "MedianCacheWriteTokens", "StddevCacheWriteTokens",
 	"TotalToolCalls", "MedianToolCalls", "StddevToolCalls",
 	"TransientErrors", "ResponseParsingErrors",
+	"EstimatedCandidateCost", "CandidateCostCurrency",
 }
 
 // Write renders records in the given format to out. groupBy determines the dimension column
@@ -99,8 +103,12 @@ func metricValues(r Record) []string {
 		formatDurationPtr(r.TotalDuration), formatDurationPtr(r.MedianDuration), formatDurationPtr(r.StddevDuration),
 		formatInt64Ptr(r.TotalInputTokens), formatFloatPtr(r.MedianInputTokens), formatFloatPtr(r.StddevInputTokens),
 		formatInt64Ptr(r.TotalOutputTokens), formatFloatPtr(r.MedianOutputTokens), formatFloatPtr(r.StddevOutputTokens),
+		formatInt64Ptr(r.TotalReasoningTokens), formatFloatPtr(r.MedianReasoningTokens), formatFloatPtr(r.StddevReasoningTokens),
+		formatInt64Ptr(r.TotalCacheReadTokens), formatFloatPtr(r.MedianCacheReadTokens), formatFloatPtr(r.StddevCacheReadTokens),
+		formatInt64Ptr(r.TotalCacheWriteTokens), formatFloatPtr(r.MedianCacheWriteTokens), formatFloatPtr(r.StddevCacheWriteTokens),
 		formatInt64Ptr(r.TotalToolCalls), formatFloatPtr(r.MedianToolCalls), formatFloatPtr(r.StddevToolCalls),
 		strconv.Itoa(r.TransientErrors), strconv.Itoa(r.ResponseParsingErrors),
+		formatCostPtr(r.EstimatedCandidateCost), r.CandidateCostCurrency,
 	}
 }
 
@@ -113,6 +121,15 @@ func formatFloatPtr(v *float64) string {
 		return ""
 	}
 	return formatFloat(*v)
+}
+
+// formatCostPtr renders an estimated cost with enough precision to stay meaningful for
+// per-million-token rates, which routinely produce fractions of a cent.
+func formatCostPtr(v *float64) string {
+	if v == nil {
+		return ""
+	}
+	return strconv.FormatFloat(*v, 'f', 6, 64)
 }
 
 func formatInt64Ptr(v *int64) string {

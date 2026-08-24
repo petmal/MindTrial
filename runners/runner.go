@@ -138,6 +138,19 @@ type RunConfigSnapshot struct {
 	DisableStructuredOutput bool
 	ModelParameters         map[string]interface{}
 	RetryPolicy             RetryPolicy
+	Pricing                 *Pricing
+}
+
+// Pricing mirrors config.Pricing for use in RunConfigSnapshot, preserving the price
+// assumptions that cost estimates for this result were based on. Rates are per million
+// tokens; a nil rate is unknown, while zero is a valid free rate.
+type Pricing struct {
+	Currency             string
+	InputPerMillion      *float64
+	OutputPerMillion     *float64
+	CacheReadPerMillion  *float64
+	CacheWritePerMillion *float64
+	ReasoningPerMillion  *float64
 }
 
 // RetryPolicy mirrors config.RetryPolicy for use in RunConfigSnapshot, keeping this
@@ -280,7 +293,10 @@ type TokenUsage struct {
 	InputTokens *int64 `json:"InputTokens,omitempty" jsonschema:"title=Input Tokens" jsonschema_description:"The input token count reported by the provider. Interpret cache token counters according to InputTokenAccounting."`
 
 	// OutputTokens is the number of generated output tokens.
-	OutputTokens *int64 `json:"OutputTokens,omitempty" jsonschema:"title=Output Tokens" jsonschema_description:"The number of generated output tokens."`
+	OutputTokens *int64 `json:"OutputTokens,omitempty" jsonschema:"title=Output Tokens" jsonschema_description:"The number of generated output tokens. Interpret the reasoning token counter according to OutputTokenAccounting."`
+
+	// ReasoningTokens is the number of reasoning (thinking) tokens reported by the provider.
+	ReasoningTokens *int64 `json:"ReasoningTokens,omitempty" jsonschema:"title=Reasoning Tokens" jsonschema_description:"The number of reasoning (thinking) tokens reported by the provider. Interpret this counter according to OutputTokenAccounting. Absent when the provider does not report it."`
 
 	// InputCacheWriteTokens is the number of input tokens written
 	// into a provider prompt cache.
@@ -292,6 +308,9 @@ type TokenUsage struct {
 
 	// InputTokenAccounting defines how the cache token counts relate to InputTokens.
 	InputTokenAccounting InputTokenAccounting `json:"InputTokenAccounting,omitempty" jsonschema:"title=Input Token Accounting,enum=cache_tokens_separate,enum=cache_tokens_included" jsonschema_description:"Defines how cached input-token counters relate to InputTokens. For cache_tokens_separate, InputTokens excludes InputCacheReadTokens and InputCacheWriteTokens, so total input usage is their sum. For cache_tokens_included, cached token counters are subsets already included in InputTokens, so total input usage is InputTokens. When absent, consumers should use cache_tokens_separate for backward compatibility."`
+
+	// OutputTokenAccounting defines how ReasoningTokens relates to OutputTokens.
+	OutputTokenAccounting OutputTokenAccounting `json:"OutputTokenAccounting,omitempty" jsonschema:"title=Output Token Accounting,enum=reasoning_tokens_included,enum=reasoning_tokens_separate" jsonschema_description:"Defines how ReasoningTokens relates to OutputTokens. For reasoning_tokens_included, reasoning is already represented by OutputTokens and ReasoningTokens is an informational subset. For reasoning_tokens_separate, reasoning is excluded from OutputTokens and must be added to obtain total generated usage. When absent, consumers should use reasoning_tokens_included for backward compatibility."`
 }
 
 // InputTokenAccounting describes how cached input token counts relate to InputTokens.
@@ -306,6 +325,47 @@ const (
 	// tokens are informational subsets already included in InputTokens.
 	InputTokenAccountingCacheTokensIncluded InputTokenAccounting = "cache_tokens_included"
 )
+
+// OutputTokenAccounting describes how reasoning token counts relate to OutputTokens.
+type OutputTokenAccounting string
+
+const (
+	// OutputTokenAccountingReasoningTokensIncluded indicates that reasoning is already
+	// represented by OutputTokens, so ReasoningTokens is an informational subset.
+	OutputTokenAccountingReasoningTokensIncluded OutputTokenAccounting = "reasoning_tokens_included"
+
+	// OutputTokenAccountingReasoningTokensSeparate indicates that reasoning is excluded from
+	// OutputTokens and must be added to obtain total generated usage.
+	OutputTokenAccountingReasoningTokensSeparate OutputTokenAccounting = "reasoning_tokens_separate"
+)
+
+// EffectiveInputTokens returns the total input tokens consumed, resolving the cache
+// counters according to InputTokenAccounting. Returns nil when no relevant counter was
+// reported or the accounting mode is not recognized.
+func (u TokenUsage) EffectiveInputTokens() *int64 {
+	switch u.InputTokenAccounting {
+	case InputTokenAccountingCacheTokensIncluded:
+		return u.InputTokens
+	case InputTokenAccountingCacheTokensSeparate, "":
+		return utils.SumPtr(u.InputTokens, u.InputCacheWriteTokens, u.InputCacheReadTokens)
+	default:
+		return nil
+	}
+}
+
+// GeneratedTokens returns the total tokens generated, resolving reasoning tokens
+// according to OutputTokenAccounting. Returns nil when neither counter was reported or
+// the accounting mode is not recognized.
+func (u TokenUsage) GeneratedTokens() *int64 {
+	switch u.OutputTokenAccounting {
+	case OutputTokenAccountingReasoningTokensIncluded, "":
+		return u.OutputTokens
+	case OutputTokenAccountingReasoningTokensSeparate:
+		return utils.SumPtr(u.OutputTokens, u.ReasoningTokens)
+	default:
+		return nil
+	}
+}
 
 // ToolUsage represents aggregated execution statistics captured for a tool during
 // execution. It only reflects invocations whose underlying process actually ran

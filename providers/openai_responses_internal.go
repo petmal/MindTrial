@@ -44,6 +44,16 @@ type ResponseAccumulator interface {
 // via the NewResponseHandler factory.
 type ResponseHandler interface {
 	ResponseAccumulator
+
+	// ReasoningTokens extracts the reasoning token count from a Responses API usage
+	// response. Implementations may override this to read provider-specific usage shapes
+	// that differ from the OpenAI-standard one.
+	ReasoningTokens(usage responses.ResponseUsage) *int64
+
+	// InputCacheTokens extracts the cache write/read token counts from a Responses API
+	// usage response. Implementations may override this to read provider-specific usage
+	// shapes that differ from the OpenAI-standard one.
+	InputCacheTokens(usage responses.ResponseUsage) (writeTokens *int64, readTokens *int64)
 }
 
 // defaultResponseHandler is the standard ResponseHandler that captures the full
@@ -71,6 +81,29 @@ func (h *defaultResponseHandler) AddEvent(_ context.Context, _ logging.Logger, e
 
 func (h *defaultResponseHandler) GetResponse() *responses.Response {
 	return h.response
+}
+
+// ReasoningTokens reads the reasoning counter from a Responses API usage response.
+// The SDK models it as a plain int64, so presence comes from the JSON metadata to tell
+// an unreported counter from a reported zero. Providers that never report it yield nil.
+func (h *defaultResponseHandler) ReasoningTokens(usage responses.ResponseUsage) *int64 {
+	if usage.OutputTokensDetails.JSON.ReasoningTokens.Valid() {
+		return &usage.OutputTokensDetails.ReasoningTokens
+	}
+	return nil
+}
+
+// InputCacheTokens reads the cache counters from a Responses API usage response.
+// The SDK models them as plain int64, so presence comes from the JSON metadata to
+// tell an unreported counter from a reported zero.
+func (h *defaultResponseHandler) InputCacheTokens(usage responses.ResponseUsage) (writeTokens *int64, readTokens *int64) {
+	if usage.InputTokensDetails.JSON.CacheWriteTokens.Valid() {
+		writeTokens = &usage.InputTokensDetails.CacheWriteTokens
+	}
+	if usage.InputTokensDetails.JSON.CachedTokens.Valid() {
+		readTokens = &usage.InputTokensDetails.CachedTokens
+	}
+	return writeTokens, readTokens
 }
 
 // openAIResponsesProvider is an OpenAI Responses API provider implementation
@@ -286,7 +319,8 @@ func (o *openAIResponsesProvider) Run(ctx context.Context, logger logging.Logger
 			return result, nil // return current result state
 		}
 
-		recordUsage(InputTokenAccountingCacheTokensIncluded, &resp.Usage.InputTokens, &resp.Usage.OutputTokens, &resp.Usage.InputTokensDetails.CacheWriteTokens, &resp.Usage.InputTokensDetails.CachedTokens, &result.usage)
+		cacheWriteTokens, cacheReadTokens := handler.InputCacheTokens(resp.Usage)
+		recordUsage(InputTokenAccountingCacheTokensIncluded, OutputTokenAccountingReasoningTokensIncluded, &resp.Usage.InputTokens, &resp.Usage.OutputTokens, handler.ReasoningTokens(resp.Usage), cacheWriteTokens, cacheReadTokens, &result.usage)
 
 		isTerminal := o.isTerminalResponseStatus(resp)
 		logFinishReason(ctx, logger, string(resp.Status), isTerminal)

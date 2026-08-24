@@ -481,10 +481,10 @@
             { key: 'totalDuration', label: '\u03a3 Duration', tooltip: 'Total (sum) duration', format: 'duration' },
             { key: 'medianDuration', label: 'x\u0303 Duration', tooltip: 'Median duration', format: 'duration' },
             { key: 'stddevDuration', label: '\u03c3 Duration', tooltip: 'Standard deviation of duration', format: 'duration' },
-            { key: 'totalInput', label: '\u03a3 Input Tokens', tooltip: 'Total (sum) input tokens', format: 'token' },
+            { key: 'totalInput', label: '\u03a3 Input Tokens', tooltip: 'Total (sum) input tokens: includes cache reads/writes where the provider counts them separately', format: 'token' },
             { key: 'medianInput', label: 'x\u0303 Input Tokens', tooltip: 'Median input tokens', format: 'token' },
             { key: 'stddevInput', label: '\u03c3 Input Tokens', tooltip: 'Standard deviation of input tokens', format: 'token' },
-            { key: 'totalOutput', label: '\u03a3 Output Tokens', tooltip: 'Total (sum) output tokens', format: 'token' },
+            { key: 'totalOutput', label: '\u03a3 Output Tokens', tooltip: 'Total (sum) output tokens: visible output plus reasoning where the provider counts it separately', format: 'token' },
             { key: 'medianOutput', label: 'x\u0303 Output Tokens', tooltip: 'Median output tokens', format: 'token' },
             { key: 'stddevOutput', label: '\u03c3 Output Tokens', tooltip: 'Standard deviation of output tokens', format: 'token' },
             { key: 'totalToolCalls', label: '\u03a3 Tool Calls', tooltip: 'Total (sum) tool calls', format: 'toolcall' },
@@ -704,8 +704,8 @@
                 const dl = det.querySelector('dl');
                 if (!dl) return;
 
-                let input = 0, cacheWrite = 0, cacheRead = 0, output = 0;
-                let hasInput = false, hasCacheInput = false, hasOutput = false;
+                let input = 0, cacheWrite = 0, cacheRead = 0, output = 0, reasoning = 0;
+                let hasInput = false, hasCacheInput = false, hasOutput = false, hasReasoning = false;
                 dl.querySelectorAll('dt').forEach(dt => {
                     const dd = dt.nextElementSibling;
                     if (!dd || dd.tagName !== 'DD') return;
@@ -728,12 +728,18 @@
                             output += val;
                             hasOutput = true;
                             break;
+                        case 'Reasoning':
+                            reasoning += val;
+                            hasReasoning = true;
+                            break;
                     }
                 });
 
                 const accounting = dl.dataset.inputTokenAccounting || 'cache_tokens_separate';
                 let effectiveInput = null;
                 if (accounting === 'cache_tokens_separate') {
+                    
+                    
                     if (hasInput || hasCacheInput) effectiveInput = input + cacheWrite + cacheRead;
                 } else if (accounting === 'cache_tokens_included') {
                     if (hasInput) effectiveInput = input;
@@ -742,7 +748,20 @@
                 }
 
                 if (effectiveInput !== null) inputTokens = (inputTokens ?? 0) + effectiveInput;
-                if (hasOutput) outputTokens = (outputTokens ?? 0) + output;
+
+                const outputAccounting = dl.dataset.outputTokenAccounting || 'reasoning_tokens_included';
+                let effectiveOutput = null;
+                if (outputAccounting === 'reasoning_tokens_included') {
+                    if (hasOutput) effectiveOutput = output;
+                } else if (outputAccounting === 'reasoning_tokens_separate') {
+                    
+                    
+                    if (hasOutput || hasReasoning) effectiveOutput = output + reasoning;
+                } else {
+                    console.warn(`Unknown output token accounting type "${outputAccounting}" for row "${row.id}"`);
+                }
+
+                if (effectiveOutput !== null) outputTokens = (outputTokens ?? 0) + effectiveOutput;
             });
             return { inputTokens, outputTokens };
         }
@@ -2098,11 +2117,12 @@
                                     </details>
                                         <details>
                                             <summary>Token Usage</summary>
-                                            <dl class="tech-details" style="margin-top:0.4em;" data-input-token-accounting="cache_tokens_separate">
+                                            <dl class="tech-details" style="margin-top:0.4em;" data-input-token-accounting="cache_tokens_separate" data-output-token-accounting="reasoning_tokens_included">
                                                 <dt>Input</dt><dd>9876543210</dd>
                                                 <dt>Input Cache Write</dt><dd>9757309999902428</dd>
                                                 <dt>Input Cache Read</dt><dd>91835</dd>
                                                 <dt>Output</dt><dd>1234567890</dd>
+                                                <dt>Reasoning</dt><dd>456789012</dd>
                                             </dl>
                                         </details>
                                         <details>

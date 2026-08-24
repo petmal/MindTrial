@@ -77,9 +77,11 @@ func TestResultGetUsage(t *testing.T) {
 	tests := []struct {
 		name                  string
 		inputTokenAccounting  InputTokenAccounting
+		outputTokenAccounting OutputTokenAccounting
 		init                  Usage
 		inputTokens           *int64
 		outputTokens          *int64
+		reasoningTokens       *int64
 		inputCacheWriteTokens *int64
 		inputCacheReadTokens  *int64
 		want                  Usage
@@ -134,21 +136,83 @@ func TestResultGetUsage(t *testing.T) {
 			name:                  "all tokens",
 			inputTokens:           testutils.Ptr(int64(5147809999948522)),
 			outputTokens:          testutils.Ptr(int64(3763809999962362)),
+			reasoningTokens:       testutils.Ptr(int64(3940509999960595)),
 			inputCacheWriteTokens: testutils.Ptr(int64(4500109999954999)),
 			inputCacheReadTokens:  testutils.Ptr(int64(6304309999936957)),
 			want: Usage{
-				InputTokens: testutils.Ptr(int64(5147809999948522)), OutputTokens: testutils.Ptr(int64(3763809999962362)),
+				InputTokens: testutils.Ptr(int64(5147809999948522)), OutputTokens: testutils.Ptr(int64(3763809999962362)), ReasoningTokens: testutils.Ptr(int64(3940509999960595)),
 				InputCacheWriteTokens: testutils.Ptr(int64(4500109999954999)), InputCacheReadTokens: testutils.Ptr(int64(6304309999936957)),
-				InputTokenAccounting: InputTokenAccountingCacheTokensIncluded,
+				InputTokenAccounting:  InputTokenAccountingCacheTokensIncluded,
+				OutputTokenAccounting: OutputTokenAccountingReasoningTokensSeparate,
 			},
-			inputTokenAccounting: InputTokenAccountingCacheTokensIncluded,
+			inputTokenAccounting:  InputTokenAccountingCacheTokensIncluded,
+			outputTokenAccounting: OutputTokenAccountingReasoningTokensSeparate,
+		},
+		{
+			name:                  "reasoning tokens only",
+			outputTokenAccounting: OutputTokenAccountingReasoningTokensSeparate,
+			reasoningTokens:       testutils.Ptr(int64(13760)),
+			want:                  Usage{ReasoningTokens: testutils.Ptr(int64(13760)), OutputTokenAccounting: OutputTokenAccountingReasoningTokensSeparate},
+		},
+		{
+			name:                  "reasoning tokens included in output",
+			inputTokenAccounting:  InputTokenAccountingCacheTokensIncluded,
+			outputTokenAccounting: OutputTokenAccountingReasoningTokensIncluded,
+			inputTokens:           testutils.Ptr(int64(100)),
+			outputTokens:          testutils.Ptr(int64(200)),
+			reasoningTokens:       testutils.Ptr(int64(80)),
+			want: Usage{
+				InputTokens:           testutils.Ptr(int64(100)),
+				OutputTokens:          testutils.Ptr(int64(200)),
+				ReasoningTokens:       testutils.Ptr(int64(80)),
+				InputTokenAccounting:  InputTokenAccountingCacheTokensIncluded,
+				OutputTokenAccounting: OutputTokenAccountingReasoningTokensIncluded,
+			},
+		},
+		{
+			name:                  "reasoning tokens separate from output",
+			inputTokenAccounting:  InputTokenAccountingCacheTokensIncluded,
+			outputTokenAccounting: OutputTokenAccountingReasoningTokensSeparate,
+			outputTokens:          testutils.Ptr(int64(30)),
+			reasoningTokens:       testutils.Ptr(int64(70)),
+			want: Usage{
+				OutputTokens:          testutils.Ptr(int64(30)),
+				ReasoningTokens:       testutils.Ptr(int64(70)),
+				InputTokenAccounting:  InputTokenAccountingCacheTokensIncluded,
+				OutputTokenAccounting: OutputTokenAccountingReasoningTokensSeparate,
+			},
+		},
+		{
+			name:                  "reasoning tokens accumulate across turns",
+			inputTokenAccounting:  InputTokenAccountingCacheTokensIncluded,
+			outputTokenAccounting: OutputTokenAccountingReasoningTokensSeparate,
+			init:                  Usage{ReasoningTokens: testutils.Ptr(int64(15))},
+			outputTokens:          testutils.Ptr(int64(10)),
+			reasoningTokens:       testutils.Ptr(int64(25)),
+			want: Usage{
+				OutputTokens:          testutils.Ptr(int64(10)),
+				ReasoningTokens:       testutils.Ptr(int64(40)),
+				InputTokenAccounting:  InputTokenAccountingCacheTokensIncluded,
+				OutputTokenAccounting: OutputTokenAccountingReasoningTokensSeparate,
+			},
+		},
+		{
+			name:                  "unreported reasoning stays absent",
+			inputTokenAccounting:  InputTokenAccountingCacheTokensIncluded,
+			outputTokenAccounting: OutputTokenAccountingReasoningTokensIncluded,
+			outputTokens:          testutils.Ptr(int64(5)),
+			want: Usage{
+				OutputTokens:          testutils.Ptr(int64(5)),
+				InputTokenAccounting:  InputTokenAccountingCacheTokensIncluded,
+				OutputTokenAccounting: OutputTokenAccountingReasoningTokensIncluded,
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := Result{usage: tt.init}
-			recordUsage(tt.inputTokenAccounting, tt.inputTokens, tt.outputTokens, tt.inputCacheWriteTokens, tt.inputCacheReadTokens, &result.usage)
+			recordUsage(tt.inputTokenAccounting, tt.outputTokenAccounting, tt.inputTokens, tt.outputTokens, tt.reasoningTokens, tt.inputCacheWriteTokens, tt.inputCacheReadTokens, &result.usage)
 			assert.Equal(t, tt.want, result.GetUsage())
 		})
 	}

@@ -62,6 +62,11 @@ type CompletionHandler interface {
 	// Completions usage response. Implementations may override this to read
 	// provider-specific usage shapes that differ from the OpenAI-standard one.
 	InputCacheTokens(usage openai.CompletionUsage) (writeTokens *int64, readTokens *int64)
+
+	// ReasoningTokens extracts the reasoning token count from a Chat Completions usage
+	// response. Implementations may override this to read provider-specific usage shapes
+	// that differ from the OpenAI-standard one.
+	ReasoningTokens(usage openai.CompletionUsage) *int64
 }
 
 // defaultCompletionHandler is the standard CompletionHandler that delegates to
@@ -97,6 +102,16 @@ func (h *defaultCompletionHandler) InputCacheTokens(usage openai.CompletionUsage
 		readTokens = &usage.PromptTokensDetails.CachedTokens
 	}
 	return writeTokens, readTokens
+}
+
+// ReasoningTokens reads the reasoning counter from a Chat Completions usage response.
+// The SDK models it as a plain int64, so presence comes from the JSON metadata to tell
+// an unreported counter from a reported zero. Providers that never report it yield nil.
+func (h *defaultCompletionHandler) ReasoningTokens(usage openai.CompletionUsage) *int64 {
+	if usage.CompletionTokensDetails.JSON.ReasoningTokens.Valid() {
+		return &usage.CompletionTokensDetails.ReasoningTokens
+	}
+	return nil
 }
 
 // openAICompletionsProvider is an OpenAI-compatible Chat Completions API
@@ -394,7 +409,7 @@ func (o *openAICompletionsProvider) run(ctx context.Context, logger logging.Logg
 		}
 
 		cacheWriteTokens, cacheReadTokens := handler.InputCacheTokens(resp.Usage)
-		recordUsage(InputTokenAccountingCacheTokensIncluded, &resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, cacheWriteTokens, cacheReadTokens, &result.usage)
+		recordUsage(InputTokenAccountingCacheTokensIncluded, OutputTokenAccountingReasoningTokensIncluded, &resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, handler.ReasoningTokens(resp.Usage), cacheWriteTokens, cacheReadTokens, &result.usage)
 
 		if len(resp.Choices) == 0 {
 			return result, ErrNoResponseCandidates

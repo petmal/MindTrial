@@ -17,9 +17,11 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details,Suite,Category,Diffic
     ""Usage"": {
       ""InputTokens"": 9876543210,
       ""OutputTokens"": 1234567890,
+      ""ReasoningTokens"": 456789012,
       ""InputCacheWriteTokens"": 9757309999902428,
       ""InputCacheReadTokens"": 91835,
-      ""InputTokenAccounting"": ""cache_tokens_separate""
+      ""InputTokenAccounting"": ""cache_tokens_separate"",
+      ""OutputTokenAccounting"": ""reasoning_tokens_included""
     },
     ""ToolUsage"": {
       ""calculator"": {

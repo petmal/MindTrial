@@ -82,7 +82,44 @@ func LoadConfigFromFile(ctx context.Context, path string) (*Config, error) {
 		}
 	}
 
+	if err := validatePricingConfig(cfg.Config); err != nil {
+		return cfg, fmt.Errorf("invalid pricing configuration: %w", err)
+	}
+
 	return cfg, nil
+}
+
+// validatePricingConfig validates every Pricing block configured at the application,
+// provider, run, and judge variant levels (see Pricing.Validate).
+func validatePricingConfig(cfg AppConfig) error {
+	if err := cfg.Pricing.Validate(); err != nil {
+		return fmt.Errorf("application: %w", err)
+	}
+	for _, provider := range cfg.Providers {
+		if err := validateProviderPricingConfig(provider); err != nil {
+			return fmt.Errorf("provider '%s': %w", provider.Name, err)
+		}
+	}
+	for _, judge := range cfg.Judges {
+		if err := validateProviderPricingConfig(judge.Provider); err != nil {
+			return fmt.Errorf("judge '%s': %w", judge.Name, err)
+		}
+	}
+	return nil
+}
+
+// validateProviderPricingConfig validates the Pricing blocks configured on a provider and
+// each of its runs.
+func validateProviderPricingConfig(pc ProviderConfig) error {
+	if err := pc.Pricing.Validate(); err != nil {
+		return err
+	}
+	for _, run := range pc.Runs {
+		if err := run.Pricing.Validate(); err != nil {
+			return fmt.Errorf("run '%s': %w", run.Name, err)
+		}
+	}
+	return nil
 }
 
 // resolveEnvironmentConfigValues resolves environment-backed configuration values.

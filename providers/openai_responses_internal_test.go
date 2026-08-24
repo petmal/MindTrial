@@ -64,6 +64,56 @@ func TestOpenAIResponses_FileTypeNotSupported(t *testing.T) {
 	require.ErrorIs(t, err, ErrFileNotSupported)
 }
 
+func TestDefaultResponseHandler_ReasoningTokens(t *testing.T) {
+	tests := []struct {
+		name      string
+		usageJSON string
+		want      *int64
+	}{
+		{name: "omitted", usageJSON: `{"input_tokens":10,"output_tokens":2,"total_tokens":12}`},
+		{name: "details without reasoning counter", usageJSON: `{"input_tokens":10,"output_tokens":2,"total_tokens":12,"output_tokens_details":{}}`},
+		{name: "reported", usageJSON: `{"input_tokens":10,"output_tokens":2,"total_tokens":12,"output_tokens_details":{"reasoning_tokens":5}}`, want: testutils.Ptr(int64(5))},
+		{name: "reported zero is not absent", usageJSON: `{"input_tokens":10,"output_tokens":2,"total_tokens":12,"output_tokens_details":{"reasoning_tokens":0}}`, want: testutils.Ptr(int64(0))},
+		{name: "explicit null is absent", usageJSON: `{"input_tokens":10,"output_tokens":2,"total_tokens":12,"output_tokens_details":{"reasoning_tokens":null}}`},
+	}
+
+	handler := &defaultResponseHandler{}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var usage responses.ResponseUsage
+			require.NoError(t, json.Unmarshal([]byte(test.usageJSON), &usage))
+			require.Equal(t, test.want, handler.ReasoningTokens(usage))
+		})
+	}
+}
+
+func TestDefaultResponseHandler_InputCacheTokens(t *testing.T) {
+	tests := []struct {
+		name      string
+		usageJSON string
+		write     *int64
+		read      *int64
+	}{
+		{name: "omitted", usageJSON: `{"input_tokens":10,"output_tokens":2,"total_tokens":12}`},
+		{name: "details without cache counters", usageJSON: `{"input_tokens":10,"output_tokens":2,"total_tokens":12,"input_tokens_details":{}}`},
+		{name: "reported", usageJSON: `{"input_tokens":10,"output_tokens":2,"total_tokens":12,"input_tokens_details":{"cached_tokens":4,"cache_write_tokens":3}}`, write: testutils.Ptr(int64(3)), read: testutils.Ptr(int64(4))},
+		{name: "reported zero is not absent", usageJSON: `{"input_tokens":10,"output_tokens":2,"total_tokens":12,"input_tokens_details":{"cached_tokens":0,"cache_write_tokens":0}}`, write: testutils.Ptr(int64(0)), read: testutils.Ptr(int64(0))},
+		{name: "explicit null is absent", usageJSON: `{"input_tokens":10,"output_tokens":2,"total_tokens":12,"input_tokens_details":{"cached_tokens":null,"cache_write_tokens":null}}`},
+		{name: "read only", usageJSON: `{"input_tokens":10,"output_tokens":2,"total_tokens":12,"input_tokens_details":{"cached_tokens":7}}`, read: testutils.Ptr(int64(7))},
+	}
+
+	handler := &defaultResponseHandler{}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var usage responses.ResponseUsage
+			require.NoError(t, json.Unmarshal([]byte(test.usageJSON), &usage))
+			write, read := handler.InputCacheTokens(usage)
+			require.Equal(t, test.write, write)
+			require.Equal(t, test.read, read)
+		})
+	}
+}
+
 func TestDefaultResponseHandler_AddEvent(t *testing.T) {
 	ctx := context.Background()
 	logger := testutils.NewTestLogger(t)

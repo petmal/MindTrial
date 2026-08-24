@@ -163,10 +163,9 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 		if resp.Usage != nil {
 			var cachedTokens *int32
 			if promptTokensDetails, ok := resp.Usage.GetPromptTokensDetailsOk(); ok && promptTokensDetails != nil {
-				value := promptTokensDetails.GetCachedTokens()
-				cachedTokens = &value
+				cachedTokens, _ = promptTokensDetails.GetCachedTokensOk()
 			}
-			recordUsage(InputTokenAccountingCacheTokensIncluded, &resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, nil, cachedTokens, &result.usage)
+			recordUsage(InputTokenAccountingCacheTokensIncluded, OutputTokenAccountingReasoningTokensIncluded, &resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, nil, nil, cachedTokens, &result.usage)
 		}
 		if len(resp.Choices) == 0 {
 			return result, ErrNoResponseCandidates

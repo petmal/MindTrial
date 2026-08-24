@@ -103,6 +103,44 @@
                   "type": "object",
                   "title": "Retry Policy",
                   "description": "The effective retry policy for this configuration, if configured."
+                },
+                "Pricing": {
+                  "properties": {
+                    "Currency": {
+                      "type": "string",
+                      "title": "Currency",
+                      "description": "The ISO 4217 currency code the rates are expressed in."
+                    },
+                    "InputPerMillion": {
+                      "type": "number",
+                      "title": "Input Price Per Million",
+                      "description": "The price per million uncached input tokens."
+                    },
+                    "OutputPerMillion": {
+                      "type": "number",
+                      "title": "Output Price Per Million",
+                      "description": "The price per million generated output tokens."
+                    },
+                    "CacheReadPerMillion": {
+                      "type": "number",
+                      "title": "Cache Read Price Per Million",
+                      "description": "The price per million input tokens read from a prompt cache. Falls back to the input price when absent."
+                    },
+                    "CacheWritePerMillion": {
+                      "type": "number",
+                      "title": "Cache Write Price Per Million",
+                      "description": "The price per million input tokens written to a prompt cache. Falls back to the input price when absent."
+                    },
+                    "ReasoningPerMillion": {
+                      "type": "number",
+                      "title": "Reasoning Price Per Million",
+                      "description": "The price per million reasoning tokens. Falls back to the output price when absent."
+                    }
+                  },
+                  "additionalProperties": false,
+                  "type": "object",
+                  "title": "Pricing",
+                  "description": "The effective token prices this configuration was estimated with, if configured. Preserved so historical cost estimates remain reproducible."
                 }
               },
               "additionalProperties": false,
@@ -195,7 +233,12 @@
                         "OutputTokens": {
                           "type": "integer",
                           "title": "Output Tokens",
-                          "description": "The number of generated output tokens."
+                          "description": "The number of generated output tokens. Interpret the reasoning token counter according to OutputTokenAccounting."
+                        },
+                        "ReasoningTokens": {
+                          "type": "integer",
+                          "title": "Reasoning Tokens",
+                          "description": "The number of reasoning (thinking) tokens reported by the provider. Interpret this counter according to OutputTokenAccounting. Absent when the provider does not report it."
                         },
                         "InputCacheWriteTokens": {
                           "type": "integer",
@@ -215,6 +258,15 @@
                           ],
                           "title": "Input Token Accounting",
                           "description": "Defines how cached input-token counters relate to InputTokens. For cache_tokens_separate, InputTokens excludes InputCacheReadTokens and InputCacheWriteTokens, so total input usage is their sum. For cache_tokens_included, cached token counters are subsets already included in InputTokens, so total input usage is InputTokens. When absent, consumers should use cache_tokens_separate for backward compatibility."
+                        },
+                        "OutputTokenAccounting": {
+                          "type": "string",
+                          "enum": [
+                            "reasoning_tokens_included",
+                            "reasoning_tokens_separate"
+                          ],
+                          "title": "Output Token Accounting",
+                          "description": "Defines how ReasoningTokens relates to OutputTokens. For reasoning_tokens_included, reasoning is already represented by OutputTokens and ReasoningTokens is an informational subset. For reasoning_tokens_separate, reasoning is excluded from OutputTokens and must be added to obtain total generated usage. When absent, consumers should use reasoning_tokens_included for backward compatibility."
                         }
                       },
                       "additionalProperties": false,
@@ -409,7 +461,12 @@
                         "OutputTokens": {
                           "type": "integer",
                           "title": "Output Tokens",
-                          "description": "The number of generated output tokens."
+                          "description": "The number of generated output tokens. Interpret the reasoning token counter according to OutputTokenAccounting."
+                        },
+                        "ReasoningTokens": {
+                          "type": "integer",
+                          "title": "Reasoning Tokens",
+                          "description": "The number of reasoning (thinking) tokens reported by the provider. Interpret this counter according to OutputTokenAccounting. Absent when the provider does not report it."
                         },
                         "InputCacheWriteTokens": {
                           "type": "integer",
@@ -429,6 +486,15 @@
                           ],
                           "title": "Input Token Accounting",
                           "description": "Defines how cached input-token counters relate to InputTokens. For cache_tokens_separate, InputTokens excludes InputCacheReadTokens and InputCacheWriteTokens, so total input usage is their sum. For cache_tokens_included, cached token counters are subsets already included in InputTokens, so total input usage is InputTokens. When absent, consumers should use cache_tokens_separate for backward compatibility."
+                        },
+                        "OutputTokenAccounting": {
+                          "type": "string",
+                          "enum": [
+                            "reasoning_tokens_included",
+                            "reasoning_tokens_separate"
+                          ],
+                          "title": "Output Token Accounting",
+                          "description": "Defines how ReasoningTokens relates to OutputTokens. For reasoning_tokens_included, reasoning is already represented by OutputTokens and ReasoningTokens is an informational subset. For reasoning_tokens_separate, reasoning is excluded from OutputTokens and must be added to obtain total generated usage. When absent, consumers should use reasoning_tokens_included for backward compatibility."
                         }
                       },
                       "additionalProperties": false,
@@ -657,6 +723,44 @@
                               "type": "object",
                               "title": "Retry Policy",
                               "description": "The effective retry policy for this configuration, if configured."
+                            },
+                            "Pricing": {
+                              "properties": {
+                                "Currency": {
+                                  "type": "string",
+                                  "title": "Currency",
+                                  "description": "The ISO 4217 currency code the rates are expressed in."
+                                },
+                                "InputPerMillion": {
+                                  "type": "number",
+                                  "title": "Input Price Per Million",
+                                  "description": "The price per million uncached input tokens."
+                                },
+                                "OutputPerMillion": {
+                                  "type": "number",
+                                  "title": "Output Price Per Million",
+                                  "description": "The price per million generated output tokens."
+                                },
+                                "CacheReadPerMillion": {
+                                  "type": "number",
+                                  "title": "Cache Read Price Per Million",
+                                  "description": "The price per million input tokens read from a prompt cache. Falls back to the input price when absent."
+                                },
+                                "CacheWritePerMillion": {
+                                  "type": "number",
+                                  "title": "Cache Write Price Per Million",
+                                  "description": "The price per million input tokens written to a prompt cache. Falls back to the input price when absent."
+                                },
+                                "ReasoningPerMillion": {
+                                  "type": "number",
+                                  "title": "Reasoning Price Per Million",
+                                  "description": "The price per million reasoning tokens. Falls back to the output price when absent."
+                                }
+                              },
+                              "additionalProperties": false,
+                              "type": "object",
+                              "title": "Pricing",
+                              "description": "The effective token prices this configuration was estimated with, if configured. Preserved so historical cost estimates remain reproducible."
                             }
                           },
                           "additionalProperties": false,
@@ -709,7 +813,12 @@
                         "OutputTokens": {
                           "type": "integer",
                           "title": "Output Tokens",
-                          "description": "The number of generated output tokens."
+                          "description": "The number of generated output tokens. Interpret the reasoning token counter according to OutputTokenAccounting."
+                        },
+                        "ReasoningTokens": {
+                          "type": "integer",
+                          "title": "Reasoning Tokens",
+                          "description": "The number of reasoning (thinking) tokens reported by the provider. Interpret this counter according to OutputTokenAccounting. Absent when the provider does not report it."
                         },
                         "InputCacheWriteTokens": {
                           "type": "integer",
@@ -729,6 +838,15 @@
                           ],
                           "title": "Input Token Accounting",
                           "description": "Defines how cached input-token counters relate to InputTokens. For cache_tokens_separate, InputTokens excludes InputCacheReadTokens and InputCacheWriteTokens, so total input usage is their sum. For cache_tokens_included, cached token counters are subsets already included in InputTokens, so total input usage is InputTokens. When absent, consumers should use cache_tokens_separate for backward compatibility."
+                        },
+                        "OutputTokenAccounting": {
+                          "type": "string",
+                          "enum": [
+                            "reasoning_tokens_included",
+                            "reasoning_tokens_separate"
+                          ],
+                          "title": "Output Token Accounting",
+                          "description": "Defines how ReasoningTokens relates to OutputTokens. For reasoning_tokens_included, reasoning is already represented by OutputTokens and ReasoningTokens is an informational subset. For reasoning_tokens_separate, reasoning is excluded from OutputTokens and must be added to obtain total generated usage. When absent, consumers should use reasoning_tokens_included for backward compatibility."
                         }
                       },
                       "additionalProperties": false,

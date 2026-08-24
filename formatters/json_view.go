@@ -54,6 +54,17 @@ type runConfigView struct {
 	DisableStructuredOutput bool                   `json:"DisableStructuredOutput,omitempty" jsonschema:"title=Disable Structured Output" jsonschema_description:"Whether this configuration used plain text responses instead of the structured title/explanation/final-answer format, skipping tasks that require schema-based output."`
 	ModelParameters         map[string]interface{} `json:"ModelParameters,omitempty" jsonschema:"title=Model Parameters" jsonschema_description:"The public subset of model parameters used by this configuration, with secrets omitted."`
 	RetryPolicy             *retryPolicyView       `json:"RetryPolicy,omitempty" jsonschema:"title=Retry Policy" jsonschema_description:"The effective retry policy for this configuration, if configured."`
+	Pricing                 *pricingView           `json:"Pricing,omitempty" jsonschema:"title=Pricing" jsonschema_description:"The effective token prices this configuration was estimated with, if configured. Preserved so historical cost estimates remain reproducible."`
+}
+
+// pricingView is the view model for runners.Pricing.
+type pricingView struct {
+	Currency             string   `json:"Currency,omitempty" jsonschema:"title=Currency" jsonschema_description:"The ISO 4217 currency code the rates are expressed in."`
+	InputPerMillion      *float64 `json:"InputPerMillion,omitempty" jsonschema:"title=Input Price Per Million" jsonschema_description:"The price per million uncached input tokens."`
+	OutputPerMillion     *float64 `json:"OutputPerMillion,omitempty" jsonschema:"title=Output Price Per Million" jsonschema_description:"The price per million generated output tokens."`
+	CacheReadPerMillion  *float64 `json:"CacheReadPerMillion,omitempty" jsonschema:"title=Cache Read Price Per Million" jsonschema_description:"The price per million input tokens read from a prompt cache. Falls back to the input price when absent."`
+	CacheWritePerMillion *float64 `json:"CacheWritePerMillion,omitempty" jsonschema:"title=Cache Write Price Per Million" jsonschema_description:"The price per million input tokens written to a prompt cache. Falls back to the input price when absent."`
+	ReasoningPerMillion  *float64 `json:"ReasoningPerMillion,omitempty" jsonschema:"title=Reasoning Price Per Million" jsonschema_description:"The price per million reasoning tokens. Falls back to the output price when absent."`
 }
 
 // retryPolicyView is the view model for runners.RetryPolicy.
@@ -179,7 +190,7 @@ func newResultView(r runners.RunResult) resultView {
 }
 
 func newRunConfigView(rc runners.RunConfigSnapshot) *runConfigView {
-	if rc.Model == "" && len(rc.ModelParameters) == 0 && rc.RetryPolicy == (runners.RetryPolicy{}) && !rc.TextOnly && !rc.DisableStructuredOutput && rc.MaxRequestsPerMinute == 0 {
+	if rc.Model == "" && len(rc.ModelParameters) == 0 && rc.RetryPolicy == (runners.RetryPolicy{}) && !rc.TextOnly && !rc.DisableStructuredOutput && rc.MaxRequestsPerMinute == 0 && rc.Pricing == nil {
 		return nil
 	}
 	view := &runConfigView{
@@ -193,6 +204,16 @@ func newRunConfigView(rc runners.RunConfigSnapshot) *runConfigView {
 		view.RetryPolicy = &retryPolicyView{
 			MaxRetryAttempts:    rc.RetryPolicy.MaxRetryAttempts,
 			InitialDelaySeconds: rc.RetryPolicy.InitialDelaySeconds,
+		}
+	}
+	if rc.Pricing != nil {
+		view.Pricing = &pricingView{
+			Currency:             rc.Pricing.Currency,
+			InputPerMillion:      rc.Pricing.InputPerMillion,
+			OutputPerMillion:     rc.Pricing.OutputPerMillion,
+			CacheReadPerMillion:  rc.Pricing.CacheReadPerMillion,
+			CacheWritePerMillion: rc.Pricing.CacheWritePerMillion,
+			ReasoningPerMillion:  rc.Pricing.ReasoningPerMillion,
 		}
 	}
 	return view
@@ -357,9 +378,11 @@ func durationToNsPtr(d *time.Duration) *int64 {
 func tokenUsageToPtr(u runners.TokenUsage) *runners.TokenUsage {
 	if u.InputTokens == nil &&
 		u.OutputTokens == nil &&
+		u.ReasoningTokens == nil &&
 		u.InputCacheWriteTokens == nil &&
 		u.InputCacheReadTokens == nil &&
-		u.InputTokenAccounting == "" {
+		u.InputTokenAccounting == "" &&
+		u.OutputTokenAccounting == "" {
 		return nil
 	}
 	return &u
@@ -432,6 +455,16 @@ func fromRunConfigView(v *runConfigView, fallbackName string) runners.RunConfigS
 		out.RetryPolicy = runners.RetryPolicy{
 			MaxRetryAttempts:    v.RetryPolicy.MaxRetryAttempts,
 			InitialDelaySeconds: v.RetryPolicy.InitialDelaySeconds,
+		}
+	}
+	if v.Pricing != nil {
+		out.Pricing = &runners.Pricing{
+			Currency:             v.Pricing.Currency,
+			InputPerMillion:      v.Pricing.InputPerMillion,
+			OutputPerMillion:     v.Pricing.OutputPerMillion,
+			CacheReadPerMillion:  v.Pricing.CacheReadPerMillion,
+			CacheWritePerMillion: v.Pricing.CacheWritePerMillion,
+			ReasoningPerMillion:  v.Pricing.ReasoningPerMillion,
 		}
 	}
 	return out

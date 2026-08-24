@@ -236,7 +236,13 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 			return result, nil // return current result state
 		}
 
-		recordUsage(InputTokenAccountingCacheTokensSeparate, &resp.Usage.InputTokens, &resp.Usage.OutputTokens, &resp.Usage.CacheCreationInputTokens, &resp.Usage.CacheReadInputTokens, &result.usage)
+		// Thinking tokens are a subset of OutputTokens; presence distinguishes an
+		// unreported counter from a reported zero.
+		var thinkingTokens *int64
+		if resp.Usage.OutputTokensDetails.JSON.ThinkingTokens.Valid() {
+			thinkingTokens = &resp.Usage.OutputTokensDetails.ThinkingTokens
+		}
+		recordUsage(InputTokenAccountingCacheTokensSeparate, OutputTokenAccountingReasoningTokensIncluded, &resp.Usage.InputTokens, &resp.Usage.OutputTokens, thinkingTokens, &resp.Usage.CacheCreationInputTokens, &resp.Usage.CacheReadInputTokens, &result.usage)
 		isTerminal := o.isTerminalStopReason(resp.StopReason)
 		logFinishReason(ctx, logger, string(resp.StopReason), isTerminal)
 

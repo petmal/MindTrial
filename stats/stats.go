@@ -22,11 +22,6 @@ import (
 
 // Record holds aggregated metrics for one group of results, keyed by the requested
 // group-by dimensions.
-//
-// Reasoning-token and estimated-cost metrics are intentionally absent: MindTrial does not
-// yet track per-request reasoning-token accounting or configurable pricing, so there is no
-// reliable data source for them. Once that data becomes available, this Record can be
-// extended with the corresponding fields.
 type Record struct {
 	// Dimensions maps each requested group-by dimension name to this record's value for it
 	// (e.g. {"provider": "openai", "run": "gpt-4"}).
@@ -54,17 +49,47 @@ type Record struct {
 	// Token/tool-call metrics reflect only the candidate answer and any subsequent error
 	// (never judge/validation usage), matching the HTML report's dynamic summary. A metric
 	// is nil when no contributing result reported it.
+	//
+	// Input metrics resolve cache tokens according to InputTokenAccounting (see
+	// TokenUsage.EffectiveInputTokens), so they are comparable across providers regardless
+	// of whether cache reads/writes are already part of InputTokens.
 	TotalInputTokens  *int64
 	MedianInputTokens *float64
 	StddevInputTokens *float64
 
+	// Output metrics resolve reasoning tokens according to OutputTokenAccounting (see
+	// TokenUsage.GeneratedTokens), so they are comparable across providers regardless of
+	// whether reasoning is already part of OutputTokens.
 	TotalOutputTokens  *int64
 	MedianOutputTokens *float64
 	StddevOutputTokens *float64
 
+	// Reasoning/cache metrics sum only the counts providers actually reported, so they stay
+	// nil when none did rather than implying zero.
+	TotalReasoningTokens  *int64
+	MedianReasoningTokens *float64
+	StddevReasoningTokens *float64
+
+	TotalCacheReadTokens  *int64
+	MedianCacheReadTokens *float64
+	StddevCacheReadTokens *float64
+
+	TotalCacheWriteTokens  *int64
+	MedianCacheWriteTokens *float64
+	StddevCacheWriteTokens *float64
+
 	TotalToolCalls  *int64
 	MedianToolCalls *float64
 	StddevToolCalls *float64
+
+	// EstimatedCandidateCost derives from the static prices the candidate run was configured
+	// with and is never a billed amount. It is nil when any contributing result reported
+	// usage that could not be priced, so a partial sum is never mistaken for a complete total.
+	EstimatedCandidateCost *float64
+
+	// CandidateCostCurrency is the ISO 4217 code EstimatedCandidateCost is expressed in,
+	// empty when unknown.
+	CandidateCostCurrency string
 
 	// TransientErrors and ResponseParsingErrors count Error-kind results whose
 	// ErrorDetails.Transient/ResponseParsing flag is explicitly true. The two are not
@@ -147,35 +172,25 @@ func buildRecord(groupBy []Dimension, values []string, results []runners.RunResu
 		ErrorRate:  formatters.Percent(formatters.ErrorRate(byKind)),
 	}
 
-	var durationsNS, inputTokens, outputTokens, toolCalls []float64
-	var totalDuration time.Duration
-	var totalInput, totalOutput, totalCalls int64
-	var hasDuration, hasInput, hasOutput, hasCalls bool
+	var durations, input, output, reasoning, cacheRead, cacheWrite, toolCalls distribution
+	var candidateCost costAccumulator
 
 	for _, r := range results {
 		if r.Kind == runners.NotSupported {
 			continue // skipped tasks are excluded from every metric below
 		}
 
-		totalDuration += r.Duration
-		hasDuration = true
-		durationsNS = append(durationsNS, float64(r.Duration.Nanoseconds()))
+		durations.add(utils.Ptr(r.Duration.Nanoseconds()))
 
-		if v := candidateInputTokens(r); v != nil {
-			totalInput += *v
-			hasInput = true
-			inputTokens = append(inputTokens, float64(*v))
-		}
-		if v := candidateOutputTokens(r); v != nil {
-			totalOutput += *v
-			hasOutput = true
-			outputTokens = append(outputTokens, float64(*v))
-		}
-		if v := candidateToolCalls(r); v != nil {
-			totalCalls += *v
-			hasCalls = true
-			toolCalls = append(toolCalls, float64(*v))
-		}
+		candidate := candidateUsage(r)
+		input.add(sumUsage(candidate, runners.TokenUsage.EffectiveInputTokens))
+		output.add(sumUsage(candidate, runners.TokenUsage.GeneratedTokens))
+		reasoning.add(sumUsage(candidate, reasoningTokens))
+		cacheRead.add(sumUsage(candidate, cacheReadTokens))
+		cacheWrite.add(sumUsage(candidate, cacheWriteTokens))
+		toolCalls.add(candidateToolCalls(r))
+
+		candidateCost.add(candidate, r.RunConfig.Pricing)
 
 		if r.Kind == runners.Error {
 			if r.Details.Error.Transient != nil && *r.Details.Error.Transient {
@@ -187,29 +202,64 @@ func buildRecord(groupBy []Dimension, values []string, results []runners.RunResu
 		}
 	}
 
-	if hasDuration {
-		rec.TotalDuration = utils.Ptr(totalDuration)
+	if total := durations.sum(); total != nil {
+		rec.TotalDuration = utils.Ptr(time.Duration(*total))
 	}
-	rec.MedianDuration = medianDuration(durationsNS)
-	rec.StddevDuration = stddevDuration(durationsNS)
+	rec.MedianDuration = medianDuration(durations.samples)
+	rec.StddevDuration = stddevDuration(durations.samples)
 
-	if hasInput {
-		rec.TotalInputTokens = utils.Ptr(totalInput)
-	}
-	rec.MedianInputTokens = median(inputTokens)
-	rec.StddevInputTokens = stddev(inputTokens)
+	rec.TotalInputTokens = input.sum()
+	rec.MedianInputTokens = median(input.samples)
+	rec.StddevInputTokens = stddev(input.samples)
 
-	if hasOutput {
-		rec.TotalOutputTokens = utils.Ptr(totalOutput)
-	}
-	rec.MedianOutputTokens = median(outputTokens)
-	rec.StddevOutputTokens = stddev(outputTokens)
+	rec.TotalOutputTokens = output.sum()
+	rec.MedianOutputTokens = median(output.samples)
+	rec.StddevOutputTokens = stddev(output.samples)
 
-	if hasCalls {
-		rec.TotalToolCalls = utils.Ptr(totalCalls)
-	}
-	rec.MedianToolCalls = median(toolCalls)
-	rec.StddevToolCalls = stddev(toolCalls)
+	rec.TotalReasoningTokens = reasoning.sum()
+	rec.MedianReasoningTokens = median(reasoning.samples)
+	rec.StddevReasoningTokens = stddev(reasoning.samples)
+
+	rec.TotalCacheReadTokens = cacheRead.sum()
+	rec.MedianCacheReadTokens = median(cacheRead.samples)
+	rec.StddevCacheReadTokens = stddev(cacheRead.samples)
+
+	rec.TotalCacheWriteTokens = cacheWrite.sum()
+	rec.MedianCacheWriteTokens = median(cacheWrite.samples)
+	rec.StddevCacheWriteTokens = stddev(cacheWrite.samples)
+
+	rec.TotalToolCalls = toolCalls.sum()
+	rec.MedianToolCalls = median(toolCalls.samples)
+	rec.StddevToolCalls = stddev(toolCalls.samples)
+
+	rec.EstimatedCandidateCost = candidateCost.value()
+	rec.CandidateCostCurrency = candidateCost.currencyCode()
 
 	return rec
+}
+
+// distribution accumulates a metric's total and per-result samples, ignoring results that
+// did not report it so that missing values never count as zero.
+type distribution struct {
+	total    int64
+	samples  []float64
+	reported bool
+}
+
+func (d *distribution) add(value *int64) {
+	if value == nil {
+		return
+	}
+	d.total += *value
+	d.samples = append(d.samples, float64(*value))
+	d.reported = true
+}
+
+// sum returns the accumulated total, or nil when no result reported the metric.
+func (d distribution) sum() *int64 {
+	if !d.reported {
+		return nil
+	}
+	total := d.total
+	return &total
 }

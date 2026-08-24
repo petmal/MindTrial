@@ -533,6 +533,18 @@ func snapshotRunConfig(ctx context.Context, logger logging.Logger, cfg config.Ru
 			InitialDelaySeconds: cfg.RetryPolicy.InitialDelaySeconds,
 		}
 	}
+	if cfg.Pricing.IsSet() {
+		// cfg is expected to have gone through config.ProviderConfig.GetRunsResolved, which
+		// guarantees Currency is set whenever any price is, defaulting it when necessary.
+		snapshot.Pricing = &Pricing{
+			Currency:             cfg.Pricing.Currency,
+			InputPerMillion:      cfg.Pricing.InputPerMillion,
+			OutputPerMillion:     cfg.Pricing.OutputPerMillion,
+			CacheReadPerMillion:  cfg.Pricing.CacheReadPerMillion,
+			CacheWritePerMillion: cfg.Pricing.CacheWritePerMillion,
+			ReasoningPerMillion:  cfg.Pricing.ReasoningPerMillion,
+		}
+	}
 	if cfg.ModelParams == nil {
 		return snapshot
 	}
@@ -647,9 +659,11 @@ func toTokenUsage(u providers.Usage) TokenUsage {
 	return TokenUsage{
 		InputTokens:           u.InputTokens,
 		OutputTokens:          u.OutputTokens,
+		ReasoningTokens:       u.ReasoningTokens,
 		InputCacheWriteTokens: u.InputCacheWriteTokens,
 		InputCacheReadTokens:  u.InputCacheReadTokens,
 		InputTokenAccounting:  InputTokenAccounting(u.InputTokenAccounting),
+		OutputTokenAccounting: OutputTokenAccounting(u.OutputTokenAccounting),
 	}
 }
 

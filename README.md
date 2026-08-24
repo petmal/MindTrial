@@ -23,7 +23,7 @@
 
 ### Prerequisites
 
-- [Go 1.25](https://golang.org/dl/)
+- [Go 1.26](https://golang.org/dl/)
 - [Docker](https://www.docker.com/) (for tool execution)
 - API keys from your chosen AI providers
 
@@ -94,7 +94,7 @@ The `merge-results` command combines results from multiple trial runs into a sin
 
 ### Computing Statistics
 
-The `stats` command computes derived statistics (pass rate, accuracy, error rate, duration, token usage, tool calls, and error diagnostics) over one or more result files, filtered and grouped by task/run metadata. Like `merge-results`, input files are specified with the `--input` flag (can be repeated); when multiple files are given, they are merged first using the same **last-in-wins** strategy before stats are computed. This is derived analytical output, not a canonical result format, so it is only written to `stdout` and is not persisted back into result artifacts. Progress messages are written to `stderr`, so `stdout` stays safe to redirect straight into a file or parser for every `--stats-format`.
+The `stats` command computes derived statistics (pass rate, accuracy, error rate, duration, token usage, tool calls, error diagnostics, and estimated candidate cost) over one or more result files, filtered and grouped by task/run metadata. Like `merge-results`, input files are specified with the `--input` flag (can be repeated); when multiple files are given, they are merged first using the same **last-in-wins** strategy before stats are computed. This is derived analytical output, not a canonical result format, so it is only written to `stdout` and is not persisted back into result artifacts. Progress messages are written to `stderr`, so `stdout` stays safe to redirect straight into a file or parser for every `--stats-format`.
 
 ```bash
 mindtrial --input="results.json" --group-by="provider,run,model" --stats-format="csv" stats
@@ -108,6 +108,8 @@ mindtrial --input="results.json" --group-by="provider,run,model" --stats-format=
 
 > [!NOTE]
 > Token, tool-call, and duration metrics reflect only the candidate answer and any subsequent error (not judge/validation usage), matching the HTML report's dynamic summary. `Median*`/`Stddev*` metrics require at least two contributing samples; otherwise they are omitted.
+>
+> `TotalInputTokens` is normalized: providers that count cache reads/writes separately from input (currently Anthropic) have them added, and providers that already include them do not. `TotalOutputTokens` is normalized the same way: providers that count reasoning separately from output (currently Google and xAI) have it added, and providers that already include it do not. `TotalReasoningTokens`, `TotalCacheReadTokens`, and `TotalCacheWriteTokens` sum only the counts providers actually reported. `EstimatedCandidateCost`/`CandidateCostCurrency` are priced with the candidate run's own prices and never include judge/validation usage.
 
 **Example:** given a result file with these three tasks:
 
@@ -403,6 +405,38 @@ This file defines the tool's settings and target model configurations evaluated 
 > - **initial-delay-seconds**: Initial delay before the first retry in seconds.
 >
 > Retries use exponential backoff starting with the initial delay.
+
+> [!TIP]
+> To estimate what a trial run costs, set `pricing` at the application, provider, or run level. Rates are per million tokens:
+>
+> - **currency**: ISO 4217 code the rates are expressed in (default: `USD`).
+> - **input-per-million**: Price per million uncached input tokens.
+> - **output-per-million**: Price per million generated output tokens.
+> - **cache-read-per-million**: Price per million input tokens read from a prompt cache (default: the input price).
+> - **cache-write-per-million**: Price per million input tokens written to a prompt cache (default: the input price).
+> - **reasoning-per-million**: Price per million reasoning tokens (default: the output price).
+>
+> `pricing` is inherited as a whole, not field-by-field: the nearest level (run, then provider, then application) that sets any field is used in its entirety, replacing rather than merging with whatever a less specific level configured. To override a single rate, restate the full price list at that level:
+>
+> ```yaml
+> config:
+>   pricing:
+>     currency: USD
+>     input-per-million: 1.25
+>     output-per-million: 10.00
+>   providers:
+>     - name: openai
+>       runs:
+>         - name: "GPT-5.2"
+>           model: "gpt-5.2"
+>           # Overriding output-per-million requires restating the rest of the list.
+>           pricing:
+>             currency: USD
+>             input-per-million: 1.25
+>             output-per-million: 12.00
+> ```
+>
+> Estimated costs are reported by the [`stats`](#computing-statistics) command and are always estimates derived from these configured rates, never billed amounts. A rate left unset is treated as **unknown rather than free**, so any estimate depending on it is omitted instead of being understated. The effective prices are also recorded in JSON results, so historical estimates stay reproducible.
 
 > [!TIP]
 > To disable all run configurations for a given provider, set `disabled: true` on that provider.

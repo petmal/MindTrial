@@ -718,6 +718,10 @@ func TestLoadConfigFromFile(t *testing.T) {
               max-retry-attempts: 5
               initial-delay-seconds: 10
           max-parallel-requests-per-minute: 30
+          pricing:
+              currency: EUR
+              input-per-million: 1.5
+              output-per-million: 6
           runs:
               - name: "Mistral"
                 model: "mistral-large"
@@ -734,6 +738,9 @@ func TestLoadConfigFromFile(t *testing.T) {
                 retry-policy:
                     max-retry-attempts: 3
                     initial-delay-seconds: 1
+                pricing:
+                    output-per-million: 9
+                    reasoning-per-million: 12
         - name: xai
           client-config:
               api-key: "b990bc70-169c-4de8-8dd1-fd4253527046"
@@ -989,6 +996,11 @@ func TestLoadConfigFromFile(t *testing.T) {
 								InitialDelaySeconds: 10,
 							},
 							MaxParallelRequestsPerMinute: 30,
+							Pricing: &Pricing{
+								Currency:         "EUR",
+								InputPerMillion:  testutils.Ptr(1.5),
+								OutputPerMillion: testutils.Ptr(6.0),
+							},
 							Runs: []RunConfig{
 								{
 									Name:                 "Mistral",
@@ -1008,6 +1020,10 @@ func TestLoadConfigFromFile(t *testing.T) {
 									RetryPolicy: &RetryPolicy{
 										MaxRetryAttempts:    3,
 										InitialDelaySeconds: 1,
+									},
+									Pricing: &Pricing{
+										OutputPerMillion:    testutils.Ptr(9.0),
+										ReasoningPerMillion: testutils.Ptr(12.0),
 									},
 								},
 							},
@@ -1330,6 +1346,103 @@ func TestLoadConfigFromFile(t *testing.T) {
                   - name: "default"
                     model: "gpt-4o"
                     disable-structured-output: true
+`)),
+			},
+			wantErr: true,
+		},
+		{
+			name: "config with application-level pricing missing rates",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`config:
+    task-source: "tasks.yaml"
+    output-dir: "."
+    pricing:
+        currency: EUR
+    providers:
+        - name: openai
+          client-config:
+              api-key: "primary-key"
+          runs:
+              - name: "primary"
+                model: "gpt-4"
+`)),
+			},
+			wantErr: true,
+		},
+		{
+			name: "config with provider-level pricing missing rates",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`config:
+    task-source: "tasks.yaml"
+    output-dir: "."
+    providers:
+        - name: openai
+          client-config:
+              api-key: "primary-key"
+          pricing:
+              currency: EUR
+          runs:
+              - name: "primary"
+                model: "gpt-4"
+`)),
+			},
+			wantErr: true,
+		},
+		{
+			name: "config with run-level pricing missing rates",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`config:
+    task-source: "tasks.yaml"
+    output-dir: "."
+    providers:
+        - name: openai
+          client-config:
+              api-key: "primary-key"
+          runs:
+              - name: "primary"
+                model: "gpt-4"
+                pricing:
+                    currency: EUR
+`)),
+			},
+			wantErr: true,
+		},
+		{
+			name: "config with judge-level pricing missing rates",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`config:
+    task-source: "tasks.yaml"
+    output-dir: "."
+    providers:
+        - name: openai
+          client-config:
+              api-key: "primary-key"
+          runs:
+              - name: "primary"
+                model: "gpt-4"
+    judges:
+        - name: "judge"
+          provider:
+              name: openai
+              client-config:
+                  api-key: "judge-key"
+              pricing:
+                  currency: EUR
+              runs:
+                  - name: "default"
+                    model: "gpt-4o"
 `)),
 			},
 			wantErr: true,
@@ -2535,6 +2648,174 @@ func TestGetJudgesWithEnabledRuns(t *testing.T) {
 	}
 }
 
+func TestPricingOverriddenBy(t *testing.T) {
+	tests := []struct {
+		name  string
+		these *Pricing
+		other *Pricing
+		want  *Pricing
+	}{
+		{
+			name:  "other is nil, these is kept unchanged",
+			these: &Pricing{Currency: "USD", InputPerMillion: testutils.Ptr(1.0)},
+			want:  &Pricing{Currency: "USD", InputPerMillion: testutils.Ptr(1.0)},
+		},
+		{
+			name:  "other is non-nil, it replaces these entirely",
+			these: &Pricing{Currency: "USD", InputPerMillion: testutils.Ptr(1.0), OutputPerMillion: testutils.Ptr(4.0)},
+			other: &Pricing{OutputPerMillion: testutils.Ptr(9.0)},
+			want:  &Pricing{OutputPerMillion: testutils.Ptr(9.0)},
+		},
+		{
+			name:  "other sets only currency, it still replaces these entirely",
+			these: &Pricing{Currency: "USD", InputPerMillion: testutils.Ptr(1.0)},
+			other: &Pricing{Currency: "EUR"},
+			want:  &Pricing{Currency: "EUR"},
+		},
+		{
+			name:  "other is an explicit empty price list, it still wins because it is non-nil",
+			these: &Pricing{Currency: "USD", InputPerMillion: testutils.Ptr(1.0)},
+			other: &Pricing{},
+			want:  &Pricing{},
+		},
+		{
+			name: "both are nil",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.these.OverriddenBy(tt.other))
+		})
+	}
+}
+
+func TestPricingResolution(t *testing.T) {
+	runWithPricing := func(pricing *Pricing) RunConfig {
+		return RunConfig{Name: "run", Model: "model", Pricing: pricing}
+	}
+
+	tests := []struct {
+		name       string
+		appPricing *Pricing
+		provider   *Pricing
+		run        *Pricing
+		wantRun    *Pricing
+	}{
+		{
+			name: "no prices at any level",
+		},
+		{
+			name:       "application prices are inherited by the run when nothing overrides them",
+			appPricing: &Pricing{Currency: "USD", InputPerMillion: testutils.Ptr(1.0), OutputPerMillion: testutils.Ptr(4.0)},
+			wantRun:    &Pricing{Currency: "USD", InputPerMillion: testutils.Ptr(1.0), OutputPerMillion: testutils.Ptr(4.0)},
+		},
+		{
+			// Pricing is replaced atomically, never merged field-by-field: a partial
+			// provider override completely replaces the application-level price list
+			// rather than combining with it.
+			name:       "a provider price list replaces the application one entirely",
+			appPricing: &Pricing{Currency: "USD", InputPerMillion: testutils.Ptr(1.0), OutputPerMillion: testutils.Ptr(4.0)},
+			provider:   &Pricing{OutputPerMillion: testutils.Ptr(9.0)},
+			wantRun:    &Pricing{Currency: "USD", OutputPerMillion: testutils.Ptr(9.0)},
+		},
+		{
+			name:       "a run price list replaces the provider one entirely",
+			appPricing: &Pricing{Currency: "USD", InputPerMillion: testutils.Ptr(1.0), OutputPerMillion: testutils.Ptr(4.0)},
+			provider:   &Pricing{OutputPerMillion: testutils.Ptr(9.0)},
+			run:        &Pricing{ReasoningPerMillion: testutils.Ptr(12.0)},
+			wantRun:    &Pricing{Currency: "USD", ReasoningPerMillion: testutils.Ptr(12.0)},
+		},
+		{
+			name:       "overriding one rate requires restating the whole price list",
+			appPricing: &Pricing{Currency: "USD", InputPerMillion: testutils.Ptr(1.0), OutputPerMillion: testutils.Ptr(4.0)},
+			run: &Pricing{
+				Currency:         "USD",
+				InputPerMillion:  testutils.Ptr(1.0),
+				OutputPerMillion: testutils.Ptr(9.0),
+			},
+			wantRun: &Pricing{Currency: "USD", InputPerMillion: testutils.Ptr(1.0), OutputPerMillion: testutils.Ptr(9.0)},
+		},
+		{
+			name:       "an explicit zero rate overrides an inherited price",
+			appPricing: &Pricing{Currency: "USD", InputPerMillion: testutils.Ptr(1.0)},
+			run:        &Pricing{InputPerMillion: testutils.Ptr(0.0)},
+			wantRun:    &Pricing{Currency: "USD", InputPerMillion: testutils.Ptr(0.0)},
+		},
+		{
+			name:       "currency defaults to USD when prices omit it",
+			appPricing: &Pricing{InputPerMillion: testutils.Ptr(1.0)},
+			wantRun:    &Pricing{Currency: "USD", InputPerMillion: testutils.Ptr(1.0)},
+		},
+		{
+			// Setting only a currency still replaces the whole inherited price list, so a
+			// rate quoted in one currency can never end up paired with a different one:
+			// here the provider's InputPerMillion (quoted in USD) is dropped rather than
+			// silently relabeled as EUR.
+			name:     "setting only a run-level currency drops inherited rates rather than relabeling them",
+			provider: &Pricing{Currency: "USD", InputPerMillion: testutils.Ptr(1.0)},
+			run:      &Pricing{Currency: "EUR"},
+			wantRun:  &Pricing{Currency: "EUR"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ac := AppConfig{
+				Pricing: tt.appPricing,
+				Providers: []ProviderConfig{
+					{
+						Name:         "openai",
+						ClientConfig: OpenAIClientConfig{APIKey: "key"},
+						Pricing:      tt.provider,
+						Runs:         []RunConfig{runWithPricing(tt.run)},
+					},
+				},
+				Judges: []JudgeConfig{
+					{
+						Name: "judge",
+						Provider: ProviderConfig{
+							Name:         "openai",
+							ClientConfig: OpenAIClientConfig{APIKey: "key"},
+							Pricing:      tt.provider,
+							Runs:         []RunConfig{runWithPricing(tt.run)},
+						},
+					},
+				},
+			}
+
+			providers := ac.GetProvidersWithEnabledRuns()
+			require.Len(t, providers, 1)
+			require.Len(t, providers[0].Runs, 1)
+
+			// Judges resolve through the same helper, so they receive prices too.
+			judges := ac.GetJudgesWithEnabledRuns()
+			require.Len(t, judges, 1)
+			require.Len(t, judges[0].Provider.Runs, 1)
+
+			assert.Equal(t, tt.wantRun, providers[0].Runs[0].Pricing)
+			assert.Equal(t, tt.wantRun, judges[0].Provider.Runs[0].Pricing)
+		})
+	}
+}
+
+func TestPricingIsSet(t *testing.T) {
+	assert.False(t, (*Pricing)(nil).IsSet())
+	assert.False(t, (&Pricing{}).IsSet())
+	assert.False(t, (&Pricing{Currency: "USD"}).IsSet(), "a currency alone is not a usable price list")
+	assert.True(t, (&Pricing{InputPerMillion: testutils.Ptr(0.0)}).IsSet(), "an explicit free rate is still configured")
+	assert.True(t, (&Pricing{ReasoningPerMillion: testutils.Ptr(1.0)}).IsSet())
+}
+
+func TestPricingValidate(t *testing.T) {
+	assert.NoError(t, (*Pricing)(nil).Validate())
+	assert.NoError(t, (&Pricing{}).Validate())
+	assert.NoError(t, (&Pricing{Currency: "USD", InputPerMillion: testutils.Ptr(1.0)}).Validate())
+	assert.NoError(t, (&Pricing{InputPerMillion: testutils.Ptr(1.0)}).Validate(), "a price without an explicit currency is valid, it defaults to USD on resolution")
+
+	err := (&Pricing{Currency: "USD"}).Validate()
+	require.Error(t, err, "a currency alone is not a usable price list")
+	assert.ErrorIs(t, err, ErrInvalidConfigProperty)
+}
+
 func TestResolveFlagOverride(t *testing.T) {
 	type args struct {
 		override    *bool
@@ -2893,6 +3174,26 @@ func TestGetRunsResolved(t *testing.T) {
 					Model:       "model2",
 					Disabled:    testutils.Ptr(false),
 					RetryPolicy: &RetryPolicy{MaxRetryAttempts: 4},
+				},
+			},
+		},
+		{
+			name: "the provider's own price list is resolved into each run",
+			pc: ProviderConfig{
+				Name:        "test-provider",
+				RetryPolicy: RetryPolicy{MaxRetryAttempts: 3},
+				Pricing:     &Pricing{Currency: "USD", InputPerMillion: testutils.Ptr(1.0)},
+				Runs: []RunConfig{
+					{Name: "run1", Model: "model1"},
+				},
+			},
+			want: []RunConfig{
+				{
+					Name:        "run1",
+					Model:       "model1",
+					Disabled:    testutils.Ptr(false),
+					RetryPolicy: &RetryPolicy{MaxRetryAttempts: 3},
+					Pricing:     &Pricing{Currency: "USD", InputPerMillion: testutils.Ptr(1.0)},
 				},
 			},
 		},

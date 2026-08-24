@@ -71,6 +71,10 @@ type AppConfig struct {
 
 	// Tools lists common tool configurations available to tasks.
 	Tools []ToolConfig `yaml:"tools" validate:"omitempty,unique=Name,dive"`
+
+	// Pricing specifies default token prices inherited by all providers and runs that do
+	// not configure their own.
+	Pricing *Pricing `yaml:"pricing" validate:"omitempty"`
 }
 
 // GetProvidersWithEnabledRuns returns providers with their enabled run configurations.
@@ -80,7 +84,7 @@ type AppConfig struct {
 func (ac AppConfig) GetProvidersWithEnabledRuns() []ProviderConfig {
 	providers := make([]ProviderConfig, 0, len(ac.Providers))
 	for _, provider := range ac.Providers {
-		resolved := provider.Resolve(true)
+		resolved := provider.Resolve(true, ac.Pricing)
 		if len(resolved.Runs) > 0 {
 			providers = append(providers, resolved)
 		}
@@ -95,7 +99,7 @@ func (ac AppConfig) GetProvidersWithEnabledRuns() []ProviderConfig {
 func (ac AppConfig) GetJudgesWithEnabledRuns() []JudgeConfig {
 	judges := make([]JudgeConfig, 0, len(ac.Judges))
 	for _, judge := range ac.Judges {
-		resolved := judge.Resolve(true)
+		resolved := judge.Resolve(true, ac.Pricing)
 		if len(resolved.Provider.Runs) > 0 {
 			judges = append(judges, resolved)
 		}
@@ -125,11 +129,18 @@ type ProviderConfig struct {
 
 	// RetryPolicy specifies default retry behavior for all runs in this provider.
 	RetryPolicy RetryPolicy `yaml:"retry-policy" validate:"omitempty"`
+
+	// Pricing specifies token prices for all runs in this provider, replacing the
+	// application-level price list entirely when set. See Pricing.OverriddenBy.
+	Pricing *Pricing `yaml:"pricing" validate:"omitempty"`
 }
 
-// GetRunsResolved returns runs with retry policies and disabled flags resolved.
+// GetRunsResolved returns runs with retry policies, disabled flags, and prices resolved.
 // If RunConfig.RetryPolicy is nil, the parent ProviderConfig.RetryPolicy value is used instead.
 // If RunConfig.Disabled is nil, the parent ProviderConfig.Disabled value is used instead.
+// Each run's Pricing is resolved from pc.Pricing (this provider's own effective price list,
+// see Resolve) and the run's own Pricing, in that order of increasing precedence (see
+// Pricing.OverriddenBy).
 func (pc ProviderConfig) GetRunsResolved() []RunConfig {
 	resolved := make([]RunConfig, 0, len(pc.Runs))
 	for _, run := range pc.Runs {
@@ -139,16 +150,22 @@ func (pc ProviderConfig) GetRunsResolved() []RunConfig {
 		if run.Disabled == nil {
 			run.Disabled = &pc.Disabled
 		}
+		run.Pricing = pc.Pricing.OverriddenBy(run.Pricing)
+		if run.Pricing.IsSet() && run.Pricing.Currency == "" {
+			run.Pricing.Currency = defaultPricingCurrency
+		}
 		resolved = append(resolved, run)
 	}
 	return resolved
 }
 
-// Resolve returns a copy of the provider configuration with runs resolved.
+// Resolve returns a copy of the provider configuration with its own effective price list
+// resolved from appPricing and runs resolved from it (see GetRunsResolved).
 // If excludeDisabledRuns is true, only enabled runs are included.
-func (pc ProviderConfig) Resolve(excludeDisabledRuns bool) ProviderConfig {
+func (pc ProviderConfig) Resolve(excludeDisabledRuns bool, appPricing *Pricing) ProviderConfig {
 	resolved := pc
-	resolved.Runs = pc.GetRunsResolved()
+	resolved.Pricing = appPricing.OverriddenBy(pc.Pricing)
+	resolved.Runs = resolved.GetRunsResolved()
 
 	if excludeDisabledRuns {
 		enabledRuns := make([]RunConfig, 0, len(resolved.Runs))
@@ -336,6 +353,10 @@ type RunConfig struct {
 	// RetryPolicy specifies retry behavior on transient errors.
 	// If set, overrides the parent ProviderConfig.RetryPolicy value.
 	RetryPolicy *RetryPolicy `yaml:"retry-policy" validate:"omitempty"`
+
+	// Pricing specifies token prices for this run, replacing the provider-level price
+	// list entirely when set. See Pricing.OverriddenBy.
+	Pricing *Pricing `yaml:"pricing" validate:"omitempty"`
 }
 
 // RetryPolicy defines retry behavior on transient errors.
@@ -346,6 +367,81 @@ type RetryPolicy struct {
 
 	// InitialDelaySeconds specifies the initial delay in seconds before the first retry attempt.
 	InitialDelaySeconds int `yaml:"initial-delay-seconds" validate:"omitempty,gt=0"`
+}
+
+// defaultPricingCurrency is used when prices are configured without an explicit currency.
+const defaultPricingCurrency = "USD"
+
+// Pricing defines static token prices used to estimate run costs. Rates are per million
+// tokens. A price list is inherited as a whole from the application, provider and run
+// levels: the nearest level that configures any field (including just Currency) is used
+// in its entirety, rather than merging individual fields across levels. This is
+// deliberate: a price list is one coherent quote (e.g. for a specific model), and its
+// rates are rarely independent of one another, so overriding just one field at a more
+// specific level while inheriting the rest from another risks mixing rates that were never
+// quoted together (and, concretely, could pair a rate with a currency it wasn't quoted
+// in). To override a single rate, restate the full price list at that level. An unset rate
+// is unknown and makes any estimate that depends on it unavailable; zero is a valid free
+// rate.
+type Pricing struct {
+	// Currency is the ISO 4217 code the rates are expressed in.
+	// Defaults to USD when prices are configured without one.
+	Currency string `yaml:"currency" validate:"omitempty,len=3,alpha"`
+
+	// InputPerMillion is the price per million uncached input tokens.
+	InputPerMillion *float64 `yaml:"input-per-million" validate:"omitempty,gte=0"`
+
+	// OutputPerMillion is the price per million generated output tokens.
+	OutputPerMillion *float64 `yaml:"output-per-million" validate:"omitempty,gte=0"`
+
+	// CacheReadPerMillion is the price per million input tokens read from a prompt cache.
+	// Falls back to InputPerMillion when unset.
+	CacheReadPerMillion *float64 `yaml:"cache-read-per-million" validate:"omitempty,gte=0"`
+
+	// CacheWritePerMillion is the price per million input tokens written to a prompt cache.
+	// Falls back to InputPerMillion when unset.
+	CacheWritePerMillion *float64 `yaml:"cache-write-per-million" validate:"omitempty,gte=0"`
+
+	// ReasoningPerMillion is the price per million reasoning tokens.
+	// Falls back to OutputPerMillion when unset.
+	ReasoningPerMillion *float64 `yaml:"reasoning-per-million" validate:"omitempty,gte=0"`
+}
+
+// OverriddenBy returns a copy of other if configured (non-nil), otherwise a copy of these
+// (nil if neither is configured). The price list is replaced as a whole, never merged
+// field-by-field like the other MergeWith implementations in this package: a price list is
+// one coherent quote, so overriding a single rate risks mixing rates that were never quoted
+// together. The result is always a copy, safe for callers to mutate without affecting a
+// price list shared by another level.
+func (these *Pricing) OverriddenBy(other *Pricing) *Pricing {
+	winner := these
+	if other != nil {
+		winner = other
+	}
+	if winner == nil {
+		return nil
+	}
+	copied := *winner
+	return &copied
+}
+
+// IsSet reports whether any price is configured. A currency alone is not a price, so it
+// does not by itself make the price list usable for estimating costs. A nil price list
+// reports false.
+func (p *Pricing) IsSet() bool {
+	return p != nil && (p.InputPerMillion != nil || p.OutputPerMillion != nil || p.CacheReadPerMillion != nil ||
+		p.CacheWritePerMillion != nil || p.ReasoningPerMillion != nil)
+}
+
+// Validate reports an error if Currency is set without any price, since a currency with
+// nothing priced in it can never contribute to a cost estimate and is most likely a
+// mistake (e.g. a price list that lost its rates but kept its currency override). A nil
+// price list is valid.
+func (p *Pricing) Validate() error {
+	if p != nil && p.Currency != "" && !p.IsSet() {
+		return fmt.Errorf("%w: currency specified without any price", ErrInvalidConfigProperty)
+	}
+	return nil
 }
 
 // ModelParams is a marker interface for model-specific parameters.
@@ -966,9 +1062,9 @@ type JudgeConfig struct {
 
 // Resolve returns a copy of the judge configuration with run variants resolved.
 // If excludeDisabledRuns is true, only enabled run variants are included.
-func (jc JudgeConfig) Resolve(excludeDisabledRuns bool) JudgeConfig {
+func (jc JudgeConfig) Resolve(excludeDisabledRuns bool, appPricing *Pricing) JudgeConfig {
 	resolved := jc
-	resolved.Provider = jc.Provider.Resolve(excludeDisabledRuns)
+	resolved.Provider = jc.Provider.Resolve(excludeDisabledRuns, appPricing)
 	return resolved
 }
 
@@ -997,6 +1093,7 @@ func (pc *ProviderConfig) UnmarshalYAML(value *yaml.Node) error {
 		MaxParallelRequestsPerMinute int         `yaml:"max-parallel-requests-per-minute"`
 		Disabled                     bool        `yaml:"disabled"`
 		RetryPolicy                  RetryPolicy `yaml:"retry-policy"`
+		Pricing                      *Pricing    `yaml:"pricing"`
 	}
 
 	if err := value.Decode(&temp); err != nil {
@@ -1007,6 +1104,7 @@ func (pc *ProviderConfig) UnmarshalYAML(value *yaml.Node) error {
 	pc.MaxParallelRequestsPerMinute = temp.MaxParallelRequestsPerMinute
 	pc.Disabled = temp.Disabled
 	pc.RetryPolicy = temp.RetryPolicy
+	pc.Pricing = temp.Pricing
 
 	if err := decodeRuns(temp.Name, &temp.Runs, &pc.Runs); err != nil {
 		return err
@@ -1084,6 +1182,7 @@ func decodeRuns(provider string, value *yaml.Node, out *[]RunConfig) error {
 		DisableStructuredOutput bool         `yaml:"disable-structured-output"`
 		ModelParams             yaml.Node    `yaml:"model-parameters"`
 		RetryPolicy             *RetryPolicy `yaml:"retry-policy"`
+		Pricing                 *Pricing     `yaml:"pricing"`
 	}
 
 	if err := value.Decode(&temp); err != nil {
@@ -1099,6 +1198,7 @@ func decodeRuns(provider string, value *yaml.Node, out *[]RunConfig) error {
 		(*out)[i].TextOnly = temp[i].TextOnly
 		(*out)[i].DisableStructuredOutput = temp[i].DisableStructuredOutput
 		(*out)[i].RetryPolicy = temp[i].RetryPolicy
+		(*out)[i].Pricing = temp[i].Pricing
 
 		if !temp[i].ModelParams.IsZero() {
 			switch provider {
