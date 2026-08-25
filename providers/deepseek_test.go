@@ -65,6 +65,14 @@ func TestDeepseekApplyModelParameters(t *testing.T) {
 		assert.Equal(t, "max", req.ExtraFields["reasoning_effort"])
 	})
 
+	t.Run("ChatCompletionRequest: max-tokens sets MaxTokens", func(t *testing.T) {
+		req := &deepseek.ChatCompletionRequest{}
+		provider.applyModelParameters(req, config.DeepseekModelParams{
+			MaxTokens: utils.Ptr(int32(65536)),
+		})
+		assert.Equal(t, 65536, req.MaxTokens)
+	})
+
 	t.Run("ChatCompletionRequest: nil parameters leave fields at zero", func(t *testing.T) {
 		req := &deepseek.ChatCompletionRequest{}
 		provider.applyModelParameters(req, config.DeepseekModelParams{})
@@ -72,6 +80,7 @@ func TestDeepseekApplyModelParameters(t *testing.T) {
 		assert.Zero(t, req.TopP)
 		assert.Zero(t, req.PresencePenalty)
 		assert.Zero(t, req.FrequencyPenalty)
+		assert.Zero(t, req.MaxTokens)
 		assert.Nil(t, req.Thinking)
 		assert.Nil(t, req.ExtraFields)
 	})
@@ -104,5 +113,13 @@ func TestDeepseekApplyModelParameters(t *testing.T) {
 		assert.Zero(t, req.TopP)
 		assert.Zero(t, req.PresencePenalty)
 		assert.Zero(t, req.FrequencyPenalty)
+	})
+
+	t.Run("ChatCompletionRequestWithImage: max-tokens sets MaxTokens", func(t *testing.T) {
+		req := &deepseek.ChatCompletionRequestWithImage{}
+		provider.applyModelParameters(req, config.DeepseekModelParams{
+			MaxTokens: utils.Ptr(int32(65536)),
+		})
+		assert.Equal(t, 65536, req.MaxTokens)
 	})
 }

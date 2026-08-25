@@ -285,11 +285,17 @@ func (o *Deepseek) applyModelParameters(request any, modelParams config.Deepseek
 			}
 			req.ExtraFields["reasoning_effort"] = *modelParams.ReasoningEffort
 		}
+		if modelParams.MaxTokens != nil {
+			req.MaxTokens = int(*modelParams.MaxTokens)
+		}
 	case *deepseek.ChatCompletionRequestWithImage:
 		setIfNotNil(&req.Temperature, modelParams.Temperature)
 		setIfNotNil(&req.TopP, modelParams.TopP)
 		setIfNotNil(&req.FrequencyPenalty, modelParams.FrequencyPenalty)
 		setIfNotNil(&req.PresencePenalty, modelParams.PresencePenalty)
+		if modelParams.MaxTokens != nil {
+			req.MaxTokens = int(*modelParams.MaxTokens)
+		}
 		// NOTE: thinking and reasoning-effort are not applied here — ChatCompletionRequestWithImage
 		// does not expose these fields in the deepseek-go library.
 	default:

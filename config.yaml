@@ -119,6 +119,18 @@ config:
           max-requests-per-minute: 10
           disable-structured-output: true
           text-only: true
+        - name: "Z.AI GLM 5.3 (max reasoning, text-only)"
+          model: "z-ai/glm-5.3"
+          max-requests-per-minute: 10
+          text-only: true
+          pricing:
+            input-per-million: 1.40
+            cache-read-per-million: 0.26
+            output-per-million: 4.40
+          model-parameters:
+            reasoning-effort: "max"
+            max-completion-tokens: 65536
+            response-format: "json-object"
         - name: "StepFun Step3"
           model: "stepfun-ai/step3"
           max-requests-per-minute: 10
@@ -181,6 +193,17 @@ config:
         - name: "Gemini 3.6 Flash - latest (high thinking)"
           model: "gemini-3.6-flash"
           max-requests-per-minute: 3
+          model-parameters:
+            thinking-level: "high"
+            media-resolution: "high"
+        - name: "Gemini 3.7 Flash - latest (high thinking)"
+          model: "gemini-3.7-flash"
+          max-requests-per-minute: 3
+          pricing:
+            # Introductory standard pricing through 2026-12-31.
+            input-per-million: 0.75
+            cache-read-per-million: 0.075
+            output-per-million: 3.75
           model-parameters:
             thinking-level: "high"
             media-resolution: "high"
@@ -266,9 +289,16 @@ config:
         - name: "DeepSeek V4 Pro - latest (thinking, max effort)"
           model: "deepseek-v4-pro"
           max-requests-per-minute: 15
+          text-only: true
+          pricing:
+            # Peak pricing; off-peak rates are lower.
+            input-per-million: 1.32
+            cache-read-per-million: 0.044
+            output-per-million: 3.96
           model-parameters:
             thinking: enabled
             reasoning-effort: max
+            max-tokens: 65536
         - name: "DeepSeek V4 Flash - latest (thinking, max effort)"
           model: "deepseek-v4-flash"
           max-requests-per-minute: 15
@@ -317,6 +347,17 @@ config:
           max-requests-per-minute: 30
           model-parameters:
             reasoning-effort: "high"
+        - name: "Grok 4.6 - latest (xhigh reasoning)"
+          model: "grok-4.6"
+          max-requests-per-minute: 30
+          pricing:
+            # Standard rates for requests below xAI's 200K higher-context pricing threshold.
+            input-per-million: 2.00
+            cache-read-per-million: 0.50
+            output-per-million: 6.00
+          model-parameters:
+            reasoning-effort: "xhigh"
+            max-completion-tokens: 65536
     - name: alibaba
       retry-policy:
         max-retry-attempts: 5

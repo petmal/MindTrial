@@ -338,6 +338,50 @@ func TestLoadConfigFromFile(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "invalid run model xai reasoning-effort",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`config:
+    task-source: "tasks.yaml"
+    output-dir: "."
+    providers:
+        - name: xai
+          client-config:
+              api-key: "93e8f51a-89d6-483a-9268-0ec2d0a4c8a2"
+          runs:
+              - name: "Developer"
+                model: "partnerships"
+                model-parameters:
+                    reasoning-effort: "extreme"
+`)),
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid run model deepseek max-tokens",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`config:
+    task-source: "tasks.yaml"
+    output-dir: "."
+    providers:
+        - name: deepseek
+          client-config:
+              api-key: "93e8f51a-89d6-483a-9268-0ec2d0a4c8a2"
+          runs:
+              - name: "Developer"
+                model: "partnerships"
+                model-parameters:
+                    max-tokens: 0
+`)),
+			},
+			wantErr: true,
+		},
+		{
 			name: "extra top-level field",
 			args: args{
 				ctx: context.Background(),
@@ -694,6 +738,7 @@ func TestLoadConfigFromFile(t *testing.T) {
                     frequency-penalty: 0.1
                     thinking: enabled
                     reasoning-effort: max
+                    max-tokens: 65536
         - name: google
           client-config:
               api-key: "df2270f9-d4e1-4761-b809-bee219390d00"
@@ -753,7 +798,7 @@ func TestLoadConfigFromFile(t *testing.T) {
                     max-completion-tokens: 1024
                     presence-penalty: 0.1
                     frequency-penalty: 0.2
-                    reasoning-effort: low
+                    reasoning-effort: xhigh
                     seed: 42
         - name: alibaba
           client-config:
@@ -954,6 +999,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 										FrequencyPenalty: testutils.Ptr(float32(0.1)),
 										Thinking:         testutils.Ptr("enabled"),
 										ReasoningEffort:  testutils.Ptr("max"),
+										MaxTokens:        testutils.Ptr(int32(65536)),
 									},
 								},
 							},
@@ -1046,7 +1092,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 										MaxCompletionTokens: testutils.Ptr(int32(1024)),
 										PresencePenalty:     testutils.Ptr(float32(0.1)),
 										FrequencyPenalty:    testutils.Ptr(float32(0.2)),
-										ReasoningEffort:     testutils.Ptr("low"),
+										ReasoningEffort:     testutils.Ptr("xhigh"),
 										Seed:                testutils.Ptr(int32(42)),
 									},
 								},
