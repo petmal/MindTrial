@@ -22,6 +22,9 @@ var updateGolden = flag.Bool("update-golden", false, "update golden test files")
 const (
 	realWorldResultsInput  = "testdata/real-world-results.json"
 	realWorldResultsGolden = "testdata/real-world-results.csv"
+
+	reasoningPricingResultsInput  = "testdata/reasoning-pricing-results.json"
+	reasoningPricingResultsGolden = "testdata/reasoning-pricing-results.csv"
 )
 
 var realWorldGroupBy = []Dimension{DimensionProvider, DimensionRun}
@@ -36,6 +39,18 @@ func TestUpdateGoldenRealWorldResultsStats(t *testing.T) {
 	defer f.Close()
 	require.NoError(t, Write(OutputFormatCSV, realWorldGroupBy, computeRealWorldStats(t), f))
 	t.Logf("Updated %s", realWorldResultsGolden)
+}
+
+func TestUpdateGoldenReasoningPricingResultsStats(t *testing.T) {
+	if !*updateGolden {
+		t.Skip("use -update-golden to regenerate golden files")
+	}
+
+	f, err := os.Create(reasoningPricingResultsGolden)
+	require.NoError(t, err)
+	defer f.Close()
+	require.NoError(t, Write(OutputFormatCSV, realWorldGroupBy, computeReasoningPricingStats(t), f))
+	t.Logf("Updated %s", reasoningPricingResultsGolden)
 }
 
 // TestComputeStatsRealWorldResultsGolden computes stats (grouped by provider,run, the CLI
@@ -62,6 +77,33 @@ func TestComputeStatsRealWorldResultsGolden(t *testing.T) {
 func computeRealWorldStats(t *testing.T) []Record {
 	t.Helper()
 	results, err := formatters.ReadResultsFromFile(realWorldResultsInput)
+	require.NoError(t, err)
+
+	records, err := ComputeStats(results, realWorldGroupBy, Filters{})
+	require.NoError(t, err)
+	return records
+}
+
+// TestComputeStatsReasoningPricingResultsGolden computes stats (grouped by provider,run,
+// the CLI default) over a real MindTrial JSON result artifact exercising reasoning-token
+// and pricing support (AppVersion v0.22.0, 9 providers), and asserts the output matches a
+// golden CSV byte-for-byte. The golden CSV was produced by the actual mindtrial stats
+// command against the input JSON and independently cross-checked against the paired HTML
+// report's summary table (pass/fail/error/skipped counts and pass rate/accuracy/error rate
+// for every provider/run) before being committed, so this test also guards against silent
+// regressions in reasoning-token and cost-estimation aggregation, not just synthetic
+// fixtures.
+func TestComputeStatsReasoningPricingResultsGolden(t *testing.T) {
+	got := testutils.CreateOpenNewTestFile(t, "*.csv")
+	defer got.Close()
+	require.NoError(t, Write(OutputFormatCSV, realWorldGroupBy, computeReasoningPricingStats(t), got))
+
+	testutils.AssertFileContentsSameAs(t, reasoningPricingResultsGolden, got.Name())
+}
+
+func computeReasoningPricingStats(t *testing.T) []Record {
+	t.Helper()
+	results, err := formatters.ReadResultsFromFile(reasoningPricingResultsInput)
 	require.NoError(t, err)
 
 	records, err := ComputeStats(results, realWorldGroupBy, Filters{})
