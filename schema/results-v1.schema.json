@@ -773,6 +773,16 @@
                       "type": "object",
                       "title": "Semantic Validation",
                       "description": "The judge's raw verdict and variant provenance, present only when validation was performed by an LLM judge."
+                    },
+                    "Method": {
+                      "type": "string",
+                      "enum": [
+                        "exact",
+                        "schema",
+                        "semantic"
+                      ],
+                      "title": "Validation Method",
+                      "description": "The validation method used: exact (canonical value matching), schema (raw candidate answer validated against the single expected-result JSON Schema without canonicalization; $schema optional, defaults to Draft 2020-12; normalization flags ignored), or semantic (LLM judge)."
                     }
                   },
                   "additionalProperties": false,

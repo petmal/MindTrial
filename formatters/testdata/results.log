@@ -82,4 +82,6 @@ TraceID                    |Provider      |Run         |Task      |Status |Durat
     +Authentication failed for user 'admin'
      .%22,%0A
     
-] |
+]                          |
+01JEDE7Z8X0000000000000011 |provider-name |run-schema-success |task-name |Passed |12s |10           |
+01JEDE7Z8X0000000000000012 |provider-name |run-schema-failure |task-name |Failed |9s  |not-a-number |

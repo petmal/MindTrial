@@ -371,7 +371,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 	resolvedValidationRules := task.GetResolvedValidationRules()
 
 	// Create validator selected for this task.
-	validator, err := r.validatorFactory.GetValidator(ctx, resolvedValidationRules.Judge)
+	validator, err := r.validatorFactory.GetValidator(ctx, resolvedValidationRules)
 	if err != nil {
 		runResult.Kind = Error
 		runResult.Got = err.Error()
@@ -481,6 +481,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 			populateErrorDetails(&runResult.Details.Error, err)
 			// Preserve judge provenance/verdict even when validation itself errored out.
 			runResult.Details.Validation = ValidationDetails{
+				Method:   validationMethodFor(resolvedValidationRules),
 				Semantic: toSemanticValidationDetails(ctx, logger, validationResult.Semantic),
 			}
 		} else {
@@ -498,6 +499,7 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 				ToolUsage:   toToolUsage(validationResult.Usage),
 				ToolCalls:   toToolCallSummaries(validationResult.ToolCalls),
 				Semantic:    toSemanticValidationDetails(ctx, logger, validationResult.Semantic),
+				Method:      validationMethodFor(resolvedValidationRules),
 			}
 		}
 
@@ -731,4 +733,15 @@ func toToolCallOutput(o *providertools.OutputCapture) *ToolCallOutput {
 		Preview:   o.Preview,
 		Truncated: o.Truncated,
 	}
+}
+
+// validationMethodFor derives the ValidationMethod from resolved validation rules.
+func validationMethodFor(rules config.ValidationRules) ValidationMethod {
+	if rules.UseJudge() {
+		return ValidationMethodSemantic
+	}
+	if rules.UseSchemaValidation() {
+		return ValidationMethodSchema
+	}
+	return ValidationMethodExact
 }

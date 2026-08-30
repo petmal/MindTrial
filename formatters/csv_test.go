@@ -641,6 +641,98 @@ var mockResults = runners.Results{
 				Error: runners.ErrorDetails{},
 			},
 		},
+		{
+			TraceID:  "01JEDE7Z8X0000000000000011",
+			Provider: "provider-name",
+			Task:     "task-name",
+			Run:      "run-schema-success",
+			Kind:     runners.Success,
+			Duration: 12 * time.Second,
+			RunConfig: runners.RunConfigSnapshot{
+				Name:  "run-schema-success",
+				Model: "gpt-4o-mini",
+			},
+			Want: utils.NewValueSet(map[string]interface{}{
+				"$schema": "https://json-schema.org/draft/2020-12/schema",
+				"type":    "number",
+				"minimum": 9.9,
+				"maximum": 10.1,
+			}),
+			Got: 10,
+			Details: runners.Details{
+				Answer: runners.AnswerDetails{
+					Title:       "Schema Assessment",
+					Explanation: []string{"Response conforms to the expected schema."},
+					ActualAnswer: []string{
+						"10",
+					},
+					ExpectedAnswer: [][]string{{
+						"{",
+						"  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",",
+						"  \"maximum\": 10.1,",
+						"  \"minimum\": 9.9,",
+						"  \"type\": \"number\"",
+						"}",
+					}},
+					Usage: runners.TokenUsage{
+						InputTokens:  testutils.Ptr(int64(100)),
+						OutputTokens: testutils.Ptr(int64(50)),
+					},
+				},
+				Validation: runners.ValidationDetails{
+					Title:       "Schema Assessment",
+					Explanation: []string{"Response conforms to the expected schema."},
+					Method:      runners.ValidationMethodSchema,
+				},
+				Error: runners.ErrorDetails{},
+			},
+		},
+		{
+			TraceID:  "01JEDE7Z8X0000000000000012",
+			Provider: "provider-name",
+			Task:     "task-name",
+			Run:      "run-schema-failure",
+			Kind:     runners.Failure,
+			Duration: 9 * time.Second,
+			RunConfig: runners.RunConfigSnapshot{
+				Name:  "run-schema-failure",
+				Model: "gpt-4o-mini",
+			},
+			Want: utils.NewValueSet(map[string]interface{}{
+				"$schema": "https://json-schema.org/draft/2020-12/schema",
+				"type":    "number",
+				"minimum": 9.9,
+				"maximum": 10.1,
+			}),
+			Got: "not-a-number",
+			Details: runners.Details{
+				Answer: runners.AnswerDetails{
+					Title:       "Schema Assessment",
+					Explanation: []string{"Response does not conform to the expected schema."},
+					ActualAnswer: []string{
+						"not-a-number",
+					},
+					ExpectedAnswer: [][]string{{
+						"{",
+						"  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",",
+						"  \"maximum\": 10.1,",
+						"  \"minimum\": 9.9,",
+						"  \"type\": \"number\"",
+						"}",
+					}},
+					Usage: runners.TokenUsage{
+						InputTokens:  testutils.Ptr(int64(100)),
+						OutputTokens: testutils.Ptr(int64(50)),
+					},
+				},
+				Validation: runners.ValidationDetails{
+					Title:       "Schema Assessment",
+					Explanation: []string{"item 1 does not conform to schema: data format does not meet the defined schema requirements: jsonschema validation failed with 'expected number, but got string'"},
+					Method:      runners.ValidationMethodSchema,
+				},
+				Error: runners.ErrorDetails{},
+			},
+		},
 	},
 }
 

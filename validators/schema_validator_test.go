@@ -165,82 +165,161 @@ func TestGradeVerdict(t *testing.T) {
 }
 
 func TestSchemaValidatorIsCorrect(t *testing.T) {
-	tests := []struct {
-		name     string
-		rules    config.ValidationRules
-		expected utils.ValueSet
-		actual   interface{}
-		want     bool
-		wantErr  bool
-	}{
-		{
-			name:     "literal value match",
-			expected: utils.NewValueSet("42"),
-			actual:   "42",
-			want:     true,
-		},
-		{
-			name:     "literal value mismatch",
-			expected: utils.NewValueSet("42"),
-			actual:   "43",
-			want:     false,
-		},
-		{
-			name: "explicit schema match",
-			expected: utils.NewValueSet(map[string]interface{}{
-				"$schema": "https://json-schema.org/draft/2020-12/schema",
-				"type":    "object",
-				"properties": map[string]interface{}{
-					"answer": map[string]interface{}{"type": "integer", "exclusiveMinimum": 0},
-				},
-				"required": []interface{}{"answer"},
-			}),
-			actual: map[string]interface{}{"answer": int64(4)},
-			want:   true,
-		},
-		{
-			name: "explicit schema mismatch",
-			expected: utils.NewValueSet(map[string]interface{}{
-				"$schema": "https://json-schema.org/draft/2020-12/schema",
-				"type":    "object",
-				"properties": map[string]interface{}{
-					"answer": map[string]interface{}{"type": "integer", "exclusiveMinimum": 0},
-				},
-				"required": []interface{}{"answer"},
-			}),
-			actual:  map[string]interface{}{"answer": int64(-1)},
-			want:    false,
-			wantErr: false,
-		},
-		{
-			name: "malformed explicit schema errors",
-			expected: utils.NewValueSet(map[string]interface{}{
-				"$schema":    "https://json-schema.org/draft/2020-12/schema",
-				"properties": "this_should_be_an_object_not_a_string",
-			}),
-			actual:  map[string]interface{}{"answer": int64(4)},
-			wantErr: true,
-		},
-	}
-
 	validator := NewSchemaValidator()
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, err := validator.IsCorrect(context.Background(), testutils.NewTestLogger(t), tt.rules, tt.expected, createMockResult(tt.actual), "", config.ResponseFormat{})
-			if tt.wantErr {
-				require.Error(t, err)
-				return
-			}
-			require.NoError(t, err)
-			assert.Equal(t, tt.want, result.IsCorrect)
+
+	t.Run("numeric range pass", func(t *testing.T) {
+		schema := utils.NewValueSet(map[string]interface{}{
+			"type":    "number",
+			"minimum": 9.9,
+			"maximum": 10.1,
 		})
-	}
+		result, err := validator.IsCorrect(context.Background(), testutils.NewTestLogger(t), config.ValidationRules{}, schema, createMockResult(10.0), "", config.ResponseFormat{})
+		require.NoError(t, err)
+		assert.True(t, result.IsCorrect)
+		assert.Equal(t, "Schema Assessment", result.Title)
+	})
+
+	t.Run("numeric range fail", func(t *testing.T) {
+		schema := utils.NewValueSet(map[string]interface{}{
+			"type":    "number",
+			"minimum": 9.9,
+			"maximum": 10.1,
+		})
+		result, err := validator.IsCorrect(context.Background(), testutils.NewTestLogger(t), config.ValidationRules{}, schema, createMockResult(11.0), "", config.ResponseFormat{})
+		require.NoError(t, err)
+		assert.False(t, result.IsCorrect)
+		assert.Equal(t, "Schema Assessment", result.Title)
+		// Explanation must contain the exact validator error.
+		expectedErr := ""
+		if e := utils.ValidateAgainstSchema(map[string]interface{}{"type": "number", "minimum": 9.9, "maximum": 10.1}, 11.0); e != nil {
+			expectedErr = e.Error()
+		}
+		assert.Contains(t, result.Explanation, expectedErr)
+	})
+
+	t.Run("object schema pass", func(t *testing.T) {
+		schema := utils.NewValueSet(map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"answer": map[string]interface{}{"type": "integer", "exclusiveMinimum": 0},
+			},
+			"required": []interface{}{"answer"},
+		})
+		result, err := validator.IsCorrect(context.Background(), testutils.NewTestLogger(t), config.ValidationRules{}, schema, createMockResult(map[string]interface{}{"answer": int64(4)}), "", config.ResponseFormat{})
+		require.NoError(t, err)
+		assert.True(t, result.IsCorrect)
+	})
+
+	t.Run("object schema fail", func(t *testing.T) {
+		schema := utils.NewValueSet(map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"answer": map[string]interface{}{"type": "integer", "exclusiveMinimum": 0},
+			},
+			"required": []interface{}{"answer"},
+		})
+		result, err := validator.IsCorrect(context.Background(), testutils.NewTestLogger(t), config.ValidationRules{}, schema, createMockResult(map[string]interface{}{"answer": int64(-1)}), "", config.ResponseFormat{})
+		require.NoError(t, err)
+		assert.False(t, result.IsCorrect)
+	})
+
+	t.Run("schema without $schema", func(t *testing.T) {
+		schema := utils.NewValueSet(map[string]interface{}{
+			"type": "string",
+		})
+		result, err := validator.IsCorrect(context.Background(), testutils.NewTestLogger(t), config.ValidationRules{}, schema, createMockResult("hello"), "", config.ResponseFormat{})
+		require.NoError(t, err)
+		assert.True(t, result.IsCorrect)
+	})
+
+	t.Run("multiple expected values returns error", func(t *testing.T) {
+		schema := utils.NewValueSet(map[string]interface{}{"type": "string"}, map[string]interface{}{"type": "number"})
+		_, err := validator.IsCorrect(context.Background(), testutils.NewTestLogger(t), config.ValidationRules{}, schema, createMockResult("hello"), "", config.ResponseFormat{})
+		require.Error(t, err)
+	})
+
+	t.Run("non-object expected value returns error", func(t *testing.T) {
+		schema := utils.NewValueSet("not-an-object")
+		_, err := validator.IsCorrect(context.Background(), testutils.NewTestLogger(t), config.ValidationRules{}, schema, createMockResult("hello"), "", config.ResponseFormat{})
+		require.Error(t, err)
+	})
+
+	t.Run("malformed schema returns error", func(t *testing.T) {
+		schema := utils.NewValueSet(map[string]interface{}{
+			"$schema":    "https://json-schema.org/draft/2020-12/schema",
+			"properties": "this_should_be_an_object_not_a_string",
+		})
+		_, err := validator.IsCorrect(context.Background(), testutils.NewTestLogger(t), config.ValidationRules{}, schema, createMockResult(map[string]interface{}{"answer": int64(4)}), "", config.ResponseFormat{})
+		require.Error(t, err)
+	})
+
+	t.Run("mismatch returns IsCorrect false with explanation", func(t *testing.T) {
+		schemaMap := map[string]interface{}{"type": "string", "minLength": 5}
+		schema := utils.NewValueSet(schemaMap)
+		result, err := validator.IsCorrect(context.Background(), testutils.NewTestLogger(t), config.ValidationRules{}, schema, createMockResult("hi"), "", config.ResponseFormat{})
+		require.NoError(t, err)
+		assert.False(t, result.IsCorrect)
+		expectedErr := ""
+		if e := utils.ValidateAgainstSchema(schemaMap, "hi"); e != nil {
+			expectedErr = e.Error()
+		}
+		assert.Contains(t, result.Explanation, expectedErr)
+	})
+
+	t.Run("case and whitespace rules do not affect schema validation", func(t *testing.T) {
+		schema := utils.NewValueSet(map[string]interface{}{"type": "string", "const": "Hello"})
+		rules := config.ValidationRules{CaseSensitive: testutils.Ptr(false), IgnoreWhitespace: testutils.Ptr(true)}
+		result, err := validator.IsCorrect(context.Background(), testutils.NewTestLogger(t), rules, schema, createMockResult("hello"), "", config.ResponseFormat{})
+		require.NoError(t, err)
+		assert.False(t, result.IsCorrect, "schema validation must not be case-insensitive")
+	})
+
+	t.Run("explicit schema with $schema still works", func(t *testing.T) {
+		schema := utils.NewValueSet(map[string]interface{}{
+			"$schema": "https://json-schema.org/draft/2020-12/schema",
+			"type":    "object",
+			"properties": map[string]interface{}{
+				"answer": map[string]interface{}{"type": "integer", "exclusiveMinimum": 0},
+			},
+			"required": []interface{}{"answer"},
+		})
+		result, err := validator.IsCorrect(context.Background(), testutils.NewTestLogger(t), config.ValidationRules{}, schema, createMockResult(map[string]interface{}{"answer": int64(4)}), "", config.ResponseFormat{})
+		require.NoError(t, err)
+		assert.True(t, result.IsCorrect)
+	})
+
+	t.Run("plain text string does not coerce to number", func(t *testing.T) {
+		schema := utils.NewValueSet(map[string]interface{}{
+			"type":    "number",
+			"minimum": 9.9,
+			"maximum": 10.1,
+		})
+		result, err := validator.IsCorrect(context.Background(), testutils.NewTestLogger(t), config.ValidationRules{}, schema, createMockResult("10"), "", config.ResponseFormat{})
+		require.NoError(t, err)
+		assert.False(t, result.IsCorrect, "schema validation must not coerce string \"10\" to number 10")
+	})
+
+	t.Run("plain text string pattern pass and fail", func(t *testing.T) {
+		schema := utils.NewValueSet(map[string]interface{}{
+			"type":    "string",
+			"pattern": "^#[0-9A-Fa-f]{6}$",
+		})
+		pass, err := validator.IsCorrect(context.Background(), testutils.NewTestLogger(t), config.ValidationRules{}, schema, createMockResult("#1a2B3c"), "", config.ResponseFormat{})
+		require.NoError(t, err)
+		assert.True(t, pass.IsCorrect)
+
+		fail, err := validator.IsCorrect(context.Background(), testutils.NewTestLogger(t), config.ValidationRules{}, schema, createMockResult("not-a-colour"), "", config.ResponseFormat{})
+		require.NoError(t, err)
+		assert.False(t, fail.IsCorrect)
+	})
 }
 
 func TestSchemaValidatorToCanonical(t *testing.T) {
-	rules := config.ValidationRules{IgnoreWhitespace: testutils.Ptr(true)}
 	validator := NewSchemaValidator()
-	assert.Equal(t, "abc", validator.ToCanonical(rules, "a b c"))
+	rules := config.ValidationRules{IgnoreWhitespace: testutils.Ptr(true), CaseSensitive: testutils.Ptr(false)}
+	assert.Equal(t, "a b c", validator.ToCanonical(rules, "a b c"))
+	assert.Equal(t, map[string]interface{}{"key": "Value"}, validator.ToCanonical(rules, map[string]interface{}{"key": "Value"}))
+	assert.Equal(t, 42, validator.ToCanonical(rules, 42))
 }
 
 func TestSchemaValidatorGetName(t *testing.T) {

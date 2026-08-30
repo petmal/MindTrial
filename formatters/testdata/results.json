@@ -664,6 +664,106 @@
           }
         },
         "DurationNS": 38000000000
+      },
+      {
+        "TraceID": "01JEDE7Z8X0000000000000011",
+        "Kind": "Passed",
+        "Task": "task-name",
+        "Provider": "provider-name",
+        "Run": "run-schema-success",
+        "RunConfig": {
+          "Model": "gpt-4o-mini"
+        },
+        "Got": 10,
+        "Want": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "maximum": 10.1,
+          "minimum": 9.9,
+          "type": "number"
+        },
+        "Details": {
+          "Answer": {
+            "Title": "Schema Assessment",
+            "Explanation": [
+              "Response conforms to the expected schema."
+            ],
+            "ActualAnswer": [
+              "10"
+            ],
+            "ExpectedAnswer": [
+              [
+                "{",
+                "  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",",
+                "  \"maximum\": 10.1,",
+                "  \"minimum\": 9.9,",
+                "  \"type\": \"number\"",
+                "}"
+              ]
+            ],
+            "Usage": {
+              "InputTokens": 100,
+              "OutputTokens": 50
+            }
+          },
+          "Validation": {
+            "Title": "Schema Assessment",
+            "Explanation": [
+              "Response conforms to the expected schema."
+            ],
+            "Method": "schema"
+          }
+        },
+        "DurationNS": 12000000000
+      },
+      {
+        "TraceID": "01JEDE7Z8X0000000000000012",
+        "Kind": "Failed",
+        "Task": "task-name",
+        "Provider": "provider-name",
+        "Run": "run-schema-failure",
+        "RunConfig": {
+          "Model": "gpt-4o-mini"
+        },
+        "Got": "not-a-number",
+        "Want": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "maximum": 10.1,
+          "minimum": 9.9,
+          "type": "number"
+        },
+        "Details": {
+          "Answer": {
+            "Title": "Schema Assessment",
+            "Explanation": [
+              "Response does not conform to the expected schema."
+            ],
+            "ActualAnswer": [
+              "not-a-number"
+            ],
+            "ExpectedAnswer": [
+              [
+                "{",
+                "  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",",
+                "  \"maximum\": 10.1,",
+                "  \"minimum\": 9.9,",
+                "  \"type\": \"number\"",
+                "}"
+              ]
+            ],
+            "Usage": {
+              "InputTokens": 100,
+              "OutputTokens": 50
+            }
+          },
+          "Validation": {
+            "Title": "Schema Assessment",
+            "Explanation": [
+              "item 1 does not conform to schema: data format does not meet the defined schema requirements: jsonschema validation failed with 'expected number, but got string'"
+            ],
+            "Method": "schema"
+          }
+        },
+        "DurationNS": 9000000000
       }
     ]
   }

@@ -107,6 +107,7 @@ type validationDetailsView struct {
 	ToolUsage   map[string]toolUsageView       `json:"ToolUsage,omitempty" jsonschema:"title=Tool Usage" jsonschema_description:"Aggregated execution statistics, keyed by tool name, for any tools invoked during validation."`
 	ToolCalls   []toolCallSummaryView          `json:"ToolCalls,omitempty" jsonschema:"title=Tool Calls" jsonschema_description:"A log of every individual invocation attempt made during validation, including attempts that never actually ran. Tracked separately from ToolUsage, which only reflects invocations that actually ran."`
 	Semantic    *semanticValidationDetailsView `json:"Semantic,omitempty" jsonschema:"title=Semantic Validation" jsonschema_description:"The judge's raw verdict and variant provenance, present only when validation was performed by an LLM judge."`
+	Method      string                         `json:"Method,omitempty" jsonschema:"title=Validation Method,enum=exact,enum=schema,enum=semantic" jsonschema_description:"The validation method used: exact (canonical value matching), schema (raw candidate answer validated against the single expected-result JSON Schema without canonicalization; $schema optional, defaults to Draft 2020-12; normalization flags ignored), or semantic (LLM judge)."`
 }
 
 // semanticValidationDetailsView is the view model for runners.SemanticValidationDetails.
@@ -267,9 +268,10 @@ func newValidationDetailsView(v runners.ValidationDetails) *validationDetailsVie
 		ToolUsage:   newToolUsageMapView(v.ToolUsage),
 		ToolCalls:   newToolCallSummaryViews(v.ToolCalls),
 		Semantic:    newSemanticValidationDetailsView(v.Semantic),
+		Method:      string(v.Method),
 	}
 	if rv.Title == "" && len(rv.Explanation) == 0 && rv.Usage == nil && len(rv.ToolUsage) == 0 &&
-		len(rv.ToolCalls) == 0 && rv.Semantic == nil {
+		len(rv.ToolCalls) == 0 && rv.Semantic == nil && rv.Method == "" {
 		return nil
 	}
 	return &rv
@@ -522,6 +524,7 @@ func fromDetailsView(d detailsView) runners.Details {
 			ToolUsage:   fromToolUsageMapView(d.Validation.ToolUsage),
 			ToolCalls:   fromToolCallSummaryViews(d.Validation.ToolCalls),
 			Semantic:    fromSemanticValidationDetailsView(d.Validation.Semantic),
+			Method:      runners.ValidationMethod(d.Validation.Method),
 		}
 	}
 	if d.Error != nil {

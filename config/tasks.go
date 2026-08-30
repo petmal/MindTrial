@@ -325,9 +325,28 @@ func (o TaskConfig) Validate() error {
 func (o TaskConfig) validateTask(task Task) error {
 	resolvedValidationRules := o.ValidationRules.MergeWith(task.ValidationRules)
 
-	// Validate task response format and expected results.
-	if err := validateFormatAndExpectedResults(task.ResponseResultFormat, task.ExpectedResult, resolvedValidationRules.UseJudge(), "response-result-format", "expected-result"); err != nil {
-		return err
+	if resolvedValidationRules.UseSchemaValidation() && resolvedValidationRules.UseJudge() {
+		return fmt.Errorf("%w: schema-validation and judge validation are mutually exclusive", ErrInvalidTaskProperty)
+	}
+
+	if resolvedValidationRules.UseSchemaValidation() {
+		// Validate response-result-format on its own.
+		if err := validateFormatAndExpectedResults(task.ResponseResultFormat, utils.NewValueSet(), false, "response-result-format", "expected-result"); err != nil {
+			return err
+		}
+		// Require exactly one object as expected-result.
+		schema, ok := task.ExpectedResult.AsObject()
+		if !ok {
+			return fmt.Errorf("%w: when schema-validation is enabled, expected-result must contain exactly one JSON Schema object", ErrInvalidTaskProperty)
+		}
+		if err := utils.ValidateAgainstSchema(schema); err != nil {
+			return fmt.Errorf("%w: expected-result contains an invalid JSON schema: %v", ErrInvalidTaskProperty, err)
+		}
+	} else {
+		// Validate task response format and expected results.
+		if err := validateFormatAndExpectedResults(task.ResponseResultFormat, task.ExpectedResult, resolvedValidationRules.UseJudge(), "response-result-format", "expected-result"); err != nil {
+			return err
+		}
 	}
 
 	// Validate judge prompt configuration.
@@ -374,17 +393,14 @@ func (o TaskConfig) validateTask(task Task) error {
 	return nil
 }
 
-// ExplicitSchema detects whether an expected utils.ValueSet (e.g. a judge's
-// passing-verdicts, or a task's expected-result) specifies an explicit JSON Schema rather
-// than literal value(s) to be matched exactly: a single object value containing a
-// nonblank "$schema" field. Returns the schema and true if so, or (nil, false) otherwise.
+// ExplicitSchema detects whether a judge's passing-verdicts specifies an explicit
+// JSON Schema rather than literal value(s) to be matched exactly: a single object
+// value containing a nonblank "$schema" field. Returns the schema and true if so,
+// or (nil, false) otherwise. Task expected-result schema validation is selected
+// explicitly via validation-rules.schema-validation, not via this discriminator.
 func ExplicitSchema(expected utils.ValueSet) (schema map[string]interface{}, ok bool) {
-	values := expected.Values()
-	if len(values) != 1 {
-		return nil, false
-	}
-	m, isMap := values[0].(map[string]interface{})
-	if !isMap {
+	m, ok := expected.AsObject()
+	if !ok {
 		return nil, false
 	}
 	schemaField, hasSchemaField := m["$schema"].(string)
@@ -903,6 +919,11 @@ type ValidationRules struct {
 	// before comparison.
 	TrimLines *bool `yaml:"trim-lines" validate:"omitempty"`
 
+	// SchemaValidation determines whether expected-result should be interpreted as a JSON Schema.
+	// When true, the single expected-result object is validated as a JSON Schema and the raw
+	// candidate answer is validated against it.
+	SchemaValidation *bool `yaml:"schema-validation" validate:"omitempty"`
+
 	// Judge specifies the judge configuration to use for evaluation.
 	// When enabled, an LLM will be used to evaluate the correctness of the response
 	// instead of simple string matching.
@@ -929,6 +950,11 @@ func (vr ValidationRules) UseJudge() bool {
 	return vr.Judge.IsEnabled()
 }
 
+// UseSchemaValidation returns whether schema validation is enabled.
+func (vr ValidationRules) UseSchemaValidation() bool {
+	return vr.SchemaValidation != nil && *vr.SchemaValidation
+}
+
 // MergeWith merges these validation rules with other rules and returns the result.
 // The provided other values override these values if set.
 func (these ValidationRules) MergeWith(other *ValidationRules) ValidationRules {
@@ -938,6 +964,7 @@ func (these ValidationRules) MergeWith(other *ValidationRules) ValidationRules {
 		setIfNotNil(&resolved.CaseSensitive, other.CaseSensitive)
 		setIfNotNil(&resolved.IgnoreWhitespace, other.IgnoreWhitespace)
 		setIfNotNil(&resolved.TrimLines, other.TrimLines)
+		setIfNotNil(&resolved.SchemaValidation, other.SchemaValidation)
 
 		resolved.Judge = resolved.Judge.MergeWith(other.Judge)
 	}

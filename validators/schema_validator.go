@@ -9,6 +9,7 @@ package validators
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/petmal/mindtrial/config"
@@ -67,13 +68,9 @@ func validateAgainstSchema(schema map[string]interface{}, value interface{}) (bo
 	return true, nil
 }
 
-// schemaValidator validates responses against expected value(s), supporting an explicit
-// JSON Schema (config.ExplicitSchema) as an alternative to exact matching, so a task's
-// expected-result can describe valid structured output declaratively instead of requiring
-// an exact field-by-field match.
-//
-// Not currently registered in Factory/exposed via task configuration; reserved for a
-// future commit that lets tasks opt into schema-based expected-result matching.
+// schemaValidator validates responses against a single expected JSON Schema.
+// The expected ValueSet must contain exactly one object (the schema); the raw
+// candidate answer is validated against it without any canonicalization.
 type schemaValidator struct{}
 
 // schemaValidatorInstance is a singleton instance of schemaValidator since it has no state.
@@ -81,34 +78,38 @@ var schemaValidatorInstance = sync.OnceValue(func() Validator {
 	return &schemaValidator{}
 })
 
-// NewSchemaValidator returns a new Validator that checks results by exact matching or,
-// when the expected value is an explicit JSON Schema, by schema conformance.
+// NewSchemaValidator returns a new Validator that validates the candidate answer
+// against the single expected JSON Schema.
 func NewSchemaValidator() Validator {
 	return schemaValidatorInstance()
 }
 
-func (v schemaValidator) IsCorrect(_ context.Context, _ logging.Logger, rules config.ValidationRules, expected utils.ValueSet, actual providers.Result, _ string, _ config.ResponseFormat) (ValidationResult, error) {
-	isCorrect, err := GradeVerdict(rules, expected, actual.GetFinalAnswerContent())
-	if err != nil {
-		return ValidationResult{}, err
+func (v schemaValidator) IsCorrect(_ context.Context, _ logging.Logger, _ config.ValidationRules, expected utils.ValueSet, actual providers.Result, _ string, _ config.ResponseFormat) (ValidationResult, error) {
+	schema, ok := expected.AsObject()
+	if !ok {
+		return ValidationResult{}, fmt.Errorf("%w: schema validation requires exactly one JSON Schema object as expected-result", ErrUnsupportedResponseFormatValidation)
 	}
 
-	var explanation string
-	if isCorrect {
-		explanation = "Response matches one of the accepted answers."
-	} else {
-		explanation = "Response does not match any of the accepted answers."
+	err := utils.ValidateAgainstSchema(schema, actual.GetFinalAnswerContent())
+	if err == nil {
+		return ValidationResult{
+			IsCorrect:   true,
+			Title:       "Schema Assessment",
+			Explanation: "Response conforms to the expected schema.",
+		}, nil
 	}
-
-	return ValidationResult{
-		IsCorrect:   isCorrect,
-		Title:       "Response Assessment",
-		Explanation: explanation,
-	}, nil
+	if errors.Is(err, utils.ErrJSONSchemaValidation) {
+		return ValidationResult{
+			IsCorrect:   false,
+			Title:       "Schema Assessment",
+			Explanation: err.Error(),
+		}, nil
+	}
+	return ValidationResult{}, err
 }
 
-func (v schemaValidator) ToCanonical(rules config.ValidationRules, value interface{}) interface{} {
-	return canonicalizeValue(rules, value)
+func (v schemaValidator) ToCanonical(_ config.ValidationRules, value interface{}) interface{} {
+	return value
 }
 
 func (v schemaValidator) GetName() string {

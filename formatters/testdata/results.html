@@ -1811,6 +1811,42 @@
                         <td><time itemprop="observationPeriod" datetime="PT314.159S">5m14.159s</time>
                         </td>
                     </tr>
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-schema-failure" data-passed="0" data-failed="1" data-error="0" data-skipped="0" data-passrate="0.00" data-accuracy="0.00" data-errorrate="0.00" data-duration="9000">
+                        <td>
+                            <input type="checkbox" class="run-compare-checkbox" data-provider="provider-name" data-run="run-schema-failure" title="Select for comparison">
+                        </td>
+                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name">
+                            <span itemprop="name">provider-name</span>
+                        </td>
+                        <td itemprop="identifier" class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-schema-failure" title="Filter by run: run-schema-failure">run-schema-failure</td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Passed"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Failed"><span itemprop="value">1</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Skipped"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Pass Rate (%)"><meta itemprop="unitText" content="%"><span itemprop="value">0.00</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Accuracy (%)"><meta itemprop="unitText" content="%"><span itemprop="value">0.00</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error Rate (%)"><meta itemprop="unitText" content="%"><span itemprop="value">0.00</span></td>
+                        <td><time itemprop="observationPeriod" datetime="PT9.000S">9s</time>
+                        </td>
+                    </tr>
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-schema-success" data-passed="1" data-failed="0" data-error="0" data-skipped="0" data-passrate="100.00" data-accuracy="100.00" data-errorrate="0.00" data-duration="12000">
+                        <td>
+                            <input type="checkbox" class="run-compare-checkbox" data-provider="provider-name" data-run="run-schema-success" title="Select for comparison">
+                        </td>
+                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name">
+                            <span itemprop="name">provider-name</span>
+                        </td>
+                        <td itemprop="identifier" class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-schema-success" title="Filter by run: run-schema-success">run-schema-success</td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Passed"><span itemprop="value">1</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Failed"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Skipped"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Pass Rate (%)"><meta itemprop="unitText" content="%"><span itemprop="value">100.00</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Accuracy (%)"><meta itemprop="unitText" content="%"><span itemprop="value">100.00</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error Rate (%)"><meta itemprop="unitText" content="%"><span itemprop="value">0.00</span></td>
+                        <td><time itemprop="observationPeriod" datetime="PT12.000S">12s</time>
+                        </td>
+                    </tr>
                     <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-structured-failure" data-passed="0" data-failed="1" data-error="0" data-skipped="0" data-passrate="0.00" data-accuracy="0.00" data-errorrate="0.00" data-duration="38000">
                         <td>
                             <input type="checkbox" class="run-compare-checkbox" data-provider="provider-name" data-run="run-structured-failure" title="Select for comparison">
@@ -2024,6 +2060,8 @@
                                     <option value="run-failure-multiple-answers">run-failure-multiple-answers</option>
                                     <option value="run-not-supported">run-not-supported</option>
                                     <option value="run-parsing-error">run-parsing-error</option>
+                                    <option value="run-schema-failure">run-schema-failure</option>
+                                    <option value="run-schema-success">run-schema-success</option>
                                     <option value="run-structured-failure">run-structured-failure</option>
                                     <option value="run-structured-success">run-structured-success</option>
                                     <option value="run-success">run-success</option>
@@ -2852,6 +2890,152 @@ Context: within object literal
                             </div>
                             <div class="details-icons">
                                 <button class="icon-btn" onclick="copyTraceID('01JEDE7Z8X0000000000000010', this)" title="Copy Trace ID: 01JEDE7Z8X0000000000000010" aria-label="Copy Trace ID">📋</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="run-provider-name-run-schema-success-task-name" itemscope itemtype="https://schema.org/Question" data-provider="provider-name" data-run="run-schema-success" data-task="task-name" data-status="passed" data-duration="12000" data-suite="" data-category="" data-difficulty="" data-tags="[]">
+                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name"><span itemprop="name">provider-name</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-schema-success" title="Filter by run: run-schema-success"><span itemprop="identifier">run-schema-success</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="task" data-filter-value="task-name" title="Filter by task: task-name"><span itemprop="name">task-name</span></td>
+                        <td class="status-passed clickable-filter clickable" data-filter-type="status" data-filter-value="passed" title="Filter by status: Passed">
+                            <span itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty">
+                                <meta itemprop="name" content="status">
+                                <span itemprop="value">Passed</span>
+                            </span>
+                        </td>
+                        <td><time itemprop="timeRequired" datetime="PT12.000S">12s</time>
+                        </td>
+                        <td class="details-cell">
+                            <ol class="answer-list single">
+                                <li><pre>10</pre></li>
+                            </ol>
+                        </td>
+                        <td class="details-toggle-cell">
+                            <button class="details" onclick="toggleDetails('details-run-provider-name-run-schema-success-task-name', this)" aria-expanded="false" aria-controls="details-run-provider-name-run-schema-success-task-name">Show Details</button>
+                            <div id="details-run-provider-name-run-schema-success-task-name" class="details-content">
+                                <section class="section-answer">
+                                    <div itemscope itemtype="https://schema.org/Answer" itemprop="suggestedAnswer" itemref="validation-run-provider-name-run-schema-success-task-name">
+                                        <h4 itemprop="name">Schema Assessment</h4>
+                                        <details class="explanation" open itemprop="answerExplanation" itemscope itemtype="https://schema.org/Comment">
+                                            <summary>Answer Explanation</summary>
+                                            <div class="explanation-body" style="margin-top:0.5em;" itemprop="text">
+                                                <p class="para">Response conforms to the expected schema.</p>
+                                            </div>
+                                        </details>
+                                        <details open>
+                                            <summary>Actual Answer</summary>
+                                            <ol style="margin:0.5em 0 0 1.2em; list-style:none; padding:0;">
+                                                <li style="margin:0;">
+                                                    <pre><code itemprop="text">10
+</code></pre>
+                                                </li>
+                                            </ol>
+                                        </details>
+                                    </div>
+                                    <details>
+                                        <summary>Expected Result Schema</summary>
+                                        <ol class="expected-answers" style="margin:0.5em 0 0 1.2em; padding:0;">
+                                            <li itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer"><pre><code itemprop="text">{
+  &#34;$schema&#34;: &#34;https://json-schema.org/draft/2020-12/schema&#34;,
+  &#34;maximum&#34;: 10.1,
+  &#34;minimum&#34;: 9.9,
+  &#34;type&#34;: &#34;number&#34;
+}
+</code></pre></li>
+                                        </ol>
+                                    </details>
+                                        <details>
+                                            <summary>Token Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;">
+                                                <dt>Input</dt><dd>100</dd>
+                                                <dt>Output</dt><dd>50</dd>
+                                            </dl>
+                                        </details>
+                                </section>
+                                <section id="validation-run-provider-name-run-schema-success-task-name" class="section-validation" itemscope itemtype="https://schema.org/Comment" itemprop="comment">
+                                    <h4>Schema Assessment</h4>
+                                    <details class="explanation" open>
+                                        <summary>Validation Explanation</summary>
+                                        <pre style="margin-top:0.5em;"><code itemprop="text">Response conforms to the expected schema.
+</code></pre>
+                                    </details>
+                                </section>
+                            </div>
+                            <div class="details-icons">
+                                <button class="icon-btn" onclick="copyTraceID('01JEDE7Z8X0000000000000011', this)" title="Copy Trace ID: 01JEDE7Z8X0000000000000011" aria-label="Copy Trace ID">📋</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="run-provider-name-run-schema-failure-task-name" itemscope itemtype="https://schema.org/Question" data-provider="provider-name" data-run="run-schema-failure" data-task="task-name" data-status="failed" data-duration="9000" data-suite="" data-category="" data-difficulty="" data-tags="[]">
+                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name"><span itemprop="name">provider-name</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-schema-failure" title="Filter by run: run-schema-failure"><span itemprop="identifier">run-schema-failure</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="task" data-filter-value="task-name" title="Filter by task: task-name"><span itemprop="name">task-name</span></td>
+                        <td class="status-failed clickable-filter clickable" data-filter-type="status" data-filter-value="failed" title="Filter by status: Failed">
+                            <span itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty">
+                                <meta itemprop="name" content="status">
+                                <span itemprop="value">Failed</span>
+                            </span>
+                        </td>
+                        <td><time itemprop="timeRequired" datetime="PT9.000S">9s</time>
+                        </td>
+                        <td class="details-cell">
+                            <ol class="answer-list single">
+                                <li><pre>not-a-number</pre></li>
+                            </ol>
+                        </td>
+                        <td class="details-toggle-cell">
+                            <button class="details" onclick="toggleDetails('details-run-provider-name-run-schema-failure-task-name', this)" aria-expanded="false" aria-controls="details-run-provider-name-run-schema-failure-task-name">Show Details</button>
+                            <div id="details-run-provider-name-run-schema-failure-task-name" class="details-content">
+                                <section class="section-answer">
+                                    <div itemscope itemtype="https://schema.org/Answer" itemprop="suggestedAnswer" itemref="validation-run-provider-name-run-schema-failure-task-name">
+                                        <h4 itemprop="name">Schema Assessment</h4>
+                                        <details class="explanation" open itemprop="answerExplanation" itemscope itemtype="https://schema.org/Comment">
+                                            <summary>Answer Explanation</summary>
+                                            <div class="explanation-body" style="margin-top:0.5em;" itemprop="text">
+                                                <p class="para">Response does not conform to the expected schema.</p>
+                                            </div>
+                                        </details>
+                                        <details open>
+                                            <summary>Actual Answer</summary>
+                                            <ol style="margin:0.5em 0 0 1.2em; list-style:none; padding:0;">
+                                                <li style="margin:0;">
+                                                    <pre><code itemprop="text">not-a-number
+</code></pre>
+                                                </li>
+                                            </ol>
+                                        </details>
+                                    </div>
+                                    <details>
+                                        <summary>Expected Result Schema</summary>
+                                        <ol class="expected-answers" style="margin:0.5em 0 0 1.2em; padding:0;">
+                                            <li itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer"><pre><code itemprop="text">{
+  &#34;$schema&#34;: &#34;https://json-schema.org/draft/2020-12/schema&#34;,
+  &#34;maximum&#34;: 10.1,
+  &#34;minimum&#34;: 9.9,
+  &#34;type&#34;: &#34;number&#34;
+}
+</code></pre></li>
+                                        </ol>
+                                    </details>
+                                        <details>
+                                            <summary>Token Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;">
+                                                <dt>Input</dt><dd>100</dd>
+                                                <dt>Output</dt><dd>50</dd>
+                                            </dl>
+                                        </details>
+                                </section>
+                                <section id="validation-run-provider-name-run-schema-failure-task-name" class="section-validation" itemscope itemtype="https://schema.org/Comment" itemprop="comment">
+                                    <h4>Schema Assessment</h4>
+                                    <details class="explanation" open>
+                                        <summary>Validation Explanation</summary>
+                                        <pre style="margin-top:0.5em;"><code itemprop="text">item 1 does not conform to schema: data format does not meet the defined schema requirements: jsonschema validation failed with &#39;expected number, but got string&#39;
+</code></pre>
+                                    </details>
+                                </section>
+                            </div>
+                            <div class="details-icons">
+                                <button class="icon-btn" onclick="copyTraceID('01JEDE7Z8X0000000000000012', this)" title="Copy Trace ID: 01JEDE7Z8X0000000000000012" aria-label="Copy Trace ID">📋</button>
                             </div>
                         </td>
                     </tr></tbody>

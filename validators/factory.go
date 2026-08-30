@@ -15,7 +15,10 @@ import (
 	"github.com/petmal/mindtrial/config"
 )
 
-const valueMatchValidatorCacheKey = "value_match_validator"
+const (
+	valueMatchValidatorCacheKey = "value_match_validator"
+	schemaValidatorCacheKey     = "schema_validator"
+)
 
 var (
 	// ErrJudgeNotFound is returned when a judge configuration is not found.
@@ -67,11 +70,14 @@ func (f *Factory) createJudgeCacheKey(judge config.JudgeSelector) string {
 	return fmt.Sprintf("judge_%s_%s", judge.GetName(), judge.GetVariant())
 }
 
-// GetValidator returns a validator for the given judge selector.
-// If judge is enabled, returns a cached judge validator; otherwise returns a value match validator.
-func (f *Factory) GetValidator(ctx context.Context, judge config.JudgeSelector) (Validator, error) {
-	if judge.IsEnabled() {
-		return f.getJudgeValidator(ctx, judge)
+// GetValidator returns a validator for the given validation rules.
+// Selection: judge -> JudgeValidator, schema-validation -> SchemaValidator, otherwise ValueMatchValidator.
+func (f *Factory) GetValidator(ctx context.Context, rules config.ValidationRules) (Validator, error) {
+	if rules.UseJudge() {
+		return f.getJudgeValidator(ctx, rules.Judge)
+	}
+	if rules.UseSchemaValidation() {
+		return f.getSchemaValidator(), nil
 	}
 	return f.getValueMatchValidator(), nil
 }
@@ -90,6 +96,16 @@ func (f *Factory) getValueMatchValidator() Validator {
 
 	validator := NewValueMatchValidator()
 	actual, _ := f.cache.LoadOrStore(valueMatchValidatorCacheKey, validator)
+	return actual.(Validator)
+}
+
+func (f *Factory) getSchemaValidator() Validator {
+	if validator, exists := f.cache.Load(schemaValidatorCacheKey); exists {
+		return validator.(Validator)
+	}
+
+	validator := NewSchemaValidator()
+	actual, _ := f.cache.LoadOrStore(schemaValidatorCacheKey, validator)
 	return actual.(Validator)
 }
 

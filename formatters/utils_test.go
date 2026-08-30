@@ -398,6 +398,32 @@ func TestFormatAnswer(t *testing.T) {
 			useHTML: false,
 			want:    []string{"Skipped output"},
 		},
+		{
+			name: "schema failure without HTML shows raw answer",
+			result: runners.RunResult{
+				Kind: runners.Failure,
+				Want: utils.NewValueSet(map[string]interface{}{"type": "number", "minimum": 9.9}),
+				Got:  "not-a-number",
+				Details: runners.Details{
+					Validation: runners.ValidationDetails{Method: runners.ValidationMethodSchema},
+				},
+			},
+			useHTML: false,
+			want:    []string{"not-a-number"},
+		},
+		{
+			name: "schema failure with HTML shows raw answer wrapped in pre",
+			result: runners.RunResult{
+				Kind: runners.Failure,
+				Want: utils.NewValueSet(map[string]interface{}{"type": "number", "minimum": 9.9}),
+				Got:  "not-a-number",
+				Details: runners.Details{
+					Validation: runners.ValidationDetails{Method: runners.ValidationMethodSchema},
+				},
+			},
+			useHTML: true,
+			want:    []string{"<pre>not-a-number</pre>"},
+		},
 	}
 
 	for _, tt := range tests {

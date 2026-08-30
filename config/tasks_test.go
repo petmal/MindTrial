@@ -410,7 +410,7 @@ func TestTaskFile_Content(t *testing.T) {
 }
 
 func createMockTaskFile(t *testing.T, uri string, mimeType string) (taskFile TaskFile) {
-	require.NoError(t, yaml.Unmarshal([]byte(fmt.Sprintf("name: %s\nuri: %s\ntype: %s", uri, uri, mimeType)), &taskFile))
+	require.NoError(t, yaml.Unmarshal(fmt.Appendf(nil, "name: %s\nuri: %s\ntype: %s", uri, uri, mimeType), &taskFile))
 	return taskFile
 }
 
@@ -1017,6 +1017,107 @@ func TestValidationRules_UseJudge(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, tt.rules.UseJudge())
+		})
+	}
+}
+
+func TestValidationRules_UseSchemaValidation(t *testing.T) {
+	tests := []struct {
+		name  string
+		rules ValidationRules
+		want  bool
+	}{
+		{
+			name:  "nil schema validation - default false",
+			rules: ValidationRules{},
+			want:  false,
+		},
+		{
+			name: "explicitly schema validation true",
+			rules: ValidationRules{
+				SchemaValidation: testutils.Ptr(true),
+			},
+			want: true,
+		},
+		{
+			name: "explicitly schema validation false",
+			rules: ValidationRules{
+				SchemaValidation: testutils.Ptr(false),
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.rules.UseSchemaValidation())
+		})
+	}
+}
+
+func TestValidationRules_MergeWith_SchemaValidation(t *testing.T) {
+	tests := []struct {
+		name     string
+		base     ValidationRules
+		other    *ValidationRules
+		expected ValidationRules
+	}{
+		{
+			name: "nil other preserves base schema-validation",
+			base: ValidationRules{
+				SchemaValidation: testutils.Ptr(true),
+			},
+			other: nil,
+			expected: ValidationRules{
+				SchemaValidation: testutils.Ptr(true),
+			},
+		},
+		{
+			name: "other overrides base schema-validation",
+			base: ValidationRules{
+				SchemaValidation: testutils.Ptr(true),
+			},
+			other: &ValidationRules{
+				SchemaValidation: testutils.Ptr(false),
+			},
+			expected: ValidationRules{
+				SchemaValidation: testutils.Ptr(false),
+			},
+		},
+		{
+			name: "other sets when base is empty",
+			base: ValidationRules{},
+			other: &ValidationRules{
+				SchemaValidation: testutils.Ptr(true),
+			},
+			expected: ValidationRules{
+				SchemaValidation: testutils.Ptr(true),
+			},
+		},
+		{
+			name: "schema-validation merged alongside judge and normalization flags",
+			base: ValidationRules{
+				CaseSensitive:    testutils.Ptr(false),
+				SchemaValidation: testutils.Ptr(false),
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(false),
+				},
+			},
+			other: &ValidationRules{
+				SchemaValidation: testutils.Ptr(true),
+			},
+			expected: ValidationRules{
+				CaseSensitive:    testutils.Ptr(false),
+				SchemaValidation: testutils.Ptr(true),
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(false),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.base.MergeWith(tt.other)
+			assert.Equal(t, tt.expected, result)
 		})
 	}
 }
@@ -2596,6 +2697,215 @@ func TestValidateTaskConfiguration(t *testing.T) {
 		err := taskConfig.Validate()
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "judge passing-verdicts contains an invalid JSON schema")
+	})
+
+	t.Run("valid - schema-validation without $schema defaults to Draft 2020-12", func(t *testing.T) {
+		task := Task{
+			Name:                 "test",
+			Prompt:               "Pick a number between 9.9 and 10.1",
+			ResponseResultFormat: NewResponseFormat("a single number"),
+			ExpectedResult: utils.NewValueSet(map[string]interface{}{
+				"type":    "number",
+				"minimum": 9.9,
+				"maximum": 10.1,
+			}),
+			ValidationRules: &ValidationRules{
+				SchemaValidation: testutils.Ptr(true),
+			},
+		}
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		assert.NoError(t, err)
+	})
+
+	t.Run("valid - schema-validation with structured response-result-format", func(t *testing.T) {
+		schema := map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"answer": map[string]interface{}{"type": "string"},
+			},
+			"required": []interface{}{"answer"},
+		}
+		task := Task{
+			Name:                 "test",
+			Prompt:               "Return JSON",
+			ResponseResultFormat: NewResponseFormat(schema),
+			ExpectedResult: utils.NewValueSet(map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"answer": map[string]interface{}{"type": "string", "minLength": 1},
+				},
+				"required": []interface{}{"answer"},
+			}),
+			ValidationRules: &ValidationRules{
+				SchemaValidation: testutils.Ptr(true),
+			},
+		}
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		assert.NoError(t, err)
+	})
+
+	t.Run("valid - $schema literal without schema-validation flag is deep-match", func(t *testing.T) {
+		task := Task{
+			Name:   "test",
+			Prompt: "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat(map[string]interface{}{
+				"type": "object",
+			}),
+			ExpectedResult: utils.NewValueSet(map[string]interface{}{
+				"$schema": "https://json-schema.org/draft/2020-12/schema",
+				"type":    "number",
+			}),
+		}
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		assert.NoError(t, err)
+	})
+
+	t.Run("valid - schema-validation with normalization flags is allowed (ignored at runtime)", func(t *testing.T) {
+		task := Task{
+			Name:                 "test",
+			Prompt:               "Pick a number",
+			ResponseResultFormat: NewResponseFormat("number"),
+			ExpectedResult: utils.NewValueSet(map[string]interface{}{
+				"type":    "number",
+				"minimum": 1,
+			}),
+			ValidationRules: &ValidationRules{
+				CaseSensitive:    testutils.Ptr(true),
+				IgnoreWhitespace: testutils.Ptr(true),
+				TrimLines:        testutils.Ptr(true),
+				SchemaValidation: testutils.Ptr(true),
+			},
+		}
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		assert.NoError(t, err)
+	})
+
+	t.Run("invalid - schema-validation and judge mutually exclusive same level", func(t *testing.T) {
+		task := Task{
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat("Number"),
+			ExpectedResult: utils.NewValueSet(map[string]interface{}{
+				"type": "number",
+			}),
+			ValidationRules: &ValidationRules{
+				SchemaValidation: testutils.Ptr(true),
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(true),
+				},
+			},
+		}
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "schema-validation and judge validation are mutually exclusive")
+	})
+
+	t.Run("invalid - schema-validation and judge mutually exclusive via inheritance", func(t *testing.T) {
+		task := Task{
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat("Number"),
+			ExpectedResult: utils.NewValueSet(map[string]interface{}{
+				"type": "number",
+			}),
+			ValidationRules: &ValidationRules{
+				Judge: JudgeSelector{
+					Enabled: testutils.Ptr(true),
+				},
+			},
+		}
+		taskConfig := TaskConfig{
+			Tasks: []Task{task},
+			ValidationRules: ValidationRules{
+				SchemaValidation: testutils.Ptr(true),
+			},
+		}
+		err := taskConfig.Validate()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "schema-validation and judge validation are mutually exclusive")
+	})
+
+	t.Run("invalid - schema-validation with scalar expected-result", func(t *testing.T) {
+		task := Task{
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat("Number"),
+			ExpectedResult:       utils.NewValueSet("4"),
+			ValidationRules: &ValidationRules{
+				SchemaValidation: testutils.Ptr(true),
+			},
+		}
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "when schema-validation is enabled, expected-result must contain exactly one JSON Schema object")
+	})
+
+	t.Run("invalid - schema-validation with multiple expected-result values", func(t *testing.T) {
+		task := Task{
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat("Number"),
+			ExpectedResult: utils.NewValueSet(
+				map[string]interface{}{"type": "number"},
+				map[string]interface{}{"type": "string"},
+			),
+			ValidationRules: &ValidationRules{
+				SchemaValidation: testutils.Ptr(true),
+			},
+		}
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "when schema-validation is enabled, expected-result must contain exactly one JSON Schema object")
+	})
+
+	t.Run("invalid - schema-validation with malformed schema", func(t *testing.T) {
+		task := Task{
+			Name:                 "test",
+			Prompt:               "What is 2+2?",
+			ResponseResultFormat: NewResponseFormat("Number"),
+			ExpectedResult: utils.NewValueSet(map[string]interface{}{
+				"type":       "object",
+				"properties": "this_should_be_an_object_not_a_string",
+			}),
+			ValidationRules: &ValidationRules{
+				SchemaValidation: testutils.Ptr(true),
+			},
+		}
+		taskConfig := TaskConfig{
+			Tasks:           []Task{task},
+			ValidationRules: ValidationRules{},
+		}
+		err := taskConfig.Validate()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "expected-result contains an invalid JSON schema")
 	})
 }
 

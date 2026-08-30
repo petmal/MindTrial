@@ -527,3 +527,67 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details,Suite,Category,Diffic
     }
   }
 }",,,,
+01JEDE7Z8X0000000000000011,provider-name,run-schema-success,task-name,Passed,12000,10,"{
+  ""Answer"": {
+    ""Title"": ""Schema Assessment"",
+    ""Explanation"": [
+      ""Response conforms to the expected schema.""
+    ],
+    ""ActualAnswer"": [
+      ""10""
+    ],
+    ""ExpectedAnswer"": [
+      [
+        ""{"",
+        ""  \""$schema\"": \""https://json-schema.org/draft/2020-12/schema\"","",
+        ""  \""maximum\"": 10.1,"",
+        ""  \""minimum\"": 9.9,"",
+        ""  \""type\"": \""number\"""",
+        ""}""
+      ]
+    ],
+    ""Usage"": {
+      ""InputTokens"": 100,
+      ""OutputTokens"": 50
+    }
+  },
+  ""Validation"": {
+    ""Title"": ""Schema Assessment"",
+    ""Explanation"": [
+      ""Response conforms to the expected schema.""
+    ],
+    ""Method"": ""schema""
+  }
+}",,,,
+01JEDE7Z8X0000000000000012,provider-name,run-schema-failure,task-name,Failed,9000,not-a-number,"{
+  ""Answer"": {
+    ""Title"": ""Schema Assessment"",
+    ""Explanation"": [
+      ""Response does not conform to the expected schema.""
+    ],
+    ""ActualAnswer"": [
+      ""not-a-number""
+    ],
+    ""ExpectedAnswer"": [
+      [
+        ""{"",
+        ""  \""$schema\"": \""https://json-schema.org/draft/2020-12/schema\"","",
+        ""  \""maximum\"": 10.1,"",
+        ""  \""minimum\"": 9.9,"",
+        ""  \""type\"": \""number\"""",
+        ""}""
+      ]
+    ],
+    ""Usage"": {
+      ""InputTokens"": 100,
+      ""OutputTokens"": 50
+    }
+  },
+  ""Validation"": {
+    ""Title"": ""Schema Assessment"",
+    ""Explanation"": [
+      ""item 1 does not conform to schema: data format does not meet the defined schema requirements: jsonschema validation failed with 'expected number, but got string'""
+    ],
+    ""Method"": ""schema""
+  }
+}",,,,

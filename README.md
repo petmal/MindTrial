@@ -812,7 +812,8 @@ You can set validation rules globally for all tasks in the `task-config` section
   - **case-sensitive**: If `true`, comparison is case-sensitive. If `false` (default), comparison ignores case.
   - **ignore-whitespace**: If `true`, all whitespace (spaces, tabs, newlines) is removed before comparison. If `false` (default), only leading/trailing whitespace is trimmed, and internal whitespace is preserved.
   - **trim-lines**: If `true`, trims leading and trailing whitespace from each line before comparison while preserving internal spaces within lines. CRLF line endings are normalized to LF. This option is ignored when `ignore-whitespace` is enabled. If `false` (default), lines are not individually trimmed.
-  - **judge**: Optional configuration for LLM-based semantic validation instead of exact value matching.
+  - **schema-validation**: If `true`, validates the raw candidate answer against the single `expected-result` JSON Schema. See [Schema-Based Validation](#schema-based-validation) for details. Mutually exclusive with `judge`.
+  - **judge**: Optional LLM-based semantic validation. See [Judge-Based Validation](#judge-based-validation) for details. Mutually exclusive with `schema-validation`.
     - **enabled**: If `true`, uses an LLM judge to evaluate semantic equivalence. If `false` (default), uses exact value matching.
     - **name**: The name of the judge configuration defined in the `config.yaml` file.
     - **variant**: The specific run variant from the judge's provider to use.
@@ -912,6 +913,108 @@ To use judge validation:
               variant: "reasoning"  # Override: use reasoning run variant instead of fast.
               # Inherits name: "mistral-judge" from global config.
     ```
+
+#### Schema-Based Validation
+
+For tasks where exact value matching is too strict but an LLM judge is unnecessary, you can validate responses against a JSON Schema. This is particularly useful for numeric ranges, tolerances, bounding boxes, or any structured output where the set of acceptable answers is better expressed as constraints.
+
+**How it works:** Instead of comparing the candidate answer to literal expected values, the raw candidate answer is validated directly against the single `expected-result` JSON Schema without canonicalization, normalization, or type coercion. The schema's `$schema` is optional and defaults to Draft 2020-12; normalization flags (`case-sensitive`, `ignore-whitespace`, `trim-lines`) are ignored and the mode is mutually exclusive with `judge`.
+
+> [!IMPORTANT]
+> Schema validation performs no type coercion. A plain-text `response-result-format` always produces a string, so its `expected-result` schema must accept strings (e.g., `type: string` with `pattern`). A schema with `type: number` will not match the string `"10"` — use a structured `response-result-format` such as `type: number` when you need numeric validation.
+
+To use schema validation, enable it in `tasks.yaml`:
+
+```yaml
+# Simple range — any number between 9.9 and 10.1 is accepted.
+task-config:
+  tasks:
+    - name: "numeric range"
+      prompt: "Pick a number between 9.9 and 10.1"
+      response-result-format:
+        type: number
+      validation-rules:
+        schema-validation: true
+      expected-result:
+        $schema: "https://json-schema.org/draft/2020-12/schema"
+        type: number
+        minimum: 9.9
+        maximum: 10.1
+```
+
+Plain-text responses can still use schema validation — the schema just needs to describe a string:
+
+```yaml
+- name: "hex colour"
+  prompt: "Return a six-digit hexadecimal colour starting with #"
+  response-result-format: "a six-digit hexadecimal colour starting with #"
+  validation-rules:
+    schema-validation: true
+  expected-result:
+    $schema: "https://json-schema.org/draft/2020-12/schema"
+    type: string
+    pattern: "^#[0-9A-Fa-f]{6}$"
+```
+
+When the model is asked to produce structured JSON, `response-result-format` and the validator schema are distinct — the former is sent to the model, the latter is evaluator-only:
+
+```yaml
+- name: locate-object
+  prompt: >
+    Locate the red object in the image and return its normalized
+    bounding box.
+
+  response-result-format:
+    type: object
+    properties:
+      x:
+        type: number
+        minimum: 0
+        maximum: 1
+      y:
+        type: number
+        minimum: 0
+        maximum: 1
+      width:
+        type: number
+        minimum: 0
+        maximum: 1
+      height:
+        type: number
+        minimum: 0
+        maximum: 1
+    required: [x, y, width, height]
+    additionalProperties: false
+
+  expected-result:
+    $schema: "https://json-schema.org/draft/2020-12/schema"
+    type: object
+    properties:
+      x:
+        type: number
+        minimum: 0.31
+        maximum: 0.35
+      y:
+        type: number
+        minimum: 0.42
+        maximum: 0.46
+      width:
+        type: number
+        minimum: 0.19
+        maximum: 0.23
+      height:
+        type: number
+        minimum: 0.27
+        maximum: 0.31
+    required: [x, y, width, height]
+    additionalProperties: false
+
+  validation-rules:
+    schema-validation: true
+```
+
+> [!TIP]
+> Use `anyOf`/`oneOf`/`allOf`/`enum` inside the single schema to express alternatives instead of multiple outer `expected-result` values. A literal object containing `$schema` without `schema-validation: true` is still compared via standard value matching — the canonical values are compared exactly (e.g., when the model was asked to generate a schema).
 
 #### Judge Prompt Customization
 

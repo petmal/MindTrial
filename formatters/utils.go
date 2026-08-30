@@ -135,7 +135,8 @@ func Percent(rate float64) float64 {
 }
 
 // FormatAnswer formats the result of a runner based on its kind and the specified output format.
-// For failures, it generates a diff between expected and actual outputs.
+// For failures, it generates a diff between expected and actual outputs, except for
+// schema validation failures where the raw answer is shown instead.
 // The useHTML parameter controls whether diffs are formatted as HTML or plain text.
 func FormatAnswer(result runners.RunResult, useHTML bool) (answers []string) {
 	gotStr := utils.ToString(result.Got)
@@ -147,6 +148,13 @@ func FormatAnswer(result runners.RunResult, useHTML bool) (answers []string) {
 		}
 		answers = append(answers, gotStr)
 	case runners.Failure:
+		if result.Details.Validation.Method == runners.ValidationMethodSchema {
+			if useHTML {
+				gotStr = "<pre>" + gotStr + "</pre>"
+			}
+			answers = append(answers, gotStr)
+			return
+		}
 		for _, want := range result.Want.Values() {
 			wantStr := utils.ToString(want)
 			if useHTML {

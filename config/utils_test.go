@@ -2123,6 +2123,51 @@ func TestLoadTasksFromFile(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "valid file with schema-validation",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`task-config:
+    tasks:
+        - name: "numeric range"
+          prompt: "Pick a number between 9.9 and 10.1"
+          response-result-format: "a single number"
+          validation-rules:
+            schema-validation: true
+          expected-result:
+            $schema: "https://json-schema.org/draft/2020-12/schema"
+            type: number
+            minimum: 9.9
+            maximum: 10.1`)),
+			},
+			want: &Tasks{
+				TaskConfig: TaskConfig{
+					Tasks: []Task{
+						{
+							Name:                 "numeric range",
+							Prompt:               "Pick a number between 9.9 and 10.1",
+							ResponseResultFormat: NewResponseFormat("a single number"),
+							ExpectedResult: utils.NewValueSet(map[string]interface{}{
+								"$schema": "https://json-schema.org/draft/2020-12/schema",
+								"type":    "number",
+								"minimum": 9.9,
+								"maximum": 10.1,
+							}),
+							ValidationRules: &ValidationRules{
+								SchemaValidation: testutils.Ptr(true),
+							},
+							resolvedSystemPrompt: "Provide the final answer in exactly this format: a single number",
+							resolvedValidationRules: ValidationRules{
+								SchemaValidation: testutils.Ptr(true),
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

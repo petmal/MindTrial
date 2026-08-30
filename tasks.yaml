@@ -13,6 +13,7 @@ task-config:
     case-sensitive: false
     ignore-whitespace: false
     trim-lines: false
+    schema-validation: false # When true, the single expected-result object is interpreted as the acceptance JSON Schema.
     # Default configuration for semantic judge evaluators.
     judge:
       prompt:

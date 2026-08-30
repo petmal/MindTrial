@@ -213,6 +213,23 @@ type AnswerDetails struct {
 	ToolCalls []ToolCallSummary `json:"ToolCalls,omitempty"`
 }
 
+// ValidationMethod identifies which validation strategy was used for a task.
+type ValidationMethod string
+
+const (
+	// ValidationMethodExact indicates exact/canonical value matching.
+	ValidationMethodExact ValidationMethod = "exact"
+	// ValidationMethodSchema indicates JSON Schema validation: the raw candidate
+	// answer is validated directly against the single expected-result JSON Schema
+	// without canonicalization or normalization. The schema's $schema is optional
+	// and defaults to Draft 2020-12; normalization flags (case-sensitive,
+	// ignore-whitespace, trim-lines) are ignored and the mode is mutually
+	// exclusive with judge validation.
+	ValidationMethodSchema ValidationMethod = "schema"
+	// ValidationMethodSemantic indicates LLM judge semantic validation.
+	ValidationMethodSemantic ValidationMethod = "semantic"
+)
+
 // ValidationDetails defines structured information about answer verification and correctness assessment.
 type ValidationDetails struct {
 	// Title identifies the type of validation assessment performed.
@@ -232,6 +249,8 @@ type ValidationDetails struct {
 	// Semantic contains the judge's raw verdict and variant provenance, populated
 	// when validation was performed by an LLM judge; nil otherwise.
 	Semantic *SemanticValidationDetails `json:"Semantic,omitempty"`
+	// Method identifies which validation strategy was used.
+	Method ValidationMethod `json:"Method,omitempty"`
 }
 
 // SemanticValidationDetails identifies the judge variant that evaluated a response

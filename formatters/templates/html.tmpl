@@ -1990,7 +1990,7 @@
                                     </div>
                                     {{- if $ad.ExpectedAnswer }}
                                     <details>
-                                        <summary>Expected Acceptable Answer(s)</summary>
+                                        <summary>{{if eq $result.Details.Validation.Method "schema"}}Expected Result Schema{{else}}Expected Acceptable Answer(s){{end}}</summary>
                                         <ol class="expected-answers" style="margin:0.5em 0 0 1.2em; padding:0;">
                                             {{- range $ad.ExpectedAnswer }}
                                             <li itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer"><pre><code itemprop="text">{{range $line := .}}{{ $line }}
@@ -2053,11 +2053,16 @@
                                     {{if $vd.Title}}<h4>{{$vd.Title}}</h4>{{end}}
                                     <details class="explanation" open>
                                         <summary>Validation Explanation</summary>
+                                        {{- if eq $vd.Method "schema" }}
+                                        <pre style="margin-top:0.5em;"><code itemprop="text">{{range $line := $vd.Explanation}}{{ $line }}
+{{end}}</code></pre>
+                                        {{- else }}
                                         <div class="explanation-body" style="margin-top:0.5em;" itemprop="text">
                                             {{- range GroupParagraphs $vd.Explanation }}
                                             <p class="para">{{Join . " "}}</p>
                                             {{- end }}
                                         </div>
+                                        {{- end }}
                                     </details>
                                     {{- with $vu := $vd.Usage }}
                                         {{- if or $vu.InputTokens $vu.InputCacheWriteTokens $vu.InputCacheReadTokens $vu.OutputTokens $vu.ReasoningTokens }}

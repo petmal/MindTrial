@@ -953,19 +953,19 @@ func TestValidatorFactoryGetValidator(t *testing.T) {
 	// Test default validator (no judge specified).
 	rules := config.ValidationRules{}
 
-	validator1, err := factory.GetValidator(context.Background(), rules.Judge)
+	validator1, err := factory.GetValidator(context.Background(), rules)
 	require.NoError(t, err)
 	require.NotNil(t, validator1)
 
 	// Test caching - should return same instance for same judge config.
-	validator2, err := factory.GetValidator(context.Background(), rules.Judge)
+	validator2, err := factory.GetValidator(context.Background(), rules)
 	require.NoError(t, err)
 	assert.Same(t, validator1, validator2, "Should return cached validator instance")
 
 	// Test different validation rules with same judge config - should return same validator.
 	rules2 := config.ValidationRules{}
 
-	validator3, err := factory.GetValidator(context.Background(), rules2.Judge)
+	validator3, err := factory.GetValidator(context.Background(), rules2)
 	require.NoError(t, err)
 	assert.Same(t, validator1, validator3, "Same judge config should return same validator")
 
@@ -985,11 +985,11 @@ func TestValidatorFactoryGetValidator(t *testing.T) {
 		},
 	}
 
-	validator4, err := factory.GetValidator(context.Background(), rulesWithJudge1.Judge)
+	validator4, err := factory.GetValidator(context.Background(), rulesWithJudge1)
 	require.NoError(t, err)
 	require.NotNil(t, validator4)
 
-	validator5, err := factory.GetValidator(context.Background(), rulesWithJudge2.Judge)
+	validator5, err := factory.GetValidator(context.Background(), rulesWithJudge2)
 	require.NoError(t, err)
 	require.NotNil(t, validator5)
 
@@ -999,7 +999,7 @@ func TestValidatorFactoryGetValidator(t *testing.T) {
 	assert.NotEqual(t, validator4, validator5, "Different judge configs should return different validator instances")
 
 	// Test that caching works for the same judge config.
-	validator6, err := factory.GetValidator(context.Background(), rulesWithJudge1.Judge)
+	validator6, err := factory.GetValidator(context.Background(), rulesWithJudge1)
 	require.NoError(t, err)
 	assert.Same(t, validator4, validator6, "Same judge config should return same validator instance from cache")
 
@@ -1012,7 +1012,7 @@ func TestValidatorFactoryGetValidator(t *testing.T) {
 		},
 	}
 
-	validator, err := factory.GetValidator(context.Background(), rulesWithMissingJudge.Judge)
+	validator, err := factory.GetValidator(context.Background(), rulesWithMissingJudge)
 	require.Error(t, err)
 	require.Nil(t, validator)
 	assert.Contains(t, err.Error(), "judge not found: nonexistent-judge")
@@ -1026,7 +1026,7 @@ func TestValidatorFactoryGetValidator(t *testing.T) {
 		},
 	}
 
-	validator, err = factory.GetValidator(context.Background(), rulesWithMissingVariant.Judge)
+	validator, err = factory.GetValidator(context.Background(), rulesWithMissingVariant)
 	require.Error(t, err)
 	require.Nil(t, validator)
 	assert.Contains(t, err.Error(), "run variant not found: nonexistent-variant for judge test-judge-1")
@@ -1115,7 +1115,7 @@ func TestValidatorGetName(t *testing.T) {
 		},
 	}
 
-	judgeValidator, err := factory.GetValidator(context.Background(), rules.Judge)
+	judgeValidator, err := factory.GetValidator(context.Background(), rules)
 	require.NoError(t, err)
 	assert.Equal(t, "test-run test-judge judge", judgeValidator.GetName())
 }
@@ -1246,7 +1246,7 @@ func TestValidatorFactoryClose(t *testing.T) {
 
 	// Create and cache a value match validator (default case).
 	defaultRules := config.ValidationRules{}
-	valueMatchValidator, err := factory.GetValidator(context.Background(), defaultRules.Judge)
+	valueMatchValidator, err := factory.GetValidator(context.Background(), defaultRules)
 	require.NoError(t, err)
 	require.NotNil(t, valueMatchValidator)
 
@@ -1258,7 +1258,7 @@ func TestValidatorFactoryClose(t *testing.T) {
 			Variant: testutils.Ptr("default"),
 		},
 	}
-	judgeValidator, err := factory.GetValidator(context.Background(), judgeRules.Judge)
+	judgeValidator, err := factory.GetValidator(context.Background(), judgeRules)
 	require.NoError(t, err)
 	require.NotNil(t, judgeValidator)
 

@@ -67,6 +67,54 @@ func TestValueSet_AsStringSet(t *testing.T) {
 	assert.Empty(t, stringSet.Values())
 }
 
+func TestValueSet_AsObject(t *testing.T) {
+	tests := []struct {
+		name   string
+		values []interface{}
+		want   map[string]interface{}
+		wantOk bool
+	}{
+		{
+			name:   "single object returns object",
+			values: []interface{}{map[string]interface{}{"type": "number"}},
+			want:   map[string]interface{}{"type": "number"},
+			wantOk: true,
+		},
+		{
+			name:   "empty set returns false",
+			values: []interface{}{},
+			wantOk: false,
+		},
+		{
+			name:   "single string returns false",
+			values: []interface{}{"hello"},
+			wantOk: false,
+		},
+		{
+			name:   "multiple objects returns false",
+			values: []interface{}{map[string]interface{}{"a": 1}, map[string]interface{}{"b": 2}},
+			wantOk: false,
+		},
+		{
+			name:   "single non-object map type returns false for non-string keys",
+			values: []interface{}{map[string]int{"a": 1}},
+			wantOk: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := NewValueSet(tt.values...)
+			got, ok := v.AsObject()
+			assert.Equal(t, tt.wantOk, ok)
+			if tt.wantOk {
+				assert.Equal(t, tt.want, got)
+			} else {
+				assert.Nil(t, got)
+			}
+		})
+	}
+}
+
 func TestValueSet_YAMLUnmarshal(t *testing.T) {
 	tests := []struct {
 		name     string

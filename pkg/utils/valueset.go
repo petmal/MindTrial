@@ -82,6 +82,19 @@ func (v ValueSet) AsStringSet() (StringSet, bool) {
 	return NewStringSet(strings...), true
 }
 
+// AsObject returns the single object value if the set contains exactly one map[string]interface{}.
+// Returns (object, true) only when the set has exactly one value and it is an object.
+func (v ValueSet) AsObject() (map[string]interface{}, bool) {
+	if len(v.values) != 1 {
+		return nil, false
+	}
+	m, ok := v.values[0].(map[string]interface{})
+	if !ok {
+		return nil, false
+	}
+	return m, true
+}
+
 // UnmarshalYAML implements custom YAML unmarshaling for ValueSet.
 func (v *ValueSet) UnmarshalYAML(value *yaml.Node) error {
 	switch value.Kind {
