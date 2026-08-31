@@ -361,7 +361,7 @@ func (o *openAIResponsesProvider) Run(ctx context.Context, logger logging.Logger
 					}
 					functionCallOutputItems = append(functionCallOutputItems, responses.ResponseInputItemUnionParam{
 						OfFunctionCallOutput: &responses.ResponseInputItemFunctionCallOutputParam{
-							CallID: fc.CallID,
+							CallID: param.NewOpt(fc.CallID),
 							Output: responses.ResponseInputItemFunctionCallOutputOutputUnionParam{
 								OfString: param.NewOpt(toolContent),
 							},
