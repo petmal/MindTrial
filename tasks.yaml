@@ -8,6 +8,7 @@ task-config:
   max-turns: 100  # Default maximum number of conversation turns allowed per task (0 = unlimited).
   file-options:  # Default options for file attachments in tasks.
     image-detail: auto
+    access: [native, local]  # How files are exposed: native = provider API, local = local Docker tools. Omitted = [native, local]. Per-file options replace this list.
   # Global validation rules applied to all tasks by default.
   validation-rules:
     case-sensitive: false

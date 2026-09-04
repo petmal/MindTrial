@@ -25,6 +25,7 @@ func NewAlibaba(cfg config.AlibabaClientConfig, availableTools []config.ToolConf
 		option.WithBaseURL(cfg.GetEndpoint()),
 	}
 	openaiProvider := newOpenAICompletionsProvider(availableTools, openAIV3Opts...)
+	openaiProvider.FileValidator = newOpenAIFileValidator(nil, noSupportedDocumentMimeTypes)
 	openaiProvider.NewCompletionHandler = func(args any) CompletionHandler {
 		var base CompletionHandler = &defaultCompletionHandler{}
 		if hArgs, ok := args.(alibabaCompletionHandlerArgs); ok && hArgs.PreserveThinking {

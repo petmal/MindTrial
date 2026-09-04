@@ -66,7 +66,7 @@ func TestMistral_FileTypeNotSupported(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
 	p := &MistralAI{} // nil client is sufficient to exercise early validation
 
-	// Use a vision-capable model prefix to bypass the isFileUploadSupported() check
+	// Use a vision-capable model prefix to bypass the isNativeFileInputSupported() check
 	runCfg := config.RunConfig{Name: "test-run", Model: "mistral-large-test"}
 	task := config.Task{
 		Name:  "bad_file_type",

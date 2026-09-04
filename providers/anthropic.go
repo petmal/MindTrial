@@ -25,6 +25,13 @@ import (
 const defaultMaxTokens = 32768
 const submitResponseToolName = "submit_response"
 
+// Non-image MIME types Anthropic accepts as native document blocks.
+// See: https://docs.claude.com/en/docs/build-with-claude/citations
+const (
+	anthropicPDFDocumentMimeType       = "application/pdf"
+	anthropicPlainTextDocumentMimeType = "text/plain"
+)
+
 // NewAnthropic creates a new Anthropic provider instance with the given configuration.
 func NewAnthropic(cfg config.AnthropicClientConfig, availableTools []config.ToolConfig) *Anthropic {
 	opts := []anthropicoption.RequestOption{anthropicoption.WithAPIKey(cfg.APIKey)}
@@ -397,21 +404,41 @@ func (o *Anthropic) isTransientResponse(err error) bool {
 
 func (o *Anthropic) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []anthropic.ContentBlockParamUnion, err error) {
 	for _, file := range files {
+		parts = append(parts, anthropic.NewTextBlock(result.recordPrompt(DefaultTaskFileNameInstruction(file))))
+		if !file.HasAccess(config.FileAccessNative) {
+			continue
+		}
 		fileType, err := file.TypeValue(ctx)
 		if err != nil {
 			return nil, err
-		} else if !isSupportedImageType(fileType) {
+		}
+		switch {
+		case isSupportedImageType(fileType):
+			base64Data, err := file.Base64(ctx)
+			if err != nil {
+				return nil, err
+			}
+			parts = append(parts, anthropic.NewImageBlockBase64(config.NormalizeMIMEType(fileType), base64Data))
+		case config.NormalizeMIMEType(fileType) == anthropicPDFDocumentMimeType:
+			base64Data, err := file.Base64(ctx)
+			if err != nil {
+				return nil, err
+			}
+			parts = append(parts, anthropic.NewDocumentBlock(anthropic.Base64PDFSourceParam{
+				Data: base64Data,
+			}))
+		case config.NormalizeMIMEType(fileType) == anthropicPlainTextDocumentMimeType:
+			content, err := file.Content(ctx)
+			if err != nil {
+				return nil, err
+			}
+			// A text source carries the document verbatim, not base64-encoded.
+			parts = append(parts, anthropic.NewDocumentBlock(anthropic.PlainTextSourceParam{
+				Data: string(content),
+			}))
+		default:
 			return nil, fmt.Errorf("%w: %s", ErrFileNotSupported, fileType)
 		}
-
-		base64Data, err := file.Base64(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		// Attach file name as a text block before the image.
-		parts = append(parts, anthropic.NewTextBlock(result.recordPrompt(DefaultTaskFileNameInstruction(file))))
-		parts = append(parts, anthropic.NewImageBlockBase64(fileType, base64Data))
 	}
 
 	parts = append(parts, anthropic.NewTextBlock(result.recordPrompt(promptText))) // append the prompt text after the file data for improved context integrity

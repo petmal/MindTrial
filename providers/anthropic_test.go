@@ -24,7 +24,7 @@ func TestAnthropic_FileTypeNotSupported(t *testing.T) {
 	runCfg := config.RunConfig{Name: "test-run", Model: "claude"}
 	task := config.Task{
 		Name:  "bad_file_type",
-		Files: []config.TaskFile{mockTaskFile(t, "file.txt", "file://file.txt", "text/plain")},
+		Files: []config.TaskFile{mockTaskFile(t, "file.bin", "file:///docs/file.bin", "application/octet-stream")},
 	}
 	_, err := p.Run(context.Background(), logger, runCfg, task)
 	require.ErrorIs(t, err, ErrFileNotSupported)

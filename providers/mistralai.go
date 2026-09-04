@@ -21,6 +21,9 @@ import (
 	"github.com/petmal/mindtrial/providers/tools"
 )
 
+// mistralSupportedDocumentMimeType is the only non-image MIME type Mistral AI accepts as a native document chunk.
+const mistralSupportedDocumentMimeType = "application/pdf"
+
 // NewMistralAI creates a new Mistral AI provider instance with the given configuration.
 func NewMistralAI(cfg config.MistralAIClientConfig, availableTools []config.ToolConfig) (*MistralAI, error) {
 	clientCfg := mistralai.NewConfiguration()
@@ -44,8 +47,8 @@ func (o MistralAI) Name() string {
 }
 
 func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
-	if len(task.Files) > 0 {
-		if !o.isFileUploadSupported(cfg.Model) {
+	if task.RequiresNativeFileInput() {
+		if !o.isNativeFileInputSupported(cfg.Model) {
 			return result, ErrFileUploadNotSupported
 		}
 	}
@@ -257,7 +260,9 @@ func (o *MistralAI) getMessageTextChunks(message *mistralai.AssistantMessage) (t
 	return
 }
 
-func (o *MistralAI) isFileUploadSupported(model string) bool {
+// isNativeFileInputSupported reports whether the model accepts native image or document
+// input. Mistral AI gates both on the same multimodal model family.
+func (o *MistralAI) isNativeFileInputSupported(model string) bool {
 	// Mistral AI models with vision capabilities.
 	// See: https://docs.mistral.ai/capabilities/vision/
 	// Supported: mistral-large, mistral-medium, mistral-small, ministral, pixtral, magistral
@@ -337,26 +342,40 @@ func (o *MistralAI) createPromptMessage(ctx context.Context, promptText string, 
 	if len(files) > 0 {
 		parts := make([]mistralai.ContentChunk, 0, (len(files)*2)+1)
 		for _, file := range files {
-			if fileType, err := file.TypeValue(ctx); err != nil {
-				return message, err
-			} else if !isSupportedImageType(fileType) {
-				return message, fmt.Errorf("%w: %s", ErrFileNotSupported, fileType)
+			parts = append(parts, mistralai.TextChunkAsContentChunk(
+				mistralai.NewTextChunk(result.recordPrompt(DefaultTaskFileNameInstruction(file)))))
+			if !file.HasAccess(config.FileAccessNative) {
+				continue
 			}
-
-			dataURL, err := file.GetDataURL(ctx)
+			fileType, err := file.TypeValue(ctx)
 			if err != nil {
 				return message, err
 			}
-
-			// Attach file name as a separate text block before the image.
-			parts = append(parts, mistralai.TextChunkAsContentChunk(
-				mistralai.NewTextChunk(result.recordPrompt(DefaultTaskFileNameInstruction(file)))))
-
-			// Create image URL struct and chunk.
-			imageURLChunk := mistralai.NewImageURLChunk(mistralai.ImageUrl{
-				ImageURLStruct: mistralai.NewImageURLStruct(dataURL),
-			})
-			parts = append(parts, mistralai.ImageURLChunkAsContentChunk(imageURLChunk))
+			switch {
+			case isSupportedImageType(fileType):
+				dataURL, err := file.GetDataURL(ctx)
+				if err != nil {
+					return message, err
+				}
+				imageURLChunk := mistralai.NewImageURLChunk(mistralai.ImageUrl{
+					ImageURLStruct: mistralai.NewImageURLStruct(dataURL),
+				})
+				parts = append(parts, mistralai.ImageURLChunkAsContentChunk(imageURLChunk))
+			case config.NormalizeMIMEType(fileType) == mistralSupportedDocumentMimeType:
+				dataURL, err := file.GetDataURL(ctx)
+				if err != nil {
+					return message, err
+				}
+				apiFilename, err := apiFilenameForFile(ctx, file)
+				if err != nil {
+					return message, err
+				}
+				document := mistralai.NewDocumentURLChunk(dataURL)
+				document.SetDocumentName(apiFilename)
+				parts = append(parts, mistralai.DocumentURLChunkAsContentChunk(document))
+			default:
+				return message, fmt.Errorf("%w: %s", ErrFileNotSupported, fileType)
+			}
 		}
 
 		// Append the prompt text after the file data for improved context integrity.

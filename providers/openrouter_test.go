@@ -170,7 +170,7 @@ func TestOpenRouterSDKExtraFieldsOverrideTypedFields(t *testing.T) {
 
 func TestOpenRouter_Run_IncompatibleResponseFormat(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
-	p := &OpenRouter{} // nil client is sufficient to exercise parameter mapping and validation
+	p := NewOpenRouter(config.OpenRouterClientConfig{APIKey: "test"}, nil)
 
 	runCfg := config.RunConfig{
 		Name:                    "test-run",
@@ -187,7 +187,7 @@ func TestOpenRouter_Run_IncompatibleResponseFormat(t *testing.T) {
 
 func TestOpenRouter_FileTypeNotSupported(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
-	p := &OpenRouter{} // nil client is sufficient to exercise early validation
+	p := NewOpenRouter(config.OpenRouterClientConfig{APIKey: "test"}, nil)
 
 	runCfg := config.RunConfig{Name: "test-run", Model: "openrouter-test"}
 	task := config.Task{

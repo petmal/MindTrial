@@ -301,8 +301,8 @@ type ToolConfig struct {
 	// This allows passing large or complex data to tools via files instead of inline JSON.
 	// The tool's command should read these files as needed.
 	ParameterFiles map[string]string `yaml:"parameter-files,omitempty"`
-	// AuxiliaryDir specifies the directory path where task files will be automatically available.
-	// If set, all files attached to a task will be copied to this directory using each file's
+	// AuxiliaryDir specifies the directory path where task files with local access will be automatically available.
+	// If set, files with local access attached to a task will be copied to this directory using each file's
 	// `TaskFile.Name` exactly as provided.
 	// This directory is ephemeral: files are reset between tool calls and do not persist
 	// across multiple invocations.
@@ -333,9 +333,9 @@ type RunConfig struct {
 	// If set, overrides the parent ProviderConfig.Disabled value.
 	Disabled *bool `yaml:"disabled" validate:"omitempty"`
 
-	// TextOnly skips tasks that require file attachments (e.g. images).
-	// When enabled, only tasks without file attachments will be executed.
-	// This is useful for text-only models that cannot process images or other files.
+	// TextOnly skips tasks that require native file input to the model API.
+	// When enabled, only tasks without native file input will be executed.
+	// Tasks with files that are only available to local tools (access: [local]) are still executed.
 	TextOnly bool `yaml:"text-only" validate:"omitempty"`
 
 	// DisableStructuredOutput forces text response format and expects the model to return

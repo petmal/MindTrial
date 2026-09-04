@@ -1758,6 +1758,7 @@ func TestLoadTasksFromFile(t *testing.T) {
     max-turns: 50
     file-options:
         image-detail: high
+        access: [native, local]
     tasks:
         - name: "Books neural Automotive"
           disabled: false
@@ -1786,9 +1787,12 @@ func TestLoadTasksFromFile(t *testing.T) {
               type: "text"
               options:
                   image-detail: original
+                  access: [native]
             - name: "remote-file"
               uri: "http://example.com/file.txt"
-              type: "text"`)),
+              type: "text"
+              options:
+                  access: [local]`)),
 			},
 			want: &Tasks{
 				TaskConfig: TaskConfig{
@@ -1796,6 +1800,7 @@ func TestLoadTasksFromFile(t *testing.T) {
 					MaxTurns: 50,
 					FileOptions: FileOptions{
 						ImageDetail: testutils.Ptr(ImageDetailHigh),
+						Access:      []FileAccess{FileAccessNative, FileAccessLocal},
 					},
 					Tasks: []Task{
 						{
@@ -1808,8 +1813,8 @@ func TestLoadTasksFromFile(t *testing.T) {
 							Difficulty:           "hard",
 							Tags:                 []string{"nightly", "regression"},
 							Files: []TaskFile{
-								mockTaskFileWithOptions(t, "local-file", "path/to/file.txt", "text", &FileOptions{ImageDetail: testutils.Ptr(ImageDetailOriginal)}, FileOptions{ImageDetail: testutils.Ptr(ImageDetailHigh)}),
-								mockTaskFileWithOptions(t, "remote-file", "http://example.com/file.txt", "text", nil, FileOptions{ImageDetail: testutils.Ptr(ImageDetailHigh)}),
+								mockTaskFileWithOptions(t, "local-file", "path/to/file.txt", "text", &FileOptions{ImageDetail: testutils.Ptr(ImageDetailOriginal), Access: []FileAccess{FileAccessNative}}, FileOptions{ImageDetail: testutils.Ptr(ImageDetailHigh), Access: []FileAccess{FileAccessNative, FileAccessLocal}}),
+								mockTaskFileWithOptions(t, "remote-file", "http://example.com/file.txt", "text", &FileOptions{Access: []FileAccess{FileAccessLocal}}, FileOptions{ImageDetail: testutils.Ptr(ImageDetailHigh), Access: []FileAccess{FileAccessNative, FileAccessLocal}}),
 							},
 							Disabled:             testutils.Ptr(false),
 							MaxTurns:             testutils.Ptr(150),

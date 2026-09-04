@@ -21,7 +21,7 @@ import (
 
 func TestAlibaba_Run_IncompatibleResponseFormat(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
-	p := &Alibaba{} // nil client is sufficient to exercise parameter mapping and validation
+	p := NewAlibaba(config.AlibabaClientConfig{APIKey: "test"}, nil)
 
 	runCfg := config.RunConfig{
 		Name:                    "test-run",
@@ -45,7 +45,7 @@ func TestAlibaba_Run_IncompatibleResponseFormat(t *testing.T) {
 // incorrectly trigger ErrIncompatibleResponseFormat when combined with DisableStructuredOutput.
 func TestAlibaba_Run_DeprecatedDisableLegacyJsonMode_CompatibleWithDisabledStructuredOutput(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
-	p := &Alibaba{} // nil client is sufficient to exercise parameter mapping and validation
+	p := NewAlibaba(config.AlibabaClientConfig{APIKey: "test"}, nil)
 
 	runCfg := config.RunConfig{
 		Name:                    "test-run",
@@ -68,7 +68,7 @@ func TestAlibaba_Run_DeprecatedDisableLegacyJsonMode_CompatibleWithDisabledStruc
 
 func TestAlibaba_FileTypeNotSupported(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
-	p := &Alibaba{} // nil client is sufficient to exercise early validation
+	p := NewAlibaba(config.AlibabaClientConfig{APIKey: "test"}, nil)
 
 	runCfg := config.RunConfig{Name: "test-run", Model: "qwen-test"}
 	task := config.Task{

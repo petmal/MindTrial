@@ -24,6 +24,10 @@ import (
 	"github.com/petmal/mindtrial/version"
 )
 
+var openRouterSupportedDocumentMimeTypes = map[string]bool{
+	"application/pdf": true,
+}
+
 // NewOpenRouter creates a new OpenRouter provider instance with the given configuration.
 // Injects OpenRouter attribution headers derived from MindTrial metadata into every request.
 func NewOpenRouter(cfg config.OpenRouterClientConfig, availableTools []config.ToolConfig) *OpenRouter {
@@ -42,6 +46,7 @@ func NewOpenRouter(cfg config.OpenRouterClientConfig, availableTools []config.To
 	}
 
 	openaiProvider := newOpenAICompletionsProvider(availableTools, openAIV3Opts...)
+	openaiProvider.FileValidator = newOpenAIFileValidator(nil, openRouterSupportedDocumentMimeTypes)
 	openaiProvider.NewCompletionHandler = func(any) CompletionHandler {
 		return &openRouterCompletionHandler{}
 	}

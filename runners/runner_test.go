@@ -1202,27 +1202,54 @@ func TestRunnerRun(t *testing.T) {
 						ExpectedResult: utils.NewValueSet("text answer"),
 					},
 					{
-						Name:           "file_task",
-						ExpectedResult: utils.NewValueSet("file answer"),
+						Name:           "default_file_task",
+						ExpectedResult: utils.NewValueSet("default answer"),
 						Files: []config.TaskFile{
-							mockTaskFile(t, "test.jpg", "image/jpeg", "test.jpg"),
+							mockTaskFile(t, "default.jpg", "image/jpeg", "default.jpg"),
+						},
+					},
+					{
+						Name:           "native_only_task",
+						ExpectedResult: utils.NewValueSet("native answer"),
+						Files: []config.TaskFile{
+							mockTaskFileWithAccess(t, "native.jpg", "image/jpeg", "native.jpg", []config.FileAccess{config.FileAccessNative}),
+						},
+					},
+					{
+						Name:           "native_local_task",
+						ExpectedResult: utils.NewValueSet("both answer"),
+						Files: []config.TaskFile{
+							mockTaskFileWithAccess(t, "both.jpg", "image/jpeg", "both.jpg", []config.FileAccess{config.FileAccessNative, config.FileAccessLocal}),
+						},
+					},
+					{
+						Name:           "local_only_task",
+						ExpectedResult: utils.NewValueSet("local answer"),
+						Files: []config.TaskFile{
+							mockTaskFileWithAccess(t, "local.jpg", "image/jpeg", "local.jpg", []config.FileAccess{config.FileAccessLocal}),
+						},
+					},
+					{
+						Name:           "mixed_native_task",
+						ExpectedResult: utils.NewValueSet("mixed answer"),
+						Files: []config.TaskFile{
+							mockTaskFileWithAccess(t, "native2.jpg", "image/jpeg", "native2.jpg", []config.FileAccess{config.FileAccessNative}),
+							mockTaskFileWithAccess(t, "local2.jpg", "image/jpeg", "local2.jpg", []config.FileAccess{config.FileAccessLocal}),
 						},
 					},
 				},
 			},
 			want: Results{
 				"mock": []RunResult{
-					// normal run - both tasks succeed
+					// normal run - all tasks succeed
 					{
-						Kind:     Success,
-						Task:     "text_task",
-						Provider: "mock",
-						Run:      "pass",
-						RunConfig: RunConfigSnapshot{
-							Name: "pass",
-						},
-						Got:  "text answer",
-						Want: utils.NewValueSet("text answer"),
+						Kind:      Success,
+						Task:      "text_task",
+						Provider:  "mock",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass"},
+						Got:       "text answer",
+						Want:      utils.NewValueSet("text answer"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "text_task",
@@ -1243,21 +1270,19 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     Success,
-						Task:     "file_task",
-						Provider: "mock",
-						Run:      "pass",
-						RunConfig: RunConfigSnapshot{
-							Name: "pass",
-						},
-						Got:  "file answer",
-						Want: utils.NewValueSet("file answer"),
+						Kind:      Success,
+						Task:      "default_file_task",
+						Provider:  "mock",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass"},
+						Got:       "default answer",
+						Want:      utils.NewValueSet("default answer"),
 						Details: Details{
 							Answer: AnswerDetails{
-								Title:          "file_task",
+								Title:          "default_file_task",
 								Explanation:    []string{"mock pass"},
-								ActualAnswer:   []string{"file answer"},
-								ExpectedAnswer: [][]string{{"file answer"}},
+								ActualAnswer:   []string{"default answer"},
+								ExpectedAnswer: [][]string{{"default answer"}},
 								Usage:          expectedUsage,
 								ToolUsage:      map[string]ToolUsage{},
 							},
@@ -1271,18 +1296,123 @@ func TestRunnerRun(t *testing.T) {
 						},
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
-					// text-only run - text task succeeds, file task skipped
 					{
-						Kind:     Success,
-						Task:     "text_task",
-						Provider: "mock",
-						Run:      "pass",
-						RunConfig: RunConfigSnapshot{
-							Name:     "pass",
-							TextOnly: true,
+						Kind:      Success,
+						Task:      "native_only_task",
+						Provider:  "mock",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass"},
+						Got:       "native answer",
+						Want:      utils.NewValueSet("native answer"),
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "native_only_task",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"native answer"},
+								ExpectedAnswer: [][]string{{"native answer"}},
+								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
+								Method:      ValidationMethodExact,
+							},
+							Error: ErrorDetails{},
 						},
-						Got:  "text answer",
-						Want: utils.NewValueSet("text answer"),
+						Duration: 7211609999927884 * time.Nanosecond,
+					},
+					{
+						Kind:      Success,
+						Task:      "native_local_task",
+						Provider:  "mock",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass"},
+						Got:       "both answer",
+						Want:      utils.NewValueSet("both answer"),
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "native_local_task",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"both answer"},
+								ExpectedAnswer: [][]string{{"both answer"}},
+								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
+								Method:      ValidationMethodExact,
+							},
+							Error: ErrorDetails{},
+						},
+						Duration: 7211609999927884 * time.Nanosecond,
+					},
+					{
+						Kind:      Success,
+						Task:      "local_only_task",
+						Provider:  "mock",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass"},
+						Got:       "local answer",
+						Want:      utils.NewValueSet("local answer"),
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "local_only_task",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"local answer"},
+								ExpectedAnswer: [][]string{{"local answer"}},
+								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
+								Method:      ValidationMethodExact,
+							},
+							Error: ErrorDetails{},
+						},
+						Duration: 7211609999927884 * time.Nanosecond,
+					},
+					{
+						Kind:      Success,
+						Task:      "mixed_native_task",
+						Provider:  "mock",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass"},
+						Got:       "mixed answer",
+						Want:      utils.NewValueSet("mixed answer"),
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "mixed_native_task",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"mixed answer"},
+								ExpectedAnswer: [][]string{{"mixed answer"}},
+								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
+								Method:      ValidationMethodExact,
+							},
+							Error: ErrorDetails{},
+						},
+						Duration: 7211609999927884 * time.Nanosecond,
+					},
+					// text-only run - only text and local-only succeed, others skipped
+					{
+						Kind:      Success,
+						Task:      "text_task",
+						Provider:  "mock",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", TextOnly: true},
+						Got:       "text answer",
+						Want:      utils.NewValueSet("text answer"),
 						Details: Details{
 							Answer: AnswerDetails{
 								Title:          "text_task",
@@ -1303,21 +1433,99 @@ func TestRunnerRun(t *testing.T) {
 						Duration: 7211609999927884 * time.Nanosecond,
 					},
 					{
-						Kind:     NotSupported,
-						Task:     "file_task",
-						Provider: "mock",
-						Run:      "pass",
-						RunConfig: RunConfigSnapshot{
-							Name:     "pass",
-							TextOnly: true,
-						},
-						Got: "task requires file attachments but text-only mode is enabled for this configuration",
+						Kind:      NotSupported,
+						Task:      "default_file_task",
+						Provider:  "mock",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", TextOnly: true},
+						Got:       "task requires native file input but text-only mode is enabled for this configuration",
 						Details: Details{
 							Answer:     AnswerDetails{},
 							Validation: ValidationDetails{},
 							Error: ErrorDetails{
 								Title:     "Feature Disabled",
-								Message:   "task requires file attachments but text-only mode is enabled for this configuration",
+								Message:   "task requires native file input but text-only mode is enabled for this configuration",
+								Transient: testutils.Ptr(false),
+							},
+						},
+						Duration: 0,
+					},
+					{
+						Kind:      NotSupported,
+						Task:      "native_only_task",
+						Provider:  "mock",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", TextOnly: true},
+						Got:       "task requires native file input but text-only mode is enabled for this configuration",
+						Details: Details{
+							Answer:     AnswerDetails{},
+							Validation: ValidationDetails{},
+							Error: ErrorDetails{
+								Title:     "Feature Disabled",
+								Message:   "task requires native file input but text-only mode is enabled for this configuration",
+								Transient: testutils.Ptr(false),
+							},
+						},
+						Duration: 0,
+					},
+					{
+						Kind:      NotSupported,
+						Task:      "native_local_task",
+						Provider:  "mock",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", TextOnly: true},
+						Got:       "task requires native file input but text-only mode is enabled for this configuration",
+						Details: Details{
+							Answer:     AnswerDetails{},
+							Validation: ValidationDetails{},
+							Error: ErrorDetails{
+								Title:     "Feature Disabled",
+								Message:   "task requires native file input but text-only mode is enabled for this configuration",
+								Transient: testutils.Ptr(false),
+							},
+						},
+						Duration: 0,
+					},
+					{
+						Kind:      Success,
+						Task:      "local_only_task",
+						Provider:  "mock",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", TextOnly: true},
+						Got:       "local answer",
+						Want:      utils.NewValueSet("local answer"),
+						Details: Details{
+							Answer: AnswerDetails{
+								Title:          "local_only_task",
+								Explanation:    []string{"mock pass"},
+								ActualAnswer:   []string{"local answer"},
+								ExpectedAnswer: [][]string{{"local answer"}},
+								Usage:          expectedUsage,
+								ToolUsage:      map[string]ToolUsage{},
+							},
+							Validation: ValidationDetails{
+								Title:       "Response Assessment",
+								Explanation: []string{"Response matches one of the accepted answers."},
+								ToolUsage:   map[string]ToolUsage{},
+								Method:      ValidationMethodExact,
+							},
+							Error: ErrorDetails{},
+						},
+						Duration: 7211609999927884 * time.Nanosecond,
+					},
+					{
+						Kind:      NotSupported,
+						Task:      "mixed_native_task",
+						Provider:  "mock",
+						Run:       "pass",
+						RunConfig: RunConfigSnapshot{Name: "pass", TextOnly: true},
+						Got:       "task requires native file input but text-only mode is enabled for this configuration",
+						Details: Details{
+							Answer:     AnswerDetails{},
+							Validation: ValidationDetails{},
+							Error: ErrorDetails{
+								Title:     "Feature Disabled",
+								Message:   "task requires native file input but text-only mode is enabled for this configuration",
 								Transient: testutils.Ptr(false),
 							},
 						},
@@ -2293,6 +2501,16 @@ func mockTaskFile(t *testing.T, name, mediaType, uri string) config.TaskFile {
 	if err := f.URI.Parse(uri); err != nil {
 		t.Fatalf("failed to parse task file uri: %v", err)
 	}
+	return f
+}
+
+func mockTaskFileWithAccess(t *testing.T, name, mediaType, uri string, access []config.FileAccess) config.TaskFile {
+	t.Helper()
+	f := mockTaskFile(t, name, mediaType, uri)
+	if access != nil {
+		f.Options = &config.FileOptions{Access: access}
+	}
+	f.ResolveFileOptions(config.FileOptions{})
 	return f
 }
 

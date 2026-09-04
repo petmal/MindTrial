@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
-	"strings"
 
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
@@ -316,6 +315,12 @@ func (o *XAI) Close(ctx context.Context) error {
 
 func (o *XAI) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []xai.ContentPart, err error) {
 	for _, file := range files {
+		cpText := xai.NewContentPart("text")
+		cpText.SetText(result.recordPrompt(DefaultTaskFileNameInstruction(file)))
+		parts = append(parts, *cpText)
+		if !file.HasAccess(config.FileAccessNative) {
+			continue
+		}
 		if fileType, err := file.TypeValue(ctx); err != nil {
 			return parts, err
 		} else if !o.isSupportedImageType(fileType) {
@@ -326,11 +331,6 @@ func (o *XAI) createPromptMessageParts(ctx context.Context, promptText string, f
 		if err != nil {
 			return parts, err
 		}
-
-		// Add filename as a text part before the image.
-		cpText := xai.NewContentPart("text")
-		cpText.SetText(result.recordPrompt(DefaultTaskFileNameInstruction(file)))
-		parts = append(parts, *cpText)
 
 		// Add image data part.
 		imgCp := xai.NewContentPart("image_url")
@@ -355,5 +355,5 @@ func (o XAI) isSupportedImageType(mimeType string) bool {
 		"image/jpeg",
 		"image/jpg",
 		"image/png",
-	}, strings.ToLower(mimeType))
+	}, config.NormalizeMIMEType(mimeType))
 }

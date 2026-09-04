@@ -478,7 +478,7 @@ config:
         IMPORTANT:
         - Only the Python standard library is available. No third-party packages (like pandas or numpy) can be imported.
         - The environment has no network access.
-        - Any files mentioned in the conversation (shown as [file: filename]) are automatically mounted to /app/data/ with their exact filenames.
+        - Task files made available to this tool are mounted under /app/data/ using their [file: filename] names.
         - Use standard file operations like open('/app/data/filename', 'r') to read attached files, where 'filename' matches the name shown in [file: filename] references.
         - A persistent shared directory is available at /app/shared/ that persists across ALL tool calls within the same task (regardless of which tool is being called). Files created in this directory will be available in any subsequent tool call.
         - Any files or changes outside of /app/shared/ are ephemeral and will be reset between tool calls.

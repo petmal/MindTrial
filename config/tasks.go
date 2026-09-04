@@ -17,6 +17,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -193,6 +194,16 @@ func (u URI) String() string {
 	return u.raw
 }
 
+// Ext returns the file extension of the URI, or an empty string if it has none.
+// It mirrors Path in reading the raw value only for a bare local path, so a query
+// string or fragment on a scheme-qualified URI never becomes part of the extension.
+func (u URI) Ext() string {
+	if u.parsed.Scheme == "" {
+		return filepath.Ext(u.raw)
+	}
+	return path.Ext(u.parsed.Path)
+}
+
 // Path returns the filesystem path for local URIs.
 // For relative local paths, it uses the provided basePath to create an absolute path.
 func (u URI) Path(basePath string) string {
@@ -314,6 +325,9 @@ func (o TaskConfig) GetEnabledTasks() []Task {
 // Validate validates all tasks for internal consistency.
 // Returns an error if any task has incompatible configuration.
 func (o TaskConfig) Validate() error {
+	if isEmptyAccess(o.FileOptions.Access) {
+		return fmt.Errorf("%w: file-options access must not be empty", ErrInvalidTaskProperty)
+	}
 	for _, task := range o.Tasks {
 		if err := o.validateTask(task); err != nil {
 			return fmt.Errorf("invalid configuration for task '%s': %w", task.Name, err)
@@ -322,7 +336,19 @@ func (o TaskConfig) Validate() error {
 	return nil
 }
 
+// isEmptyAccess reports whether the access list was explicitly set to an empty list,
+// which is invalid; an omitted (nil) list resolves to the default instead.
+func isEmptyAccess(access []FileAccess) bool {
+	return access != nil && len(access) == 0
+}
+
 func (o TaskConfig) validateTask(task Task) error {
+	for _, file := range task.Files {
+		if file.Options != nil && isEmptyAccess(file.Options.Access) {
+			return fmt.Errorf("%w: file '%s' access must not be empty", ErrInvalidTaskProperty, file.Name)
+		}
+	}
+
 	resolvedValidationRules := o.ValidationRules.MergeWith(task.ValidationRules)
 
 	if resolvedValidationRules.UseSchemaValidation() && resolvedValidationRules.UseJudge() {
@@ -521,7 +547,7 @@ func (f *TaskFile) UnmarshalYAML(value *yaml.Node) error {
 			}
 
 			// Try to infer from file extension first.
-			if ext := filepath.Ext(state.URI.String()); ext != "" {
+			if ext := state.URI.Ext(); ext != "" {
 				if mimeType := mime.TypeByExtension(ext); mimeType != "" {
 					return mimeType, nil
 				}
@@ -554,6 +580,12 @@ func (f *TaskFile) ResolveFileOptions(defaultOptions FileOptions) {
 // GetResolvedFileOptions returns the resolved file options for this file.
 func (f TaskFile) GetResolvedFileOptions() FileOptions {
 	return f.resolvedFileOptions
+}
+
+// HasAccess reports whether the given access is enabled for this file.
+// Options that set no access behave as omitted options: the default [native, local].
+func (f TaskFile) HasAccess(access FileAccess) bool {
+	return f.GetResolvedFileOptions().HasAccess(access)
 }
 
 // downloadFile downloads a file from a URL and returns its content.
@@ -615,11 +647,30 @@ func (f *TaskFile) Base64(ctx context.Context) (string, error) {
 }
 
 // TypeValue returns the MIME type, inferring it if not set, loading content if needed.
+// The value may carry parameters (e.g. "text/plain; charset=utf-8"); use NormalizeMIMEType
+// before matching it against a provider capability list or sending it to an API.
 func (f *TaskFile) TypeValue(ctx context.Context) (string, error) {
 	return f.typeValue(ctx, f)
 }
 
+// NormalizeMIMEType returns the base media type lower-cased, stripping parameters.
+// mime.ParseMediaType already lower-cases and trims the media type; it also handles
+// values without parameters. Malformed values fall back to lower-cased trimmed original.
+// Normalization is required because TaskFile.TypeValue may return values with parameters:
+// mime.TypeByExtension appends "; charset=utf-8" for text types, and explicit YAML `type:`
+// values pass through verbatim (e.g. "text/plain; charset=utf-8").
+func NormalizeMIMEType(value string) string {
+	mediaType, _, err := mime.ParseMediaType(value)
+	if err != nil {
+		return strings.ToLower(strings.TrimSpace(value))
+	}
+	return mediaType
+}
+
 // GetDataURL returns a complete data URL for the file (e.g., "data:image/png;base64,...").
+// The media type is normalized: provider APIs match it against their documented type
+// lists, and an inferred "; charset=utf-8" parameter would both break that match and
+// embed a raw space in the URL.
 func (f *TaskFile) GetDataURL(ctx context.Context) (string, error) {
 	mimeType, err := f.TypeValue(ctx)
 	if err != nil {
@@ -631,7 +682,7 @@ func (f *TaskFile) GetDataURL(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	return "data:" + mimeType + ";base64," + base64Content, nil
+	return "data:" + NormalizeMIMEType(mimeType) + ";base64," + base64Content, nil
 }
 
 // ResponseFormat represents the expected format of the AI model's response.
@@ -998,22 +1049,61 @@ const (
 	ImageDetailOriginal ImageDetail = "original"
 )
 
+// FileAccess controls how a task file is exposed to the model and to local tools.
+type FileAccess string
+
+const (
+	// FileAccessNative exposes the file through the provider's native file/multimodal input.
+	FileAccessNative FileAccess = "native"
+	// FileAccessLocal makes the file available to configured local Docker tools.
+	FileAccessLocal FileAccess = "local"
+)
+
 // FileOptions contains per-file processing options that can be inherited from task-config defaults.
 type FileOptions struct {
 	// ImageDetail controls the fidelity level for image files.
 	ImageDetail *ImageDetail `yaml:"image-detail" validate:"omitempty,oneof=auto low medium high original"`
+
+	// Access controls how the file is exposed. Supported values are "native" and "local".
+	// When omitted (nil), the stable default is [native, local] — not "all known mechanisms".
+	// An explicit empty list is invalid.
+	Access []FileAccess `yaml:"access,omitempty" validate:"omitempty,unique,dive,oneof=native local"`
+}
+
+// HasAccess reports whether the given access is enabled.
+// A nil Access (omitted in YAML) is treated as the stable default [native, local].
+func (o FileOptions) HasAccess(access FileAccess) bool {
+	if o.Access == nil {
+		return access == FileAccessNative || access == FileAccessLocal
+	}
+	return slices.Contains(o.Access, access)
 }
 
 // MergeWith merges these file options with other options and returns the result.
 // The provided other values override these values if set.
+// For Access, a non-nil child value replaces the parent entirely (no union).
 func (these FileOptions) MergeWith(other *FileOptions) FileOptions {
 	resolved := these
 
 	if other != nil {
 		setIfNotNil(&resolved.ImageDetail, other.ImageDetail)
+
+		if other.Access != nil {
+			resolved.Access = slices.Clone(other.Access)
+		}
 	}
 
 	return resolved
+}
+
+// RequiresNativeFileInput reports whether this task has any file with native access.
+func (t Task) RequiresNativeFileInput() bool {
+	for _, file := range t.Files {
+		if file.HasAccess(FileAccessNative) {
+			return true
+		}
+	}
+	return false
 }
 
 // SetBaseFilePath sets the base path for all local files in the task.

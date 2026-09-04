@@ -27,6 +27,7 @@ func NewMoonshotAI(cfg config.MoonshotAIClientConfig, availableTools []config.To
 		option.WithBaseURL(cfg.GetEndpoint()),
 	}
 	openaiProvider := newOpenAICompletionsProvider(availableTools, openAIV3Opts...)
+	openaiProvider.FileValidator = newOpenAIFileValidator(nil, noSupportedDocumentMimeTypes)
 	openaiProvider.NewCompletionHandler = func(any) CompletionHandler {
 		return &moonshotAICompletionHandler{}
 	}

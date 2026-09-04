@@ -289,8 +289,8 @@ func (r *defaultRunner) runTasks(ctx context.Context, logger logging.Logger, pro
 		if skipTasksWithSchemaResultFormat {
 			logger.Message(ctx, logging.LevelInfo, "%s: %s: structured output disabled for this configuration.", provider.Name(), run.Name)
 		}
-		skipTasksWithFiles := run.TextOnly
-		if skipTasksWithFiles {
+		skipTasksWithNativeFiles := run.TextOnly
+		if skipTasksWithNativeFiles {
 			logger.Message(ctx, logging.LevelInfo, "%s: %s: text-only mode enabled for this configuration.", provider.Name(), run.Name)
 		}
 		executor := execution.NewExecutor(provider, run, sharedLimiter)
@@ -303,7 +303,7 @@ func (r *defaultRunner) runTasks(ctx context.Context, logger logging.Logger, pro
 
 			taskLogger.Message(ctx, logging.LevelInfo, "starting task...")
 			runStart := time.Now()
-			r.runTask(ctx, taskLogger, executor, task, skipTasksWithSchemaResultFormat, skipTasksWithFiles, &runResult)
+			r.runTask(ctx, taskLogger, executor, task, skipTasksWithSchemaResultFormat, skipTasksWithNativeFiles, &runResult)
 			taskLogger.Message(ctx, logging.LevelInfo, "task has finished in %s.", time.Since(runStart))
 			rs.appendResult(runResult)
 			rs.emitProgressEvent()
@@ -329,7 +329,7 @@ func (r *defaultRunner) runTasks(ctx context.Context, logger logging.Logger, pro
 	logger.Message(ctx, logging.LevelInfo, "%s: all tasks in all configurations have finished on this provider in %s.", provider.Name(), time.Since(providerStart))
 }
 
-func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, executor *execution.Executor, task config.Task, skipTasksWithSchemaResultFormat bool, skipTasksWithFiles bool, runResult *RunResult) {
+func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, executor *execution.Executor, task config.Task, skipTasksWithSchemaResultFormat bool, skipTasksWithNativeFiles bool, runResult *RunResult) {
 	runResult.Task = task.Name
 	runResult.Provider = executor.Provider.Name()
 	runResult.Run = executor.RunConfig.Name
@@ -355,13 +355,13 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 		}
 	}
 
-	// Skip tasks with file attachments when text-only mode is enabled.
-	if skipTasksWithFiles && len(task.Files) > 0 {
+	// Skip tasks that require native file input when text-only mode is enabled.
+	if skipTasksWithNativeFiles && task.RequiresNativeFileInput() {
 		runResult.Kind = NotSupported
-		runResult.Got = "task requires file attachments but text-only mode is enabled for this configuration"
+		runResult.Got = "task requires native file input but text-only mode is enabled for this configuration"
 		runResult.Details.Error = ErrorDetails{
 			Title:     "Feature Disabled",
-			Message:   "task requires file attachments but text-only mode is enabled for this configuration",
+			Message:   "task requires native file input but text-only mode is enabled for this configuration",
 			Transient: utils.Ptr(false),
 		}
 		return

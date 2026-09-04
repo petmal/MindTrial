@@ -18,7 +18,7 @@ import (
 
 func TestOpenAI_Run_IncompatibleResponseFormat(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
-	p := &OpenAI{} // nil client is sufficient to exercise parameter mapping and validation
+	p := NewOpenAI(config.OpenAIClientConfig{APIKey: "test"}, nil)
 
 	runCfg := config.RunConfig{
 		Name:                    "test-run",
@@ -39,12 +39,12 @@ func TestOpenAI_Run_IncompatibleResponseFormat(t *testing.T) {
 
 func TestOpenAI_FileTypeNotSupported(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
-	p := &OpenAI{} // nil client is sufficient to exercise early validation
+	p := NewOpenAI(config.OpenAIClientConfig{APIKey: "test"}, nil)
 
 	runCfg := config.RunConfig{Name: "test-run", Model: "gpt-test"}
 	task := config.Task{
 		Name:  "bad_file_type",
-		Files: []config.TaskFile{mockTaskFile(t, "file.txt", "file://file.txt", "text/plain")},
+		Files: []config.TaskFile{mockTaskFile(t, "file.txt", "file://file.txt", "application/octet-stream")},
 	}
 	_, err := p.Run(context.Background(), logger, runCfg, task)
 	require.ErrorIs(t, err, ErrFileNotSupported)

@@ -114,11 +114,60 @@ func (h *defaultCompletionHandler) ReasoningTokens(usage openai.CompletionUsage)
 	return nil
 }
 
+// openAIFileValidator validates whether a file's MIME type is supported for native input.
+// A nil *openAIFileValidator falls back to native OpenAI behaviour (default image
+// and document types), so providers that need no override simply leave FileValidator unset.
+// To disable a class (e.g. documents), pass an explicit empty map for it.
+// Additional classes (e.g. audio) can be added as new maps with a matching
+// IsSupportedXxx method; all non-image classes share the same File message
+// shape in both the Chat Completions and Responses APIs.
+type openAIFileValidator struct {
+	images    map[string]bool
+	documents map[string]bool
+}
+
+// newOpenAIFileValidator creates a file validator for OpenAI-compatible providers.
+// A nil allowedImageTypes or allowedDocumentTypes falls back to the OpenAI defaults;
+// a non-nil (even empty) map overrides the defaults.
+func newOpenAIFileValidator(allowedImageTypes, allowedDocumentTypes map[string]bool) *openAIFileValidator {
+	return &openAIFileValidator{
+		images:    allowedImageTypes,
+		documents: allowedDocumentTypes,
+	}
+}
+
+// noSupportedDocumentMimeTypes disables native non-image file input for a provider.
+var noSupportedDocumentMimeTypes = map[string]bool{}
+
+// IsSupportedImage reports whether the given MIME type is a supported native image type.
+// A nil validator falls back to the OpenAI defaults.
+func (v *openAIFileValidator) IsSupportedImage(mimeType string) bool {
+	images := supportedImageMimeTypes
+	if v != nil && v.images != nil {
+		images = v.images
+	}
+	return images[config.NormalizeMIMEType(mimeType)]
+}
+
+// IsSupportedDocument reports whether the given MIME type is a supported native
+// document (non-image file) type. A nil validator falls back to the OpenAI defaults.
+func (v *openAIFileValidator) IsSupportedDocument(mimeType string) bool {
+	documents := openAISupportedDocumentMimeTypes
+	if v != nil && v.documents != nil {
+		documents = v.documents
+	}
+	return documents[config.NormalizeMIMEType(mimeType)]
+}
+
 // openAICompletionsProvider is an OpenAI-compatible Chat Completions API
 // provider implementation using OpenAI's official Go SDK v3.
 type openAICompletionsProvider struct {
 	client         openai.Client
 	availableTools []config.ToolConfig
+
+	// FileValidator checks whether a file type is supported for native input at all.
+	// Nil falls back to native OpenAI behaviour (default image and document types).
+	FileValidator *openAIFileValidator
 
 	// NewCompletionHandler is a fixed factory, set once at provider construction,
 	// that creates a fresh CompletionHandler for each API call (both streaming and
@@ -466,21 +515,41 @@ func (o *openAICompletionsProvider) createPromptMessage(ctx context.Context, log
 	if len(files) > 0 {
 		parts := make([]openai.ChatCompletionContentPartUnionParam, 0, (len(files)*2)+1)
 		for _, file := range files {
-			if fileType, err := file.TypeValue(ctx); err != nil {
-				return message, err
-			} else if !isSupportedImageType(fileType) {
-				return message, fmt.Errorf("%w: %s", ErrFileNotSupported, fileType)
+			parts = append(parts, openai.TextContentPart(result.recordPrompt(DefaultTaskFileNameInstruction(file))))
+			if !file.HasAccess(config.FileAccessNative) {
+				continue
 			}
-			dataURL, err := file.GetDataURL(ctx)
+			fileType, err := file.TypeValue(ctx)
 			if err != nil {
 				return message, err
 			}
-			parts = append(parts, openai.TextContentPart(result.recordPrompt(DefaultTaskFileNameInstruction(file))))
-			detail := o.mapImageDetailToOpenAI(ctx, logger, file.GetResolvedFileOptions().ImageDetail)
-			parts = append(parts, openai.ImageContentPart(openai.ChatCompletionContentPartImageImageURLParam{
-				URL:    dataURL,
-				Detail: detail,
-			}))
+			switch {
+			case o.FileValidator.IsSupportedImage(fileType):
+				dataURL, err := file.GetDataURL(ctx)
+				if err != nil {
+					return message, err
+				}
+				detail := o.mapImageDetailToOpenAI(ctx, logger, file.GetResolvedFileOptions().ImageDetail)
+				parts = append(parts, openai.ImageContentPart(openai.ChatCompletionContentPartImageImageURLParam{
+					URL:    dataURL,
+					Detail: detail,
+				}))
+			case o.FileValidator.IsSupportedDocument(fileType):
+				dataURL, err := file.GetDataURL(ctx)
+				if err != nil {
+					return message, err
+				}
+				apiFilename, err := apiFilenameForFile(ctx, file)
+				if err != nil {
+					return message, err
+				}
+				parts = append(parts, openai.FileContentPart(openai.ChatCompletionContentPartFileFileParam{
+					Filename: openai.String(apiFilename),
+					FileData: openai.String(dataURL),
+				}))
+			default:
+				return message, fmt.Errorf("%w: %s", ErrFileNotSupported, fileType)
+			}
 		}
 		// Append the prompt text after the file data for improved context integrity.
 		parts = append(parts, openai.TextContentPart(result.recordPrompt(promptText)))

@@ -14,6 +14,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"mime"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -572,7 +574,30 @@ func addIfNotNil[D ~int64, S constraints.Signed](dst **D, src *S) {
 }
 
 func isSupportedImageType(mimeType string) bool {
-	return supportedImageMimeTypes[strings.ToLower(mimeType)]
+	return supportedImageMimeTypes[config.NormalizeMIMEType(mimeType)]
+}
+
+// apiFilenameForFile derives a filename suitable for provider-native file APIs.
+// Precedence: TaskFile.Name with extension > URI path extension > MIME-derived
+// extension > Name as-is. The URI takes precedence over the MIME type because
+// mime.ExtensionsByType returns every extension registered for a type, sorted, so its
+// first entry depends on the host MIME table (e.g. "text/html" may yield ".htm").
+func apiFilenameForFile(ctx context.Context, file config.TaskFile) (string, error) {
+	if ext := filepath.Ext(file.Name); ext != "" {
+		return file.Name, nil
+	}
+	if ext := file.URI.Ext(); ext != "" {
+		return file.Name + ext, nil
+	}
+	mimeType, err := file.TypeValue(ctx)
+	if err != nil {
+		return "", err
+	}
+	// ExtensionsByType parses the media type itself, so parameters need no stripping here.
+	if exts, err := mime.ExtensionsByType(mimeType); err == nil && len(exts) > 0 {
+		return file.Name + exts[0], nil
+	}
+	return file.Name, nil
 }
 
 // findToolByName searches for a tool configuration by name in the provided available tools slice.
@@ -607,9 +632,13 @@ func promptCacheKeyFor(cfg config.RunConfig) string {
 }
 
 // taskFilesToDataMap converts a slice of TaskFile to a map of filename to binary content data.
+// Only files with local access are included; native-only files are skipped before reading.
 func taskFilesToDataMap(ctx context.Context, files []config.TaskFile) (map[string][]byte, error) {
 	dataMap := make(map[string][]byte, len(files))
 	for _, file := range files {
+		if !file.HasAccess(config.FileAccessLocal) {
+			continue
+		}
 		content, err := file.Content(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read content for file %q: %w", file.Name, err)

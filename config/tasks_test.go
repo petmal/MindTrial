@@ -302,6 +302,85 @@ func TestURI_Path(t *testing.T) {
 	}
 }
 
+func TestURI_Ext(t *testing.T) {
+	tests := []struct {
+		name      string
+		raw       string
+		expected  string
+		requireOs string
+	}{
+		{
+			name:     "relative local path",
+			raw:      filepath.Join("path", "to", "file.txt"),
+			expected: ".txt",
+		},
+		{
+			name:     "local path without extension",
+			raw:      filepath.Join("path", "to", "file"),
+			expected: "",
+		},
+		{
+			name:      "absolute windows path",
+			raw:       `D:\projects\mindtrial\data.txt`,
+			expected:  ".txt",
+			requireOs: "windows", // NOTE: drive-letter paths only parse as local files on Windows.
+		},
+		{
+			name:     "relative windows path",
+			raw:      `..\config\file.txt`,
+			expected: ".txt",
+		},
+		{
+			name:     "file scheme",
+			raw:      "file:///path/to/file.txt",
+			expected: ".txt",
+		},
+		{
+			name:     "file scheme with query",
+			raw:      "file:///path/to/report.pdf?version=2",
+			expected: ".pdf",
+		},
+		{
+			name:     "local path with fragment character",
+			raw:      filepath.Join("path", "to", "file#1.txt"),
+			expected: ".txt",
+		},
+		{
+			name:     "remote URL",
+			raw:      "https://example.com/assets/report.pdf",
+			expected: ".pdf",
+		},
+		{
+			name:     "remote URL with query",
+			raw:      "https://example.com/assets/report.pdf?token=abc",
+			expected: ".pdf",
+		},
+		{
+			name:     "remote URL with fragment",
+			raw:      "https://example.com/assets/report.pdf#page=2",
+			expected: ".pdf",
+		},
+		{
+			name:     "remote URL without extension",
+			raw:      "https://example.com/assets/report?format=pdf",
+			expected: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.requireOs != "" && tt.requireOs != runtime.GOOS {
+				t.Skipf("test requires %s", tt.requireOs)
+			}
+
+			var u URI
+			require.NoError(t, u.Parse(tt.raw))
+
+			assert.Equal(t, tt.expected, u.Ext())
+		})
+	}
+}
+
 func TestTaskFile_Validate(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -495,12 +574,32 @@ func TestTaskFile_TypeValue(t *testing.T) {
 	}
 }
 
+func TestNormalizeMIMEType(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{name: "empty", input: "", want: ""},
+		{name: "simple lower", input: "text/plain", want: "text/plain"},
+		{name: "with charset", input: "text/plain; charset=utf-8", want: "text/plain"},
+		{name: "upper case", input: "Text/Plain; Charset=UTF-8", want: "text/plain"},
+		{name: "with spaces", input: "  application/pdf  ", want: "application/pdf"},
+		{name: "malformed fallback", input: "not-a-mime", want: "not-a-mime"},
+		{name: "image with charset", input: "image/jpeg; charset=utf-8", want: "image/jpeg"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, NormalizeMIMEType(tt.input))
+		})
+	}
+}
+
 func TestTaskFile_GetDataURL(t *testing.T) {
 	localFileContent := []byte("local file content")
 	localFilePath := testutils.CreateMockFile(t, "local-*.txt", localFileContent)
 
 	base64Content := base64.StdEncoding.EncodeToString(localFileContent)
-	expectedDataURL := "data:text/plain; charset=utf-8;base64," + base64Content
 
 	tests := []struct {
 		name            string
@@ -509,15 +608,23 @@ func TestTaskFile_GetDataURL(t *testing.T) {
 		wantErr         bool
 	}{
 		{
+			// The inferred "text/plain; charset=utf-8" must be normalized: a raw space is
+			// invalid in a data URL and providers match the bare media type.
 			name:            "create data URL from file",
 			file:            createMockTaskFile(t, localFilePath, ""),
-			expectedDataURL: expectedDataURL,
+			expectedDataURL: "data:text/plain;base64," + base64Content,
 			wantErr:         false,
 		},
 		{
 			name:            "create data URL with explicit type",
 			file:            createMockTaskFile(t, localFilePath, "application/custom"),
 			expectedDataURL: "data:application/custom;base64," + base64Content,
+			wantErr:         false,
+		},
+		{
+			name:            "create data URL with explicit parameterized type",
+			file:            createMockTaskFile(t, localFilePath, "text/html; charset=utf-8"),
+			expectedDataURL: "data:text/html;base64," + base64Content,
 			wantErr:         false,
 		},
 	}
@@ -3033,4 +3140,194 @@ func TestTaskFile_ResolveFileOptions(t *testing.T) {
 			assert.Equal(t, tt.expected, file.GetResolvedFileOptions())
 		})
 	}
+}
+
+func TestFileOptions_HasAccess(t *testing.T) {
+	tests := []struct {
+		name   string
+		opts   FileOptions
+		access FileAccess
+		want   bool
+	}{
+		{name: "nil defaults to native", opts: FileOptions{}, access: FileAccessNative, want: true},
+		{name: "nil defaults to local", opts: FileOptions{}, access: FileAccessLocal, want: true},
+		{name: "explicit native only - native", opts: FileOptions{Access: []FileAccess{FileAccessNative}}, access: FileAccessNative, want: true},
+		{name: "explicit native only - local", opts: FileOptions{Access: []FileAccess{FileAccessNative}}, access: FileAccessLocal, want: false},
+		{name: "explicit local only - native", opts: FileOptions{Access: []FileAccess{FileAccessLocal}}, access: FileAccessNative, want: false},
+		{name: "explicit local only - local", opts: FileOptions{Access: []FileAccess{FileAccessLocal}}, access: FileAccessLocal, want: true},
+		{name: "both - native", opts: FileOptions{Access: []FileAccess{FileAccessNative, FileAccessLocal}}, access: FileAccessNative, want: true},
+		{name: "both - local", opts: FileOptions{Access: []FileAccess{FileAccessNative, FileAccessLocal}}, access: FileAccessLocal, want: true},
+		{name: "reverse order - native", opts: FileOptions{Access: []FileAccess{FileAccessLocal, FileAccessNative}}, access: FileAccessNative, want: true},
+		{name: "reverse order - local", opts: FileOptions{Access: []FileAccess{FileAccessLocal, FileAccessNative}}, access: FileAccessLocal, want: true},
+		{name: "explicit empty - native", opts: FileOptions{Access: []FileAccess{}}, access: FileAccessNative, want: false},
+		{name: "explicit empty - local", opts: FileOptions{Access: []FileAccess{}}, access: FileAccessLocal, want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.opts.HasAccess(tt.access))
+		})
+	}
+}
+
+func TestTaskFile_HasAccess(t *testing.T) {
+	t.Run("unresolved options default to native and local", func(t *testing.T) {
+		file := TaskFile{Name: "f"}
+		assert.True(t, file.HasAccess(FileAccessNative))
+		assert.True(t, file.HasAccess(FileAccessLocal))
+	})
+	t.Run("resolved options are honored", func(t *testing.T) {
+		file := TaskFile{Name: "f", Options: &FileOptions{Access: []FileAccess{FileAccessLocal}}}
+		file.ResolveFileOptions(FileOptions{Access: []FileAccess{FileAccessNative, FileAccessLocal}})
+		assert.False(t, file.HasAccess(FileAccessNative))
+		assert.True(t, file.HasAccess(FileAccessLocal))
+	})
+}
+
+func TestFileOptions_MergeWith_Access(t *testing.T) {
+	tests := []struct {
+		name     string
+		base     FileOptions
+		other    *FileOptions
+		expected FileOptions
+	}{
+		{
+			name:     "nil other retains base access",
+			base:     FileOptions{Access: []FileAccess{FileAccessNative}},
+			other:    nil,
+			expected: FileOptions{Access: []FileAccess{FileAccessNative}},
+		},
+		{
+			name:     "empty other retains base access",
+			base:     FileOptions{Access: []FileAccess{FileAccessNative, FileAccessLocal}},
+			other:    &FileOptions{},
+			expected: FileOptions{Access: []FileAccess{FileAccessNative, FileAccessLocal}},
+		},
+		{
+			name:     "other replaces base entirely",
+			base:     FileOptions{Access: []FileAccess{FileAccessNative, FileAccessLocal}},
+			other:    &FileOptions{Access: []FileAccess{FileAccessNative}},
+			expected: FileOptions{Access: []FileAccess{FileAccessNative}},
+		},
+		{
+			name:     "other replaces with local only",
+			base:     FileOptions{Access: []FileAccess{FileAccessNative}},
+			other:    &FileOptions{Access: []FileAccess{FileAccessLocal}},
+			expected: FileOptions{Access: []FileAccess{FileAccessLocal}},
+		},
+		{
+			name:     "nil base with other sets",
+			base:     FileOptions{},
+			other:    &FileOptions{Access: []FileAccess{FileAccessLocal}},
+			expected: FileOptions{Access: []FileAccess{FileAccessLocal}},
+		},
+		{
+			name:     "does not alias override slice",
+			base:     FileOptions{Access: []FileAccess{FileAccessNative}},
+			other:    &FileOptions{Access: []FileAccess{FileAccessLocal}},
+			expected: FileOptions{Access: []FileAccess{FileAccessLocal}},
+		},
+		{
+			name:     "access and image-detail merged independently",
+			base:     FileOptions{ImageDetail: testutils.Ptr(ImageDetailHigh), Access: []FileAccess{FileAccessNative, FileAccessLocal}},
+			other:    &FileOptions{Access: []FileAccess{FileAccessNative}},
+			expected: FileOptions{ImageDetail: testutils.Ptr(ImageDetailHigh), Access: []FileAccess{FileAccessNative}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.base.MergeWith(tt.other)
+			assert.Equal(t, tt.expected, got)
+			// Verify no aliasing: mutating other should not affect result.
+			if tt.other != nil && tt.other.Access != nil && len(tt.other.Access) > 0 {
+				original := got.Access[0]
+				tt.other.Access[0] = "mutated"
+				assert.Equal(t, original, got.Access[0])
+				tt.other.Access[0] = original
+			}
+		})
+	}
+}
+
+func TestTask_RequiresNativeFileInput(t *testing.T) {
+	// Helper that directly sets resolved options for clarity.
+	resolvedFile := func(access []FileAccess) TaskFile {
+		var f TaskFile
+		if access == nil {
+			f.ResolveFileOptions(FileOptions{})
+		} else {
+			f.Options = &FileOptions{Access: access}
+			f.ResolveFileOptions(FileOptions{})
+		}
+		return f
+	}
+	tests := []struct {
+		name  string
+		files []TaskFile
+		want  bool
+	}{
+		{name: "no files", files: nil, want: false},
+		{name: "omitted access defaults to native", files: []TaskFile{resolvedFile(nil)}, want: true},
+		{name: "native only", files: []TaskFile{resolvedFile([]FileAccess{FileAccessNative})}, want: true},
+		{name: "local only", files: []TaskFile{resolvedFile([]FileAccess{FileAccessLocal})}, want: false},
+		{name: "native+local", files: []TaskFile{resolvedFile([]FileAccess{FileAccessNative, FileAccessLocal})}, want: true},
+		{name: "mixed native and local", files: []TaskFile{resolvedFile([]FileAccess{FileAccessNative}), resolvedFile([]FileAccess{FileAccessLocal})}, want: true},
+		{name: "multiple local only", files: []TaskFile{resolvedFile([]FileAccess{FileAccessLocal}), resolvedFile([]FileAccess{FileAccessLocal})}, want: false},
+		{name: "mixed local and native+local", files: []TaskFile{resolvedFile([]FileAccess{FileAccessLocal}), resolvedFile([]FileAccess{FileAccessNative, FileAccessLocal})}, want: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			task := Task{Files: tt.files}
+			assert.Equal(t, tt.want, task.RequiresNativeFileInput())
+		})
+	}
+}
+
+func TestValidateTaskConfiguration_FileAccess(t *testing.T) {
+	t.Run("valid omitted access", func(t *testing.T) {
+		task := Task{Name: "test", Prompt: "p", ResponseResultFormat: NewResponseFormat("x"), ExpectedResult: utils.NewValueSet("y")}
+		cfg := TaskConfig{Tasks: []Task{task}}
+		assert.NoError(t, cfg.Validate())
+	})
+	t.Run("valid explicit native", func(t *testing.T) {
+		task := Task{Name: "test", Prompt: "p", ResponseResultFormat: NewResponseFormat("x"), ExpectedResult: utils.NewValueSet("y"), Files: []TaskFile{{Name: "f", URI: URI{raw: "file.txt", parsed: mustParseURL("file.txt")}, Options: &FileOptions{Access: []FileAccess{FileAccessNative}}}}}
+		cfg := TaskConfig{Tasks: []Task{task}}
+		assert.NoError(t, cfg.Validate())
+	})
+	t.Run("valid explicit local", func(t *testing.T) {
+		task := Task{Name: "test", Prompt: "p", ResponseResultFormat: NewResponseFormat("x"), ExpectedResult: utils.NewValueSet("y"), Files: []TaskFile{{Name: "f", URI: URI{raw: "file.txt", parsed: mustParseURL("file.txt")}, Options: &FileOptions{Access: []FileAccess{FileAccessLocal}}}}}
+		cfg := TaskConfig{Tasks: []Task{task}}
+		assert.NoError(t, cfg.Validate())
+	})
+	t.Run("invalid explicit empty file access", func(t *testing.T) {
+		task := Task{Name: "test", Prompt: "p", ResponseResultFormat: NewResponseFormat("x"), ExpectedResult: utils.NewValueSet("y"), Files: []TaskFile{{Name: "f", URI: URI{raw: "file.txt", parsed: mustParseURL("file.txt")}, Options: &FileOptions{Access: []FileAccess{}}}}}
+		cfg := TaskConfig{Tasks: []Task{task}}
+		err := cfg.Validate()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "access must not be empty")
+	})
+	t.Run("invalid explicit empty global access", func(t *testing.T) {
+		task := Task{Name: "test", Prompt: "p", ResponseResultFormat: NewResponseFormat("x"), ExpectedResult: utils.NewValueSet("y")}
+		cfg := TaskConfig{Tasks: []Task{task}, FileOptions: FileOptions{Access: []FileAccess{}}}
+		err := cfg.Validate()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "file-options access must not be empty")
+	})
+	t.Run("invalid duplicate access via validator", func(t *testing.T) {
+		// Direct validator check for duplicate values.
+		opts := FileOptions{Access: []FileAccess{FileAccessNative, FileAccessNative}}
+		err := validate.Struct(opts)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "unique")
+	})
+	t.Run("invalid unknown access via validator", func(t *testing.T) {
+		opts := FileOptions{Access: []FileAccess{"invalid"}}
+		err := validate.Struct(opts)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "oneof")
+	})
+}
+
+func mustParseURL(raw string) *url.URL {
+	u, _ := url.Parse(raw)
+	return u
 }

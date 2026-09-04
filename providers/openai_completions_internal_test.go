@@ -72,7 +72,7 @@ func TestOpenAICompletions_FileTypeNotSupported(t *testing.T) {
 	runCfg := config.RunConfig{Name: "test-run", Model: "gpt-test"}
 	task := config.Task{
 		Name:  "bad_file_type",
-		Files: []config.TaskFile{mockTaskFile(t, "file.txt", "file://file.txt", "text/plain")},
+		Files: []config.TaskFile{mockTaskFile(t, "file.txt", "file://file.txt", "application/octet-stream")},
 	}
 	_, err := p.Run(context.Background(), logger, runCfg, task)
 	require.ErrorIs(t, err, ErrFileNotSupported)

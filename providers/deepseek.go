@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
+	"strings"
 
 	deepseek "github.com/cohesion-org/deepseek-go"
 	"github.com/petmal/mindtrial/config"
@@ -62,8 +63,8 @@ func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 	}
 
 	var request any
-	if len(task.Files) > 0 {
-		if !o.isFileUploadSupported() {
+	if task.RequiresNativeFileInput() {
+		if !o.isNativeFileInputSupported() {
 			return result, ErrFileUploadNotSupported
 		}
 
@@ -112,9 +113,16 @@ func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 				Content: result.recordPrompt(answerFormatInstruction),
 			})
 		}
+		var promptText strings.Builder
+		for _, file := range task.Files {
+			promptText.WriteString(result.recordPrompt(DefaultTaskFileNameInstruction(file)))
+			promptText.WriteString("\n")
+		}
+		// Append the prompt text after the file references for improved context integrity.
+		promptText.WriteString(result.recordPrompt(task.Prompt))
 		messages = append(messages, deepseek.ChatCompletionMessage{
 			Role:    deepseek.ChatMessageRoleUser,
-			Content: result.recordPrompt(task.Prompt),
+			Content: promptText.String(),
 		})
 
 		request = &deepseek.ChatCompletionRequest{
@@ -231,12 +239,20 @@ func (o *Deepseek) isTerminalStopReason(stopReason string) bool {
 	return !slices.Contains([]string{"", "tool_calls"}, stopReason)
 }
 
-func (o *Deepseek) isFileUploadSupported() bool {
+// isNativeFileInputSupported reports whether the model accepts native image or document input.
+func (o *Deepseek) isNativeFileInputSupported() bool {
 	return false // NOTE: DeepSeek API does not support file upload in the current version.
 }
 
 func (o *Deepseek) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []deepseek.ContentItem, err error) {
 	for _, file := range files {
+		parts = append(parts, deepseek.ContentItem{
+			Type: "text",
+			Text: result.recordPrompt(DefaultTaskFileNameInstruction(file)),
+		})
+		if !file.HasAccess(config.FileAccessNative) {
+			continue
+		}
 		if fileType, err := file.TypeValue(ctx); err != nil {
 			return parts, err
 		} else if !isSupportedImageType(fileType) {
@@ -248,11 +264,6 @@ func (o *Deepseek) createPromptMessageParts(ctx context.Context, promptText stri
 			return parts, err
 		}
 
-		// Attach file name as a separate text block before the image.
-		parts = append(parts, deepseek.ContentItem{
-			Type: "text",
-			Text: result.recordPrompt(DefaultTaskFileNameInstruction(file)),
-		})
 		parts = append(parts, deepseek.ContentItem{
 			Type: "image",
 			Image: &deepseek.ImageContent{

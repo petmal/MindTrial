@@ -377,23 +377,41 @@ func (o *GoogleAI) getMessageText(candidate *genai.Candidate) (text string, ok b
 	return
 }
 
+// googleSupportedDocumentMimeTypes lists the non-image types Gemini accepts as document
+// input. Transcribed in full from the "Supported content types" list in the Gemini file
+// input guide. See: https://ai.google.dev/gemini-api/docs/file-input-methods
+// Only PDF is understood with native document vision; the text types are extracted as
+// plain text, so layout, charts and formatting are lost.
+var googleSupportedDocumentMimeTypes = map[string]bool{
+	"application/pdf":  true,
+	"application/json": true,
+	"text/plain":       true,
+	"text/html":        true,
+	"text/css":         true,
+	"text/xml":         true,
+	"text/csv":         true,
+	"text/rtf":         true,
+	"text/javascript":  true,
+}
+
 func (o *GoogleAI) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []*genai.Part, err error) {
 	for _, file := range files {
+		parts = append(parts, genai.NewPartFromText(result.recordPrompt(DefaultTaskFileNameInstruction(file))))
+		if !file.HasAccess(config.FileAccessNative) {
+			continue
+		}
 		fileType, err := file.TypeValue(ctx)
 		if err != nil {
 			return parts, err
-		} else if !isSupportedImageType(fileType) {
+		}
+		if !isSupportedImageType(fileType) && !googleSupportedDocumentMimeTypes[config.NormalizeMIMEType(fileType)] {
 			return parts, fmt.Errorf("%w: %s", ErrFileNotSupported, fileType)
 		}
-
 		content, err := file.Content(ctx)
 		if err != nil {
 			return parts, err
 		}
-
-		// Attach file name as a text part before the blob, for reference.
-		parts = append(parts, genai.NewPartFromText(result.recordPrompt(DefaultTaskFileNameInstruction(file))))
-		parts = append(parts, genai.NewPartFromBytes(content, fileType))
+		parts = append(parts, genai.NewPartFromBytes(content, config.NormalizeMIMEType(fileType)))
 	}
 
 	parts = append(parts, genai.NewPartFromText(result.recordPrompt(promptText))) // append the prompt text after the file data for improved context integrity

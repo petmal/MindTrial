@@ -182,9 +182,10 @@ This file defines the tool's settings and target model configurations evaluated 
       - treats the model's entire response as the **final answer** (title and explanation are filled with placeholders)
       - forces the model to use plain-text response mode
       - skips tasks that require schema-based (`response-result-format`) JSON outputs
-    - **text-only**: Skip tasks that require file attachments (e.g. images).
-      When enabled, only tasks without file attachments will be executed.
-      This is useful for text-only models that cannot process images or other files.
+    - **text-only**: Skip tasks that require native file input to the model API.
+      When enabled, only tasks without native file input will be executed.
+      Tasks with files that are only available to local tools (`access: [local]`) are still executed.
+      This is useful for text-only models that cannot process images or other files natively.
 
 > [!TIP]
 > Use `text-only` for models that do not support vision capabilities, such as text-only language models hosted on platforms like OpenRouter.
@@ -649,7 +650,7 @@ config:
       runs:
         - name: "Kimi K2 - latest (thinking)"
           model: "kimi-k2-thinking"
-          text-only: true  # Skip tasks with file attachments
+          text-only: true  # Skip tasks that require native file input
           max-requests-per-minute: 3
           model-parameters:
             temperature: 1.0
@@ -688,17 +689,62 @@ Only one expected result needs to match for the response to be considered correc
 Optionally, a task can include a list of `files` to be sent along with the prompt:
 
 - **files**: A list of files to attach to the prompt. Each file entry defines the following properties:
-  - **name**: A unique name for the file, used for reference within the prompt if needed.
-  - **uri**: The path or URI to the file. Local file paths and remote HTTP/HTTPS URLs are supported. The file content will be downloaded and sent with the request.
+  - **name**: A unique name for the file. Every attached file is announced to the model in the prompt as `[file: <name>]`, regardless of its `access` setting, and local tools mount the file under this exact name.
+  - **uri**: The path or URI to the file. Local file paths and remote HTTP/HTTPS URLs are supported. The content is loaded on demand: it is sent with the request for files with `native` access, and copied to the tool auxiliary directory for files with `local` access.
   - **type**: The MIME type of the file (e.g., `image/png`, `image/jpeg`). If omitted, the tool will attempt to infer the type based on the file extension or content.
   - **options**: Optional per-file processing options that override the `file-options` defaults from the `task-config` section.
-    - **image-detail**: Controls the fidelity level at which the model processes input images (values: `auto`, `low`, `medium`, `high`, `original`). If the provider does not natively support the requested level, the next higher level or the highest available level is selected. If not set or unknown, the provider uses its own default behavior. Currently only the **OpenAI** provider honors this setting.
+    - **image-detail**: Controls the fidelity level at which the model processes input images (values: `auto`, `low`, `medium`, `high`, `original`). If the provider does not natively support the requested level, the next higher level or the highest available level is selected. If not set or unknown, the provider uses its own default behavior. Currently only the **OpenAI** provider honors this setting. It also controls how PDF pages are rendered as images, but only on the **OpenAI Responses** API; the Chat Completions API does not accept a detail level for file inputs. The `original` level has no PDF equivalent and is treated as `high`.
+    - **access**: Controls how the file is exposed. Supported values are `native` (provider native file/multimodal input) and `local` (local Docker tools). When omitted, the stable default is `[native, local]`. A per-file `access` replaces the inherited `file-options` value entirely (no union). An explicit empty list `[]` is invalid. The setting applies to every file type including images, so an image with `access: [local]` is never sent to the model and can only be inspected through a tool. Tasks with files that are only available to local tools (`access: [local]`) do not require provider file support and are not skipped by `text-only`.
+
+- **file-options**: Default file processing options for all task files in `task-config`. Individual files can override via `files[].options`.
+  - **image-detail**: Default image fidelity (same values as above).
+  - **access**: Default access list (same semantics as above). Example: `file-options: { access: [native, local] }`.
 
 > [!NOTE]
-> If a task includes files, it will be skipped for any provider configuration that does not support file uploads or does not support the specific file type.
+> If a task requires native file input (any file with `native` access), it will be skipped for provider configurations that do not support file uploads or the specific file type. Tasks with only `local` access never require native file support.
+
+> [!IMPORTANT]
+> A file with `local` access is only readable if the task also enables at least one tool that defines `auxiliary-dir`. Otherwise the model sees the `[file: <name>]` reference but has no way to read the contents.
 
 > [!NOTE]
-> Currently supported image types include: `image/jpeg`, `image/jpg`, `image/png`, `image/gif`, `image/webp`. Support may vary by provider.
+> Currently supported image types include: `image/jpeg`, `image/jpg`, `image/png`, `image/gif`, `image/webp`. Support may vary by provider. Native non-image (document) input is additionally supported by:
+>
+> - **OpenAI**: the complete [accepted file types](https://platform.openai.com/docs/guides/pdf-files) list — PDF; Word, Excel, PowerPoint, Pages, Keynote, Google Docs/Sheets/Slides, RTF and OpenDocument text; CSV, TSV and IIF; and a broad set of text and code formats including plain text, Markdown, HTML, XML, CSS, JSON, YAML, TOML, calendar, vCard, subtitles, email and most programming languages
+> - **Google**: `application/pdf`, `application/json`, `text/plain`, `text/html`, `text/css`, `text/xml`, `text/csv`, `text/rtf` and `text/javascript`, per the [supported content types](https://ai.google.dev/gemini-api/docs/file-input-methods). Only PDF is read with document vision; the other types are extracted as plain text, so charts and formatting are lost.
+> - **Anthropic**: `application/pdf` and `text/plain`, per the [citations](https://docs.claude.com/en/docs/build-with-claude/citations) documentation. A plain text document is sent verbatim rather than base64-encoded; other text formats such as CSV or Markdown must declare `type: "text/plain"` explicitly to use this path.
+> - **OpenRouter**, **Mistral AI**: `application/pdf`
+> - **Alibaba**, **Moonshot AI**, **xAI**: images only
+> - **DeepSeek**: no native file input at all, not even images; its task files must use `access: [local]`
+>
+> A file with `native` access whose type is not supported by the selected provider makes the task unsupported; it is never silently downgraded to `local` access.
+
+Example file access configuration:
+
+```yaml
+task-config:
+  file-options:
+    access: [native, local]  # default for all files
+  tasks:
+    - name: "vision task"
+      prompt: "Describe the image."
+      response-result-format: "single sentence"
+      expected-result: "A cat."
+      files:
+        - name: "picture"
+          uri: "./taskdata/cat.png"
+          type: "image/png"
+          # inherits access: [native, local]
+    - name: "local-only task"
+      prompt: "Use the data file to answer."
+      response-result-format: "single number"
+      expected-result: "42"
+      files:
+        - name: "data"
+          uri: "./taskdata/data.csv"
+          type: "text/csv"
+          options:
+            access: [local]  # mounted to tool auxiliary-dir only, never sent natively
+```
 
 > [!TIP]
 > To disable all tasks by default, set `disabled: true` in the `task-config` section.
@@ -1241,7 +1287,7 @@ Tools must be defined in `config.yaml` under the `tools` section. Each tool defi
 - **description**: A detailed description of what the tool does and how to use it. This description is provided to the LLM to help it understand when and how to use the tool. Be specific and avoid ambiguity to help the LLM choose the correct tool and provide appropriate parameters.
 - **parameters**: JSON schema defining the tool's input parameters. The LLM will generate the actual parameter values based on this schema. Provide comprehensive descriptions that explain parameter purpose and format.
 - **parameter-files**: Mapping of parameter names to container file paths where argument values should be written. Argument values are converted to strings, non-string values are marshaled to JSON. The tool's command should read these files as needed.
-- **auxiliary-dir**: Directory path inside the container where task files will be automatically mounted. If specified, copies of all files attached to the task will be mounted to this directory using each file's unique reference `name` exactly as provided. Files in this directory are reset between tool calls.
+- **auxiliary-dir**: Directory path inside the container where task files with `local` access will be automatically mounted. If specified, files with `local` access attached to the task will be mounted to this directory using each file's unique reference `name` exactly as provided. Files in this directory are reset between tool calls.
 - **shared-dir**: Directory path inside the container that persists across all tool calls within a single task. If specified, files created in this directory will be available for any subsequent tool calls but will be removed when the task completes.
 - **command**: Command to run inside the container. The standard output of the command execution is captured and passed back to the LLM as is.
 - **env**: Environment variables to set in the container.
@@ -1261,7 +1307,7 @@ config:
         IMPORTANT:
         - Only the Python standard library is available. No third-party packages (like pandas or numpy) can be imported.
         - The environment has no network access.
-        - Any files mentioned in the conversation (shown as [file: filename]) are automatically mounted to /app/data/ with their exact filenames.
+        - Task files made available to this tool are mounted under /app/data/ using their [file: filename] names.
         - Use standard file operations like open('/app/data/filename', 'r') to read attached files, where 'filename' matches the name shown in [file: filename] references.
         - A persistent shared directory is available at /app/shared/ that persists across ALL tool calls within the same task (regardless of which tool is being called). Files created in this directory will be available in any subsequent tool call.
         - Any files or changes outside of /app/shared/ are ephemeral and will be reset between tool calls.

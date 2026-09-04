@@ -21,7 +21,7 @@ import (
 
 func TestMoonshotAI_Run_IncompatibleResponseFormat(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
-	p := &MoonshotAI{} // nil client is sufficient to exercise parameter mapping and validation
+	p := NewMoonshotAI(config.MoonshotAIClientConfig{APIKey: "test"}, nil)
 
 	runCfg := config.RunConfig{
 		Name:                    "test-run",
@@ -42,7 +42,7 @@ func TestMoonshotAI_Run_IncompatibleResponseFormat(t *testing.T) {
 
 func TestMoonshotAI_FileTypeNotSupported(t *testing.T) {
 	logger := testutils.NewTestLogger(t)
-	p := &MoonshotAI{} // nil client is sufficient to exercise early validation
+	p := NewMoonshotAI(config.MoonshotAIClientConfig{APIKey: "test"}, nil)
 
 	runCfg := config.RunConfig{Name: "test-run", Model: "kimi-test"}
 	task := config.Task{

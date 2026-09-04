@@ -112,6 +112,10 @@ type openAIResponsesProvider struct {
 	client         openai.Client
 	availableTools []config.ToolConfig
 
+	// FileValidator checks whether a file type is supported for native input at all.
+	// Nil falls back to native OpenAI behaviour (default image and document types).
+	FileValidator *openAIFileValidator
+
 	// NewResponseHandler is a factory that creates a fresh ResponseHandler
 	// for each API call (both streaming and non-streaming). When nil, the
 	// defaultResponseHandler is used.
@@ -417,27 +421,50 @@ func (o *openAIResponsesProvider) createPromptInputItems(ctx context.Context, lo
 	if len(files) > 0 {
 		parts := make(responses.ResponseInputMessageContentListParam, 0, (len(files)*2)+1)
 		for _, file := range files {
-			if fileType, err := file.TypeValue(ctx); err != nil {
-				return nil, err
-			} else if !isSupportedImageType(fileType) {
-				return nil, fmt.Errorf("%w: %s", ErrFileNotSupported, fileType)
-			}
-			dataURL, err := file.GetDataURL(ctx)
-			if err != nil {
-				return nil, err
-			}
 			parts = append(parts, responses.ResponseInputContentUnionParam{
 				OfInputText: &responses.ResponseInputTextParam{
 					Text: result.recordPrompt(DefaultTaskFileNameInstruction(file)),
 				},
 			})
-			detail := mapImageDetailToResponses(ctx, logger, file.GetResolvedFileOptions().ImageDetail)
-			parts = append(parts, responses.ResponseInputContentUnionParam{
-				OfInputImage: &responses.ResponseInputImageParam{
-					ImageURL: param.NewOpt(dataURL),
-					Detail:   detail,
-				},
-			})
+			if !file.HasAccess(config.FileAccessNative) {
+				continue
+			}
+			fileType, err := file.TypeValue(ctx)
+			if err != nil {
+				return nil, err
+			}
+			switch {
+			case o.FileValidator.IsSupportedImage(fileType):
+				dataURL, err := file.GetDataURL(ctx)
+				if err != nil {
+					return nil, err
+				}
+				detail := mapImageDetailToResponses(ctx, logger, file.GetResolvedFileOptions().ImageDetail)
+				parts = append(parts, responses.ResponseInputContentUnionParam{
+					OfInputImage: &responses.ResponseInputImageParam{
+						ImageURL: param.NewOpt(dataURL),
+						Detail:   detail,
+					},
+				})
+			case o.FileValidator.IsSupportedDocument(fileType):
+				dataURL, err := file.GetDataURL(ctx)
+				if err != nil {
+					return nil, err
+				}
+				apiFilename, err := apiFilenameForFile(ctx, file)
+				if err != nil {
+					return nil, err
+				}
+				parts = append(parts, responses.ResponseInputContentUnionParam{
+					OfInputFile: &responses.ResponseInputFileParam{
+						Filename: param.NewOpt(apiFilename),
+						FileData: param.NewOpt(dataURL),
+						Detail:   mapImageDetailToResponsesFile(ctx, logger, file.GetResolvedFileOptions().ImageDetail),
+					},
+				})
+			default:
+				return nil, fmt.Errorf("%w: %s", ErrFileNotSupported, fileType)
+			}
 		}
 		// Append the prompt text after the file data for improved context integrity.
 		parts = append(parts, responses.ResponseInputContentUnionParam{
@@ -481,6 +508,26 @@ func mapImageDetailToResponses(ctx context.Context, logger logging.Logger, detai
 		}
 	}
 	return responses.ResponseInputImageDetailAuto
+}
+
+// mapImageDetailToResponsesFile maps a provider-agnostic ImageDetail value to the detail
+// level of a Responses API file input, which controls how PDF pages are rendered as
+// images. That domain offers no "original" level, so both "medium" and "original" map to
+// "high" (the nearest higher level).
+func mapImageDetailToResponsesFile(ctx context.Context, logger logging.Logger, detail *config.ImageDetail) responses.ResponseInputFileDetail {
+	if detail != nil {
+		switch *detail {
+		case config.ImageDetailAuto:
+			return responses.ResponseInputFileDetailAuto
+		case config.ImageDetailLow:
+			return responses.ResponseInputFileDetailLow
+		case config.ImageDetailMedium, config.ImageDetailHigh, config.ImageDetailOriginal:
+			return responses.ResponseInputFileDetailHigh
+		default:
+			logger.Message(ctx, logging.LevelWarn, "unsupported image detail level %q, reverting to default behavior", *detail)
+		}
+	}
+	return responses.ResponseInputFileDetailAuto
 }
 
 // handleRequest dispatches the request to the appropriate handler based on streaming mode.

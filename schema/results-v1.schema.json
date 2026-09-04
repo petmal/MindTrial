@@ -74,7 +74,7 @@
                 "TextOnly": {
                   "type": "boolean",
                   "title": "Text Only",
-                  "description": "Whether this configuration was restricted to text-only tasks (i.e. tasks without file attachments)."
+                  "description": "Whether this configuration was restricted to text-only tasks (i.e. tasks without native file input to the model). Tasks with files that are only available to local tools are still executed."
                 },
                 "DisableStructuredOutput": {
                   "type": "boolean",
@@ -694,7 +694,7 @@
                             "TextOnly": {
                               "type": "boolean",
                               "title": "Text Only",
-                              "description": "Whether this configuration was restricted to text-only tasks (i.e. tasks without file attachments)."
+                              "description": "Whether this configuration was restricted to text-only tasks (i.e. tasks without native file input to the model). Tasks with files that are only available to local tools are still executed."
                             },
                             "DisableStructuredOutput": {
                               "type": "boolean",
