@@ -64,7 +64,7 @@ func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 
 	var request any
 	if task.RequiresNativeFileInput() {
-		if !o.isNativeFileInputSupported() {
+		if !o.isNativeFileInputSupported(cfg.Model) {
 			return result, ErrFileUploadNotSupported
 		}
 
@@ -239,9 +239,19 @@ func (o *Deepseek) isTerminalStopReason(stopReason string) bool {
 	return !slices.Contains([]string{"", "tool_calls"}, stopReason)
 }
 
-// isNativeFileInputSupported reports whether the model accepts native image or document input.
-func (o *Deepseek) isNativeFileInputSupported() bool {
-	return false // NOTE: DeepSeek API does not support file upload in the current version.
+// isNativeFileInputSupported reports whether the configured DeepSeek model
+// accepts native image input through Chat Completions. DeepSeek models are
+// assumed to support image input unless explicitly denied here.
+// Currently only Flash supports vision; Pro is text-only.
+// See https://api-docs.deepseek.com/guides/vision and
+// https://api-docs.deepseek.com/quick_start/pricing/.
+func (o *Deepseek) isNativeFileInputSupported(model string) bool {
+	switch model {
+	case "deepseek-v4-pro":
+		return false
+	default:
+		return true
+	}
 }
 
 func (o *Deepseek) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []deepseek.ContentItem, err error) {
@@ -265,7 +275,7 @@ func (o *Deepseek) createPromptMessageParts(ctx context.Context, promptText stri
 		}
 
 		parts = append(parts, deepseek.ContentItem{
-			Type: "image",
+			Type: "image_url",
 			Image: &deepseek.ImageContent{
 				URL: dataURL,
 			},
@@ -291,10 +301,7 @@ func (o *Deepseek) applyModelParameters(request any, modelParams config.Deepseek
 			req.Thinking = &deepseek.ThinkingConfig{Type: *modelParams.Thinking}
 		}
 		if modelParams.ReasoningEffort != nil {
-			if req.ExtraFields == nil {
-				req.ExtraFields = map[string]interface{}{}
-			}
-			req.ExtraFields["reasoning_effort"] = *modelParams.ReasoningEffort
+			req.ReasoningEffort = *modelParams.ReasoningEffort
 		}
 		if modelParams.MaxTokens != nil {
 			req.MaxTokens = int(*modelParams.MaxTokens)
@@ -304,11 +311,14 @@ func (o *Deepseek) applyModelParameters(request any, modelParams config.Deepseek
 		setIfNotNil(&req.TopP, modelParams.TopP)
 		setIfNotNil(&req.FrequencyPenalty, modelParams.FrequencyPenalty)
 		setIfNotNil(&req.PresencePenalty, modelParams.PresencePenalty)
+		if modelParams.ReasoningEffort != nil {
+			req.ReasoningEffort = *modelParams.ReasoningEffort
+		}
 		if modelParams.MaxTokens != nil {
 			req.MaxTokens = int(*modelParams.MaxTokens)
 		}
-		// NOTE: thinking and reasoning-effort are not applied here — ChatCompletionRequestWithImage
-		// does not expose these fields in the deepseek-go library.
+		// ChatCompletionRequestWithImage does not expose Thinking in deepseek-go.
+		// DeepSeek enables thinking by default; ReasoningEffort is forwarded above.
 	default:
 		panic(fmt.Sprintf("unsupported request type: %T", request))
 	}

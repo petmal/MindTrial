@@ -714,7 +714,7 @@ Optionally, a task can include a list of `files` to be sent along with the promp
 > - **Anthropic**: `application/pdf` and `text/plain`, per the [citations](https://docs.claude.com/en/docs/build-with-claude/citations) documentation. A plain text document is sent verbatim rather than base64-encoded; other text formats such as CSV or Markdown must declare `type: "text/plain"` explicitly to use this path.
 > - **OpenRouter**, **Mistral AI**: `application/pdf`
 > - **Alibaba**, **Moonshot AI**, **xAI**: images only
-> - **DeepSeek**: no native file input at all, not even images; its task files must use `access: [local]`
+> - **DeepSeek**: images only on vision-capable models
 >
 > A file with `native` access whose type is not supported by the selected provider makes the task unsupported; it is never silently downgraded to `local` access.
 
