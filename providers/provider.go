@@ -74,6 +74,9 @@ var supportedImageMimeTypes = map[string]bool{
 	"image/webp": true,
 }
 
+// ExecutionEnvironment provides attempt-scoped infrastructure to providers.
+type ExecutionEnvironment = tools.ExecutionEnvironment
+
 // Provider interacts with AI model services.
 // Implementations must support concurrent calls on the same provider instance.
 // Close must be idempotent.
@@ -81,7 +84,9 @@ type Provider interface {
 	// Name returns the provider's unique identifier.
 	Name() string
 	// Run executes a task using specified configuration and returns the result.
-	Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error)
+	// Tools run in the attempt-scoped environment; a nil environment means standalone
+	// execution without task-scoped services.
+	Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task, environment ExecutionEnvironment) (result Result, err error)
 	// Close releases resources when the provider is no longer needed.
 	Close(ctx context.Context) error
 }
@@ -615,6 +620,15 @@ func findToolByName(availableTools []config.ToolConfig, name string) (*config.To
 // error reporting across all providers.
 func formatToolExecutionError(err error) string {
 	return fmt.Sprintf("Tool execution failed: %v", err)
+}
+
+// taskRuntimeToolError returns an error that ends the conversation when a tool call failed because
+// of its task runtime, which the model cannot resolve; it returns nil for any other outcome.
+func taskRuntimeToolError(err error) error {
+	if !tools.IsTaskRuntimeError(err) {
+		return nil
+	}
+	return fmt.Errorf("%w: %w", ErrToolUse, err)
 }
 
 // promptCacheKeyFor derives a stable, opaque prompt cache key from the run

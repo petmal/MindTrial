@@ -54,7 +54,7 @@ func (o Anthropic) Name() string {
 	return config.ANTHROPIC
 }
 
-func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task, environment ExecutionEnvironment) (result Result, err error) {
 	request := anthropic.MessageNewParams{
 		MaxTokens: defaultMaxTokens,
 		Model:     anthropic.Model(cfg.Model),
@@ -66,7 +66,7 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 	toolSelector := task.GetResolvedToolSelector()
 	if enabledTools, hasTools := toolSelector.GetEnabledToolsByName(); hasTools {
 		var err error
-		executor, err = tools.NewDockerToolExecutor(ctx)
+		executor, err = tools.NewToolExecutor(ctx, environment)
 		if err != nil {
 			return result, fmt.Errorf("%w: %w", ErrToolSetup, err)
 		}
@@ -287,6 +287,9 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 						return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
 					}
 					toolResult, err := executor.ExecuteTool(ctx, logger, block.Name, json.RawMessage(block.Input), data, &tools.ToolCallContext{CallID: block.ID, ConversationTurn: turn})
+					if runtimeErr := taskRuntimeToolError(err); runtimeErr != nil {
+						return result, runtimeErr
+					}
 					isError := err != nil
 					content := string(toolResult)
 					if isError {

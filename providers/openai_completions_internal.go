@@ -278,11 +278,11 @@ func newOpenAICompletionsProvider(availableTools []config.ToolConfig, opts ...op
 	}
 }
 
-func (o *openAICompletionsProvider) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
-	return o.run(ctx, logger, cfg, task, nil)
+func (o *openAICompletionsProvider) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task, environment ExecutionEnvironment) (result Result, err error) {
+	return o.run(ctx, logger, cfg, task, environment, nil)
 }
 
-func (o *openAICompletionsProvider) run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task, args any) (result Result, err error) {
+func (o *openAICompletionsProvider) run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task, environment ExecutionEnvironment, args any) (result Result, err error) {
 	request := openai.ChatCompletionNewParams{
 		Model:    openai.ChatModel(cfg.Model),
 		Messages: []openai.ChatCompletionMessageParamUnion{},
@@ -409,7 +409,7 @@ func (o *openAICompletionsProvider) run(ctx context.Context, logger logging.Logg
 	toolSelector := task.GetResolvedToolSelector()
 	if enabledTools, hasTools := toolSelector.GetEnabledToolsByName(); hasTools {
 		var err error
-		executor, err = tools.NewDockerToolExecutor(ctx)
+		executor, err = tools.NewToolExecutor(ctx, environment)
 		if err != nil {
 			return result, fmt.Errorf("%w: %w", ErrToolSetup, err)
 		}
@@ -479,6 +479,9 @@ func (o *openAICompletionsProvider) run(ctx context.Context, logger logging.Logg
 						return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
 					}
 					toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, json.RawMessage(toolCall.Function.Arguments), data, &tools.ToolCallContext{CallID: toolCall.ID, ConversationTurn: turn})
+					if runtimeErr := taskRuntimeToolError(err); runtimeErr != nil {
+						return result, runtimeErr
+					}
 					toolContent := string(toolResult)
 					if err != nil {
 						toolContent = formatToolExecutionError(err)

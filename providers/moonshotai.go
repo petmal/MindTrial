@@ -46,7 +46,7 @@ func (m MoonshotAI) Name() string {
 	return config.MOONSHOTAI
 }
 
-func (m *MoonshotAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (m *MoonshotAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task, environment ExecutionEnvironment) (result Result, err error) {
 	openAIV3Params := openAIV3ModelParams{
 		ExtraFields:    map[string]any{},
 		PromptCacheKey: utils.Ptr(promptCacheKeyFor(cfg)),
@@ -67,7 +67,7 @@ func (m *MoonshotAI) Run(ctx context.Context, logger logging.Logger, cfg config.
 	}
 	cfg.ModelParams = openAIV3Params
 
-	return m.openaiProvider.Run(ctx, logger, cfg, task)
+	return m.openaiProvider.Run(ctx, logger, cfg, task, environment)
 }
 
 func (m *MoonshotAI) Close(ctx context.Context) error {

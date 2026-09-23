@@ -81,7 +81,7 @@ func (a Alibaba) Name() string {
 	return config.ALIBABA
 }
 
-func (a *Alibaba) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (a *Alibaba) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task, environment ExecutionEnvironment) (result Result, err error) {
 	openAIV3Params := openAIV3ModelParams{ExtraFields: map[string]any{}}
 	var preserveThinking bool
 
@@ -101,7 +101,7 @@ func (a *Alibaba) Run(ctx context.Context, logger logging.Logger, cfg config.Run
 	}
 	cfg.ModelParams = openAIV3Params
 
-	return a.openaiProvider.run(ctx, logger, cfg, task, alibabaCompletionHandlerArgs{PreserveThinking: preserveThinking})
+	return a.openaiProvider.run(ctx, logger, cfg, task, environment, alibabaCompletionHandlerArgs{PreserveThinking: preserveThinking})
 }
 
 func (a *Alibaba) Close(ctx context.Context) error {

@@ -35,7 +35,7 @@ func TestAlibaba_Run_IncompatibleResponseFormat(t *testing.T) {
 			mockTaskFile(t, "test.txt", "file://test.txt", "text/plain"), // Unsupported file type to cause early error
 		},
 	}
-	_, err := p.Run(context.Background(), logger, runCfg, task)
+	_, err := p.Run(context.Background(), logger, runCfg, task, nil)
 	require.Error(t, err) // Should error due to unsupported file type
 	require.NotErrorIs(t, err, ErrIncompatibleResponseFormat)
 }
@@ -61,7 +61,7 @@ func TestAlibaba_Run_DeprecatedDisableLegacyJsonMode_CompatibleWithDisabledStruc
 			mockTaskFile(t, "test.txt", "file://test.txt", "text/plain"), // Unsupported file type to cause early error
 		},
 	}
-	_, err := p.Run(context.Background(), logger, runCfg, task)
+	_, err := p.Run(context.Background(), logger, runCfg, task, nil)
 	require.Error(t, err) // Should error due to unsupported file type
 	require.NotErrorIs(t, err, ErrIncompatibleResponseFormat)
 }
@@ -75,7 +75,7 @@ func TestAlibaba_FileTypeNotSupported(t *testing.T) {
 		Name:  "bad_file_type",
 		Files: []config.TaskFile{mockTaskFile(t, "file.txt", "file://file.txt", "text/plain")},
 	}
-	_, err := p.Run(context.Background(), logger, runCfg, task)
+	_, err := p.Run(context.Background(), logger, runCfg, task, nil)
 	require.ErrorIs(t, err, ErrFileNotSupported)
 }
 

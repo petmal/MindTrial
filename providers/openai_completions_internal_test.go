@@ -10,11 +10,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"sync"
 	"testing"
 
 	openai "github.com/openai/openai-go/v3"
+	"github.com/openai/openai-go/v3/option"
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/testutils"
+	"github.com/petmal/mindtrial/providers/tools"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -43,7 +49,7 @@ func TestOpenAICompletions_Run_IncompatibleResponseFormat(t *testing.T) {
 			ResponseFormat: ResponseFormatJSONObject.Ptr(),
 		},
 	}
-	_, err := p.Run(context.Background(), logger, runCfg, config.Task{Name: "t"})
+	_, err := p.Run(context.Background(), logger, runCfg, config.Task{Name: "t"}, nil)
 	require.ErrorIs(t, err, ErrIncompatibleResponseFormat)
 }
 
@@ -61,7 +67,7 @@ func TestOpenAICompletions_Run_ServerTools_CapturedBeforeValidation(t *testing.T
 			},
 		},
 	}
-	_, err := p.Run(context.Background(), logger, runCfg, config.Task{Name: "t"})
+	_, err := p.Run(context.Background(), logger, runCfg, config.Task{Name: "t"}, nil)
 	require.ErrorIs(t, err, ErrIncompatibleResponseFormat)
 }
 
@@ -74,8 +80,85 @@ func TestOpenAICompletions_FileTypeNotSupported(t *testing.T) {
 		Name:  "bad_file_type",
 		Files: []config.TaskFile{mockTaskFile(t, "file.txt", "file://file.txt", "application/octet-stream")},
 	}
-	_, err := p.Run(context.Background(), logger, runCfg, task)
+	_, err := p.Run(context.Background(), logger, runCfg, task, nil)
 	require.ErrorIs(t, err, ErrFileNotSupported)
+}
+
+func TestOpenAICompletions_Run_ToolErrors(t *testing.T) {
+	worldClient := config.ToolConfig{
+		Name:         "world-client",
+		Image:        "world-client:latest",
+		Description:  "Inspects the world.",
+		Parameters:   map[string]interface{}{"type": "object"},
+		Dependencies: []config.ServiceDependency{{Service: "world"}},
+	}
+	tests := []struct {
+		name         string
+		calledTool   string
+		wantErr      error
+		wantRequests int
+	}{
+		{
+			name:         "ordinary tool error is returned to the model",
+			calledTool:   "unknown-tool",
+			wantRequests: 2,
+		},
+		{
+			name:         "task runtime error ends the task",
+			calledTool:   worldClient.Name,
+			wantErr:      tools.ErrTaskRuntimeConfig,
+			wantRequests: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var mu sync.Mutex
+			var requestBodies []string
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				body, err := io.ReadAll(r.Body)
+				assert.NoError(t, err)
+				mu.Lock()
+				requestBodies = append(requestBodies, string(body))
+				firstRequest := len(requestBodies) == 1
+				mu.Unlock()
+
+				finishReason, message := "stop", `{"role":"assistant","content":"done"}`
+				if firstRequest {
+					finishReason = "tool_calls"
+					message = fmt.Sprintf(`{"role":"assistant","content":null,"tool_calls":[{"id":"call_1","type":"function","function":{"name":%q,"arguments":"{}"}}]}`, tt.calledTool)
+				}
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = fmt.Fprintf(w, `{"id":"chatcmpl-1","object":"chat.completion","created":0,"model":"gpt-test","choices":[{"index":0,"finish_reason":%q,"message":%s}],"usage":{"prompt_tokens":1,"completion_tokens":1,"total_tokens":2}}`, finishReason, message)
+			}))
+			t.Cleanup(server.Close)
+
+			provider := newOpenAICompletionsProvider([]config.ToolConfig{worldClient}, option.WithBaseURL(server.URL), option.WithAPIKey("test"))
+			task := config.Task{
+				Name:                 "inspect world",
+				Prompt:               "Inspect the world.",
+				ResponseResultFormat: config.NewResponseFormat("text"),
+				ToolSelector:         &config.ToolSelector{Tools: []config.ToolSelection{{Name: worldClient.Name}}},
+			}
+			task.ResolveToolSelector(config.ToolSelector{})
+			runCfg := config.RunConfig{Name: "test-run", Model: "gpt-test", DisableStructuredOutput: true}
+
+			// No environment is active, so the service-backed tool fails with a task runtime error.
+			result, err := provider.Run(t.Context(), testutils.NewTestLogger(t), runCfg, task, nil)
+
+			mu.Lock()
+			defer mu.Unlock()
+			require.Len(t, requestBodies, tt.wantRequests)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+				require.ErrorIs(t, err, ErrToolUse)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, "done", result.GetFinalAnswerContent())
+			assert.Contains(t, requestBodies[1], "Tool execution failed")
+		})
+	}
 }
 
 func TestDefaultCompletionHandler_ToParam(t *testing.T) {

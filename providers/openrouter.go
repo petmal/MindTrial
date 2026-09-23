@@ -224,7 +224,7 @@ func (o OpenRouter) Name() string {
 	return config.OPENROUTER
 }
 
-func (o *OpenRouter) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (o *OpenRouter) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task, environment ExecutionEnvironment) (result Result, err error) {
 	openAIV3Params := openAIV3ModelParams{
 		ExtraFields: map[string]any{},
 	}
@@ -238,7 +238,7 @@ func (o *OpenRouter) Run(ctx context.Context, logger logging.Logger, cfg config.
 	}
 
 	cfg.ModelParams = openAIV3Params
-	return o.openaiProvider.Run(ctx, logger, cfg, task)
+	return o.openaiProvider.Run(ctx, logger, cfg, task, environment)
 }
 
 func (o *OpenRouter) Close(ctx context.Context) error {

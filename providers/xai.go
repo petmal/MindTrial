@@ -50,7 +50,7 @@ func (o XAI) Name() string {
 	return config.XAI
 }
 
-func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task, environment ExecutionEnvironment) (result Result, err error) {
 	// Prepare a completion request.
 	req := xai.NewChatRequestWithDefaults()
 	req.SetModel(cfg.Model)
@@ -138,7 +138,7 @@ func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConf
 	toolSelector := task.GetResolvedToolSelector()
 	if enabledTools, hasTools := toolSelector.GetEnabledToolsByName(); hasTools {
 		var err error
-		executor, err = tools.NewDockerToolExecutor(ctx)
+		executor, err = tools.NewToolExecutor(ctx, environment)
 		if err != nil {
 			return result, fmt.Errorf("%w: %w", ErrToolSetup, err)
 		}
@@ -225,6 +225,9 @@ func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConf
 						return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
 					}
 					toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, args, data, &tools.ToolCallContext{CallID: toolCall.Id, ConversationTurn: turn})
+					if runtimeErr := taskRuntimeToolError(err); runtimeErr != nil {
+						return result, runtimeErr
+					}
 					content := string(toolResult)
 					if err != nil {
 						content = formatToolExecutionError(err)

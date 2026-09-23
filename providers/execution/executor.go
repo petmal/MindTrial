@@ -113,7 +113,7 @@ func (e *Executor) executeOnce(ctx context.Context, logger logging.Logger, task 
 		}
 	}
 
-	result, err = e.Provider.Run(ctx, logger, e.RunConfig, task)
+	result, err = e.Provider.Run(ctx, logger, e.RunConfig, task, nil)
 	if errors.Is(err, providers.ErrRetryable) {
 		logger.Error(ctx, logging.LevelWarn, err, "task encountered a transient error")
 		err = retry.RetryableError(err)

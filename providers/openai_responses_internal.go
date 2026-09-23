@@ -133,7 +133,7 @@ func newOpenAIResponsesProvider(availableTools []config.ToolConfig, opts ...opti
 	}
 }
 
-func (o *openAIResponsesProvider) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (o *openAIResponsesProvider) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task, environment ExecutionEnvironment) (result Result, err error) {
 	request := responses.ResponseNewParams{
 		Model: shared.ResponsesModel(cfg.Model),
 		Store: param.NewOpt(true), // enables PreviousResponseID for multi-turn
@@ -271,7 +271,7 @@ func (o *openAIResponsesProvider) Run(ctx context.Context, logger logging.Logger
 	toolSelector := task.GetResolvedToolSelector()
 	if enabledTools, hasTools := toolSelector.GetEnabledToolsByName(); hasTools {
 		var err error
-		executor, err = tools.NewDockerToolExecutor(ctx)
+		executor, err = tools.NewToolExecutor(ctx, environment)
 		if err != nil {
 			return result, fmt.Errorf("%w: %w", ErrToolSetup, err)
 		}
@@ -359,6 +359,9 @@ func (o *openAIResponsesProvider) Run(ctx context.Context, logger logging.Logger
 						return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
 					}
 					toolResult, err := executor.ExecuteTool(ctx, logger, fc.Name, json.RawMessage(fc.Arguments), data, &tools.ToolCallContext{CallID: fc.CallID, ConversationTurn: turn})
+					if runtimeErr := taskRuntimeToolError(err); runtimeErr != nil {
+						return result, runtimeErr
+					}
 					toolContent := string(toolResult)
 					if err != nil {
 						toolContent = formatToolExecutionError(err)

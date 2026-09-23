@@ -46,7 +46,7 @@ func (o MistralAI) Name() string {
 	return config.MISTRALAI
 }
 
-func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task, environment ExecutionEnvironment) (result Result, err error) {
 	if task.RequiresNativeFileInput() {
 		if !o.isNativeFileInputSupported(cfg.Model) {
 			return result, ErrFileUploadNotSupported
@@ -111,7 +111,7 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 	toolSelector := task.GetResolvedToolSelector()
 	if enabledTools, hasTools := toolSelector.GetEnabledToolsByName(); hasTools {
 		var err error
-		executor, err = tools.NewDockerToolExecutor(ctx)
+		executor, err = tools.NewToolExecutor(ctx, environment)
 		if err != nil {
 			return result, fmt.Errorf("%w: %w", ErrToolSetup, err)
 		}
@@ -199,6 +199,9 @@ func (o *MistralAI) Run(ctx context.Context, logger logging.Logger, cfg config.R
 						return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
 					}
 					toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, args, data, &tools.ToolCallContext{CallID: toolCall.GetId(), ConversationTurn: turn})
+					if runtimeErr := taskRuntimeToolError(err); runtimeErr != nil {
+						return result, runtimeErr
+					}
 					toolContent := string(toolResult)
 					if err != nil {
 						toolContent = formatToolExecutionError(err)

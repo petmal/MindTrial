@@ -32,7 +32,7 @@ func TestOpenAI_Run_IncompatibleResponseFormat(t *testing.T) {
 			mockTaskFile(t, "test.txt", "file://test.txt", "text/plain"), // Unsupported file type to cause early error
 		},
 	}
-	_, err := p.Run(context.Background(), logger, runCfg, task)
+	_, err := p.Run(context.Background(), logger, runCfg, task, nil)
 	require.Error(t, err) // Should error due to unsupported file type
 	require.NotErrorIs(t, err, ErrIncompatibleResponseFormat)
 }
@@ -46,7 +46,7 @@ func TestOpenAI_FileTypeNotSupported(t *testing.T) {
 		Name:  "bad_file_type",
 		Files: []config.TaskFile{mockTaskFile(t, "file.txt", "file://file.txt", "application/octet-stream")},
 	}
-	_, err := p.Run(context.Background(), logger, runCfg, task)
+	_, err := p.Run(context.Background(), logger, runCfg, task, nil)
 	require.ErrorIs(t, err, ErrFileNotSupported)
 }
 

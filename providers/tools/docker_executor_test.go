@@ -37,13 +37,16 @@ type dockerAPIMock struct {
 	server     *httptest.Server
 	apiVersion string
 
-	onPing         func(http.ResponseWriter, *http.Request)
-	onImageInspect func(http.ResponseWriter, *http.Request)
-	onCreate       func(http.ResponseWriter, *http.Request)
-	onStart        func(http.ResponseWriter, *http.Request)
-	onWait         func(http.ResponseWriter, *http.Request)
-	onLogs         func(http.ResponseWriter, *http.Request)
-	onRemove       func(http.ResponseWriter, *http.Request)
+	onPing          func(http.ResponseWriter, *http.Request)
+	onImageInspect  func(http.ResponseWriter, *http.Request)
+	onCreate        func(http.ResponseWriter, *http.Request)
+	onStart         func(http.ResponseWriter, *http.Request)
+	onWait          func(http.ResponseWriter, *http.Request)
+	onLogs          func(http.ResponseWriter, *http.Request)
+	onRemove        func(http.ResponseWriter, *http.Request)
+	onInspect       func(http.ResponseWriter, *http.Request)
+	onNetworkCreate func(http.ResponseWriter, *http.Request)
+	onNetworkRemove func(http.ResponseWriter, *http.Request)
 }
 
 func newDockerAPIMock(t *testing.T) *dockerAPIMock {
@@ -69,7 +72,7 @@ func (m *dockerAPIMock) basePath() string {
 func (m *dockerAPIMock) handle(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 
-	if r.Method == http.MethodGet && path == "/_ping" {
+	if (r.Method == http.MethodGet || r.Method == http.MethodHead) && path == "/_ping" {
 		if m.onPing != nil {
 			m.onPing(w, r)
 		} else {
@@ -120,11 +123,35 @@ func (m *dockerAPIMock) handle(w http.ResponseWriter, r *http.Request) {
 			}
 			m.onLogs(w, r)
 			return
+		case r.Method == http.MethodGet && strings.HasSuffix(trimmed, "/json"):
+			if m.onInspect == nil {
+				m.t.Fatalf("unexpected ContainerInspect call without handler: %s", path)
+			}
+			m.onInspect(w, r)
+			return
 		case r.Method == http.MethodDelete:
 			if m.onRemove == nil {
 				m.t.Fatalf("unexpected ContainerRemove call without handler: %s", path)
 			}
 			m.onRemove(w, r)
+			return
+		}
+	}
+
+	if strings.HasPrefix(path, m.basePath()+"/networks") {
+		trimmed := strings.TrimPrefix(path, m.basePath()+"/networks")
+		switch {
+		case r.Method == http.MethodPost && trimmed == "/create":
+			if m.onNetworkCreate == nil {
+				m.t.Fatalf("unexpected NetworkCreate call without handler: %s", path)
+			}
+			m.onNetworkCreate(w, r)
+			return
+		case r.Method == http.MethodDelete:
+			if m.onNetworkRemove == nil {
+				m.t.Fatalf("unexpected NetworkRemove call without handler: %s", path)
+			}
+			m.onNetworkRemove(w, r)
 			return
 		}
 	}
@@ -156,20 +183,33 @@ type dockerLogFrame struct {
 }
 
 type containerCreatePayload struct {
-	Image      string   `json:"Image"`
-	Cmd        []string `json:"Cmd"`
-	Env        []string `json:"Env"`
+	Image       string   `json:"Image"`
+	Cmd         []string `json:"Cmd"`
+	Env         []string `json:"Env"`
+	Healthcheck *struct {
+		Test          []string      `json:"Test"`
+		StartPeriod   time.Duration `json:"StartPeriod"`
+		StartInterval time.Duration `json:"StartInterval"`
+		Timeout       time.Duration `json:"Timeout"`
+		Retries       int           `json:"Retries"`
+	} `json:"Healthcheck"`
 	HostConfig struct {
 		Mounts []struct {
 			Type   string `json:"Type"`
 			Source string `json:"Source"`
 			Target string `json:"Target"`
 		} `json:"Mounts"`
-		AutoRemove  bool   `json:"AutoRemove"`
-		NetworkMode string `json:"NetworkMode"`
-		Memory      int64  `json:"Memory"`
-		NanoCPUs    int64  `json:"NanoCpus"`
+		AutoRemove   bool            `json:"AutoRemove"`
+		NetworkMode  string          `json:"NetworkMode"`
+		PortBindings json.RawMessage `json:"PortBindings"`
+		Memory       int64           `json:"Memory"`
+		NanoCPUs     int64           `json:"NanoCpus"`
 	} `json:"HostConfig"`
+	NetworkingConfig struct {
+		EndpointsConfig map[string]struct {
+			Aliases []string `json:"Aliases"`
+		} `json:"EndpointsConfig"`
+	} `json:"NetworkingConfig"`
 }
 
 func newTestExecutor(t *testing.T, mock *dockerAPIMock) *DockerToolExecutor {

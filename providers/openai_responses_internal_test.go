@@ -29,7 +29,7 @@ func TestOpenAIResponses_Run_IncompatibleResponseFormat(t *testing.T) {
 			ResponseFormat: ResponseFormatJSONObject.Ptr(),
 		},
 	}
-	_, err := p.Run(context.Background(), logger, runCfg, config.Task{Name: "t"})
+	_, err := p.Run(context.Background(), logger, runCfg, config.Task{Name: "t"}, nil)
 	require.ErrorIs(t, err, ErrIncompatibleResponseFormat)
 }
 
@@ -47,7 +47,7 @@ func TestOpenAIResponses_Run_ServerTools_CapturedBeforeValidation(t *testing.T) 
 			},
 		},
 	}
-	_, err := p.Run(context.Background(), logger, runCfg, config.Task{Name: "t"})
+	_, err := p.Run(context.Background(), logger, runCfg, config.Task{Name: "t"}, nil)
 	require.ErrorIs(t, err, ErrIncompatibleResponseFormat)
 }
 
@@ -60,7 +60,7 @@ func TestOpenAIResponses_FileTypeNotSupported(t *testing.T) {
 		Name:  "bad_file_type",
 		Files: []config.TaskFile{mockTaskFile(t, "file.txt", "file://file.txt", "application/octet-stream")},
 	}
-	_, err := p.Run(context.Background(), logger, runCfg, task)
+	_, err := p.Run(context.Background(), logger, runCfg, task, nil)
 	require.ErrorIs(t, err, ErrFileNotSupported)
 }
 

@@ -25,7 +25,7 @@ func TestGoogle_FileTypeNotSupported(t *testing.T) {
 		Name:  "bad_file_type",
 		Files: []config.TaskFile{mockTaskFile(t, "file.txt", "file://file.txt", "application/octet-stream")},
 	}
-	_, err := p.Run(context.Background(), logger, runCfg, task)
+	_, err := p.Run(context.Background(), logger, runCfg, task, nil)
 	require.ErrorIs(t, err, ErrFileNotSupported)
 }
 

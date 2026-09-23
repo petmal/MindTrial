@@ -49,7 +49,7 @@ func (m MockProvider) Name() string {
 //   - "mock": Handles special task names (error, not_supported, failure and and retry_N patterns).
 //   - "judge_evaluation": Parses judge prompts and evaluates responses.
 //   - Other: Returns the task name as the final answer.
-func (m *MockProvider) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (m *MockProvider) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task, environment ExecutionEnvironment) (result Result, err error) {
 	logger.Message(ctx, logging.LevelDebug, "executing mock run for task '%s' with config '%s'", task.Name, cfg.Name)
 	result = m.createBaseResult(task.Name)
 

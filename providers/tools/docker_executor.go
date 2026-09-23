@@ -7,7 +7,6 @@
 package tools
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -15,7 +14,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"strings"
 	"sync"
@@ -27,7 +25,6 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/oklog/ulid/v2"
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
@@ -36,6 +33,7 @@ import (
 // DockerToolExecutor executes tools within Docker containers.
 type DockerToolExecutor struct {
 	client        *client.Client
+	taskRuntime   *TaskRuntime
 	tools         sync.Map         // map[string]*DockerTool
 	usage         sync.Map         // map[string]*ToolUsage
 	calls         callSummaryState // shared log of every invocation attempt across all tools, in completion order
@@ -165,18 +163,36 @@ func newSharedDirFactory() func(context.Context, *DockerToolExecutor) (string, e
 	})
 }
 
-// NewDockerToolExecutor creates a new Docker tool executor.
+// ExecutionEnvironment creates ephemeral executors within one provider attempt.
+type ExecutionEnvironment interface {
+	NewToolExecutor(context.Context) (*DockerToolExecutor, error)
+}
+
+// NewToolExecutor creates a Docker tool executor for environment.
+// A nil environment creates a standalone ephemeral executor.
+func NewToolExecutor(ctx context.Context, environment ExecutionEnvironment) (*DockerToolExecutor, error) {
+	if environment == nil {
+		return NewDockerToolExecutor(ctx)
+	}
+	return environment.NewToolExecutor(ctx)
+}
+
+// NewDockerToolExecutor creates a standalone Docker tool executor.
 func NewDockerToolExecutor(ctx context.Context) (*DockerToolExecutor, error) {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Docker client: %w", err)
 	}
+	return newDockerToolExecutor(cli, nil), nil
+}
 
+func newDockerToolExecutor(cli *client.Client, taskRuntime *TaskRuntime) *DockerToolExecutor {
 	return &DockerToolExecutor{
 		client:       cli,
+		taskRuntime:  taskRuntime,
 		tools:        sync.Map{},
 		getSharedDir: newSharedDirFactory(),
-	}, nil
+	}
 }
 
 // RegisterTool registers a tool with the executor.
@@ -189,17 +205,25 @@ func (d *DockerToolExecutor) ValidateTool(ctx context.Context, cfg config.ToolCo
 	if cfg.Image == "" {
 		return fmt.Errorf("%w: docker image is not configured for tool %q", ErrToolInternal, cfg.Name)
 	}
+	return d.ValidateImage(ctx, cfg.Image)
+}
 
-	if _, err := d.client.ImageInspect(ctx, cfg.Image); err != nil {
+// ValidateImage ensures a Docker image required by the runtime is available locally.
+func (d *DockerToolExecutor) ValidateImage(ctx context.Context, image string) error {
+	if _, err := d.client.ImageInspect(ctx, image); err != nil {
 		switch {
 		case errdefs.IsNotFound(err):
-			return fmt.Errorf("%w: docker image %q is not available locally. Pull the image with `docker pull %s` and try again", ErrToolNotAvailable, cfg.Image, cfg.Image)
+			return fmt.Errorf("%w: docker image %q is not available locally. Pull the image with `docker pull %s` and try again", ErrToolNotAvailable, image, image)
 		default:
-			return fmt.Errorf("%w: failed to inspect docker image %q: %v", ErrToolInternal, cfg.Image, err)
+			return fmt.Errorf("%w: failed to inspect docker image %q: %v", ErrToolInternal, image, err)
 		}
 	}
-
 	return nil
+}
+
+// ValidateTaskServiceSupport ensures the Docker daemon can run task-scoped services.
+func (d *DockerToolExecutor) ValidateTaskServiceSupport(ctx context.Context) error {
+	return checkTaskServiceSupport(ctx, d.client)
 }
 
 // ToolCallContext carries optional caller-supplied metadata to attach to the
@@ -272,33 +296,20 @@ func (d *DockerToolExecutor) ExecuteTool(ctx context.Context, logger logging.Log
 	return result, nil
 }
 
-// Close closes the Docker client connection and cleans up shared directories.
+// Close cleans up executor-owned resources.
 func (d *DockerToolExecutor) Close() error {
-	// Clean up shared directory if it was created.
+	var errs []error
 	if sharedDirPtr := d.sharedDirPath.Load(); sharedDirPtr != nil {
-		defer os.RemoveAll(*sharedDirPtr)
+		if err := os.RemoveAll(*sharedDirPtr); err != nil {
+			errs = append(errs, fmt.Errorf("remove shared directory: %w", err))
+		}
 	}
-
-	if d.client != nil {
-		return d.client.Close()
+	if d.taskRuntime == nil && d.client != nil {
+		if err := d.client.Close(); err != nil {
+			errs = append(errs, fmt.Errorf("close Docker client: %w", err))
+		}
 	}
-	return nil
-}
-
-// readContainerLogs reads and demultiplexes a container's stdout and stderr logs.
-func (d *DockerToolExecutor) readContainerLogs(ctx context.Context, containerID string) (stdout string, stderr string, err error) {
-	logs, err := d.client.ContainerLogs(ctx, containerID, container.LogsOptions{ShowStdout: true, ShowStderr: true})
-	if err != nil {
-		return "", "", fmt.Errorf("failed to get tool container logs: %w", err)
-	}
-	defer logs.Close()
-
-	var stdoutBuf, stderrBuf bytes.Buffer
-	if _, err := stdcopy.StdCopy(&stdoutBuf, &stderrBuf, logs); err != nil {
-		return "", "", fmt.Errorf("failed to read tool container output: %w", err)
-	}
-
-	return stdoutBuf.String(), stderrBuf.String(), nil
+	return errors.Join(errs...)
 }
 
 // newOutputCapture builds an OutputCapture for a tool call output stream, truncating the
@@ -445,13 +456,37 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 		logger.Message(ctx, logging.LevelDebug, "mounted shared directory from %s to container path %s", sharedTempDir, tool.sharedDir)
 	}
 
-	// Prepare environment variables.
-	env := make([]string, 0, len(tool.env))
-	// Add tool-specific environment
-	for k, v := range tool.env {
-		env = append(env, fmt.Sprintf("%s=%s", k, v))
+	resolvedEnv := make(map[string]string, len(tool.env))
+	for name, value := range tool.env {
+		resolvedEnv[name] = value
 	}
+	networkMode := container.NetworkMode(network.NetworkNone)
+	var networkingConfig *network.NetworkingConfig
+	if len(tool.dependencies) > 0 {
+		if d.taskRuntime == nil {
+			wrapErr := fmt.Errorf("%w: %w: tool %q requires task-scoped services but no task runtime is active", ErrToolInternal, ErrTaskRuntimeConfig, tool.name)
+			summary.Status, summary.ErrorMessage = toolCallStatusInfrastructureError, wrapErr.Error()
+			return nil, wrapErr
+		}
+		binding, err := d.taskRuntime.bindDependencies(ctx, logger, tool.dependencies)
+		if err != nil {
+			wrapErr := fmt.Errorf("%w: failed to bind tool service dependencies: %w", ErrToolInternal, err)
+			summary.Status, summary.ErrorMessage = toolCallStatusInfrastructureError, wrapErr.Error()
+			return nil, wrapErr
+		}
+		for name, value := range binding.env {
+			if existing, ok := resolvedEnv[name]; ok && existing != value {
+				wrapErr := fmt.Errorf("%w: %w: tool environment variable %q conflicts with service dependency value", ErrToolInternal, ErrTaskRuntimeConfig, name)
+				summary.Status, summary.ErrorMessage = toolCallStatusInfrastructureError, wrapErr.Error()
+				return nil, wrapErr
+			}
+			resolvedEnv[name] = value
+		}
+		networkMode, networkingConfig = binding.containerNetworking()
+	}
+	env := formatEnv(resolvedEnv)
 	logger.Message(ctx, logging.LevelTrace, "setting environment variables: %v", env)
+	logger.Message(ctx, logging.LevelTrace, "using network mode: %s", networkMode)
 
 	// Create container configuration.
 	containerConfig := &container.Config{
@@ -468,31 +503,25 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 	hostConfig := &container.HostConfig{
 		Mounts:        mounts,
 		AutoRemove:    false, // manually remove container after retrieving logs
-		NetworkMode:   network.NetworkNone,
+		NetworkMode:   networkMode,
 		RestartPolicy: container.RestartPolicy{Name: container.RestartPolicyDisabled},
 		LogConfig:     container.LogConfig{Type: "json-file"}, // default logging driver; JSON format
 	}
 
 	// Set resource limits.
+	applyDockerResourceLimits(hostConfig, tool.maxMemoryMB, tool.cpuPercent)
 	if tool.maxMemoryMB != nil {
-		// Convert MB to bytes
-		hostConfig.Memory = int64(*tool.maxMemoryMB) * 1024 * 1024
 		logger.Message(ctx, logging.LevelTrace, "setting memory limit to %d MB (%d bytes)", *tool.maxMemoryMB, hostConfig.Memory)
 	}
 	if tool.cpuPercent != nil {
-		// Convert CPU percentage to NanoCPU units.
-		// NanoCPUs = (numCPUs * percent / 100) * 1e9
-		numCPUs := runtime.NumCPU()
-		nanoCPUs := int64(numCPUs) * int64(*tool.cpuPercent) * 10000000 // 1e9 / 100 = 1e7
-		hostConfig.NanoCPUs = nanoCPUs
-		logger.Message(ctx, logging.LevelTrace, "setting CPU limit to %d%% (%d NanoCPUs, %d CPUs total)", *tool.cpuPercent, nanoCPUs, numCPUs)
+		logger.Message(ctx, logging.LevelTrace, "setting CPU limit to %d%% (%d NanoCPUs)", *tool.cpuPercent, hostConfig.NanoCPUs)
 	}
 
 	// Generate a unique container name.
-	containerName := fmt.Sprintf("%s-tool-%s", tool.name, ulid.Make().String())
+	containerName := dockerResourceName("tool")
 
 	// Create the container.
-	createResp, err := d.client.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, containerName)
+	createResp, err := d.client.ContainerCreate(ctx, containerConfig, hostConfig, networkingConfig, nil, containerName)
 	if err != nil {
 		wrapErr := fmt.Errorf("%w: failed to create tool container (image: %q): %v", ErrToolInternal, tool.image, err)
 		summary.Status, summary.ErrorMessage = toolCallStatusInfrastructureError, wrapErr.Error()
@@ -502,12 +531,8 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 
 	// Ensure container is removed even if execution fails.
 	defer func() {
-		err := d.client.ContainerRemove(ctx, createResp.ID, container.RemoveOptions{Force: true, RemoveVolumes: true})
-		switch {
-		case err == nil, errdefs.IsConflict(err), errdefs.IsNotFound(err):
-			// Container removed successfully or already removed. Ignore.
-		default:
-			logger.Error(ctx, logging.LevelWarn, err, "failed to remove tool container after execution")
+		if cleanupErr := removeDockerContainer(ctx, d.client, createResp.ID); cleanupErr != nil {
+			logger.Error(ctx, logging.LevelWarn, cleanupErr, "failed to remove tool container after execution")
 		}
 	}()
 
@@ -551,7 +576,7 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 		summary.Status = toolCallStatusNonZeroExit
 
 		// Get output to see what went wrong.
-		if stdout, stderr, logErr := d.readContainerLogs(ctx, createResp.ID); logErr == nil {
+		if stdout, stderr, logErr := readDockerContainerLogs(ctx, d.client, createResp.ID, "tool", ""); logErr == nil {
 			logger.Message(ctx, logging.LevelTrace, "tool container %q stdout:\n%s\nstderr:\n%s", createResp.ID, stdout, stderr)
 			summary.Stdout = newOutputCapture(stdout, true)
 			summary.Stderr = newOutputCapture(stderr, true)
@@ -569,7 +594,7 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 	logger.Message(ctx, logging.LevelInfo, "tool container %q finished successfully", createResp.ID)
 
 	// Get the container logs.
-	stdout, stderr, err := d.readContainerLogs(ctx, createResp.ID)
+	stdout, stderr, err := readDockerContainerLogs(ctx, d.client, createResp.ID, "tool", "")
 	if err != nil {
 		wrapErr := fmt.Errorf("%w: failed to retrieve tool output from tool container: %v", ErrToolInternal, err)
 		summary.Status, summary.ErrorMessage = toolCallStatusInfrastructureError, wrapErr.Error()
@@ -731,6 +756,7 @@ type DockerTool struct {
 	sharedDir      string
 	command        []string
 	env            map[string]string
+	dependencies   []config.ServiceDependency
 	maxCalls       *int
 	timeout        *time.Duration
 	maxMemoryMB    *int
@@ -749,6 +775,7 @@ func NewDockerTool(cfg *config.ToolConfig, maxCalls *int, timeout *time.Duration
 		sharedDir:      cfg.SharedDir,
 		command:        cfg.Command,
 		env:            cfg.Env,
+		dependencies:   cfg.Dependencies,
 		maxCalls:       maxCalls,
 		timeout:        timeout,
 		maxMemoryMB:    maxMemoryMB,

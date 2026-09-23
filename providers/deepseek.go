@@ -48,7 +48,7 @@ func (o Deepseek) Name() string {
 	return config.DEEPSEEK
 }
 
-func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task, environment ExecutionEnvironment) (result Result, err error) {
 	// Initialize the response instruction depending on structured/unstructured mode.
 	// In structured mode this will contain the JSON schema instruction; in unstructured
 	// mode this becomes the unstructured response instruction.
@@ -137,7 +137,7 @@ func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 	toolSelector := task.GetResolvedToolSelector()
 	if enabledTools, hasTools := toolSelector.GetEnabledToolsByName(); hasTools {
 		var err error
-		executor, err = tools.NewDockerToolExecutor(ctx)
+		executor, err = tools.NewToolExecutor(ctx, environment)
 		if err != nil {
 			return result, fmt.Errorf("%w: %w", ErrToolSetup, err)
 		}
@@ -210,6 +210,9 @@ func (o *Deepseek) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 						return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
 					}
 					toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, json.RawMessage(toolCall.Function.Arguments), data, &tools.ToolCallContext{CallID: toolCall.ID, ConversationTurn: turn})
+					if runtimeErr := taskRuntimeToolError(err); runtimeErr != nil {
+						return result, runtimeErr
+					}
 					content := string(toolResult)
 					if err != nil {
 						content = formatToolExecutionError(err)

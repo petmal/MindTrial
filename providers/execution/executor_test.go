@@ -399,7 +399,7 @@ func TestExecutor_Execute_PreservesMetadataOnError(t *testing.T) {
 		}
 
 		// Direct provider call returns a populated Result even when it returns an error.
-		directResult, directErr := provider.Run(context.Background(), logger, runConfig, task)
+		directResult, directErr := provider.Run(context.Background(), logger, runConfig, task, nil)
 		require.Error(t, directErr)
 		assert.NotEmpty(t, directResult.GetPrompts(), "provider should populate prompts on attempt")
 		assert.NotNil(t, directResult.GetUsage().InputTokens, "provider should populate usage on attempt")
@@ -424,7 +424,7 @@ func TestExecutor_Execute_PreservesMetadataOnError(t *testing.T) {
 			ExpectedResult: utils.NewValueSet("expected answer"),
 		}
 
-		directResult, directErr := provider.Run(context.Background(), logger, runConfig, task)
+		directResult, directErr := provider.Run(context.Background(), logger, runConfig, task, nil)
 		require.Error(t, directErr)
 		assert.NotEmpty(t, directResult.GetPrompts(), "provider should populate prompts on hard error")
 		assert.NotNil(t, directResult.GetUsage().InputTokens, "provider should populate usage on hard error")
@@ -454,7 +454,7 @@ func TestExecutor_Execute_PreservesMetadataOnSuccess(t *testing.T) {
 			ExpectedResult: utils.NewValueSet("expected answer"),
 		}
 
-		directRes, directErr := provider.Run(context.Background(), logger, runConfig, task)
+		directRes, directErr := provider.Run(context.Background(), logger, runConfig, task, nil)
 		require.NoError(t, directErr)
 		assert.NotEmpty(t, directRes.GetPrompts(), "provider should populate prompts on success")
 		assert.NotNil(t, directRes.GetUsage().InputTokens, "provider should populate usage on success")

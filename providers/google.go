@@ -48,7 +48,7 @@ func (o GoogleAI) Name() string {
 	return config.GOOGLE
 }
 
-func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task, environment ExecutionEnvironment) (result Result, err error) {
 	// Create the generation config. CandidateCount is left unset: the API already
 	// defaults to a single candidate, and Gemini 3.x rejects the field outright.
 	// See: https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.5#migration-checklist
@@ -61,7 +61,7 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 	toolSelector := task.GetResolvedToolSelector()
 	if enabledTools, hasTools := toolSelector.GetEnabledToolsByName(); hasTools {
 		var err error
-		executor, err = tools.NewDockerToolExecutor(ctx)
+		executor, err = tools.NewToolExecutor(ctx, environment)
 		if err != nil {
 			return result, fmt.Errorf("%w: %w", ErrToolSetup, err)
 		}
@@ -268,7 +268,11 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 							// allow one final call of the tool (should short-circuit) and
 							// remove it from the available tools to prevent further errors.
 							wasExhausted := executor.IsToolExhausted(part.FunctionCall.Name)
-							if toolResult, err := executor.ExecuteTool(ctx, logger, part.FunctionCall.Name, json.RawMessage(argsBytes), data, &tools.ToolCallContext{CallID: part.FunctionCall.ID, ConversationTurn: turn}); err != nil {
+							toolResult, err := executor.ExecuteTool(ctx, logger, part.FunctionCall.Name, json.RawMessage(argsBytes), data, &tools.ToolCallContext{CallID: part.FunctionCall.ID, ConversationTurn: turn})
+							if runtimeErr := taskRuntimeToolError(err); runtimeErr != nil {
+								return result, runtimeErr
+							}
+							if err != nil {
 								response["error"] = formatToolExecutionError(err)
 							} else {
 								response["result"] = string(toolResult)

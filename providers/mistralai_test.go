@@ -58,7 +58,7 @@ func TestMistral_FileUploadNotSupported(t *testing.T) {
 		Name:  "with_file",
 		Files: []config.TaskFile{mockTaskFile(t, "img.png", "file://img.png", "image/png")},
 	}
-	_, err := p.Run(context.Background(), logger, runCfg, task)
+	_, err := p.Run(context.Background(), logger, runCfg, task, nil)
 	require.ErrorIs(t, err, ErrFileUploadNotSupported)
 }
 
@@ -72,6 +72,6 @@ func TestMistral_FileTypeNotSupported(t *testing.T) {
 		Name:  "bad_file_type",
 		Files: []config.TaskFile{mockTaskFile(t, "file.txt", "file://file.txt", "text/plain")},
 	}
-	_, err := p.Run(context.Background(), logger, runCfg, task)
+	_, err := p.Run(context.Background(), logger, runCfg, task, nil)
 	require.ErrorIs(t, err, ErrFileNotSupported)
 }

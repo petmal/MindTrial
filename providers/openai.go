@@ -172,7 +172,7 @@ func (o OpenAI) Name() string {
 	return config.OPENAI
 }
 
-func (o *OpenAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task) (result Result, err error) {
+func (o *OpenAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task, environment ExecutionEnvironment) (result Result, err error) {
 	openAIV3Params := openAIV3ModelParams{}
 
 	if cfg.ModelParams != nil {
@@ -195,10 +195,10 @@ func (o *OpenAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunC
 	cfg.ModelParams = openAIV3Params
 	if useChatCompletionsAPI(cfg.Model) {
 		logger.Message(ctx, logging.LevelInfo, "using Chat Completions API")
-		return o.completionProvider.Run(ctx, logger, cfg, task)
+		return o.completionProvider.Run(ctx, logger, cfg, task, environment)
 	}
 	logger.Message(ctx, logging.LevelInfo, "using Responses API")
-	return o.responsesProvider.Run(ctx, logger, cfg, task)
+	return o.responsesProvider.Run(ctx, logger, cfg, task, environment)
 }
 
 func (o *OpenAI) Close(ctx context.Context) error {

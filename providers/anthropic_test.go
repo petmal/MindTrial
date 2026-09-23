@@ -26,7 +26,7 @@ func TestAnthropic_FileTypeNotSupported(t *testing.T) {
 		Name:  "bad_file_type",
 		Files: []config.TaskFile{mockTaskFile(t, "file.bin", "file:///docs/file.bin", "application/octet-stream")},
 	}
-	_, err := p.Run(context.Background(), logger, runCfg, task)
+	_, err := p.Run(context.Background(), logger, runCfg, task, nil)
 	require.ErrorIs(t, err, ErrFileNotSupported)
 }
 
@@ -132,7 +132,7 @@ func TestAnthropic_Run_IncompatibleThinking(t *testing.T) {
 		},
 	}
 	task := config.Task{Name: "t"}
-	_, err := p.Run(context.Background(), logger, runCfg, task)
+	_, err := p.Run(context.Background(), logger, runCfg, task, nil)
 	require.ErrorIs(t, err, ErrInvalidModelParams) // Should error due to ErrInvalidModelParams
 }
 
