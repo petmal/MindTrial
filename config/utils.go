@@ -82,6 +82,13 @@ func LoadConfigFromFile(ctx context.Context, path string) (*Config, error) {
 		}
 	}
 
+	// Validate custom validator configurations.
+	for _, validator := range cfg.Config.Validators {
+		if err := validator.Validate(); err != nil {
+			return cfg, fmt.Errorf("invalid validator configuration: invalid parameters for validator '%s': %w", validator.Name, err)
+		}
+	}
+
 	if err := validatePricingConfig(cfg.Config); err != nil {
 		return cfg, fmt.Errorf("invalid pricing configuration: %w", err)
 	}

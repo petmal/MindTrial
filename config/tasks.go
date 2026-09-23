@@ -354,8 +354,36 @@ func (o TaskConfig) validateTask(task Task) error {
 	if resolvedValidationRules.UseSchemaValidation() && resolvedValidationRules.UseJudge() {
 		return fmt.Errorf("%w: schema-validation and judge validation are mutually exclusive", ErrInvalidTaskProperty)
 	}
+	if resolvedValidationRules.UseCustomValidator() &&
+		(resolvedValidationRules.UseSchemaValidation() || resolvedValidationRules.UseJudge()) {
+		return fmt.Errorf("%w: custom-validator is mutually exclusive with schema-validation and judge validation", ErrInvalidTaskProperty)
+	}
 
-	if resolvedValidationRules.UseSchemaValidation() {
+	if len(task.ExpectedResult.Values()) == 0 && !resolvedValidationRules.UseCustomValidator() {
+		return fmt.Errorf("%w: expected-result is required unless custom-validator is configured", ErrInvalidTaskProperty)
+	}
+
+	resolvedToolSelector := o.ToolSelector.MergeWith(task.ToolSelector)
+	for serviceName, inputs := range resolvedToolSelector.ServiceInputs {
+		if !IsNotBlank(serviceName) {
+			return fmt.Errorf("%w: service-inputs contains a blank service name", ErrInvalidTaskProperty)
+		}
+		for inputName, value := range inputs {
+			if !IsNotBlank(inputName) {
+				return fmt.Errorf("%w: service-inputs for %q contains a blank input name", ErrInvalidTaskProperty, serviceName)
+			}
+			if !isServiceInputScalar(value) {
+				return fmt.Errorf("%w: service-inputs %s.%s must be a scalar value", ErrInvalidTaskProperty, serviceName, inputName)
+			}
+		}
+	}
+
+	if resolvedValidationRules.UseCustomValidator() {
+		// Expected results are trusted reference data owned by the custom validator, not candidate answers.
+		if err := validateFormatAndExpectedResults(task.ResponseResultFormat, utils.NewValueSet(), false, "response-result-format", "expected-result"); err != nil {
+			return err
+		}
+	} else if resolvedValidationRules.UseSchemaValidation() {
 		// Validate response-result-format on its own.
 		if err := validateFormatAndExpectedResults(task.ResponseResultFormat, utils.NewValueSet(), false, "response-result-format", "expected-result"); err != nil {
 			return err
@@ -417,6 +445,15 @@ func (o TaskConfig) validateTask(task Task) error {
 	}
 
 	return nil
+}
+
+func isServiceInputScalar(value interface{}) bool {
+	switch value.(type) {
+	case string, bool, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:
+		return true
+	default:
+		return false
+	}
 }
 
 // ExplicitSchema detects whether a judge's passing-verdicts specifies an explicit
@@ -743,8 +780,8 @@ type Task struct {
 	// ExpectedResult is the set of accepted valid answers for the prompt.
 	// For plain text format: contains string values that must follow the `ResponseResultFormat` instruction precisely.
 	// For structured schema format: contains object values that must be valid according to the `ResponseResultFormat` schema.
-	// Only one needs to match for the response to be considered correct.
-	ExpectedResult utils.ValueSet `yaml:"expected-result" validate:"required"`
+	// With a custom validator, it is optional trusted reference data that need not match `ResponseResultFormat`.
+	ExpectedResult utils.ValueSet `yaml:"expected-result" validate:"omitempty"`
 
 	// Disabled indicates whether this specific task should be skipped.
 	// If set, overrides the global TaskConfig.Disabled value.
@@ -979,6 +1016,9 @@ type ValidationRules struct {
 	// When enabled, an LLM will be used to evaluate the correctness of the response
 	// instead of simple string matching.
 	Judge JudgeSelector `yaml:"judge" validate:"omitempty"`
+
+	// CustomValidator selects a user-defined trusted validator by name.
+	CustomValidator *string `yaml:"custom-validator" validate:"omitempty"`
 }
 
 // IsCaseSensitive returns whether validation should be case sensitive.
@@ -1006,6 +1046,19 @@ func (vr ValidationRules) UseSchemaValidation() bool {
 	return vr.SchemaValidation != nil && *vr.SchemaValidation
 }
 
+// UseCustomValidator returns whether a user-defined validator is selected.
+func (vr ValidationRules) UseCustomValidator() bool {
+	return vr.CustomValidator != nil && IsNotBlank(*vr.CustomValidator)
+}
+
+// GetCustomValidatorName returns the selected custom validator name.
+func (vr ValidationRules) GetCustomValidatorName() string {
+	if vr.CustomValidator == nil {
+		return ""
+	}
+	return *vr.CustomValidator
+}
+
 // MergeWith merges these validation rules with other rules and returns the result.
 // The provided other values override these values if set.
 func (these ValidationRules) MergeWith(other *ValidationRules) ValidationRules {
@@ -1016,6 +1069,7 @@ func (these ValidationRules) MergeWith(other *ValidationRules) ValidationRules {
 		setIfNotNil(&resolved.IgnoreWhitespace, other.IgnoreWhitespace)
 		setIfNotNil(&resolved.TrimLines, other.TrimLines)
 		setIfNotNil(&resolved.SchemaValidation, other.SchemaValidation)
+		setIfNotNil(&resolved.CustomValidator, other.CustomValidator)
 
 		resolved.Judge = resolved.Judge.MergeWith(other.Judge)
 	}
@@ -1230,6 +1284,9 @@ type ToolSelector struct {
 	Disabled *bool `yaml:"disabled" validate:"omitempty"`
 	// Tools lists the tools to be available in the task execution.
 	Tools []ToolSelection `yaml:"tools" validate:"omitempty,unique=Name,dive"`
+	// ServiceInputs supplies inline startup values to task-scoped services.
+	// Inputs are defaults consumed only when the task actually requires the service.
+	ServiceInputs map[string]map[string]interface{} `yaml:"service-inputs" validate:"omitempty"`
 }
 
 // GetEnabledToolsByName returns the map of tools that are not disabled and a boolean indicating if any tools are enabled.
@@ -1251,6 +1308,7 @@ func (these ToolSelector) MergeWith(other *ToolSelector) ToolSelector {
 
 	if other != nil {
 		setIfNotNil(&resolved.Disabled, other.Disabled)
+		resolved.ServiceInputs = mergeServiceInputs(resolved.ServiceInputs, other.ServiceInputs)
 
 		// Merge tools: other's tools override these's tools with the same name.
 		toolMap := make(map[string]ToolSelection)
@@ -1275,4 +1333,24 @@ func (these ToolSelector) MergeWith(other *ToolSelector) ToolSelector {
 	}
 
 	return resolved
+}
+
+func mergeServiceInputs(base map[string]map[string]interface{}, overrides map[string]map[string]interface{}) map[string]map[string]interface{} {
+	if base == nil && overrides == nil {
+		return nil
+	}
+
+	merged := make(map[string]map[string]interface{}, len(base)+len(overrides))
+	for serviceName, values := range base {
+		merged[serviceName] = maps.Clone(values)
+	}
+	for serviceName, values := range overrides {
+		current := merged[serviceName]
+		if current == nil {
+			current = make(map[string]interface{}, len(values))
+		}
+		maps.Copy(current, values)
+		merged[serviceName] = current
+	}
+	return merged
 }

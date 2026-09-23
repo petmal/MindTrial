@@ -236,6 +236,61 @@ func TestResolveAPIKeyValue(t *testing.T) {
 	}
 }
 
+func TestLoadConfigFromFileServicesAndValidators(t *testing.T) {
+	path := createMockFile(t, []byte(`config:
+  task-source: tasks.yaml
+  output-dir: .
+  providers:
+    - name: openai
+      client-config:
+        api-key: test-key
+      runs:
+        - name: default
+          model: gpt-4
+  services:
+    - name: nexus
+      image: nexus:test
+      command: [nexus, service]
+      endpoint:
+        port: 8000
+      input-env:
+        seed: NEXUS_SEED
+      max-memory-mb: 768
+      cpu-percent: 30
+  tools:
+    - name: nexus
+      image: nexus:test
+      description: NEXUS client
+      parameters:
+        type: object
+      dependencies:
+        - service: nexus
+          env:
+            NEXUS_URL: "{{ .Endpoint }}"
+  validators:
+    - name: nexus
+      image: nexus:test
+      command: [nexus, mindtrial-validate]
+      dependencies:
+        - service: nexus
+          env:
+            NEXUS_URL: "{{ .Endpoint }}"
+`))
+
+	cfg, err := LoadConfigFromFile(context.Background(), path)
+	require.NoError(t, err)
+	require.Len(t, cfg.Config.Services, 1)
+	require.Len(t, cfg.Config.Validators, 1)
+	require.NotNil(t, cfg.Config.Services[0].Endpoint)
+	assert.Equal(t, 8000, cfg.Config.Services[0].Endpoint.Port)
+	assert.Equal(t, "NEXUS_SEED", cfg.Config.Services[0].InputEnv["seed"])
+	require.NotNil(t, cfg.Config.Services[0].MaxMemoryMB)
+	assert.Equal(t, 768, *cfg.Config.Services[0].MaxMemoryMB)
+	require.NotNil(t, cfg.Config.Services[0].CpuPercent)
+	assert.Equal(t, 30, *cfg.Config.Services[0].CpuPercent)
+	assert.Equal(t, "{{ .Endpoint }}", cfg.Config.Tools[0].Dependencies[0].Env["NEXUS_URL"])
+}
+
 func TestLoadConfigFromFile(t *testing.T) {
 	type args struct {
 		ctx  context.Context
@@ -425,6 +480,167 @@ func TestLoadConfigFromFile(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "duplicate service names",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`config:
+    task-source: "tasks.yaml"
+    output-dir: "."
+    providers:
+        - name: openai
+          client-config:
+              api-key: "a8b159e5-ee58-47c6-93d2-f31dcf068e8a"
+          runs:
+              - name: "Cape"
+                model: "Baby"
+    services:
+        - name: "world"
+          image: "world:latest"
+          endpoint:
+              port: 8080
+        - name: "world"
+          image: "world:next"
+          endpoint:
+              port: 8081
+`)),
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid service endpoint scheme",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`config:
+    task-source: "tasks.yaml"
+    output-dir: "."
+    providers:
+        - name: openai
+          client-config:
+              api-key: "a8b159e5-ee58-47c6-93d2-f31dcf068e8a"
+          runs:
+              - name: "Cape"
+                model: "Baby"
+    services:
+        - name: "world"
+          image: "world:latest"
+          endpoint:
+              scheme: ftp
+              port: 8080
+`)),
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid service startup timeout",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`config:
+    task-source: "tasks.yaml"
+    output-dir: "."
+    providers:
+        - name: openai
+          client-config:
+              api-key: "a8b159e5-ee58-47c6-93d2-f31dcf068e8a"
+          runs:
+              - name: "Cape"
+                model: "Baby"
+    services:
+        - name: "world"
+          image: "world:latest"
+          endpoint:
+              port: 8080
+          healthcheck: ["world", "health"]
+          startup-timeout: 0s
+`)),
+			},
+			wantErr: true,
+		},
+		{
+			name: "duplicate validator names",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`config:
+    task-source: "tasks.yaml"
+    output-dir: "."
+    providers:
+        - name: openai
+          client-config:
+              api-key: "a8b159e5-ee58-47c6-93d2-f31dcf068e8a"
+          runs:
+              - name: "Cape"
+                model: "Baby"
+    validators:
+        - name: "world-state"
+          image: "world-validator:latest"
+        - name: "world-state"
+          image: "world-validator:next"
+`)),
+			},
+			wantErr: true,
+		},
+		{
+			name: "relative validator template file path",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`config:
+    task-source: "tasks.yaml"
+    output-dir: "."
+    providers:
+        - name: openai
+          client-config:
+              api-key: "a8b159e5-ee58-47c6-93d2-f31dcf068e8a"
+          runs:
+              - name: "Cape"
+                model: "Baby"
+    validators:
+        - name: "world-state"
+          image: "world-validator:latest"
+          template-files:
+              - path: "input/candidate"
+                template: "{{ .Candidate.Response }}"
+`)),
+			},
+			wantErr: true,
+		},
+		{
+			name: "duplicate validator template file path",
+			args: args{
+				ctx: context.Background(),
+				path: createMockFile(t,
+					[]byte(
+						`config:
+    task-source: "tasks.yaml"
+    output-dir: "."
+    providers:
+        - name: openai
+          client-config:
+              api-key: "a8b159e5-ee58-47c6-93d2-f31dcf068e8a"
+          runs:
+              - name: "Cape"
+                model: "Baby"
+    validators:
+        - name: "world-state"
+          image: "world-validator:latest"
+          template-files:
+              - path: "/input/candidate"
+                template: "{{ .Candidate.Response }}"
+              - path: "/input/./candidate"
+                template: "{{ json .Candidate.Response }}"
+`)),
+			},
+			wantErr: true,
+		},
+		{
 			name: "valid file with multiple providers",
 			args: args{
 				ctx: context.Background(),
@@ -488,6 +704,14 @@ func TestLoadConfigFromFile(t *testing.T) {
       runs:
           - name: "Kimi"
             model: "kimi-k2"
+ services:
+    - name: "world"
+      image: "world:latest"
+      endpoint:
+          port: 8080
+ validators:
+    - name: "world-state"
+      image: "world-validator:latest"
 `)),
 			},
 			want: &Config{
@@ -629,6 +853,21 @@ func TestLoadConfigFromFile(t *testing.T) {
 								},
 							},
 							Disabled: false,
+						},
+					},
+					Services: []ServiceConfig{
+						{
+							Name:  "world",
+							Image: "world:latest",
+							Endpoint: &ServiceEndpointConfig{
+								Port: 8080,
+							},
+						},
+					},
+					Validators: []ValidatorConfig{
+						{
+							Name:  "world-state",
+							Image: "world-validator:latest",
 						},
 					},
 				},
@@ -854,6 +1093,48 @@ func TestLoadConfigFromFile(t *testing.T) {
                     max-completion-tokens: 65536
                     response-format: text
                     stream: true
+    services:
+        - name: "world"
+          image: "world:latest"
+          command: ["world", "serve"]
+          env:
+              WORLD_MODE: "benchmark"
+          endpoint:
+              scheme: https
+              port: 8443
+          input-env:
+              seed: WORLD_SEED
+          healthcheck: ["world", "health"]
+          startup-timeout: 90s
+          max-memory-mb: 768
+          cpu-percent: 30
+    tools:
+        - name: "world-action"
+          image: "world:latest"
+          description: "Performs one action in the current world."
+          parameters:
+              type: object
+          command: ["world", "action"]
+          dependencies:
+              - service: "world"
+                env:
+                    WORLD_URL: "{{ .Endpoint }}"
+    validators:
+        - name: "world-state"
+          image: "world-validator:latest"
+          command: ["world", "validate", "--candidate-file", "/input/candidate"]
+          env:
+              EXPECTED: '{{ json .OriginalTask.ExpectedResults }}'
+          dependencies:
+              - service: "world"
+                env:
+                    WORLD_URL: "{{ .Endpoint }}"
+          timeout: 30s
+          max-memory-mb: 256
+          cpu-percent: 10
+          template-files:
+              - path: "/input/candidate"
+                template: "{{ .Candidate.Response }}"
 `)),
 			},
 			want: &Config{
@@ -1184,6 +1465,73 @@ func TestLoadConfigFromFile(t *testing.T) {
 								},
 							},
 							Disabled: false,
+						},
+					},
+					Services: []ServiceConfig{
+						{
+							Name:    "world",
+							Image:   "world:latest",
+							Command: []string{"world", "serve"},
+							Env: map[string]string{
+								"WORLD_MODE": "benchmark",
+							},
+							Endpoint: &ServiceEndpointConfig{
+								Scheme: "https",
+								Port:   8443,
+							},
+							InputEnv: map[string]string{
+								"seed": "WORLD_SEED",
+							},
+							Healthcheck:    []string{"world", "health"},
+							StartupTimeout: testutils.Ptr(90 * time.Second),
+							MaxMemoryMB:    testutils.Ptr(768),
+							CpuPercent:     testutils.Ptr(30),
+						},
+					},
+					Tools: []ToolConfig{
+						{
+							Name:        "world-action",
+							Image:       "world:latest",
+							Description: "Performs one action in the current world.",
+							Parameters: map[string]interface{}{
+								"type": "object",
+							},
+							Command: []string{"world", "action"},
+							Dependencies: []ServiceDependency{
+								{
+									Service: "world",
+									Env: map[string]string{
+										"WORLD_URL": "{{ .Endpoint }}",
+									},
+								},
+							},
+						},
+					},
+					Validators: []ValidatorConfig{
+						{
+							Name:    "world-state",
+							Image:   "world-validator:latest",
+							Command: []string{"world", "validate", "--candidate-file", "/input/candidate"},
+							Env: map[string]string{
+								"EXPECTED": "{{ json .OriginalTask.ExpectedResults }}",
+							},
+							Dependencies: []ServiceDependency{
+								{
+									Service: "world",
+									Env: map[string]string{
+										"WORLD_URL": "{{ .Endpoint }}",
+									},
+								},
+							},
+							Timeout:     testutils.Ptr(30 * time.Second),
+							MaxMemoryMB: testutils.Ptr(256),
+							CpuPercent:  testutils.Ptr(10),
+							TemplateFiles: []ValidatorTemplateFile{
+								{
+									Path:     "/input/candidate",
+									Template: "{{ .Candidate.Response }}",
+								},
+							},
 						},
 					},
 				},
@@ -1621,6 +1969,30 @@ func TestLoadConfigFromFile(t *testing.T) {
 	}
 }
 
+func TestLoadTasksFromFileCustomValidatorServiceInputs(t *testing.T) {
+	path := createMockFile(t, []byte(`task-config:
+  tasks:
+    - name: dynamic nexus
+      prompt: solve the world
+      response-result-format: validation stamp
+      validation-rules:
+        custom-validator: nexus
+      tool-selector:
+        service-inputs:
+          nexus:
+            seed: "{{ hash .Evaluation.Seed .Task.Name }}"
+        tools:
+          - name: nexus
+`))
+
+	tasks, err := LoadTasksFromFile(context.Background(), path)
+	require.NoError(t, err)
+	task := tasks.TaskConfig.Tasks[0]
+	assert.True(t, task.GetResolvedValidationRules().UseCustomValidator())
+	assert.Empty(t, task.ExpectedResult.Values())
+	assert.Equal(t, "{{ hash .Evaluation.Seed .Task.Name }}", task.GetResolvedToolSelector().ServiceInputs["nexus"]["seed"])
+}
+
 func TestLoadTasksFromFile(t *testing.T) {
 	type args struct {
 		ctx  context.Context
@@ -1730,7 +2102,12 @@ func TestLoadTasksFromFile(t *testing.T) {
               Ullam et dolor laudantium placeat totam dolorem quia.
               Ex voluptates et ipsam sunt nulla eos alias sint ad.
 
-              Deleniti ducimus natus et omnis expedita.`)),
+              Deleniti ducimus natus et omnis expedita.
+        - name: "Dynamic world"
+          prompt: "Win the world."
+          response-result-format: "winning code"
+          validation-rules:
+              custom-validator: "world-state"`)),
 			},
 			want: &Tasks{
 				TaskConfig: TaskConfig{
@@ -1741,6 +2118,18 @@ func TestLoadTasksFromFile(t *testing.T) {
 							ResponseResultFormat: NewResponseFormat("Sed unde non.\nVoluptatem quia voluptate id ipsum est rerum quisquam modi pariatur."),
 							ExpectedResult:       utils.NewValueSet("Ut quibusdam inventore dolorum velit.\nUllam et dolor laudantium placeat totam dolorem quia.\nEx voluptates et ipsam sunt nulla eos alias sint ad.\n\nDeleniti ducimus natus et omnis expedita."),
 							resolvedSystemPrompt: "Provide the final answer in exactly this format: Sed unde non.\nVoluptatem quia voluptate id ipsum est rerum quisquam modi pariatur.",
+						},
+						{
+							Name:                 "Dynamic world",
+							Prompt:               "Win the world.",
+							ResponseResultFormat: NewResponseFormat("winning code"),
+							ValidationRules: &ValidationRules{
+								CustomValidator: testutils.Ptr("world-state"),
+							},
+							resolvedSystemPrompt: "Provide the final answer in exactly this format: winning code",
+							resolvedValidationRules: ValidationRules{
+								CustomValidator: testutils.Ptr("world-state"),
+							},
 						},
 					},
 				},
@@ -1756,6 +2145,11 @@ func TestLoadTasksFromFile(t *testing.T) {
 						`task-config:
     disabled: true
     max-turns: 50
+    tool-selector:
+        service-inputs:
+            world:
+                rooms: 6
+                seed: "{{ hash .Evaluation.Seed .Task.Name }}"
     file-options:
         image-detail: high
         access: [native, local]
@@ -1792,12 +2186,36 @@ func TestLoadTasksFromFile(t *testing.T) {
               uri: "http://example.com/file.txt"
               type: "text"
               options:
-                  access: [local]`)),
+                  access: [local]
+        - name: "Stateful cart"
+          prompt: "Add two apples to the cart."
+          response-result-format: "the word done"
+          expected-result:
+              items:
+                  apple: 2
+          validation-rules:
+              custom-validator: "cart-state"
+          tool-selector:
+              service-inputs:
+                  world:
+                      rooms: 8
+                  cart:
+                      customer: 42
+              tools:
+                  - name: "cart"`)),
 			},
 			want: &Tasks{
 				TaskConfig: TaskConfig{
 					Disabled: true,
 					MaxTurns: 50,
+					ToolSelector: ToolSelector{
+						ServiceInputs: map[string]map[string]interface{}{
+							"world": {
+								"rooms": 6,
+								"seed":  "{{ hash .Evaluation.Seed .Task.Name }}",
+							},
+						},
+					},
 					FileOptions: FileOptions{
 						ImageDetail: testutils.Ptr(ImageDetailHigh),
 						Access:      []FileAccess{FileAccessNative, FileAccessLocal},
@@ -1819,7 +2237,62 @@ func TestLoadTasksFromFile(t *testing.T) {
 							Disabled:             testutils.Ptr(false),
 							MaxTurns:             testutils.Ptr(150),
 							resolvedSystemPrompt: "Provide the final answer in exactly this format: Sed unde non.\nVoluptatem quia voluptate id ipsum est rerum quisquam modi pariatur.",
-							resolvedMaxTurns:     150,
+							resolvedToolSelector: ToolSelector{
+								ServiceInputs: map[string]map[string]interface{}{
+									"world": {
+										"rooms": 6,
+										"seed":  "{{ hash .Evaluation.Seed .Task.Name }}",
+									},
+								},
+							},
+							resolvedMaxTurns: 150,
+						},
+						{
+							Name:                 "Stateful cart",
+							Prompt:               "Add two apples to the cart.",
+							ResponseResultFormat: NewResponseFormat("the word done"),
+							ExpectedResult: utils.NewValueSet(map[string]interface{}{
+								"items": map[string]interface{}{"apple": 2},
+							}),
+							ValidationRules: &ValidationRules{
+								CustomValidator: testutils.Ptr("cart-state"),
+							},
+							ToolSelector: &ToolSelector{
+								Tools: []ToolSelection{
+									{
+										Name: "cart",
+									},
+								},
+								ServiceInputs: map[string]map[string]interface{}{
+									"world": {
+										"rooms": 8,
+									},
+									"cart": {
+										"customer": 42,
+									},
+								},
+							},
+							resolvedSystemPrompt: "Provide the final answer in exactly this format: the word done",
+							resolvedValidationRules: ValidationRules{
+								CustomValidator: testutils.Ptr("cart-state"),
+							},
+							resolvedToolSelector: ToolSelector{
+								Tools: []ToolSelection{
+									{
+										Name: "cart",
+									},
+								},
+								ServiceInputs: map[string]map[string]interface{}{
+									"world": {
+										"rooms": 8,
+										"seed":  "{{ hash .Evaluation.Seed .Task.Name }}",
+									},
+									"cart": {
+										"customer": 42,
+									},
+								},
+							},
+							resolvedMaxTurns: 50,
 						},
 					},
 				},

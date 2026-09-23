@@ -13,6 +13,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"path"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -71,6 +72,12 @@ type AppConfig struct {
 
 	// Tools lists common tool configurations available to tasks.
 	Tools []ToolConfig `yaml:"tools" validate:"omitempty,unique=Name,dive"`
+
+	// Services lists persistent Docker dependencies available to tasks.
+	Services []ServiceConfig `yaml:"services" validate:"omitempty,unique=Name,dive"`
+
+	// Validators lists user-defined Docker validators available to tasks.
+	Validators []ValidatorConfig `yaml:"validators" validate:"omitempty,unique=Name,dive"`
 
 	// Pricing specifies default token prices inherited by all providers and runs that do
 	// not configure their own.
@@ -315,6 +322,114 @@ type ToolConfig struct {
 	Command []string `yaml:"command,omitempty"`
 	// Env specifies additional environment variables to set.
 	Env map[string]string `yaml:"env,omitempty"`
+	// Dependencies lists task-scoped services this tool can access.
+	Dependencies []ServiceDependency `yaml:"dependencies,omitempty" validate:"omitempty,unique=Service,dive"`
+}
+
+// ServiceEndpointConfig describes the network endpoint exported by a service.
+type ServiceEndpointConfig struct {
+	// Scheme specifies the URL scheme used by dependent consumers. It defaults to HTTP when omitted.
+	Scheme string `yaml:"scheme" validate:"omitempty,oneof=http https"`
+	// Port specifies the container port on which the service accepts dependent consumer connections.
+	Port int `yaml:"port" validate:"required,min=1,max=65535"`
+}
+
+// GetScheme returns the endpoint scheme, defaulting to HTTP.
+func (c ServiceEndpointConfig) GetScheme() string {
+	if c.Scheme == "" {
+		return "http"
+	}
+	return c.Scheme
+}
+
+// ServiceDependency binds a tool or validator to a task-scoped service.
+type ServiceDependency struct {
+	// Service is the name of the service the consumer depends on.
+	Service string `yaml:"service" validate:"required"`
+	// Env maps consumer environment variable names to templates resolved from the running service instance.
+	Env map[string]string `yaml:"env,omitempty"`
+}
+
+// ServiceConfig defines a persistent Docker dependency owned by one task attempt.
+type ServiceConfig struct {
+	// Name is the unique identifier used by task inputs and consumer dependencies.
+	Name string `yaml:"name" validate:"required"`
+	// Image is the Docker image used to run the service.
+	Image string `yaml:"image" validate:"required"`
+	// Command overrides the image command used to start the service.
+	Command []string `yaml:"command,omitempty"`
+	// Env specifies static environment variables applied to every instance of the service.
+	Env map[string]string `yaml:"env,omitempty"`
+	// Endpoint describes how dependent consumers address the service on its private network.
+	Endpoint *ServiceEndpointConfig `yaml:"endpoint" validate:"required"`
+	// InputEnv declares task-configurable inputs and maps each logical input name to a service environment variable.
+	InputEnv map[string]string `yaml:"input-env,omitempty"`
+	// Healthcheck is the command executed in the service container to determine readiness.
+	Healthcheck []string `yaml:"healthcheck,omitempty"`
+	// StartupTimeout is the maximum time a service with a healthcheck may take to become ready.
+	// If nil, DefaultServiceStartupTimeout applies.
+	StartupTimeout *time.Duration `yaml:"startup-timeout" validate:"omitempty,gt=0"`
+	// MaxMemoryMB is the maximum memory available to the service container in MB. If nil, there is no memory limit.
+	MaxMemoryMB *int `yaml:"max-memory-mb" validate:"omitempty,min=1"`
+	// CpuPercent is the CPU limit as a percentage of total host CPU. If nil, there is no CPU limit.
+	CpuPercent *int `yaml:"cpu-percent" validate:"omitempty,min=1,max=100"`
+}
+
+// DefaultServiceStartupTimeout is the readiness deadline of services that do not configure a startup timeout.
+const DefaultServiceStartupTimeout = 15 * time.Second
+
+// GetStartupTimeout returns the configured startup timeout, or DefaultServiceStartupTimeout when unset.
+func (c ServiceConfig) GetStartupTimeout() time.Duration {
+	if c.StartupTimeout == nil {
+		return DefaultServiceStartupTimeout
+	}
+	return *c.StartupTimeout
+}
+
+// ValidatorConfig defines a trusted Docker-backed custom validator.
+type ValidatorConfig struct {
+	// Name is the unique identifier referenced by task validation rules.
+	Name string `yaml:"name" validate:"required"`
+	// Image is the Docker image used to run the validator.
+	Image string `yaml:"image" validate:"required"`
+	// Command overrides the image command used to run validation.
+	Command []string `yaml:"command,omitempty"`
+	// Env specifies static environment variables supplied to the validator container.
+	Env map[string]string `yaml:"env,omitempty"`
+	// Dependencies lists task-scoped services the validator may access.
+	Dependencies []ServiceDependency `yaml:"dependencies,omitempty" validate:"omitempty,unique=Service,dive"`
+	// Timeout is the maximum duration allowed for one validator execution. If nil, there is no timeout.
+	Timeout *time.Duration `yaml:"timeout" validate:"omitempty,gt=0"`
+	// MaxMemoryMB is the maximum memory available to the validator container in MB. If nil, there is no memory limit.
+	MaxMemoryMB *int `yaml:"max-memory-mb" validate:"omitempty,min=1"`
+	// CpuPercent is the CPU limit as a percentage of total host CPU. If nil, there is no CPU limit.
+	CpuPercent *int `yaml:"cpu-percent" validate:"omitempty,min=1,max=100"`
+	// TemplateFiles lists files rendered from templates and mounted read-only into the validator container.
+	TemplateFiles []ValidatorTemplateFile `yaml:"template-files,omitempty" validate:"omitempty,dive"`
+}
+
+// ValidatorTemplateFile defines a file whose content is rendered from a template for each validation.
+type ValidatorTemplateFile struct {
+	// Path is the absolute path of the file inside the validator container.
+	Path string `yaml:"path" validate:"required"`
+	// Template is the template rendered to produce the file content.
+	Template string `yaml:"template" validate:"required"`
+}
+
+// Validate checks that every template file targets a unique absolute container path.
+func (vc ValidatorConfig) Validate() error {
+	targetPaths := make(map[string]bool, len(vc.TemplateFiles))
+	for _, file := range vc.TemplateFiles {
+		if !path.IsAbs(file.Path) {
+			return fmt.Errorf("%w: template file path %q must be an absolute container path", ErrInvalidConfigProperty, file.Path)
+		}
+		targetPath := path.Clean(file.Path)
+		if targetPaths[targetPath] {
+			return fmt.Errorf("%w: template file path %q is not unique", ErrInvalidConfigProperty, file.Path)
+		}
+		targetPaths[targetPath] = true
+	}
+	return nil
 }
 
 // RunConfig defines settings for a single run configuration.
