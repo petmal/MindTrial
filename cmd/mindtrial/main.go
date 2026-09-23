@@ -75,6 +75,7 @@ var (
 	verbose            *bool
 	debug              *bool
 	interactive        *bool
+	evaluationSeed     *string
 	statsGroupBy       *string
 	statsFormat        *string
 	statsTagMode       *string
@@ -139,6 +140,7 @@ func registerFlags() {
 	verbose = flag.Bool("verbose", false, "enable detailed logging")
 	debug = flag.Bool("debug", false, "enable low-level debug logging")
 	interactive = flag.Bool("interactive", false, "enable interactive interface for run configuration, and real-time progress monitoring")
+	evaluationSeed = flag.String("evaluation-seed", unsetFlagValue, "randomness seed for reproducible evaluation behavior (for example, derived task service inputs); generated for each evaluation when omitted")
 	flag.Var(&inputFiles, "input", "input result file path for merge-results/stats; can be specified multiple times")
 	statsGroupBy = flag.String("group-by", defaultStatsGroupBy, "comma-separated stats grouping dimensions: provider, run, model, suite, category, difficulty, tag")
 	statsFormat = flag.String("stats-format", defaultStatsFormat, "stats output format: text, csv, json, or jsonl")
@@ -215,7 +217,7 @@ func main() {
 func run(ctx context.Context) (ok bool, err error) {
 	if err = validateFlags(runCommandName,
 		"config", "tasks", "output-dir", "output-basename",
-		"html", "csv", "json", "log", "verbose", "debug", "interactive",
+		"html", "csv", "json", "log", "verbose", "debug", "interactive", "evaluation-seed",
 	); err != nil {
 		return
 	}
@@ -344,7 +346,10 @@ func run(ctx context.Context) (ok bool, err error) {
 	availableJudges := cfg.Config.GetJudgesWithEnabledRuns()
 
 	// Run tasks.
-	exec, err := runners.NewDefaultRunner(ctx, targetProviders, availableJudges, cfg.Config.Tools, logger)
+	exec, err := runners.NewDefaultRunnerWithRuntime(ctx, targetProviders, availableJudges, cfg.Config.Tools, runners.TaskRuntimeSettings{
+		Services:       cfg.Config.Services,
+		EvaluationSeed: getFlagValueIfSet(evaluationSeed, ""),
+	}, logger)
 	if err != nil {
 		return
 	}

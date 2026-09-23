@@ -98,7 +98,7 @@ func (v *judgeValidator) IsCorrect(ctx context.Context, logger logging.Logger, r
 	}
 
 	// Execute the judge task and evaluate the response.
-	judgeTaskResult, err := v.executor.Execute(ctx, judgeLogger, judgeTask)
+	judgeTaskResult, err := v.executor.Execute(ctx, judgeLogger, judgeTask, nil)
 	usage := judgeTaskResult.GetUsage()
 	toolCalls := judgeTaskResult.GetToolCalls()
 	if err != nil {

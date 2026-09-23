@@ -1642,12 +1642,14 @@ func TestRunnerRun(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 
-				// Clear random TraceID from results before comparison.
+				// Clear random TraceID and evaluation seed from results before comparison.
 				results := got.GetResults()
 				for provider := range results {
 					for i := range results[provider] {
 						assert.NotEmpty(t, results[provider][i].TraceID, "TraceID should not be empty")
+						assert.NotEmpty(t, results[provider][i].Evaluation.Seed, "evaluation seed should not be empty")
 						results[provider][i].TraceID = ""
+						results[provider][i].Evaluation = EvaluationMetadata{}
 					}
 				}
 
@@ -2321,9 +2323,12 @@ func createMockRunnerFromConfig(t *testing.T, cfg []config.ProviderConfig, judge
 }
 
 type stubToolValidator struct {
-	validatedTools []string
-	validateErr    error
-	closed         bool
+	validatedTools          []string
+	validateErr             error
+	imageErr                error
+	taskServiceSupportErr   error
+	taskServiceSupportCalls int
+	closed                  bool
 }
 
 func (s *stubToolValidator) ValidateTool(ctx context.Context, cfg config.ToolConfig) error {
@@ -2332,6 +2337,15 @@ func (s *stubToolValidator) ValidateTool(ctx context.Context, cfg config.ToolCon
 		return s.validateErr
 	}
 	return nil
+}
+
+func (s *stubToolValidator) ValidateImage(context.Context, string) error {
+	return s.imageErr
+}
+
+func (s *stubToolValidator) ValidateTaskServiceSupport(context.Context) error {
+	s.taskServiceSupportCalls++
+	return s.taskServiceSupportErr
 }
 
 func (s *stubToolValidator) Close() error {

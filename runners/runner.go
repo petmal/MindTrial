@@ -37,6 +37,12 @@ var validIDCharMatcher = regexp.MustCompile(`[^a-zA-Z0-9_-]`)
 var (
 	// ErrToolNotFound is returned when a required tool is not found in the available tools.
 	ErrToolNotFound = errors.New("required tool not found")
+	// ErrServiceNotFound is returned when a selected task references an unavailable service.
+	ErrServiceNotFound = errors.New("required service not found")
+	// ErrEvaluationSeed is returned when an evaluation randomness seed cannot be created.
+	ErrEvaluationSeed = errors.New("failed to create evaluation seed")
+	// ErrInvalidTaskRuntimeConfig is returned when task service configuration is inconsistent.
+	ErrInvalidTaskRuntimeConfig = errors.New("invalid task runtime configuration")
 )
 
 // ResultKind represents the task execution result status.
@@ -109,6 +115,8 @@ type RunResult struct {
 	// RunConfig contains the effective run configuration used to produce this result,
 	// with any API keys or other secrets omitted.
 	RunConfig RunConfigSnapshot
+	// Evaluation describes the evaluation invocation that produced this result.
+	Evaluation EvaluationMetadata
 	// Got is the actual answer received from the AI model.
 	// For plain text response format, this should be a string that follows the format instruction precisely.
 	// For structured schema-based response format, this will be any object that conforms to the schema.
@@ -158,6 +166,13 @@ type Pricing struct {
 type RetryPolicy struct {
 	MaxRetryAttempts    uint
 	InitialDelaySeconds int
+}
+
+// EvaluationMetadata describes the evaluation invocation that produced a result.
+type EvaluationMetadata struct {
+	// Seed is shared by every task attempt of the evaluation; passing it to
+	// --evaluation-seed reproduces the seed-derived inputs of that evaluation.
+	Seed string
 }
 
 // TaskMetadata carries optional descriptive labels from the originating task into the result.

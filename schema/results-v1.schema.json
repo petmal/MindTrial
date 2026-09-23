@@ -148,6 +148,19 @@
               "title": "Run Configuration",
               "description": "The effective run configuration used to produce this result (e.g. model, rate limits, retry policy), with any API keys or other secrets omitted."
             },
+            "Evaluation": {
+              "properties": {
+                "Seed": {
+                  "type": "string",
+                  "title": "Evaluation Seed",
+                  "description": "The seed shared by every task attempt of the evaluation. Pass it to --evaluation-seed to reproduce the seed-derived inputs of the evaluation, such as task service inputs."
+                }
+              },
+              "additionalProperties": false,
+              "type": "object",
+              "title": "Evaluation",
+              "description": "Metadata of the evaluation invocation that produced this result."
+            },
             "Got": {
               "title": "Actual Answer",
               "description": "The actual answer received from the AI model. For plain text response format, a string that follows the format instruction precisely. For structured schema-based response format, any object that conforms to the task's response schema."

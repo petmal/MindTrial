@@ -52,6 +52,9 @@ var mockResults = runners.Results{
 			Run:      "run-success",
 			Kind:     runners.Success,
 			Duration: 95 * time.Second,
+			Evaluation: runners.EvaluationMetadata{
+				Seed: "9f86d081884c7d659a2feaa0c55ad015",
+			},
 			RunConfig: runners.RunConfigSnapshot{
 				Name:                 "run-success",
 				Model:                "gpt-4o-mini",

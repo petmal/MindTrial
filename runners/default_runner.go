@@ -8,6 +8,8 @@ package runners
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"sync"
@@ -31,6 +33,8 @@ const asyncEventBufferSize = 3
 
 type toolValidator interface {
 	ValidateTool(ctx context.Context, cfg config.ToolConfig) error
+	ValidateImage(ctx context.Context, image string) error
+	ValidateTaskServiceSupport(ctx context.Context) error
 	Close() error
 }
 
@@ -114,11 +118,26 @@ func (r *asyncResultSet) emitMessageEvent(message string) {
 	}
 }
 
+// TaskRuntimeSettings configures optional task-scoped execution infrastructure.
+type TaskRuntimeSettings struct {
+	// Services lists the task-scoped services available to tools.
+	Services []config.ServiceConfig
+	// EvaluationSeed fixes the seed shared by all task attempts of every evaluation.
+	// If empty, each evaluation generates its own random seed.
+	EvaluationSeed string
+}
+
 // NewDefaultRunner creates a new Runner that executes tasks on all configured providers
 // in parallel. The individual runs on a single provider are executed sequentially by default,
 // or in parallel when the provider's MaxParallelRequestsPerMinute is set to a value greater than 0.
-// It returns an error if any provider initialization fails.
+// It returns an error if any provider initialization fails. The runner has no task-scoped services.
 func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, judges []config.JudgeConfig, tools []config.ToolConfig, logger zerolog.Logger) (Runner, error) {
+	return NewDefaultRunnerWithRuntime(ctx, cfg, judges, tools, TaskRuntimeSettings{}, logger)
+}
+
+// NewDefaultRunnerWithRuntime creates a runner like NewDefaultRunner that additionally provides
+// the task-scoped execution infrastructure described by runtimeSettings.
+func NewDefaultRunnerWithRuntime(ctx context.Context, cfg []config.ProviderConfig, judges []config.JudgeConfig, tools []config.ToolConfig, runtimeSettings TaskRuntimeSettings, logger zerolog.Logger) (Runner, error) {
 	toolValidator, err := providertools.NewDockerToolExecutor(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize tool validator: %w", err)
@@ -132,7 +151,6 @@ func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, judges [
 			if cleanupErr := toolValidator.Close(); cleanupErr != nil {
 				logger.Warn().Err(cleanupErr).Msg("failed to close tool validator")
 			}
-
 			return nil, fmt.Errorf("failed to initialize task runner: %w", err)
 		}
 		targets[client] = providerConfig
@@ -146,9 +164,29 @@ func NewDefaultRunner(ctx context.Context, cfg []config.ProviderConfig, judges [
 		totalTargetCount: totalTargetCount,
 		validatorFactory: validatorFactory,
 		tools:            tools,
-		logger:           logger,
-		toolValidator:    toolValidator,
+		taskRuntime: taskRuntimeConfig{
+			services: runtimeSettings.Services,
+		},
+		evaluationSeed: runtimeSettings.EvaluationSeed,
+		newTaskRuntime: newDockerTaskRuntime,
+		logger:         logger,
+		toolValidator:  toolValidator,
 	}, nil
+}
+
+// taskRuntimeFactory creates the attempt-scoped environment of one provider task attempt.
+type taskRuntimeFactory func(ctx context.Context, logger logging.Logger, cfg providertools.TaskRuntimeConfig) (execution.ScopedEnvironment, error)
+
+func newDockerTaskRuntime(ctx context.Context, logger logging.Logger, cfg providertools.TaskRuntimeConfig) (execution.ScopedEnvironment, error) {
+	taskRuntime, err := providertools.NewTaskRuntime(ctx, logger, cfg)
+	if err != nil {
+		return nil, err
+	}
+	return taskRuntime, nil
+}
+
+type taskRuntimeConfig struct {
+	services []config.ServiceConfig
 }
 
 type defaultRunner struct {
@@ -156,6 +194,9 @@ type defaultRunner struct {
 	totalTargetCount int
 	validatorFactory *validators.Factory
 	tools            []config.ToolConfig
+	taskRuntime      taskRuntimeConfig
+	evaluationSeed   string // explicit seed override; empty generates a fresh seed per evaluation
+	newTaskRuntime   taskRuntimeFactory
 	logger           zerolog.Logger
 	toolValidator    toolValidator
 }
@@ -166,8 +207,14 @@ func (r *defaultRunner) assertCanRun(ctx context.Context, tasks []config.Task) e
 	for _, toolCfg := range r.tools {
 		availableTools[toolCfg.Name] = toolCfg
 	}
+	availableServices := make(map[string]config.ServiceConfig, len(r.taskRuntime.services))
+	for _, serviceCfg := range r.taskRuntime.services {
+		availableServices[serviceCfg.Name] = serviceCfg
+	}
 
 	validatedTools := make(map[string]bool)
+	validatedServices := make(map[string]bool)
+	requiresTaskServices := false
 
 	for _, task := range tasks {
 		// Resolve validation rules for this task.
@@ -190,13 +237,46 @@ func (r *defaultRunner) assertCanRun(ctx context.Context, tasks []config.Task) e
 				continue
 			}
 
-			// Validate tool if not already validated.
 			if _, alreadyValidated := validatedTools[toolName]; !alreadyValidated {
 				if err := r.toolValidator.ValidateTool(ctx, toolCfg); err != nil {
 					taskErrors = append(taskErrors, fmt.Errorf("tool '%s' cannot be used: %w", toolName, err))
 				}
 				validatedTools[toolName] = true
 			}
+
+			consumer := fmt.Sprintf("task '%s' tool '%s'", task.Name, toolName)
+			taskErrors = append(taskErrors, r.validateServiceDependencies(ctx, consumer, toolCfg.Dependencies, availableServices, validatedServices)...)
+		}
+
+		// Inherited service inputs are defaults; they are validated but only consumed by services the task requires.
+		for _, serviceName := range utils.SortedKeys(resolvedToolSelector.ServiceInputs) {
+			serviceCfg, exists := availableServices[serviceName]
+			if !exists {
+				taskErrors = append(taskErrors, fmt.Errorf("%w: task '%s' configures service-inputs for '%s'", ErrServiceNotFound, task.Name, serviceName))
+				continue
+			}
+			inputs := resolvedToolSelector.ServiceInputs[serviceName]
+			for _, inputName := range utils.SortedKeys(inputs) {
+				if _, declared := serviceCfg.InputEnv[inputName]; !declared {
+					taskErrors = append(taskErrors, fmt.Errorf("%w: task '%s' configures undeclared input '%s' for service '%s'", ErrInvalidTaskRuntimeConfig, task.Name, inputName, serviceName))
+					continue
+				}
+				if text, ok := inputs[inputName].(string); ok {
+					if _, err := utils.ParseTemplate("service-input", text); err != nil {
+						taskErrors = append(taskErrors, fmt.Errorf("%w: task '%s' service-inputs %s.%s: %w", ErrInvalidTaskRuntimeConfig, task.Name, serviceName, inputName, err))
+					}
+				}
+			}
+		}
+
+		if len(r.taskServiceNames(task)) > 0 {
+			requiresTaskServices = true
+		}
+	}
+
+	if requiresTaskServices {
+		if err := r.toolValidator.ValidateTaskServiceSupport(ctx); err != nil {
+			taskErrors = append(taskErrors, fmt.Errorf("task services cannot be used: %w", err))
 		}
 	}
 
@@ -206,8 +286,36 @@ func (r *defaultRunner) assertCanRun(ctx context.Context, tasks []config.Task) e
 	return nil
 }
 
+// validateServiceDependencies checks that every dependency of consumer names an available service
+// with a usable image and compilable environment templates.
+func (r *defaultRunner) validateServiceDependencies(ctx context.Context, consumer string, dependencies []config.ServiceDependency, availableServices map[string]config.ServiceConfig, validatedServices map[string]bool) (errs []error) {
+	for _, dependency := range dependencies {
+		serviceCfg, exists := availableServices[dependency.Service]
+		if !exists {
+			errs = append(errs, fmt.Errorf("%w: %s requires service '%s'", ErrServiceNotFound, consumer, dependency.Service))
+			continue
+		}
+		if !validatedServices[dependency.Service] {
+			if err := r.toolValidator.ValidateImage(ctx, serviceCfg.Image); err != nil {
+				errs = append(errs, fmt.Errorf("service '%s' cannot be used: %w", dependency.Service, err))
+			}
+			validatedServices[dependency.Service] = true
+		}
+		for _, name := range utils.SortedKeys(dependency.Env) {
+			if _, err := utils.ParseTemplate("service-dependency-env", dependency.Env[name]); err != nil {
+				errs = append(errs, fmt.Errorf("%w: %s dependency on service '%s' has an invalid environment template for %s: %w", ErrInvalidTaskRuntimeConfig, consumer, dependency.Service, name, err))
+			}
+		}
+	}
+	return errs
+}
+
 func (r *defaultRunner) Start(ctx context.Context, tasks []config.Task) (AsyncResultSet, error) {
 	if err := r.assertCanRun(ctx, tasks); err != nil {
+		return nil, err
+	}
+	evaluationSeed, err := r.resolveEvaluationSeed()
+	if err != nil {
 		return nil, err
 	}
 
@@ -228,12 +336,11 @@ func (r *defaultRunner) Start(ctx context.Context, tasks []config.Task) (AsyncRe
 		done:           &wg,
 	}
 
-	var err error
 	go func() {
 		defer wg.Done()
 		defer close(progress)
 		defer close(messages)
-		err = r.run(runCtx, tasks, result)
+		err = r.run(runCtx, tasks, result, evaluationSeed)
 	}()
 
 	return result, err
@@ -243,24 +350,41 @@ func (r *defaultRunner) Run(ctx context.Context, tasks []config.Task) (ResultSet
 	if err := r.assertCanRun(ctx, tasks); err != nil {
 		return nil, err
 	}
+	evaluationSeed, err := r.resolveEvaluationSeed()
+	if err != nil {
+		return nil, err
+	}
 
 	result := &resultSet{
 		results: make(Results),
 	}
 
-	return result, r.run(ctx, tasks, result)
+	return result, r.run(ctx, tasks, result, evaluationSeed)
 }
 
-func (r *defaultRunner) run(ctx context.Context, tasks []config.Task, rs resultCollector) (err error) {
+// resolveEvaluationSeed returns the seed shared by all task attempts of one evaluation.
+func (r *defaultRunner) resolveEvaluationSeed() (string, error) {
+	if r.evaluationSeed != "" {
+		return r.evaluationSeed, nil
+	}
+	var value [16]byte
+	if _, err := rand.Read(value[:]); err != nil {
+		return "", fmt.Errorf("%w: %w", ErrEvaluationSeed, err)
+	}
+	return hex.EncodeToString(value[:]), nil
+}
+
+func (r *defaultRunner) run(ctx context.Context, tasks []config.Task, rs resultCollector, evaluationSeed string) (err error) {
 	logger := NewEmittingLogger(r.logger, rs)
 	logger.Message(ctx, logging.LevelInfo, "starting %d task%s on %d provider%s...", pluralize(countable(len(tasks)), countable(len(r.targets)))...)
+	logger.Message(ctx, logging.LevelInfo, "evaluation seed: %s", evaluationSeed)
 	start := time.Now()
 	var wg sync.WaitGroup
 	for provider, providerConfig := range r.targets {
 		wg.Add(1)
 		go func(p providers.Provider, c config.ProviderConfig) {
 			defer wg.Done()
-			r.runTasks(ctx, logger, p, c, tasks, rs)
+			r.runTasks(ctx, logger, p, c, tasks, rs, evaluationSeed)
 		}(provider, providerConfig)
 	}
 	wg.Wait()
@@ -268,7 +392,7 @@ func (r *defaultRunner) run(ctx context.Context, tasks []config.Task, rs resultC
 	return
 }
 
-func (r *defaultRunner) runTasks(ctx context.Context, logger logging.Logger, provider providers.Provider, providerConfig config.ProviderConfig, tasks []config.Task, rs resultCollector) {
+func (r *defaultRunner) runTasks(ctx context.Context, logger logging.Logger, provider providers.Provider, providerConfig config.ProviderConfig, tasks []config.Task, rs resultCollector, evaluationSeed string) {
 	runs := providerConfig.Runs
 	logger.Message(ctx, logging.LevelInfo, "%s: starting %d task%s on this provider in %d configuration%s...", pluralize(provider.Name(), countable(len(tasks)), countable(len(runs)))...)
 	providerStart := time.Now()
@@ -303,7 +427,7 @@ func (r *defaultRunner) runTasks(ctx context.Context, logger logging.Logger, pro
 
 			taskLogger.Message(ctx, logging.LevelInfo, "starting task...")
 			runStart := time.Now()
-			r.runTask(ctx, taskLogger, executor, task, skipTasksWithSchemaResultFormat, skipTasksWithNativeFiles, &runResult)
+			r.runTask(ctx, taskLogger, executor, task, evaluationSeed, skipTasksWithSchemaResultFormat, skipTasksWithNativeFiles, &runResult)
 			taskLogger.Message(ctx, logging.LevelInfo, "task has finished in %s.", time.Since(runStart))
 			rs.appendResult(runResult)
 			rs.emitProgressEvent()
@@ -329,11 +453,12 @@ func (r *defaultRunner) runTasks(ctx context.Context, logger logging.Logger, pro
 	logger.Message(ctx, logging.LevelInfo, "%s: all tasks in all configurations have finished on this provider in %s.", provider.Name(), time.Since(providerStart))
 }
 
-func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, executor *execution.Executor, task config.Task, skipTasksWithSchemaResultFormat bool, skipTasksWithNativeFiles bool, runResult *RunResult) {
+func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, executor *execution.Executor, task config.Task, evaluationSeed string, skipTasksWithSchemaResultFormat bool, skipTasksWithNativeFiles bool, runResult *RunResult) {
 	runResult.Task = task.Name
 	runResult.Provider = executor.Provider.Name()
 	runResult.Run = executor.RunConfig.Name
 	runResult.RunConfig = snapshotRunConfig(ctx, logger, executor.RunConfig)
+	runResult.Evaluation = EvaluationMetadata{Seed: evaluationSeed}
 	runResult.TaskMetadata = TaskMetadata{
 		Suite:      task.Suite,
 		Category:   task.Category,
@@ -399,7 +524,38 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 		}
 	}()
 
-	result, err := executor.Execute(ctx, logger, task)
+	requiredServices := r.taskServiceNames(task)
+	templateData := providertools.ExecutionTemplateData{
+		Evaluation: providertools.EvaluationTemplateData{Seed: evaluationSeed},
+		Task:       providertools.NameTemplateData{Name: task.Name},
+		Provider:   providertools.NameTemplateData{Name: executor.Provider.Name()},
+		Run:        providertools.NameTemplateData{Name: executor.RunConfig.Name},
+	}
+
+	var taskRuntime execution.ScopedEnvironment
+	var attempt execution.Attempt
+	if len(requiredServices) > 0 {
+		runtimeConfig := providertools.TaskRuntimeConfig{
+			Services:         r.taskRuntime.services,
+			RequiredServices: requiredServices,
+			ServiceInputs:    requiredServiceInputs(task.GetResolvedToolSelector().ServiceInputs, requiredServices),
+			TemplateData:     templateData,
+		}
+		attempt = execution.NewScopedAttempt(logger, func(attemptCtx context.Context) (execution.ScopedEnvironment, error) {
+			return r.newTaskRuntime(attemptCtx, logger, runtimeConfig)
+		}, func(successfulRuntime execution.ScopedEnvironment) {
+			taskRuntime = successfulRuntime
+		})
+	}
+
+	result, err := executor.Execute(ctx, logger, task, attempt)
+	if taskRuntime != nil {
+		defer func() {
+			if cleanupErr := taskRuntime.Close(ctx); cleanupErr != nil {
+				logger.Error(ctx, logging.LevelWarn, cleanupErr, "failed to close task runtime")
+			}
+		}()
+	}
 	usage := result.GetUsage()
 	toolCalls := result.GetToolCalls()
 	logger.Message(ctx, logging.LevelDebug, "token usage: [in:%s, out:%s]", logging.FormatLogInt64(usage.InputTokens), logging.FormatLogInt64(usage.OutputTokens))
@@ -514,6 +670,34 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 		}
 	}
 	runResult.Duration = result.GetDuration()
+}
+
+func (r *defaultRunner) taskServiceNames(task config.Task) []string {
+	availableTools := make(map[string]config.ToolConfig, len(r.tools))
+	for _, toolCfg := range r.tools {
+		availableTools[toolCfg.Name] = toolCfg
+	}
+
+	enabledTools, _ := task.GetResolvedToolSelector().GetEnabledToolsByName()
+	serviceSet := make(map[string]struct{})
+	for toolName := range enabledTools {
+		for _, dependency := range availableTools[toolName].Dependencies {
+			serviceSet[dependency.Service] = struct{}{}
+		}
+	}
+	return utils.SortedKeys(serviceSet)
+}
+
+// requiredServiceInputs keeps the inputs of the services a task attempt starts, dropping
+// inherited defaults of services the task does not use.
+func requiredServiceInputs(inputs map[string]map[string]interface{}, requiredServices []string) map[string]map[string]interface{} {
+	filtered := make(map[string]map[string]interface{}, len(requiredServices))
+	for _, serviceName := range requiredServices {
+		if serviceInputs, ok := inputs[serviceName]; ok {
+			filtered[serviceName] = serviceInputs
+		}
+	}
+	return filtered
 }
 
 // snapshotRunConfig returns an artifact-safe projection of cfg, suitable for persisting in

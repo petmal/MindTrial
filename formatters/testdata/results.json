@@ -28,6 +28,9 @@
             "ReasoningPerMillion": 7.5
           }
         },
+        "Evaluation": {
+          "Seed": "9f86d081884c7d659a2feaa0c55ad015"
+        },
         "Got": "Quos aut rerum quaerat qui ad culpa.",
         "Want": "Quos aut rerum quaerat qui ad culpa.",
         "TaskMetadata": {

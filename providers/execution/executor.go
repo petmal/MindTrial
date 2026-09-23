@@ -68,15 +68,72 @@ func NewExecutor(provider providers.Provider, runConfig config.RunConfig, shared
 	}
 }
 
-// Execute runs the task using the configured provider, applying retry logic and rate limiting as configured.
-func (e *Executor) Execute(ctx context.Context, logger logging.Logger, task config.Task) (providers.Result, error) {
-	if e.RunConfig.RetryPolicy != nil && e.RunConfig.RetryPolicy.MaxRetryAttempts > 0 {
-		return e.executeWithRetry(ctx, logger, task)
-	}
-	return e.executeOnce(ctx, logger, task)
+// Attempt wraps one provider execution attempt with optional attempt-scoped infrastructure.
+// The execute callback runs the provider with the supplied environment; nil selects standalone execution.
+type Attempt func(ctx context.Context, execute func(providers.ExecutionEnvironment) (providers.Result, error)) (providers.Result, error)
+
+// ScopedEnvironment is an attempt-scoped execution environment that must be closed by its owner.
+type ScopedEnvironment interface {
+	providers.ExecutionEnvironment
+	// Close releases all resources of the environment.
+	Close(ctx context.Context) error
 }
 
-func (e *Executor) executeWithRetry(ctx context.Context, logger logging.Logger, task config.Task) (result providers.Result, err error) {
+// NewScopedAttempt returns an Attempt that runs every attempt in a fresh environment created by
+// newEnvironment. The environment of a failed or panicking attempt is closed; the environment of
+// the successful attempt is passed to keep, which becomes responsible for closing it.
+func NewScopedAttempt(logger logging.Logger, newEnvironment func(context.Context) (ScopedEnvironment, error), keep func(ScopedEnvironment)) Attempt {
+	return func(ctx context.Context, execute func(providers.ExecutionEnvironment) (providers.Result, error)) (providers.Result, error) {
+		environment, err := newEnvironment(ctx)
+		if err != nil {
+			return providers.Result{}, err
+		}
+		kept := false
+		defer func() {
+			if !kept {
+				if closeErr := environment.Close(ctx); closeErr != nil {
+					logger.Error(ctx, logging.LevelWarn, closeErr, "failed to close attempt environment")
+				}
+			}
+		}()
+
+		result, err := execute(environment)
+		if err != nil {
+			return result, err
+		}
+		keep(environment)
+		kept = true
+		return result, nil
+	}
+}
+
+// Execute runs the task using the configured provider, applying retry logic and rate limiting as configured.
+// Each attempt waits for rate-limit capacity before the attempt creates any attempt-scoped infrastructure.
+// attempt may be nil for ordinary standalone execution.
+func (e *Executor) Execute(ctx context.Context, logger logging.Logger, task config.Task, attempt Attempt) (providers.Result, error) {
+	if attempt == nil {
+		attempt = runStandalone
+	}
+
+	return e.execute(ctx, logger, func(attemptCtx context.Context) (providers.Result, error) {
+		if err := e.waitForCapacity(attemptCtx, logger); err != nil {
+			return providers.Result{}, err
+		}
+		return attempt(attemptCtx, func(environment providers.ExecutionEnvironment) (providers.Result, error) {
+			return e.runProvider(attemptCtx, logger, task, environment)
+		})
+	})
+}
+
+func runStandalone(_ context.Context, execute func(providers.ExecutionEnvironment) (providers.Result, error)) (providers.Result, error) {
+	return execute(nil)
+}
+
+func (e *Executor) execute(ctx context.Context, logger logging.Logger, attempt func(context.Context) (providers.Result, error)) (result providers.Result, err error) {
+	if e.RunConfig.RetryPolicy == nil || e.RunConfig.RetryPolicy.MaxRetryAttempts == 0 {
+		return attempt(ctx)
+	}
+
 	backoff := retry.NewExponential(time.Duration(e.RunConfig.RetryPolicy.InitialDelaySeconds) * time.Second)
 	backoff = retry.WithMaxRetries(uint64(e.RunConfig.RetryPolicy.MaxRetryAttempts), backoff)
 	backoff = BackoffWithCallback(func(nextRetryAttempt uint64, nextDelay time.Duration) {
@@ -85,7 +142,7 @@ func (e *Executor) executeWithRetry(ctx context.Context, logger logging.Logger, 
 	}, backoff)
 
 	err = retry.Do(ctx, backoff, func(ctx context.Context) error {
-		executionResult, executionError := e.executeOnce(ctx, logger, task)
+		executionResult, executionError := attempt(ctx)
 		result = executionResult // capture the last attempt's result
 		return executionError
 	})
@@ -93,27 +150,30 @@ func (e *Executor) executeWithRetry(ctx context.Context, logger logging.Logger, 
 	return result, err
 }
 
-func (e *Executor) executeOnce(ctx context.Context, logger logging.Logger, task config.Task) (result providers.Result, err error) {
-	if err = ctx.Err(); err != nil {
+func (e *Executor) waitForCapacity(ctx context.Context, logger logging.Logger) error {
+	if err := ctx.Err(); err != nil {
 		logger.Error(ctx, logging.LevelWarn, err, "aborting task")
-		return
+		return err
 	}
 
 	if e.sharedLimiter != nil {
-		if err = e.sharedLimiter.Wait(ctx); err != nil {
+		if err := e.sharedLimiter.Wait(ctx); err != nil {
 			logger.Error(ctx, logging.LevelWarn, err, "aborting task")
-			return
+			return err
 		}
 	}
 
 	if e.limiter != nil {
-		if err = e.limiter.Wait(ctx); err != nil {
+		if err := e.limiter.Wait(ctx); err != nil {
 			logger.Error(ctx, logging.LevelWarn, err, "aborting task")
-			return
+			return err
 		}
 	}
+	return nil
+}
 
-	result, err = e.Provider.Run(ctx, logger, e.RunConfig, task, nil)
+func (e *Executor) runProvider(ctx context.Context, logger logging.Logger, task config.Task, environment providers.ExecutionEnvironment) (result providers.Result, err error) {
+	result, err = e.Provider.Run(ctx, logger, e.RunConfig, task, environment)
 	if errors.Is(err, providers.ErrRetryable) {
 		logger.Error(ctx, logging.LevelWarn, err, "task encountered a transient error")
 		err = retry.RetryableError(err)

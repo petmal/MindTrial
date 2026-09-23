@@ -37,6 +37,7 @@ type resultView struct {
 	Provider     string            `json:"Provider" jsonschema:"title=Provider Name" jsonschema_description:"The name of the AI provider that executed the task."`
 	Run          string            `json:"Run" jsonschema:"title=Run Name" jsonschema_description:"The name of the provider's run configuration used."`
 	RunConfig    *runConfigView    `json:"RunConfig,omitempty" jsonschema:"title=Run Configuration" jsonschema_description:"The effective run configuration used to produce this result (e.g. model, rate limits, retry policy), with any API keys or other secrets omitted."`
+	Evaluation   *evaluationView   `json:"Evaluation,omitempty" jsonschema:"title=Evaluation" jsonschema_description:"Metadata of the evaluation invocation that produced this result."`
 	Got          interface{}       `json:"Got" jsonschema:"title=Actual Answer" jsonschema_description:"The actual answer received from the AI model. For plain text response format, a string that follows the format instruction precisely. For structured schema-based response format, any object that conforms to the task's response schema."`
 	Want         utils.ValueSet    `json:"Want" jsonschema:"title=Expected Answer(s)" jsonschema_description:"The accepted valid answer(s) for the task, as a single value or an array of values. For plain text response format: string values that should follow the format instruction precisely. For structured schema-based response format: object values that conform to the task's response schema."`
 	TaskMetadata *taskMetadataView `json:"TaskMetadata,omitempty" jsonschema:"title=Task Metadata" jsonschema_description:"Optional descriptive labels copied from the originating task."`
@@ -71,6 +72,11 @@ type pricingView struct {
 type retryPolicyView struct {
 	MaxRetryAttempts    uint `json:"MaxRetryAttempts,omitempty" jsonschema:"title=Max Retry Attempts" jsonschema_description:"The maximum number of retry attempts for a transient failure."`
 	InitialDelaySeconds int  `json:"InitialDelaySeconds,omitempty" jsonschema:"title=Initial Delay Seconds" jsonschema_description:"The initial backoff delay before the first retry attempt."`
+}
+
+// evaluationView is the view model for runners.EvaluationMetadata.
+type evaluationView struct {
+	Seed string `json:"Seed,omitempty" jsonschema:"title=Evaluation Seed" jsonschema_description:"The seed shared by every task attempt of the evaluation. Pass it to --evaluation-seed to reproduce the seed-derived inputs of the evaluation, such as task service inputs."`
 }
 
 // taskMetadataView is the view model for runners.TaskMetadata.
@@ -182,6 +188,7 @@ func newResultView(r runners.RunResult) resultView {
 		Provider:     r.Provider,
 		Run:          r.Run,
 		RunConfig:    newRunConfigView(r.RunConfig),
+		Evaluation:   newEvaluationView(r.Evaluation),
 		Got:          r.Got,
 		Want:         r.Want,
 		TaskMetadata: newTaskMetadataView(r.TaskMetadata),
@@ -218,6 +225,16 @@ func newRunConfigView(rc runners.RunConfigSnapshot) *runConfigView {
 		}
 	}
 	return view
+}
+
+// newEvaluationView converts runners.EvaluationMetadata to its view model, or nil when empty.
+func newEvaluationView(m runners.EvaluationMetadata) *evaluationView {
+	if m == (runners.EvaluationMetadata{}) {
+		return nil
+	}
+	return &evaluationView{
+		Seed: m.Seed,
+	}
 }
 
 // newTaskMetadataView converts runners.TaskMetadata to its view model.
@@ -429,6 +446,7 @@ func fromResultView(v resultView) (runners.RunResult, error) {
 		Provider:     v.Provider,
 		Run:          v.Run,
 		RunConfig:    fromRunConfigView(v.RunConfig, v.Run),
+		Evaluation:   fromEvaluationView(v.Evaluation),
 		Got:          v.Got,
 		Want:         v.Want,
 		TaskMetadata: fromTaskMetadataView(v.TaskMetadata),
@@ -486,6 +504,17 @@ func fromSemanticValidationDetailsView(v *semanticValidationDetailsView) *runner
 		Provider:      v.Provider,
 		Variant:       v.Variant,
 		VariantConfig: fromRunConfigView(v.VariantConfig, v.Variant),
+	}
+}
+
+// fromEvaluationView converts an evaluationView back to runners.EvaluationMetadata.
+// A nil view produces a zero-value EvaluationMetadata.
+func fromEvaluationView(v *evaluationView) runners.EvaluationMetadata {
+	if v == nil {
+		return runners.EvaluationMetadata{}
+	}
+	return runners.EvaluationMetadata{
+		Seed: v.Seed,
 	}
 }
 
