@@ -5,8 +5,9 @@
 // file, You can obtain one at <https://mozilla.org/MPL/2.0/>.
 
 // Package validators provides validation mechanisms for AI model responses.
-// It includes support for both value matching and LLM-based
-// semantic equivalence validation using judge models.
+// It supports value matching, JSON Schema validation, LLM-based semantic
+// equivalence validation using judge models, and trusted Docker-backed
+// custom validators.
 package validators
 
 import (
@@ -69,4 +70,14 @@ type Validator interface {
 	GetName() string
 	// Close cleans up any resources used by the validator.
 	Close(ctx context.Context) error
+}
+
+// CustomValidator is implemented by externally executed validators that may consume attempt-scoped infrastructure.
+type CustomValidator interface {
+	Validator
+	// IsCorrectWithEnvironment evaluates a response with a trusted validator process that runs in the
+	// environment of the successful provider attempt; a nil environment provides no task services.
+	// The validator templates receive the judge-compatible validation context and metadata.
+	// A valid response rejecting the answer is not an error; execution and protocol failures are.
+	IsCorrectWithEnvironment(ctx context.Context, logger logging.Logger, rules config.ValidationRules, expected utils.ValueSet, actual providers.Result, originalPrompt string, expectedResponseFormat config.ResponseFormat, environment providers.ExecutionEnvironment, metadata tools.ExecutionTemplateData) (ValidationResult, error)
 }

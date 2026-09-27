@@ -591,3 +591,31 @@ TraceID,Provider,Run,Task,Status,DurationMS,Answer,Details,Suite,Category,Diffic
     ""Method"": ""schema""
   }
 }",,,,
+01JEDE7Z8X0000000000000013,provider-name,run-custom-failure,task-name,Failed,27000,NX-7Q2-4821,"{
+  ""Answer"": {
+    ""Title"": ""Winning Code"",
+    ""Explanation"": [
+      ""Unlocked the vault and read the winning code from the terminal.""
+    ],
+    ""ActualAnswer"": [
+      ""NX-7Q2-4821""
+    ],
+    ""Usage"": {
+      ""InputTokens"": 2048,
+      ""OutputTokens"": 96
+    },
+    ""ToolUsage"": {
+      ""world-client"": {
+        ""CallCount"": 4,
+        ""TotalDurationNS"": 3200000000
+      }
+    }
+  },
+  ""Validation"": {
+    ""Title"": ""Not Won"",
+    ""Explanation"": [
+      ""The world is not in a winning state: the vault is still locked.""
+    ],
+    ""Method"": ""custom""
+  }
+}",,,,

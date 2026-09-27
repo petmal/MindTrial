@@ -39,10 +39,16 @@ type Factory struct {
 	cache                    sync.Map
 	judgeConfigs             []config.JudgeConfig
 	judgeConfigVariantLookup map[string]map[string]*judgeConfigVariant
+	customValidatorConfigs   map[string]config.ValidatorConfig
 }
 
-// NewFactory creates a new validator factory with the provided judge configurations.
+// NewFactory creates a validator factory without custom validators.
 func NewFactory(availableJudges []config.JudgeConfig) *Factory {
+	return NewFactoryWithCustomValidators(availableJudges, nil)
+}
+
+// NewFactoryWithCustomValidators creates a validator factory with Docker custom validators.
+func NewFactoryWithCustomValidators(availableJudges []config.JudgeConfig, availableCustomValidators []config.ValidatorConfig) *Factory {
 	// Build lookup table for fast judge and run variant config lookup.
 	lookup := make(map[string]map[string]*judgeConfigVariant, len(availableJudges))
 
@@ -60,9 +66,15 @@ func NewFactory(availableJudges []config.JudgeConfig) *Factory {
 		}
 	}
 
+	customValidatorConfigs := make(map[string]config.ValidatorConfig, len(availableCustomValidators))
+	for _, validatorConfig := range availableCustomValidators {
+		customValidatorConfigs[validatorConfig.Name] = validatorConfig
+	}
+
 	return &Factory{
 		judgeConfigs:             availableJudges,
 		judgeConfigVariantLookup: lookup,
+		customValidatorConfigs:   customValidatorConfigs,
 	}
 }
 
@@ -70,9 +82,17 @@ func (f *Factory) createJudgeCacheKey(judge config.JudgeSelector) string {
 	return fmt.Sprintf("judge_%s_%s", judge.GetName(), judge.GetVariant())
 }
 
+func (f *Factory) createCustomValidatorCacheKey(name string) string {
+	return "custom_" + name
+}
+
 // GetValidator returns a validator for the given validation rules.
-// Selection: judge -> JudgeValidator, schema-validation -> SchemaValidator, otherwise ValueMatchValidator.
+// Selection: custom-validator -> CustomValidator, judge -> JudgeValidator,
+// schema-validation -> SchemaValidator, otherwise ValueMatchValidator.
 func (f *Factory) GetValidator(ctx context.Context, rules config.ValidationRules) (Validator, error) {
+	if rules.UseCustomValidator() {
+		return f.getCustomValidator(ctx, rules.GetCustomValidatorName())
+	}
 	if rules.UseJudge() {
 		return f.getJudgeValidator(ctx, rules.Judge)
 	}
@@ -87,6 +107,35 @@ func (f *Factory) GetValidator(ctx context.Context, rules config.ValidationRules
 func (f *Factory) AssertExists(judge config.JudgeSelector) error {
 	_, _, err := f.lookupJudgeConfig(judge)
 	return err
+}
+
+// AssertCustomValidatorExists checks whether a named custom validator is configured.
+func (f *Factory) AssertCustomValidatorExists(name string) error {
+	if _, exists := f.customValidatorConfigs[name]; !exists {
+		return fmt.Errorf("%w: %s", ErrCustomValidatorNotFound, name)
+	}
+	return nil
+}
+
+func (f *Factory) getCustomValidator(ctx context.Context, name string) (Validator, error) {
+	key := f.createCustomValidatorCacheKey(name)
+
+	if validator, exists := f.cache.Load(key); exists {
+		return validator.(Validator), nil
+	}
+
+	validatorConfig, exists := f.customValidatorConfigs[name]
+	if !exists {
+		return nil, fmt.Errorf("%w: %s", ErrCustomValidatorNotFound, name)
+	}
+
+	validator := newCustomValidator(validatorConfig)
+	actual, loaded := f.cache.LoadOrStore(key, validator)
+	if loaded {
+		// Another goroutine won the cache race; close this redundant instance.
+		_ = validator.Close(ctx) // best-effort cleanup; caller gets the cached validator
+	}
+	return actual.(Validator), nil
 }
 
 func (f *Factory) getValueMatchValidator() Validator {

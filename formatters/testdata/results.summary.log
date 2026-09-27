@@ -1,4 +1,5 @@
 Provider      |Run                          |Passed |Failed |Error |Skipped |Pass Rate (%) |Accuracy (%) |Error Rate (%) |Total Duration |
+provider-name |run-custom-failure           |0      |1      |0     |0       |0.00          |0.00         |0.00           |27s            |
 provider-name |run-error                    |0      |0      |1     |0       |0.00          |0.00         |100.00         |0s             |
 provider-name |run-failure                  |0      |1      |0     |0       |0.00          |0.00         |0.00           |10s            |
 provider-name |run-failure-multiple-answers |0      |1      |0     |0       |0.00          |0.00         |0.00           |3m0.8s         |

@@ -28,6 +28,7 @@ import (
 	"github.com/oklog/ulid/v2"
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
+	"github.com/petmal/mindtrial/pkg/utils"
 )
 
 // DockerToolExecutor executes tools within Docker containers.
@@ -393,22 +394,16 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 				content = string(contentBytes)
 			}
 
-			// Create a unique temporary file for this mapping.
-			tempFilePath, err := writeTempFile(tempDir, argName, content)
+			// Create a unique temporary file for this mapping and bind mount it.
+			fileMount, err := newTempFileMount(tempDir, argName, content, containerPath, false)
 			if err != nil {
 				wrapErr := fmt.Errorf("%w: failed to write argument %q to temporary file: %v", ErrToolInternal, argName, err)
 				summary.Status, summary.ErrorMessage = toolCallStatusInfrastructureError, wrapErr.Error()
 				return nil, wrapErr
 			}
+			mounts = append(mounts, fileMount)
 
-			// Create a bind mount for this file.
-			mounts = append(mounts, mount.Mount{
-				Type:   mount.TypeBind,
-				Source: tempFilePath,
-				Target: containerPath,
-			})
-
-			logger.Message(ctx, logging.LevelDebug, "mounted temporary file %s to container path %s for argument %q", tempFilePath, containerPath, argName)
+			logger.Message(ctx, logging.LevelDebug, "mounted temporary file %s to container path %s for argument %q", fileMount.Source, containerPath, argName)
 		}
 	}
 
@@ -416,26 +411,30 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 	// Each file is mounted using its unique name exactly as provided.
 	if tool.auxiliaryDir != "" {
 		for fileName, fileContent := range data {
-			// Create temporary file for the data file.
-			tempFilePath, err := writeTempFile(tempDir, fileName, fileContent)
+			containerPath := path.Join(filepath.ToSlash(tool.auxiliaryDir), fileName)
+			fileMount, err := newTempFileMount(tempDir, fileName, fileContent, containerPath, false)
 			if err != nil {
 				wrapErr := fmt.Errorf("%w: failed to create temporary file for auxiliary data file %q: %v", ErrToolInternal, fileName, err)
 				summary.Status, summary.ErrorMessage = toolCallStatusInfrastructureError, wrapErr.Error()
 				return nil, wrapErr
 			}
+			mounts = append(mounts, fileMount)
 
-			// Create container path for the data file.
-			containerPath := path.Join(filepath.ToSlash(tool.auxiliaryDir), fileName)
-
-			// Create a bind mount for this data file.
-			mounts = append(mounts, mount.Mount{
-				Type:   mount.TypeBind,
-				Source: tempFilePath,
-				Target: containerPath,
-			})
-
-			logger.Message(ctx, logging.LevelDebug, "mounted auxiliary data file %q from %s to container path %s", fileName, tempFilePath, containerPath)
+			logger.Message(ctx, logging.LevelDebug, "mounted auxiliary data file %q from %s to container path %s", fileName, fileMount.Source, containerPath)
 		}
+	}
+
+	// Mount read-only input files at their exact container paths.
+	for _, containerPath := range utils.SortedKeys(tool.readOnlyFiles) {
+		fileMount, err := newTempFileMount(tempDir, "input", tool.readOnlyFiles[containerPath], containerPath, true)
+		if err != nil {
+			wrapErr := fmt.Errorf("%w: failed to write read-only input file %q: %v", ErrToolInternal, containerPath, err)
+			summary.Status, summary.ErrorMessage = toolCallStatusInfrastructureError, wrapErr.Error()
+			return nil, wrapErr
+		}
+		mounts = append(mounts, fileMount)
+
+		logger.Message(ctx, logging.LevelDebug, "mounted read-only input file from %s to container path %s", fileMount.Source, containerPath)
 	}
 
 	// Mount shared directory if configured.
@@ -663,6 +662,20 @@ func writeTempFile[T TextOrData](tempDir string, prefix string, content T) (stri
 	return tempFile.Name(), nil
 }
 
+// newTempFileMount writes content to a new temporary file in tempDir and bind mounts it at target.
+func newTempFileMount[T TextOrData](tempDir string, prefix string, content T, target string, readOnly bool) (mount.Mount, error) {
+	source, err := writeTempFile(tempDir, prefix, content)
+	if err != nil {
+		return mount.Mount{}, err
+	}
+	return mount.Mount{
+		Type:     mount.TypeBind,
+		Source:   source,
+		Target:   target,
+		ReadOnly: readOnly,
+	}, nil
+}
+
 // runContainer starts a container and waits for it to complete, returning the final status.
 func (d *DockerToolExecutor) runContainer(ctx context.Context, containerID string) (status container.WaitResponse, err error) {
 	// Start the container.
@@ -761,6 +774,7 @@ type DockerTool struct {
 	timeout        *time.Duration
 	maxMemoryMB    *int
 	cpuPercent     *int
+	readOnlyFiles  map[string][]byte
 }
 
 // NewDockerTool creates a new Docker tool.
@@ -788,4 +802,10 @@ func (t *DockerTool) getTimeoutValue() string {
 		return fmt.Sprintf("%v", *t.timeout)
 	}
 	return "<none>"
+}
+
+// SetReadOnlyFiles mounts each file content, keyed by absolute container path, read-only into
+// every container the tool runs.
+func (t *DockerTool) SetReadOnlyFiles(files map[string][]byte) {
+	t.readOnlyFiles = files
 }

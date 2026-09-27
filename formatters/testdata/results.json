@@ -767,6 +767,47 @@
           }
         },
         "DurationNS": 9000000000
+      },
+      {
+        "TraceID": "01JEDE7Z8X0000000000000013",
+        "Kind": "Failed",
+        "Task": "task-name",
+        "Provider": "provider-name",
+        "Run": "run-custom-failure",
+        "RunConfig": {
+          "Model": "gpt-4o-mini"
+        },
+        "Got": "NX-7Q2-4821",
+        "Want": [],
+        "Details": {
+          "Answer": {
+            "Title": "Winning Code",
+            "Explanation": [
+              "Unlocked the vault and read the winning code from the terminal."
+            ],
+            "ActualAnswer": [
+              "NX-7Q2-4821"
+            ],
+            "Usage": {
+              "InputTokens": 2048,
+              "OutputTokens": 96
+            },
+            "ToolUsage": {
+              "world-client": {
+                "CallCount": 4,
+                "TotalDurationNS": 3200000000
+              }
+            }
+          },
+          "Validation": {
+            "Title": "Not Won",
+            "Explanation": [
+              "The world is not in a winning state: the vault is still locked."
+            ],
+            "Method": "custom"
+          }
+        },
+        "DurationNS": 27000000000
       }
     ]
   }

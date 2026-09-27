@@ -7,6 +7,7 @@
 package runners
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"sync"
@@ -204,6 +205,223 @@ func TestDefaultRunnerAssertCanRunTaskServices(t *testing.T) {
 	}
 }
 
+// newCustomValidatedTask resolves a dynamic task, without expected-result, validated by the named custom validator.
+func newCustomValidatedTask(t *testing.T, name string, validatorName string, selector *config.ToolSelector) config.Task {
+	t.Helper()
+	task := config.Task{
+		Name:                 name,
+		Prompt:               "win the world",
+		ResponseResultFormat: config.NewResponseFormat("winning code"),
+		ValidationRules:      &config.ValidationRules{CustomValidator: testutils.Ptr(validatorName)},
+		ToolSelector:         selector,
+	}
+	require.NoError(t, task.ResolveValidationRules(config.ValidationRules{}))
+	task.ResolveToolSelector(config.ToolSelector{})
+	return task
+}
+
+func worldStateValidator() config.ValidatorConfig {
+	return config.ValidatorConfig{
+		Name:          "world-state",
+		Image:         "validator:latest",
+		Command:       []string{"validate", "--candidate-file", "/input/candidate"},
+		TemplateFiles: []config.ValidatorTemplateFile{{Path: "/input/candidate", Template: "{{ .Candidate.Response }}"}},
+		Dependencies: []config.ServiceDependency{{
+			Service: "world",
+			Env:     map[string]string{"WORLD_URL": "{{ .Endpoint }}"},
+		}},
+	}
+}
+
+func TestDefaultRunnerAssertCanRunCustomValidators(t *testing.T) {
+	withValidator := func(update func(*config.ValidatorConfig)) config.ValidatorConfig {
+		validator := worldStateValidator()
+		update(&validator)
+		return validator
+	}
+
+	tests := []struct {
+		name                  string
+		validator             config.ValidatorConfig
+		selected              string
+		stub                  *stubToolValidator
+		wantErr               error
+		wantErrText           string
+		wantImages            []string
+		wantTaskServiceChecks int
+	}{
+		{
+			name:                  "validator backed by a task service",
+			validator:             worldStateValidator(),
+			stub:                  &stubToolValidator{},
+			wantImages:            []string{"validator:latest", "world:latest"},
+			wantTaskServiceChecks: 1,
+		},
+		{
+			name:       "validator without services",
+			validator:  withValidator(func(v *config.ValidatorConfig) { v.Dependencies = nil }),
+			stub:       &stubToolValidator{},
+			wantImages: []string{"validator:latest"},
+		},
+		{
+			name:        "unknown validator",
+			validator:   worldStateValidator(),
+			selected:    "missing",
+			stub:        &stubToolValidator{},
+			wantErr:     validators.ErrCustomValidatorNotFound,
+			wantErrText: "task 'first' requires custom validator 'missing'",
+		},
+		{
+			name:        "missing validator image",
+			validator:   worldStateValidator(),
+			stub:        &stubToolValidator{imageErr: errors.ErrUnsupported},
+			wantErr:     errors.ErrUnsupported,
+			wantErrText: "custom validator 'world-state' cannot be used",
+		},
+		{
+			name:        "malformed validator template",
+			validator:   withValidator(func(v *config.ValidatorConfig) { v.TemplateFiles[0].Template = "{{ .Candidate.Response" }),
+			stub:        &stubToolValidator{},
+			wantErr:     validators.ErrCustomValidatorTemplate,
+			wantErrText: `custom validator 'world-state': invalid custom validator template: template file "/input/candidate"`,
+		},
+		{
+			name:        "validator dependency on a missing service",
+			validator:   withValidator(func(v *config.ValidatorConfig) { v.Dependencies[0].Service = "missing" }),
+			stub:        &stubToolValidator{},
+			wantErr:     ErrServiceNotFound,
+			wantErrText: "task 'first' custom validator 'world-state' requires service 'missing'",
+		},
+		{
+			name:        "malformed validator dependency template",
+			validator:   withValidator(func(v *config.ValidatorConfig) { v.Dependencies[0].Env["WORLD_URL"] = "{{ .Endpoint" }),
+			stub:        &stubToolValidator{},
+			wantErr:     ErrInvalidTaskRuntimeConfig,
+			wantErrText: "task 'first' custom validator 'world-state' dependency on service 'world' has an invalid environment template for WORLD_URL",
+		},
+		{
+			name:                  "Docker without task service support",
+			validator:             worldStateValidator(),
+			stub:                  &stubToolValidator{taskServiceSupportErr: errors.ErrUnsupported},
+			wantErr:               errors.ErrUnsupported,
+			wantErrText:           "task services cannot be used",
+			wantTaskServiceChecks: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			customValidators := []config.ValidatorConfig{tt.validator}
+			runner := &defaultRunner{
+				validatorFactory: validators.NewFactoryWithCustomValidators(nil, customValidators),
+				tools:            taskServicesTestTools(),
+				taskRuntime:      taskRuntimeConfig{services: taskServicesTestServices(), customValidators: customValidators},
+				logger:           zerolog.Nop(),
+				toolValidator:    tt.stub,
+			}
+			selected := cmp.Or(tt.selected, tt.validator.Name)
+			tasks := []config.Task{
+				newCustomValidatedTask(t, "first", selected, nil),
+				newCustomValidatedTask(t, "second", selected, nil),
+			}
+
+			_, err := runner.Run(t.Context(), tasks)
+
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+				assert.Contains(t, err.Error(), tt.wantErrText)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.wantImages, tt.stub.validatedImages, "every image is checked once")
+			}
+			if tt.wantTaskServiceChecks > 0 || tt.wantErr == nil {
+				assert.Equal(t, tt.wantTaskServiceChecks, tt.stub.taskServiceSupportCalls)
+			}
+		})
+	}
+}
+
+func TestRunnerCustomValidation(t *testing.T) {
+	tests := []struct {
+		name      string
+		result    testutils.DockerFakeResult
+		wantKind  ResultKind
+		wantTitle string
+	}{
+		{
+			name:      "accepted answer",
+			result:    testutils.DockerFakeResult{Stdout: `{"correct":true,"title":"Won","explanation":"The world is in a winning state."}`},
+			wantKind:  Success,
+			wantTitle: "Won",
+		},
+		{
+			name:      "rejected answer",
+			result:    testutils.DockerFakeResult{Stdout: `{"correct":false,"title":"Not won","explanation":"The world is not in a winning state."}`},
+			wantKind:  Failure,
+			wantTitle: "Not won",
+		},
+		{
+			name:      "protocol violation",
+			result:    testutils.DockerFakeResult{Stdout: "won"},
+			wantKind:  Error,
+			wantTitle: "Validation Error",
+		},
+		{
+			name:      "Docker infrastructure error",
+			result:    testutils.DockerFakeResult{CreateError: "No such image: validator:latest"},
+			wantKind:  Error,
+			wantTitle: "Validation Error",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			docker := testutils.NewDockerFake(t, tt.result)
+			validator := config.ValidatorConfig{
+				Name:    "world-state",
+				Image:   "validator:latest",
+				Command: []string{"validate", "{{ .Candidate.Response }}", "{{ .Provider.Name }}/{{ .Run.Name }}"},
+			}
+			runner, factory := newTaskServicesRunner(t, []config.ProviderConfig{{
+				Name: "mock provider 1",
+				Runs: []config.RunConfig{{Name: "custom", Model: "test-model"}},
+			}}, "fixed-seed", validator)
+			task := newCustomValidatedTask(t, "NX-1", "world-state", &config.ToolSelector{Tools: []config.ToolSelection{{Name: "world-client"}}})
+
+			results, err := runner.Run(t.Context(), []config.Task{task})
+			require.NoError(t, err)
+
+			providerResults := results.GetResults()["mock provider 1"]
+			require.Len(t, providerResults, 1)
+			result := providerResults[0]
+			assert.Equal(t, tt.wantKind, result.Kind)
+			assert.Equal(t, "NX-1", result.Got)
+			assert.Empty(t, result.Want.Values())
+			assert.Equal(t, ValidationMethodCustom, result.Details.Validation.Method)
+			assert.Empty(t, result.Details.Validation.ToolCalls, "validator runs are not model tool calls")
+			assert.Empty(t, result.Details.Answer.ToolCalls, "validator runs are not model tool calls")
+			if tt.wantKind == Error {
+				assert.Equal(t, tt.wantTitle, result.Details.Error.Title)
+				assert.True(t, result.Details.Error.FromValidation)
+			} else {
+				assert.Equal(t, tt.wantTitle, result.Details.Validation.Title)
+			}
+
+			_, environments := factory.snapshot()
+			require.Len(t, environments, 1)
+			uses, usedAfterClose := environments[0].usage()
+			assert.Equal(t, 1, uses, "the validator runs in the task runtime of the successful attempt")
+			assert.False(t, usedAfterClose, "the task runtime stays open until validation completes")
+			assert.True(t, environments[0].isClosed(), "the task runtime is closed after validation")
+			if tt.result.CreateError == "" {
+				containers := docker.Containers()
+				require.Len(t, containers, 1)
+				assert.Equal(t, []string{"validate", "NX-1", "mock provider 1/custom"}, containers[0].Cmd)
+			}
+		})
+	}
+}
+
 // recordingTaskRuntimeFactory replaces Docker task runtimes with recording environments.
 type recordingTaskRuntimeFactory struct {
 	mu           sync.Mutex
@@ -227,11 +445,17 @@ func (f *recordingTaskRuntimeFactory) snapshot() ([]providertools.TaskRuntimeCon
 }
 
 type recordingTaskRuntime struct {
-	mu     sync.Mutex
-	closed bool
+	mu             sync.Mutex
+	closed         bool
+	uses           int
+	usedAfterClose bool
 }
 
 func (r *recordingTaskRuntime) NewToolExecutor(ctx context.Context) (*providertools.DockerToolExecutor, error) {
+	r.mu.Lock()
+	r.uses++
+	r.usedAfterClose = r.usedAfterClose || r.closed
+	r.mu.Unlock()
 	return providertools.NewDockerToolExecutor(ctx)
 }
 
@@ -248,11 +472,18 @@ func (r *recordingTaskRuntime) isClosed() bool {
 	return r.closed
 }
 
-func newTaskServicesRunner(t *testing.T, providerConfigs []config.ProviderConfig, evaluationSeed string) (Runner, *recordingTaskRuntimeFactory) {
+func (r *recordingTaskRuntime) usage() (uses int, usedAfterClose bool) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.uses, r.usedAfterClose
+}
+
+func newTaskServicesRunner(t *testing.T, providerConfigs []config.ProviderConfig, evaluationSeed string, customValidators ...config.ValidatorConfig) (Runner, *recordingTaskRuntimeFactory) {
 	t.Helper()
 	runner, err := NewDefaultRunnerWithRuntime(t.Context(), providerConfigs, nil, taskServicesTestTools(), TaskRuntimeSettings{
-		Services:       taskServicesTestServices(),
-		EvaluationSeed: evaluationSeed,
+		Services:         taskServicesTestServices(),
+		CustomValidators: customValidators,
+		EvaluationSeed:   evaluationSeed,
 	}, zerolog.New(zerolog.NewTestWriter(t)))
 	require.NoError(t, err)
 	t.Cleanup(func() { runner.Close(context.WithoutCancel(t.Context())) })

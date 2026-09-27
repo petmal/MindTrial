@@ -5,7 +5,7 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/petmal/mindtrial)](https://go.dev/)
 [![Go Reference](https://pkg.go.dev/badge/github.com/petmal/mindtrial.svg)](https://pkg.go.dev/github.com/petmal/mindtrial)
 
-**MindTrial** lets you test a single AI language model (LLM) or evaluate multiple models side-by-side. It supports providers like OpenAI, Google, Anthropic, DeepSeek, Mistral AI, xAI, Alibaba, Moonshot AI, and OpenRouter. You can create your own custom tasks with text prompts, plain text or structured JSON response formats, optional file attachments, and tool use for enhanced capabilities; validate responses through exact value matching or an LLM judge for semantic evaluation; and get results in easy-to-read HTML, CSV, and JSON formats.
+**MindTrial** lets you test a single AI language model (LLM) or evaluate multiple models side-by-side. It supports providers like OpenAI, Google, Anthropic, DeepSeek, Mistral AI, xAI, Alibaba, Moonshot AI, and OpenRouter. You can create your own custom tasks with text prompts, plain text or structured JSON response formats, optional file attachments, and tool use for enhanced capabilities; validate responses through exact value matching, an LLM judge for semantic evaluation, or trusted Docker-backed custom validators; and get results in easy-to-read HTML, CSV, and JSON formats.
 
 ## Quick Start Guide
 
@@ -24,7 +24,7 @@
 ### Prerequisites
 
 - [Go 1.26](https://golang.org/dl/)
-- [Docker](https://www.docker.com/) (for tool execution)
+- [Docker](https://www.docker.com/) (for tool execution; Docker Engine 25.0+ for task services)
 - API keys from your chosen AI providers
 
 ## Key Features
@@ -34,6 +34,7 @@
 - Attach files or images to prompts for visual tasks
 - Enable tool use for tasks with secure sandboxed execution
 - Use LLM judges for semantic validation of complex and creative tasks
+- Evaluate stateful tool use with task-scoped Docker services and trusted custom validators
 - Get results in HTML, CSV, and JSON formats
 - Merge and compare results from multiple runs
 - Easy to extend with new AI models
@@ -674,7 +675,7 @@ config:
 
 ### tasks.yaml
 
-This file defines the tasks to be executed on all enabled run configurations. Each task must define the following four properties:
+This file defines the tasks to be executed on all enabled run configurations. Each task defines the following properties; `name`, `prompt`, and `response-result-format` are always required, and `expected-result` is required unless the task uses a [custom validator](#custom-validators):
 
 - **name**: A unique display-friendly name to be shown in the results.
 - **prompt**: The prompt (i.e. task) that will be sent to the AI model.
@@ -685,6 +686,7 @@ This file defines the tasks to be executed on all enabled run configurations. Ea
   - **For plain text format**: A string value or list of string values that follow the format instruction precisely.
   - **For structured schema format**: An object value or list of object values that conform to the JSON schema definition.
 Only one expected result needs to match for the response to be considered correct.
+With a custom validator, `expected-result` is optional trusted reference data that is passed to the validator unchanged and does not need to match `response-result-format`.
 
 Optionally, a task can include a list of `files` to be sent along with the prompt:
 
@@ -858,11 +860,12 @@ You can set validation rules globally for all tasks in the `task-config` section
   - **case-sensitive**: If `true`, comparison is case-sensitive. If `false` (default), comparison ignores case.
   - **ignore-whitespace**: If `true`, all whitespace (spaces, tabs, newlines) is removed before comparison. If `false` (default), only leading/trailing whitespace is trimmed, and internal whitespace is preserved.
   - **trim-lines**: If `true`, trims leading and trailing whitespace from each line before comparison while preserving internal spaces within lines. CRLF line endings are normalized to LF. This option is ignored when `ignore-whitespace` is enabled. If `false` (default), lines are not individually trimmed.
-  - **schema-validation**: If `true`, validates the raw candidate answer against the single `expected-result` JSON Schema. See [Schema-Based Validation](#schema-based-validation) for details. Mutually exclusive with `judge`.
-  - **judge**: Optional LLM-based semantic validation. See [Judge-Based Validation](#judge-based-validation) for details. Mutually exclusive with `schema-validation`.
+  - **schema-validation**: If `true`, validates the raw candidate answer against the single `expected-result` JSON Schema. See [Schema-Based Validation](#schema-based-validation) for details. Mutually exclusive with `judge` and `custom-validator`.
+  - **judge**: Optional LLM-based semantic validation. See [Judge-Based Validation](#judge-based-validation) for details. Mutually exclusive with `schema-validation` and `custom-validator`.
     - **enabled**: If `true`, uses an LLM judge to evaluate semantic equivalence. If `false` (default), uses exact value matching.
     - **name**: The name of the judge configuration defined in the `config.yaml` file.
     - **variant**: The specific run variant from the judge's provider to use.
+  - **custom-validator**: Name of a trusted Docker-backed validator defined in the `config.yaml` file that decides whether the answer is correct. See [Custom Validators](#custom-validators) for details. Mutually exclusive with `schema-validation` and `judge`. Set it to `""` in a task to opt out of an inherited custom validator.
 
 #### Judge-Based Validation
 
@@ -1291,9 +1294,10 @@ Tools must be defined in `config.yaml` under the `tools` section. Each tool defi
 - **shared-dir**: Directory path inside the container that persists across all tool calls within a single task. If specified, files created in this directory will be available for any subsequent tool calls but will be removed when the task completes.
 - **command**: Command to run inside the container. The standard output of the command execution is captured and passed back to the LLM as is.
 - **env**: Environment variables to set in the container.
+- **dependencies**: [Task services](#task-services) the tool can access, each with a `service` name and optional `env` [templates](#templates).
 
 > [!IMPORTANT]
-> Tool use requires Docker to be installed and running on the system. Tools are executed in isolated containers with no network access by default.
+> Tool use requires Docker to be installed and running on the system. Tools are executed in isolated containers with no network access, unless they depend on [task services](#task-services).
 
 Example tool definition in `config.yaml`:
 
@@ -1347,6 +1351,7 @@ You can configure tool selection globally for all tasks in the `task-config` sec
     - **timeout**: Maximum execution time per tool call (e.g., `60s`, optional).
     - **max-memory-mb**: Maximum memory usage in MB per tool call (optional).
     - **cpu-percent**: Maximum CPU usage as percentage per tool call (optional).
+  - **service-inputs**: Inputs for the [task services](#task-services) that the task uses, keyed by service name and then by input name (optional). Inputs set in `task-config` apply to every task, and a task can override single inputs. Inputs only take effect for tasks that use the service.
 
 Example tool configuration in `tasks.yaml`:
 
@@ -1401,6 +1406,279 @@ task-config:
       # Inherits the global limit of 100 turns.
 ```
 
+#### Task Services
+
+A task service is a Docker container that keeps state while the model works on a task, such as a simulated environment, a database, or a web shop. Services are used together with:
+
+- **tools**, which let the model read and change the service state, and
+- **[custom validators](#custom-validators)**, which can check the final service state after the model answers.
+
+Services and custom validators are independent of each other. Tools that use services work with any validation method (exact match, schema, judge, or custom validator), and a custom validator does not need any services.
+
+> [!IMPORTANT]
+> Task services require Docker Engine 25.0 or newer (Engine API 1.44+). Before an evaluation that uses services starts, MindTrial checks the Docker daemon and stops with an error if it is too old.
+
+Services are defined in `config.yaml` under the `services` section:
+
+- **name**: A unique name for the service, used in `dependencies` and `service-inputs`.
+- **image**: Docker image used to run the service.
+- **command**: Command overriding the image's default command (optional).
+- **env**: Environment variables set for every instance of the service (optional).
+- **endpoint**: Where tools and validators connect to the service.
+  - **port**: Container port on which the service accepts connections.
+  - **scheme**: URL scheme, `http` (default) or `https`.
+- **input-env**: Inputs that tasks can set, mapping each input name to the environment variable that receives its value in the service container (optional). An input must not set a different value for a variable that `env` already defines.
+- **healthcheck**: Command that checks whether the service is ready, run inside the service container without a shell (optional). If set, the service is ready once the command succeeds. If not set, the service is ready as soon as its container is running.
+- **startup-timeout**: Maximum time a service with a `healthcheck` may take to become ready (optional, default `15s`). The check is repeated until it succeeds or this time runs out, and a single check may also take up to this long.
+- **max-memory-mb**: Maximum memory available to the service container in MB (optional).
+- **cpu-percent**: Maximum CPU usage as a percentage of total host CPU (optional).
+
+A tool or custom validator gets access to a service by listing it in `dependencies`:
+
+- **dependencies**: List of services the tool or validator can access.
+  - **service**: Name of the service.
+  - **env**: Environment variables set in the tool or validator container (optional). Each value is a [template](#templates) filled in from the running service, for example `CART_URL: "{{ .Endpoint }}"`.
+
+A task sets service inputs with `service-inputs` in its [tool selector](#tool-selection):
+
+```yaml
+tool-selector:
+  service-inputs:
+    cart-service:        # service name
+      customer_id: "42"  # input name declared in the service's input-env
+```
+
+- Input values must be strings, numbers, or booleans.
+- String values are [templates](#templates), so a task can derive an input from the evaluation seed, e.g. `"{{ hash .Evaluation.Seed .Task.Name }}"`. MindTrial generates a new evaluation seed for each evaluation, writes it to the log, and records it in every result (`Evaluation.Seed` in the JSON output); pass the same seed with `--evaluation-seed` to get the same inputs again.
+- `service-inputs` set in `task-config` apply to every task, and a task can override single inputs. Inputs only take effect for tasks that use the service.
+- When an input is not set, the service uses its own default.
+
+How services run:
+
+- **Which services start:** The services that the task's enabled tools and its custom validator depend on. Tasks that need no services start none.
+- **When services start:** Before the model receives the prompt. Every service must be ready within its `startup-timeout` (15 seconds by default); otherwise the attempt fails and its services are removed.
+- **One set of services per attempt:** An attempt is one try of one task by one run configuration. Each attempt gets its own service instances, so runs never share state. A retry is a new attempt with fresh services started from the same inputs. If a service does not derive its initial state from its inputs (for example, from a seed input), a retry may start from a different state.
+- **Validation:** After a successful attempt, a custom validator that depends on a service connects to the same instance that the model's tools used. The services are removed after validation.
+- **Network isolation:** Each service has its own internal Docker network without internet access. A tool or validator joins only the networks of the services in its `dependencies`, and one without dependencies has no network access. Services cannot reach each other.
+- **Service failure:** A service that stops during an attempt is not restarted, because that would silently reset its state. The next tool call or validation that needs it fails, and the task result is an error.
+
+#### Custom Validators
+
+A custom validator is a Docker container that you provide to decide whether the model's answer is correct. Use it when an answer can only be checked by running code, for example to run generated code against hidden tests or to check the final state of a simulated environment.
+
+A custom validator does not need [task services](#task-services). Without `dependencies`, it runs in an isolated container with no network access. With `dependencies`, it can inspect the same service instances that the model's tools used.
+
+**How it works:** After a successful model attempt, MindTrial runs the validator container once. It passes the task and the model's answer to the validator through templated command arguments, environment variables, and files. The validator prints its verdict as JSON on standard output.
+
+> [!IMPORTANT]
+> Custom validators are trusted: they are part of your evaluation setup, not tools for the model, and they decide task outcomes. Only use validator images you control.
+
+Validators are defined in `config.yaml` under the `validators` section:
+
+- **name**: A unique name for the validator, used by `custom-validator` in task validation rules.
+- **image**: Docker image used to run the validator.
+- **command**: Command overriding the image's default command (optional). Each argument is a [template](#templates) and is passed directly to Docker, without a shell.
+- **env**: Environment variables set in the validator container (optional). Each value is a [template](#templates).
+- **template-files**: Files created for each validation and mounted read-only into the validator container (optional).
+  - **path**: Absolute path of the file inside the container. Each path must be unique.
+  - **template**: [Template](#templates) that produces the file content.
+- **dependencies**: [Task services](#task-services) the validator can access (optional).
+- **timeout**: Maximum duration of one validator run (e.g., `60s`). If not set, there is no timeout.
+- **max-memory-mb**: Maximum memory available to the validator container in MB (optional).
+- **cpu-percent**: Maximum CPU usage as a percentage of total host CPU (optional).
+
+> [!TIP]
+> Pass the model's answer through `template-files`. Use `command` and `env` only for short values you control, such as names, seeds, and flags. The model's answer can be of any size and may contain characters that command arguments and environment variables cannot carry; if the validator cannot start, the task result is an error rather than a failed answer.
+
+A task selects a validator with the `custom-validator` [validation rule](#validation-rules):
+
+- `response-result-format` is still required: it tells the model how to write its final answer.
+- `expected-result` is optional. When set, it is passed to the validator unchanged as reference data and does not need to match `response-result-format`.
+- `case-sensitive`, `ignore-whitespace`, and `trim-lines` are passed to the validator, which decides whether to use them. MindTrial does not change the answer.
+
+Example of a validator that runs hidden tests without any services:
+
+```yaml
+# config.yaml
+config:
+  validators:
+    - name: hidden-tests
+      image: example/code-checker:latest
+      command: [check, --solution, /input/solution.py]
+      template-files:
+        - path: /input/solution.py
+          template: "{{ .Candidate.Response }}"
+      timeout: 60s
+```
+
+```yaml
+# tasks.yaml
+task-config:
+  tasks:
+    - name: fizzbuzz
+      prompt: "Write a Python function fizzbuzz(n) that returns the FizzBuzz sequence from 1 to n."
+      response-result-format: "complete Python source code"
+      validation-rules:
+        custom-validator: hidden-tests
+```
+
+The validator must exit with code 0 and print exactly one JSON object to standard output, for example:
+
+```json
+{"correct": false, "title": "2 of 5 tests failed", "explanation": "fizzbuzz(15) returned '15' instead of 'FizzBuzz'."}
+```
+
+The object must match this schema:
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "correct": {"type": "boolean"},
+    "title": {"type": "string", "pattern": "\\S"},
+    "explanation": {"type": "string", "pattern": "\\S"}
+  },
+  "required": ["correct", "title", "explanation"],
+  "additionalProperties": false
+}
+```
+
+- `correct: true` marks the answer as correct, and `correct: false` marks it as failed.
+- `title` and `explanation` must contain non-whitespace text.
+- Anything else makes the task result an error, not a failed answer: a non-zero exit code, a timeout, a Docker error, missing or unknown fields, or any output after the JSON object.
+
+Results checked by a custom validator record `custom` as their validation method. Failed answers are shown exactly as the model returned them, without a comparison against `expected-result`. Validator runs are not counted as model tool calls.
+
+#### Templates
+
+Service inputs, dependency environment variables, and custom validator settings use Go template syntax. MindTrial checks template syntax before any task runs, and using a field that does not exist is an error.
+
+Each kind of template has its own fields:
+
+| Template | Available fields |
+| --- | --- |
+| `service-inputs` string values | `.Evaluation.Seed`, `.Task.Name`, `.Provider.Name`, `.Run.Name` |
+| `dependencies[].env` values | `.Name`, `.Host`, `.Port`, `.Endpoint` |
+| Validator `command`, `env`, and `template-files` | `.OriginalTask.*`, `.Candidate.Response`, `.Rules.*`, `.Evaluation.Seed`, `.Task.Name`, `.Provider.Name`, `.Run.Name` |
+
+Fields:
+
+- **{{ .Evaluation.Seed }}**: Evaluation seed shared by all providers, runs, tasks, and attempts of one evaluation.
+- **{{ .Task.Name }}**, **{{ .Provider.Name }}**, **{{ .Run.Name }}**: Names of the task, the provider, and the run configuration.
+- **{{ .Name }}**: Name of the service.
+- **{{ .Host }}**: Network host name of the service. MindTrial generates host names, so use `.Host` or `.Endpoint` instead of the service name.
+- **{{ .Port }}**: Endpoint port of the service.
+- **{{ .Endpoint }}**: Endpoint URL of the service, e.g. `http://<host>:8080`.
+- **{{ .OriginalTask.Prompt }}**: The task prompt.
+- **{{ .OriginalTask.ResponseResultFormat }}**: The task's `response-result-format`.
+- **{{ .OriginalTask.ExpectedResults }}**: List of the task's expected results. It is an empty list (not `null`) when the task has no `expected-result`.
+- **{{ .Candidate.Response }}**: The model's final answer. For structured response formats, this is a structured value.
+- **{{ .Rules.CaseSensitive }}**, **{{ .Rules.IgnoreWhitespace }}**, **{{ .Rules.TrimLines }}**: The task's validation flags.
+
+The validator fields use the same names as [judge prompt](#judge-prompt-customization) templates.
+
+Helper functions:
+
+- **hash**: Returns a stable unsigned 64-bit number derived from all of its arguments, e.g. `{{ hash .Evaluation.Seed .Task.Name }}`.
+- **json**: Encodes its argument as JSON, e.g. `{{ json .OriginalTask.ExpectedResults }}`.
+
+> [!IMPORTANT]
+> Go prints structured values in its own format, which is not JSON. Use `json` to pass structured data, e.g. `{{ json .Candidate.Response }}`.
+
+#### Example: Stateful Shopping Cart
+
+In this example, the model uses the `cart` tool to change a shopping cart held by the `cart-service` service. After the model answers, the `cart-state` validator checks the same cart:
+
+```yaml
+# config.yaml
+config:
+  services:
+    - name: cart-service
+      image: example/cart-service:latest
+      command: [cart-server]
+      env:
+        CART_CURRENCY: CAD
+      endpoint:
+        port: 8080
+      input-env:
+        customer_id: CART_CUSTOMER_ID
+      healthcheck: [cart-server, --check]
+
+  tools:
+    - name: cart
+      image: example/cart-client:latest
+      command: [cart-client, --request, /input/request.json]
+      description: >
+        Modify the current customer's shopping cart by adding or removing items.
+      parameters:
+        type: object
+        properties:
+          request:
+            type: object
+            properties:
+              action:
+                type: string
+                enum: [ADD, REMOVE]
+                description: Operation to perform on the cart.
+              item:
+                type: string
+                enum: [apple, orange, bread]
+                description: Item to add or remove.
+              quantity:
+                type: integer
+                minimum: 1
+                description: Number of items to add or remove.
+            required: [action, item, quantity]
+            additionalProperties: false
+        required: [request]
+        additionalProperties: false
+      parameter-files:
+        request: /input/request.json
+      dependencies:
+        - service: cart-service
+          env:
+            CART_URL: "{{ .Endpoint }}"
+
+  validators:
+    - name: cart-state
+      image: example/cart-validator:latest
+      command: [cart-validator, --expected, /input/expected.json]
+      template-files:
+        - path: /input/expected.json
+          template: "{{ json .OriginalTask.ExpectedResults }}"
+      timeout: 60s
+      dependencies:
+        - service: cart-service
+          env:
+            CART_URL: "{{ .Endpoint }}"
+```
+
+`CART_CURRENCY` is a fixed service setting. `customer_id` is an input that each task can set; the service receives it as `CART_CUSTOMER_ID`. The task below derives the customer ID from the evaluation seed, so all providers and runs in one evaluation start with the same customer. Passing the same `--evaluation-seed` again gives the same customer:
+
+```yaml
+# tasks.yaml
+task-config:
+  tasks:
+    - name: update-shopping-cart
+      prompt: >
+        Use the cart tool to add two apples and one loaf of bread.
+      response-result-format: "short summary of the final cart contents"
+      expected-result:
+        items:
+          apple: 2
+          bread: 1
+      tool-selector:
+        tools:
+          - name: cart
+        service-inputs:
+          cart-service:
+            customer_id: "{{ hash .Evaluation.Seed .Task.Name }}"
+      validation-rules:
+        custom-validator: cart-state
+```
+
+The `expected-result` object is reference data for the validator; it does not have to match the plain-text `response-result-format`. The validator reads it from `/input/expected.json` as `[{"items":{"apple":2,"bread":1}}]` and compares it with the cart state it gets from `CART_URL`.
+
 ## Command Reference
 
 ```bash
@@ -1426,6 +1704,7 @@ Options:
   --verbose                 Enable detailed logging
   --debug                   Enable low-level debug logging (implies --verbose)
   --interactive             Enable interactive interface for run configuration, and real-time progress monitoring (default: false)
+  --evaluation-seed string  Seed for reproducible evaluation behavior (e.g., derived task service inputs); generated for each evaluation when omitted
   --group-by string         Comma-separated stats grouping dimensions: provider, run, model, suite, category, difficulty, tag (default: provider,run)
   --stats-format string     Stats output format: text, csv, json, or jsonl (default: text)
   --provider string         Filter stats to this provider; can be specified multiple times

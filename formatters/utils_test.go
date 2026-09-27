@@ -424,6 +424,54 @@ func TestFormatAnswer(t *testing.T) {
 			useHTML: true,
 			want:    []string{"<pre>not-a-number</pre>"},
 		},
+		{
+			name: "dynamic custom validation failure shows raw answer",
+			result: runners.RunResult{
+				Kind: runners.Failure,
+				Want: utils.NewValueSet(),
+				Got:  "NX-FAKE-STAMP",
+				Details: runners.Details{
+					Validation: runners.ValidationDetails{Method: runners.ValidationMethodCustom},
+				},
+			},
+			useHTML: false,
+			want:    []string{"NX-FAKE-STAMP"},
+		},
+		{
+			name: "static custom validation failure shows raw answer instead of a diff",
+			result: runners.RunResult{
+				Kind: runners.Failure,
+				Want: utils.NewValueSet(map[string]interface{}{"items": map[string]interface{}{"apple": 2}}),
+				Got:  "done",
+				Details: runners.Details{
+					Validation: runners.ValidationDetails{Method: runners.ValidationMethodCustom},
+				},
+			},
+			useHTML: true,
+			want:    []string{"<pre>done</pre>"},
+		},
+		{
+			name: "success result with HTML escapes the answer",
+			result: runners.RunResult{
+				Kind: runners.Success,
+				Got:  `<img src=x onerror="alert(1)">`,
+			},
+			useHTML: true,
+			want:    []string{"<pre>&lt;img src=x onerror=&#34;alert(1)&#34;&gt;</pre>"},
+		},
+		{
+			name: "custom validation failure with HTML escapes the answer",
+			result: runners.RunResult{
+				Kind: runners.Failure,
+				Want: utils.NewValueSet(),
+				Got:  "<script>alert('x')</script>",
+				Details: runners.Details{
+					Validation: runners.ValidationDetails{Method: runners.ValidationMethodCustom},
+				},
+			},
+			useHTML: true,
+			want:    []string{"<pre>&lt;script&gt;alert(&#39;x&#39;)&lt;/script&gt;</pre>"},
+		},
 	}
 
 	for _, tt := range tests {

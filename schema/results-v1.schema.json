@@ -792,10 +792,11 @@
                       "enum": [
                         "exact",
                         "schema",
-                        "semantic"
+                        "semantic",
+                        "custom"
                       ],
                       "title": "Validation Method",
-                      "description": "The validation method used: exact (canonical value matching), schema (raw candidate answer validated against the single expected-result JSON Schema without canonicalization; $schema optional, defaults to Draft 2020-12; normalization flags ignored), or semantic (LLM judge)."
+                      "description": "The validation method used: exact (canonical value matching), schema (raw candidate answer validated against the single expected-result JSON Schema without canonicalization; $schema optional, defaults to Draft 2020-12; normalization flags ignored), semantic (LLM judge), or custom (trusted user-defined validator)."
                     }
                   },
                   "additionalProperties": false,

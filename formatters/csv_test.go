@@ -736,6 +736,44 @@ var mockResults = runners.Results{
 				Error: runners.ErrorDetails{},
 			},
 		},
+		{
+			TraceID:  "01JEDE7Z8X0000000000000013",
+			Provider: "provider-name",
+			Task:     "task-name",
+			Run:      "run-custom-failure",
+			Kind:     runners.Failure,
+			Duration: 27 * time.Second,
+			RunConfig: runners.RunConfigSnapshot{
+				Name:  "run-custom-failure",
+				Model: "gpt-4o-mini",
+			},
+			Want: utils.NewValueSet(),
+			Got:  "NX-7Q2-4821",
+			Details: runners.Details{
+				Answer: runners.AnswerDetails{
+					Title:          "Winning Code",
+					Explanation:    []string{"Unlocked the vault and read the winning code from the terminal."},
+					ActualAnswer:   []string{"NX-7Q2-4821"},
+					ExpectedAnswer: [][]string{},
+					Usage: runners.TokenUsage{
+						InputTokens:  testutils.Ptr(int64(2048)),
+						OutputTokens: testutils.Ptr(int64(96)),
+					},
+					ToolUsage: map[string]runners.ToolUsage{
+						"world-client": {
+							CallCount:     testutils.Ptr(int64(4)),
+							TotalDuration: testutils.Ptr(3*time.Second + 200*time.Millisecond),
+						},
+					},
+				},
+				Validation: runners.ValidationDetails{
+					Title:       "Not Won",
+					Explanation: []string{"The world is not in a winning state: the vault is still locked."},
+					Method:      runners.ValidationMethodCustom,
+				},
+				Error: runners.ErrorDetails{},
+			},
+		},
 	},
 }
 

@@ -392,9 +392,12 @@ type ValidatorConfig struct {
 	Name string `yaml:"name" validate:"required"`
 	// Image is the Docker image used to run the validator.
 	Image string `yaml:"image" validate:"required"`
-	// Command overrides the image command used to run validation.
+	// Command overrides the image command used to run validation. Each argument may use
+	// custom-validator template variables and is passed directly to Docker without shell expansion.
+	// Prefer TemplateFiles for values that may be large or contain arbitrary bytes, such as candidate responses.
 	Command []string `yaml:"command,omitempty"`
-	// Env specifies static environment variables supplied to the validator container.
+	// Env specifies environment variables supplied to the validator container. Values may use
+	// custom-validator template variables.
 	Env map[string]string `yaml:"env,omitempty"`
 	// Dependencies lists task-scoped services the validator may access.
 	Dependencies []ServiceDependency `yaml:"dependencies,omitempty" validate:"omitempty,unique=Service,dive"`
@@ -404,7 +407,8 @@ type ValidatorConfig struct {
 	MaxMemoryMB *int `yaml:"max-memory-mb" validate:"omitempty,min=1"`
 	// CpuPercent is the CPU limit as a percentage of total host CPU. If nil, there is no CPU limit.
 	CpuPercent *int `yaml:"cpu-percent" validate:"omitempty,min=1,max=100"`
-	// TemplateFiles lists files rendered from templates and mounted read-only into the validator container.
+	// TemplateFiles lists files rendered from custom-validator template variables for each validation
+	// and mounted read-only into the validator container.
 	TemplateFiles []ValidatorTemplateFile `yaml:"template-files,omitempty" validate:"omitempty,dive"`
 }
 

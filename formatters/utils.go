@@ -10,6 +10,7 @@ import (
 	"cmp"
 	"encoding/json"
 	"fmt"
+	"html"
 	"math"
 	"strings"
 	"time"
@@ -135,24 +136,19 @@ func Percent(rate float64) float64 {
 }
 
 // FormatAnswer formats the result of a runner based on its kind and the specified output format.
-// For failures, it generates a diff between expected and actual outputs, except for
-// schema validation failures where the raw answer is shown instead.
-// The useHTML parameter controls whether diffs are formatted as HTML or plain text.
+// For failures, it generates a diff between expected and actual outputs, except for schema
+// and custom validation failures, where the expected result is not a comparable answer and
+// the raw answer is shown instead.
+// The useHTML parameter controls whether answers are formatted as HTML or plain text.
 func FormatAnswer(result runners.RunResult, useHTML bool) (answers []string) {
 	gotStr := utils.ToString(result.Got)
 
 	switch result.Kind {
 	case runners.Success, runners.Error, runners.NotSupported:
-		if useHTML {
-			gotStr = "<pre>" + gotStr + "</pre>"
-		}
-		answers = append(answers, gotStr)
+		answers = append(answers, formatRawAnswer(gotStr, useHTML))
 	case runners.Failure:
-		if result.Details.Validation.Method == runners.ValidationMethodSchema {
-			if useHTML {
-				gotStr = "<pre>" + gotStr + "</pre>"
-			}
-			answers = append(answers, gotStr)
+		if method := result.Details.Validation.Method; method == runners.ValidationMethodSchema || method == runners.ValidationMethodCustom {
+			answers = append(answers, formatRawAnswer(gotStr, useHTML))
 			return
 		}
 		for _, want := range result.Want.Values() {
@@ -165,6 +161,14 @@ func FormatAnswer(result runners.RunResult, useHTML bool) (answers []string) {
 		}
 	}
 	return
+}
+
+// formatRawAnswer returns the answer unchanged, or HTML-escaped in a preformatted block for HTML.
+func formatRawAnswer(answer string, useHTML bool) string {
+	if useHTML {
+		return "<pre>" + html.EscapeString(answer) + "</pre>"
+	}
+	return answer
 }
 
 // DiffHTML computes an HTML representation of differences between the two given strings.

@@ -122,6 +122,8 @@ func (r *asyncResultSet) emitMessageEvent(message string) {
 type TaskRuntimeSettings struct {
 	// Services lists the task-scoped services available to tools.
 	Services []config.ServiceConfig
+	// CustomValidators lists the Docker-backed validators available to tasks.
+	CustomValidators []config.ValidatorConfig
 	// EvaluationSeed fixes the seed shared by all task attempts of every evaluation.
 	// If empty, each evaluation generates its own random seed.
 	EvaluationSeed string
@@ -157,7 +159,7 @@ func NewDefaultRunnerWithRuntime(ctx context.Context, cfg []config.ProviderConfi
 		totalTargetCount += len(providerConfig.Runs)
 	}
 
-	validatorFactory := validators.NewFactory(judges)
+	validatorFactory := validators.NewFactoryWithCustomValidators(judges, runtimeSettings.CustomValidators)
 
 	return &defaultRunner{
 		targets:          targets,
@@ -165,7 +167,8 @@ func NewDefaultRunnerWithRuntime(ctx context.Context, cfg []config.ProviderConfi
 		validatorFactory: validatorFactory,
 		tools:            tools,
 		taskRuntime: taskRuntimeConfig{
-			services: runtimeSettings.Services,
+			services:         runtimeSettings.Services,
+			customValidators: runtimeSettings.CustomValidators,
 		},
 		evaluationSeed: runtimeSettings.EvaluationSeed,
 		newTaskRuntime: newDockerTaskRuntime,
@@ -186,7 +189,8 @@ func newDockerTaskRuntime(ctx context.Context, logger logging.Logger, cfg provid
 }
 
 type taskRuntimeConfig struct {
-	services []config.ServiceConfig
+	services         []config.ServiceConfig
+	customValidators []config.ValidatorConfig
 }
 
 type defaultRunner struct {
@@ -213,6 +217,7 @@ func (r *defaultRunner) assertCanRun(ctx context.Context, tasks []config.Task) e
 	}
 
 	validatedTools := make(map[string]bool)
+	validatedValidators := make(map[string]bool)
 	validatedServices := make(map[string]bool)
 	requiresTaskServices := false
 
@@ -224,6 +229,24 @@ func (r *defaultRunner) assertCanRun(ctx context.Context, tasks []config.Task) e
 		if resolvedValidationRules.UseJudge() {
 			if err := r.validatorFactory.AssertExists(resolvedValidationRules.Judge); err != nil {
 				taskErrors = append(taskErrors, fmt.Errorf("task '%s' requires judge '%s' with variant '%s' that does not exist or is disabled: %w", task.Name, resolvedValidationRules.Judge.GetName(), resolvedValidationRules.Judge.GetVariant(), err))
+			}
+		}
+		if resolvedValidationRules.UseCustomValidator() {
+			validatorName := resolvedValidationRules.GetCustomValidatorName()
+			if err := r.validatorFactory.AssertCustomValidatorExists(validatorName); err != nil {
+				taskErrors = append(taskErrors, fmt.Errorf("task '%s' requires custom validator '%s': %w", task.Name, validatorName, err))
+			} else if validatorConfig, ok := r.customValidatorConfig(validatorName); ok {
+				if !validatedValidators[validatorName] {
+					if err := r.toolValidator.ValidateImage(ctx, validatorConfig.Image); err != nil {
+						taskErrors = append(taskErrors, fmt.Errorf("custom validator '%s' cannot be used: %w", validatorName, err))
+					}
+					if err := validators.CompileCustomValidatorTemplates(validatorConfig); err != nil {
+						taskErrors = append(taskErrors, fmt.Errorf("%w: custom validator '%s': %w", ErrInvalidTaskRuntimeConfig, validatorName, err))
+					}
+					validatedValidators[validatorName] = true
+				}
+				consumer := fmt.Sprintf("task '%s' custom validator '%s'", task.Name, validatorName)
+				taskErrors = append(taskErrors, r.validateServiceDependencies(ctx, consumer, validatorConfig.Dependencies, availableServices, validatedServices)...)
 			}
 		}
 
@@ -606,7 +629,12 @@ func (r *defaultRunner) runTask(ctx context.Context, logger logging.Logger, exec
 	} else {
 		logger.Message(ctx, logging.LevelDebug, "using %s for response evaluation", validator.GetName())
 
-		validationResult, err := validator.IsCorrect(ctx, logger, resolvedValidationRules, task.ExpectedResult, result, task.Prompt, task.ResponseResultFormat)
+		var validationResult validators.ValidationResult
+		if customValidator, ok := validator.(validators.CustomValidator); ok {
+			validationResult, err = customValidator.IsCorrectWithEnvironment(ctx, logger, resolvedValidationRules, task.ExpectedResult, result, task.Prompt, task.ResponseResultFormat, taskRuntime, templateData)
+		} else {
+			validationResult, err = validator.IsCorrect(ctx, logger, resolvedValidationRules, task.ExpectedResult, result, task.Prompt, task.ResponseResultFormat)
+		}
 		if err != nil { //nolint:gocritic
 			runResult.Kind = Error
 			runResult.Got = result.GetFinalAnswerContent()
@@ -685,6 +713,14 @@ func (r *defaultRunner) taskServiceNames(task config.Task) []string {
 			serviceSet[dependency.Service] = struct{}{}
 		}
 	}
+	resolvedValidationRules := task.GetResolvedValidationRules()
+	if resolvedValidationRules.UseCustomValidator() {
+		if validatorConfig, ok := r.customValidatorConfig(resolvedValidationRules.GetCustomValidatorName()); ok {
+			for _, dependency := range validatorConfig.Dependencies {
+				serviceSet[dependency.Service] = struct{}{}
+			}
+		}
+	}
 	return utils.SortedKeys(serviceSet)
 }
 
@@ -698,6 +734,15 @@ func requiredServiceInputs(inputs map[string]map[string]interface{}, requiredSer
 		}
 	}
 	return filtered
+}
+
+func (r *defaultRunner) customValidatorConfig(name string) (config.ValidatorConfig, bool) {
+	for _, validatorConfig := range r.taskRuntime.customValidators {
+		if validatorConfig.Name == name {
+			return validatorConfig, true
+		}
+	}
+	return config.ValidatorConfig{}, false
 }
 
 // snapshotRunConfig returns an artifact-safe projection of cfg, suitable for persisting in
@@ -921,6 +966,9 @@ func toToolCallOutput(o *providertools.OutputCapture) *ToolCallOutput {
 
 // validationMethodFor derives the ValidationMethod from resolved validation rules.
 func validationMethodFor(rules config.ValidationRules) ValidationMethod {
+	if rules.UseCustomValidator() {
+		return ValidationMethodCustom
+	}
 	if rules.UseJudge() {
 		return ValidationMethodSemantic
 	}

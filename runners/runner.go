@@ -243,6 +243,8 @@ const (
 	ValidationMethodSchema ValidationMethod = "schema"
 	// ValidationMethodSemantic indicates LLM judge semantic validation.
 	ValidationMethodSemantic ValidationMethod = "semantic"
+	// ValidationMethodCustom indicates trusted user-defined validation.
+	ValidationMethodCustom ValidationMethod = "custom"
 )
 
 // ValidationDetails defines structured information about answer verification and correctness assessment.

@@ -2324,6 +2324,7 @@ func createMockRunnerFromConfig(t *testing.T, cfg []config.ProviderConfig, judge
 
 type stubToolValidator struct {
 	validatedTools          []string
+	validatedImages         []string
 	validateErr             error
 	imageErr                error
 	taskServiceSupportErr   error
@@ -2339,7 +2340,8 @@ func (s *stubToolValidator) ValidateTool(ctx context.Context, cfg config.ToolCon
 	return nil
 }
 
-func (s *stubToolValidator) ValidateImage(context.Context, string) error {
+func (s *stubToolValidator) ValidateImage(_ context.Context, image string) error {
+	s.validatedImages = append(s.validatedImages, image)
 	return s.imageErr
 }
 

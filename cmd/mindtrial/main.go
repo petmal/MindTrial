@@ -347,8 +347,9 @@ func run(ctx context.Context) (ok bool, err error) {
 
 	// Run tasks.
 	exec, err := runners.NewDefaultRunnerWithRuntime(ctx, targetProviders, availableJudges, cfg.Config.Tools, runners.TaskRuntimeSettings{
-		Services:       cfg.Config.Services,
-		EvaluationSeed: getFlagValueIfSet(evaluationSeed, ""),
+		Services:         cfg.Config.Services,
+		CustomValidators: cfg.Config.Validators,
+		EvaluationSeed:   getFlagValueIfSet(evaluationSeed, ""),
 	}, logger)
 	if err != nil {
 		return

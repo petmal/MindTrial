@@ -1721,6 +1721,24 @@
                     </tr>
                 </thead>
                 <tbody>
+                    <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-custom-failure" data-passed="0" data-failed="1" data-error="0" data-skipped="0" data-passrate="0.00" data-accuracy="0.00" data-errorrate="0.00" data-duration="27000">
+                        <td>
+                            <input type="checkbox" class="run-compare-checkbox" data-provider="provider-name" data-run="run-custom-failure" title="Select for comparison">
+                        </td>
+                        <td itemprop="observationAbout" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name">
+                            <span itemprop="name">provider-name</span>
+                        </td>
+                        <td itemprop="identifier" class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-custom-failure" title="Filter by run: run-custom-failure">run-custom-failure</td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Passed"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Failed"><span itemprop="value">1</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Skipped"><span itemprop="value">0</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Pass Rate (%)"><meta itemprop="unitText" content="%"><span itemprop="value">0.00</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Accuracy (%)"><meta itemprop="unitText" content="%"><span itemprop="value">0.00</span></td>
+                        <td itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty"><meta itemprop="name" content="Error Rate (%)"><meta itemprop="unitText" content="%"><span itemprop="value">0.00</span></td>
+                        <td><time itemprop="observationPeriod" datetime="PT27.000S">27s</time>
+                        </td>
+                    </tr>
                     <tr itemscope itemtype="https://schema.org/Observation" data-provider="provider-name" data-run="run-error" data-passed="0" data-failed="0" data-error="1" data-skipped="0" data-passrate="0.00" data-accuracy="0.00" data-errorrate="100.00" data-duration="0">
                         <td>
                             <input type="checkbox" class="run-compare-checkbox" data-provider="provider-name" data-run="run-error" title="Select for comparison">
@@ -2055,6 +2073,7 @@
                                 </div>
                                 <select id="run-filter">
                                     <option value="">All</option>
+                                    <option value="run-custom-failure">run-custom-failure</option>
                                     <option value="run-error">run-error</option>
                                     <option value="run-failure">run-failure</option>
                                     <option value="run-failure-multiple-answers">run-failure-multiple-answers</option>
@@ -2677,15 +2696,15 @@ Context: within object literal
                             <ol class="answer-list single">
                                 <li><pre>[
   {
-    "level": "INFO",
-    "message": "User 'admin' logged in successfully.",
-    "timestamp": "2025-09-14T10:30:00Z",
-    "user_id": "admin"
+    &#34;level&#34;: &#34;INFO&#34;,
+    &#34;message&#34;: &#34;User &#39;admin&#39; logged in successfully.&#34;,
+    &#34;timestamp&#34;: &#34;2025-09-14T10:30:00Z&#34;,
+    &#34;user_id&#34;: &#34;admin&#34;
   },
   {
-    "level": "WARN",
-    "message": "System memory usage is high.",
-    "timestamp": "2025-09-14T10:31:15Z"
+    &#34;level&#34;: &#34;WARN&#34;,
+    &#34;message&#34;: &#34;System memory usage is high.&#34;,
+    &#34;timestamp&#34;: &#34;2025-09-14T10:31:15Z&#34;
   }
 ]</pre></li>
                             </ol>
@@ -3036,6 +3055,76 @@ Context: within object literal
                             </div>
                             <div class="details-icons">
                                 <button class="icon-btn" onclick="copyTraceID('01JEDE7Z8X0000000000000012', this)" title="Copy Trace ID: 01JEDE7Z8X0000000000000012" aria-label="Copy Trace ID">📋</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="run-provider-name-run-custom-failure-task-name" itemscope itemtype="https://schema.org/Question" data-provider="provider-name" data-run="run-custom-failure" data-task="task-name" data-status="failed" data-duration="27000" data-suite="" data-category="" data-difficulty="" data-tags="[]">
+                        <td itemprop="publisher" itemscope itemtype="https://schema.org/Organization" class="clickable-filter clickable" data-filter-type="provider" data-filter-value="provider-name" title="Filter by provider: provider-name"><span itemprop="name">provider-name</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="run" data-filter-value="run-custom-failure" title="Filter by run: run-custom-failure"><span itemprop="identifier">run-custom-failure</span></td>
+                        <td class="clickable-filter clickable" data-filter-type="task" data-filter-value="task-name" title="Filter by task: task-name"><span itemprop="name">task-name</span></td>
+                        <td class="status-failed clickable-filter clickable" data-filter-type="status" data-filter-value="failed" title="Filter by status: Failed">
+                            <span itemscope itemtype="https://schema.org/PropertyValue" itemprop="additionalProperty">
+                                <meta itemprop="name" content="status">
+                                <span itemprop="value">Failed</span>
+                            </span>
+                        </td>
+                        <td><time itemprop="timeRequired" datetime="PT27.000S">27s</time>
+                        </td>
+                        <td class="details-cell">
+                            <ol class="answer-list single">
+                                <li><pre>NX-7Q2-4821</pre></li>
+                            </ol>
+                        </td>
+                        <td class="details-toggle-cell">
+                            <button class="details" onclick="toggleDetails('details-run-provider-name-run-custom-failure-task-name', this)" aria-expanded="false" aria-controls="details-run-provider-name-run-custom-failure-task-name">Show Details</button>
+                            <div id="details-run-provider-name-run-custom-failure-task-name" class="details-content">
+                                <section class="section-answer">
+                                    <div itemscope itemtype="https://schema.org/Answer" itemprop="suggestedAnswer" itemref="validation-run-provider-name-run-custom-failure-task-name">
+                                        <h4 itemprop="name">Winning Code</h4>
+                                        <details class="explanation" open itemprop="answerExplanation" itemscope itemtype="https://schema.org/Comment">
+                                            <summary>Answer Explanation</summary>
+                                            <div class="explanation-body" style="margin-top:0.5em;" itemprop="text">
+                                                <p class="para">Unlocked the vault and read the winning code from the terminal.</p>
+                                            </div>
+                                        </details>
+                                        <details open>
+                                            <summary>Actual Answer</summary>
+                                            <ol style="margin:0.5em 0 0 1.2em; list-style:none; padding:0;">
+                                                <li style="margin:0;">
+                                                    <pre><code itemprop="text">NX-7Q2-4821
+</code></pre>
+                                                </li>
+                                            </ol>
+                                        </details>
+                                    </div>
+                                        <details>
+                                            <summary>Token Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;">
+                                                <dt>Input</dt><dd>2048</dd>
+                                                <dt>Output</dt><dd>96</dd>
+                                            </dl>
+                                        </details>
+                                        <details>
+                                            <summary>Tool Usage</summary>
+                                            <dl class="tech-details" style="margin-top:0.4em;">
+                                                    <dt>world-client</dt>
+                                                    <dd>4 call(s) taking 3.2s</dd>
+                                            </dl>
+                                        </details>
+                                </section>
+                                <section id="validation-run-provider-name-run-custom-failure-task-name" class="section-validation" itemscope itemtype="https://schema.org/Comment" itemprop="comment">
+                                    <h4>Not Won</h4>
+                                    <details class="explanation" open>
+                                        <summary>Validation Explanation</summary>
+                                        <div class="explanation-body" style="margin-top:0.5em;" itemprop="text">
+                                            <p class="para">The world is not in a winning state: the vault is still locked.</p>
+                                        </div>
+                                    </details>
+                                </section>
+                            </div>
+                            <div class="details-icons">
+                                <button class="icon-btn" onclick="copyTraceID('01JEDE7Z8X0000000000000013', this)" title="Copy Trace ID: 01JEDE7Z8X0000000000000013" aria-label="Copy Trace ID">📋</button>
+                                <span class="icon-btn" title="Tools used: world-client" aria-hidden="true">🔧</span>
                             </div>
                         </td>
                     </tr></tbody>
