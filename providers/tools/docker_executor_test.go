@@ -459,8 +459,36 @@ func TestWriteTempFile(t *testing.T) {
 
 			content := testutils.ReadFile(t, filePath)
 			require.Equal(t, tt.expected, string(content))
+			assertPermissions(t, filePath, mountedFileMode)
 		})
 	}
+}
+
+func TestSharedDirAccessibleToContainerUsers(t *testing.T) {
+	executor := &DockerToolExecutor{getSharedDir: newSharedDirFactory()}
+
+	sharedDir, err := executor.getSharedDir(t.Context(), executor)
+	require.NoError(t, err)
+	assertPermissions(t, sharedDir, sharedDirMode)
+	assertPermissions(t, filepath.Dir(sharedDir), 0o700)
+
+	sameDir, err := executor.getSharedDir(t.Context(), executor)
+	require.NoError(t, err)
+	assert.Equal(t, sharedDir, sameDir)
+
+	require.NoError(t, executor.Close())
+	assert.NoDirExists(t, filepath.Dir(sharedDir))
+}
+
+// assertPermissions checks Unix permission bits, which Windows does not support.
+func assertPermissions(t *testing.T, filePath string, want os.FileMode) {
+	t.Helper()
+	if runtime.GOOS == "windows" {
+		return
+	}
+	info, err := os.Stat(filePath)
+	require.NoError(t, err)
+	assert.Equal(t, want, info.Mode().Perm())
 }
 
 func TestDockerToolExecutorExecuteTool_Success(t *testing.T) {

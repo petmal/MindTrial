@@ -39,7 +39,7 @@ type DockerToolExecutor struct {
 	usage         sync.Map         // map[string]*ToolUsage
 	calls         callSummaryState // shared log of every invocation attempt across all tools, in completion order
 	getSharedDir  func(context.Context, *DockerToolExecutor) (string, error)
-	sharedDirPath atomic.Pointer[string] // stores the actual shared directory path if created
+	sharedDirRoot atomic.Pointer[string] // private directory containing the shared directory, if created
 }
 
 // ToolUsage tracks aggregate execution statistics for a tool: CallCount and
@@ -151,16 +151,31 @@ type ToolCallSummary struct {
 	ErrorMessage string
 }
 
+// Mounted paths are open to any container user; their private temporary parents keep host users out.
+const (
+	mountedFileMode os.FileMode = 0o644
+	sharedDirMode   os.FileMode = 0o777
+)
+
 // newSharedDirFactory creates a factory function that lazily creates a shared temporary directory.
 // The directory is created once on the first call and the same path is returned for all subsequent calls.
 func newSharedDirFactory() func(context.Context, *DockerToolExecutor) (string, error) {
-	return config.OnceWithContext(func(ctx context.Context, state *DockerToolExecutor) (sharedDir string, err error) {
-		sharedDir, err = os.MkdirTemp("", "mindtrial-tool-shared-*")
+	return config.OnceWithContext(func(ctx context.Context, state *DockerToolExecutor) (string, error) {
+		rootDir, err := os.MkdirTemp("", "mindtrial-tool-shared-*")
 		if err != nil {
 			return "", fmt.Errorf("failed to create shared temporary directory: %w", err)
 		}
-		state.sharedDirPath.Store(&sharedDir)
-		return
+		state.sharedDirRoot.Store(&rootDir)
+
+		sharedDir := filepath.Join(rootDir, "shared")
+		if err := os.Mkdir(sharedDir, sharedDirMode); err != nil {
+			return "", fmt.Errorf("failed to create shared temporary directory: %w", err)
+		}
+		// Mkdir applies the umask.
+		if err := os.Chmod(sharedDir, sharedDirMode); err != nil {
+			return "", fmt.Errorf("failed to set shared temporary directory permissions: %w", err)
+		}
+		return sharedDir, nil
 	})
 }
 
@@ -300,8 +315,8 @@ func (d *DockerToolExecutor) ExecuteTool(ctx context.Context, logger logging.Log
 // Close cleans up executor-owned resources.
 func (d *DockerToolExecutor) Close() error {
 	var errs []error
-	if sharedDirPtr := d.sharedDirPath.Load(); sharedDirPtr != nil {
-		if err := os.RemoveAll(*sharedDirPtr); err != nil {
+	if sharedDirRoot := d.sharedDirRoot.Load(); sharedDirRoot != nil {
+		if err := os.RemoveAll(*sharedDirRoot); err != nil {
 			errs = append(errs, fmt.Errorf("remove shared directory: %w", err))
 		}
 	}
@@ -647,6 +662,10 @@ func writeTempFile[T TextOrData](tempDir string, prefix string, content T) (stri
 		return "", err
 	}
 	defer tempFile.Close()
+
+	if err := tempFile.Chmod(mountedFileMode); err != nil {
+		return "", err
+	}
 
 	switch v := any(content).(type) {
 	case string:
