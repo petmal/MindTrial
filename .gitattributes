@@ -5,3 +5,7 @@ formatters/testdata/*.log -text
 schema/*.json -text
 stats/testdata/*.csv -text
 stats/testdata/*.json -text
+
+# The HTML formatter copies the template's line endings, while newlines in rendered data are always LF.
+formatters/templates/*.tmpl text eol=lf
+formatters/testdata/*.html text eol=lf
