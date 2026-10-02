@@ -21,8 +21,8 @@ var _ MappedNullable = &ModelToolOneOf7{}
 // ModelToolOneOf7 A local shell execution tool.
 type ModelToolOneOf7 struct {
 	// The environment configuration for the shell tool.
-	Environment ShellEnvironment `json:"environment"`
-	Type string `json:"type"`
+	Environment          ShellEnvironment `json:"environment"`
+	Type                 string           `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -96,7 +96,7 @@ func (o *ModelToolOneOf7) SetType(v string) {
 }
 
 func (o ModelToolOneOf7) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -129,10 +129,10 @@ func (o *ModelToolOneOf7) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

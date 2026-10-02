@@ -20,15 +20,17 @@ var _ MappedNullable = &ModelToolOneOf6{}
 
 // ModelToolOneOf6 A remote MCP server to use.
 type ModelToolOneOf6 struct {
-	AllowedTools []string `json:"allowed_tools,omitempty"`
+	AllowedTools  []string       `json:"allowed_tools,omitempty"`
 	Authorization NullableString `json:"authorization,omitempty"`
-	ConnectorId NullableString `json:"connector_id,omitempty"`
-	Headers map[string]string `json:"headers,omitempty"`
-	RequireApproval NullableString `json:"require_approval,omitempty"`
-	ServerDescription NullableString `json:"server_description,omitempty"`
-	ServerLabel string `json:"server_label"`
-	ServerUrl string `json:"server_url"`
-	Type string `json:"type"`
+	ConnectorId   NullableString `json:"connector_id,omitempty"`
+	// When true, this server's tool definitions are hidden from the model's prompt but stay callable, loaded via a `tool_search` step.
+	DeferLoading         NullableBool      `json:"defer_loading,omitempty"`
+	Headers              map[string]string `json:"headers,omitempty"`
+	RequireApproval      NullableString    `json:"require_approval,omitempty"`
+	ServerDescription    NullableString    `json:"server_description,omitempty"`
+	ServerLabel          string            `json:"server_label"`
+	ServerUrl            string            `json:"server_url"`
+	Type                 string            `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -119,6 +121,7 @@ func (o *ModelToolOneOf6) HasAuthorization() bool {
 func (o *ModelToolOneOf6) SetAuthorization(v string) {
 	o.Authorization.Set(&v)
 }
+
 // SetAuthorizationNil sets the value for Authorization to be an explicit nil
 func (o *ModelToolOneOf6) SetAuthorizationNil() {
 	o.Authorization.Set(nil)
@@ -161,6 +164,7 @@ func (o *ModelToolOneOf6) HasConnectorId() bool {
 func (o *ModelToolOneOf6) SetConnectorId(v string) {
 	o.ConnectorId.Set(&v)
 }
+
 // SetConnectorIdNil sets the value for ConnectorId to be an explicit nil
 func (o *ModelToolOneOf6) SetConnectorIdNil() {
 	o.ConnectorId.Set(nil)
@@ -171,9 +175,52 @@ func (o *ModelToolOneOf6) UnsetConnectorId() {
 	o.ConnectorId.Unset()
 }
 
-// GetHeaders returns the Headers field value if set, zero value otherwise.
+// GetDeferLoading returns the DeferLoading field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ModelToolOneOf6) GetDeferLoading() bool {
+	if o == nil || IsNil(o.DeferLoading.Get()) {
+		var ret bool
+		return ret
+	}
+	return *o.DeferLoading.Get()
+}
+
+// GetDeferLoadingOk returns a tuple with the DeferLoading field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ModelToolOneOf6) GetDeferLoadingOk() (*bool, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.DeferLoading.Get(), o.DeferLoading.IsSet()
+}
+
+// HasDeferLoading returns a boolean if a field has been set.
+func (o *ModelToolOneOf6) HasDeferLoading() bool {
+	if o != nil && o.DeferLoading.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetDeferLoading gets a reference to the given NullableBool and assigns it to the DeferLoading field.
+func (o *ModelToolOneOf6) SetDeferLoading(v bool) {
+	o.DeferLoading.Set(&v)
+}
+
+// SetDeferLoadingNil sets the value for DeferLoading to be an explicit nil
+func (o *ModelToolOneOf6) SetDeferLoadingNil() {
+	o.DeferLoading.Set(nil)
+}
+
+// UnsetDeferLoading ensures that no value is present for DeferLoading, not even an explicit nil
+func (o *ModelToolOneOf6) UnsetDeferLoading() {
+	o.DeferLoading.Unset()
+}
+
+// GetHeaders returns the Headers field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *ModelToolOneOf6) GetHeaders() map[string]string {
-	if o == nil || IsNil(o.Headers) {
+	if o == nil {
 		var ret map[string]string
 		return ret
 	}
@@ -182,6 +229,7 @@ func (o *ModelToolOneOf6) GetHeaders() map[string]string {
 
 // GetHeadersOk returns a tuple with the Headers field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *ModelToolOneOf6) GetHeadersOk() (map[string]string, bool) {
 	if o == nil || IsNil(o.Headers) {
 		return map[string]string{}, false
@@ -235,6 +283,7 @@ func (o *ModelToolOneOf6) HasRequireApproval() bool {
 func (o *ModelToolOneOf6) SetRequireApproval(v string) {
 	o.RequireApproval.Set(&v)
 }
+
 // SetRequireApprovalNil sets the value for RequireApproval to be an explicit nil
 func (o *ModelToolOneOf6) SetRequireApprovalNil() {
 	o.RequireApproval.Set(nil)
@@ -277,6 +326,7 @@ func (o *ModelToolOneOf6) HasServerDescription() bool {
 func (o *ModelToolOneOf6) SetServerDescription(v string) {
 	o.ServerDescription.Set(&v)
 }
+
 // SetServerDescriptionNil sets the value for ServerDescription to be an explicit nil
 func (o *ModelToolOneOf6) SetServerDescriptionNil() {
 	o.ServerDescription.Set(nil)
@@ -360,7 +410,7 @@ func (o *ModelToolOneOf6) SetType(v string) {
 }
 
 func (o ModelToolOneOf6) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -378,7 +428,10 @@ func (o ModelToolOneOf6) ToMap() (map[string]interface{}, error) {
 	if o.ConnectorId.IsSet() {
 		toSerialize["connector_id"] = o.ConnectorId.Get()
 	}
-	if !IsNil(o.Headers) {
+	if o.DeferLoading.IsSet() {
+		toSerialize["defer_loading"] = o.DeferLoading.Get()
+	}
+	if o.Headers != nil {
 		toSerialize["headers"] = o.Headers
 	}
 	if o.RequireApproval.IsSet() {
@@ -413,10 +466,10 @@ func (o *ModelToolOneOf6) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -438,6 +491,7 @@ func (o *ModelToolOneOf6) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "allowed_tools")
 		delete(additionalProperties, "authorization")
 		delete(additionalProperties, "connector_id")
+		delete(additionalProperties, "defer_loading")
 		delete(additionalProperties, "headers")
 		delete(additionalProperties, "require_approval")
 		delete(additionalProperties, "server_description")

@@ -19,12 +19,12 @@ var _ MappedNullable = &ReasoningConfiguration{}
 
 // ReasoningConfiguration struct for ReasoningConfiguration
 type ReasoningConfiguration struct {
-	// Constrains how hard a reasoning model thinks before responding. Only supported by `grok-4.3`. Possible values are `none` (disables reasoning completely), `low` (this is the default if not specified), `medium` and `high` (uses the most reasoning tokens).
+	// Constrains how hard a reasoning model thinks before responding. Higher efforts use more reasoning tokens for deeper thinking. The supported values and the default depend on the model.
 	Effort NullableString `json:"effort,omitempty"`
 	// Only included for compatibility.
 	GenerateSummary NullableString `json:"generate_summary,omitempty"`
 	// A summary of the model's reasoning process. Possible values are `auto`, `concise` and `detailed`. Only included for compatibility. The model shall always return `detailed`.
-	Summary NullableString `json:"summary,omitempty"`
+	Summary              NullableString `json:"summary,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -36,8 +36,6 @@ type _ReasoningConfiguration ReasoningConfiguration
 // will change when the set of required properties is changed
 func NewReasoningConfiguration() *ReasoningConfiguration {
 	this := ReasoningConfiguration{}
-	var effort string = "low"
-	this.Effort = *NewNullableString(&effort)
 	return &this
 }
 
@@ -46,8 +44,6 @@ func NewReasoningConfiguration() *ReasoningConfiguration {
 // but it doesn't guarantee that properties required by API are set
 func NewReasoningConfigurationWithDefaults() *ReasoningConfiguration {
 	this := ReasoningConfiguration{}
-	var effort string = "low"
-	this.Effort = *NewNullableString(&effort)
 	return &this
 }
 
@@ -83,6 +79,7 @@ func (o *ReasoningConfiguration) HasEffort() bool {
 func (o *ReasoningConfiguration) SetEffort(v string) {
 	o.Effort.Set(&v)
 }
+
 // SetEffortNil sets the value for Effort to be an explicit nil
 func (o *ReasoningConfiguration) SetEffortNil() {
 	o.Effort.Set(nil)
@@ -125,6 +122,7 @@ func (o *ReasoningConfiguration) HasGenerateSummary() bool {
 func (o *ReasoningConfiguration) SetGenerateSummary(v string) {
 	o.GenerateSummary.Set(&v)
 }
+
 // SetGenerateSummaryNil sets the value for GenerateSummary to be an explicit nil
 func (o *ReasoningConfiguration) SetGenerateSummaryNil() {
 	o.GenerateSummary.Set(nil)
@@ -167,6 +165,7 @@ func (o *ReasoningConfiguration) HasSummary() bool {
 func (o *ReasoningConfiguration) SetSummary(v string) {
 	o.Summary.Set(&v)
 }
+
 // SetSummaryNil sets the value for Summary to be an explicit nil
 func (o *ReasoningConfiguration) SetSummaryNil() {
 	o.Summary.Set(nil)
@@ -178,7 +177,7 @@ func (o *ReasoningConfiguration) UnsetSummary() {
 }
 
 func (o ReasoningConfiguration) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}

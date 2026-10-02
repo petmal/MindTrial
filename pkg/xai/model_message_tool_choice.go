@@ -111,10 +111,9 @@ func (dst *MessageToolChoice) UnmarshalJSON(data []byte) error {
 	} else { // no match
 		if err != nil {
 			return fmt.Errorf("data failed to match schemas in oneOf(MessageToolChoice): %v", err)
-		} else {
-			return fmt.Errorf("data failed to match schemas in oneOf(MessageToolChoice)")
 		}
 
+		return fmt.Errorf("data failed to match schemas in oneOf(MessageToolChoice)")
 	}
 }
 

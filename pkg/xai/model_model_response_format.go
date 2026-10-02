@@ -111,10 +111,9 @@ func (dst *ModelResponseFormat) UnmarshalJSON(data []byte) error {
 	} else { // no match
 		if err != nil {
 			return fmt.Errorf("data failed to match schemas in oneOf(ModelResponseFormat): %v", err)
-		} else {
-			return fmt.Errorf("data failed to match schemas in oneOf(ModelResponseFormat)")
 		}
 
+		return fmt.Errorf("data failed to match schemas in oneOf(ModelResponseFormat)")
 	}
 }
 

@@ -29,8 +29,8 @@ type ModelInputContentItemOneOf3 struct {
 	// Filename for inline uploads.  Required when `file_data` is set.
 	Filename NullableString `json:"filename,omitempty"`
 	// Optional MIME type for inline uploads (e.g. \"application/pdf\").
-	MimeType NullableString `json:"mime_type,omitempty"`
-	Type string `json:"type"`
+	MimeType             NullableString `json:"mime_type,omitempty"`
+	Type                 string         `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -86,6 +86,7 @@ func (o *ModelInputContentItemOneOf3) HasFileData() bool {
 func (o *ModelInputContentItemOneOf3) SetFileData(v string) {
 	o.FileData.Set(&v)
 }
+
 // SetFileDataNil sets the value for FileData to be an explicit nil
 func (o *ModelInputContentItemOneOf3) SetFileDataNil() {
 	o.FileData.Set(nil)
@@ -128,6 +129,7 @@ func (o *ModelInputContentItemOneOf3) HasFileId() bool {
 func (o *ModelInputContentItemOneOf3) SetFileId(v string) {
 	o.FileId.Set(&v)
 }
+
 // SetFileIdNil sets the value for FileId to be an explicit nil
 func (o *ModelInputContentItemOneOf3) SetFileIdNil() {
 	o.FileId.Set(nil)
@@ -170,6 +172,7 @@ func (o *ModelInputContentItemOneOf3) HasFileUrl() bool {
 func (o *ModelInputContentItemOneOf3) SetFileUrl(v string) {
 	o.FileUrl.Set(&v)
 }
+
 // SetFileUrlNil sets the value for FileUrl to be an explicit nil
 func (o *ModelInputContentItemOneOf3) SetFileUrlNil() {
 	o.FileUrl.Set(nil)
@@ -212,6 +215,7 @@ func (o *ModelInputContentItemOneOf3) HasFilename() bool {
 func (o *ModelInputContentItemOneOf3) SetFilename(v string) {
 	o.Filename.Set(&v)
 }
+
 // SetFilenameNil sets the value for Filename to be an explicit nil
 func (o *ModelInputContentItemOneOf3) SetFilenameNil() {
 	o.Filename.Set(nil)
@@ -254,6 +258,7 @@ func (o *ModelInputContentItemOneOf3) HasMimeType() bool {
 func (o *ModelInputContentItemOneOf3) SetMimeType(v string) {
 	o.MimeType.Set(&v)
 }
+
 // SetMimeTypeNil sets the value for MimeType to be an explicit nil
 func (o *ModelInputContentItemOneOf3) SetMimeTypeNil() {
 	o.MimeType.Set(nil)
@@ -289,7 +294,7 @@ func (o *ModelInputContentItemOneOf3) SetType(v string) {
 }
 
 func (o ModelInputContentItemOneOf3) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -335,10 +340,10 @@ func (o *ModelInputContentItemOneOf3) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

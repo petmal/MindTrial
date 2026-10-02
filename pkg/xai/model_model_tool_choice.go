@@ -85,10 +85,9 @@ func (dst *ModelToolChoice) UnmarshalJSON(data []byte) error {
 	} else { // no match
 		if err != nil {
 			return fmt.Errorf("data failed to match schemas in oneOf(ModelToolChoice): %v", err)
-		} else {
-			return fmt.Errorf("data failed to match schemas in oneOf(ModelToolChoice)")
 		}
 
+		return fmt.Errorf("data failed to match schemas in oneOf(ModelToolChoice)")
 	}
 }
 

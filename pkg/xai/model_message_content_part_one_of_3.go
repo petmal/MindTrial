@@ -20,14 +20,15 @@ var _ MappedNullable = &MessageContentPartOneOf3{}
 
 // MessageContentPartOneOf3 Tool call result.
 type MessageContentPartOneOf3 struct {
+	// (Unsupported) Cache control.
 	CacheControl interface{} `json:"cache_control,omitempty"`
 	// Result content of the tool call. Can be a string or an array of content blocks.
 	Content ToolResultContent `json:"content"`
 	// Whether the tool call returns an error.
 	IsError NullableBool `json:"is_error,omitempty"`
 	// ID of the tool call given by the model.
-	ToolUseId string `json:"tool_use_id"`
-	Type string `json:"type"`
+	ToolUseId            string `json:"tool_use_id"`
+	Type                 string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -142,6 +143,7 @@ func (o *MessageContentPartOneOf3) HasIsError() bool {
 func (o *MessageContentPartOneOf3) SetIsError(v bool) {
 	o.IsError.Set(&v)
 }
+
 // SetIsErrorNil sets the value for IsError to be an explicit nil
 func (o *MessageContentPartOneOf3) SetIsErrorNil() {
 	o.IsError.Set(nil)
@@ -201,7 +203,7 @@ func (o *MessageContentPartOneOf3) SetType(v string) {
 }
 
 func (o MessageContentPartOneOf3) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -242,10 +244,10 @@ func (o *MessageContentPartOneOf3) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

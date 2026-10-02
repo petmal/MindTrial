@@ -32,8 +32,10 @@ type Usage struct {
 	PromptTokens int32 `json:"prompt_tokens"`
 	// Breakdown of prompt token usage of different types.
 	PromptTokensDetails PromptUsageDetail `json:"prompt_tokens_details"`
+	// Details about the server side tool usage.
+	ServerSideToolUsageDetails NullableServerSideToolUsageDetails `json:"server_side_tool_usage_details,omitempty"`
 	// Total token used, the sum of prompt token and completion token amount.
-	TotalTokens int32 `json:"total_tokens"`
+	TotalTokens          int32 `json:"total_tokens"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -207,6 +209,49 @@ func (o *Usage) SetPromptTokensDetails(v PromptUsageDetail) {
 	o.PromptTokensDetails = v
 }
 
+// GetServerSideToolUsageDetails returns the ServerSideToolUsageDetails field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Usage) GetServerSideToolUsageDetails() ServerSideToolUsageDetails {
+	if o == nil || IsNil(o.ServerSideToolUsageDetails.Get()) {
+		var ret ServerSideToolUsageDetails
+		return ret
+	}
+	return *o.ServerSideToolUsageDetails.Get()
+}
+
+// GetServerSideToolUsageDetailsOk returns a tuple with the ServerSideToolUsageDetails field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Usage) GetServerSideToolUsageDetailsOk() (*ServerSideToolUsageDetails, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ServerSideToolUsageDetails.Get(), o.ServerSideToolUsageDetails.IsSet()
+}
+
+// HasServerSideToolUsageDetails returns a boolean if a field has been set.
+func (o *Usage) HasServerSideToolUsageDetails() bool {
+	if o != nil && o.ServerSideToolUsageDetails.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetServerSideToolUsageDetails gets a reference to the given NullableServerSideToolUsageDetails and assigns it to the ServerSideToolUsageDetails field.
+func (o *Usage) SetServerSideToolUsageDetails(v ServerSideToolUsageDetails) {
+	o.ServerSideToolUsageDetails.Set(&v)
+}
+
+// SetServerSideToolUsageDetailsNil sets the value for ServerSideToolUsageDetails to be an explicit nil
+func (o *Usage) SetServerSideToolUsageDetailsNil() {
+	o.ServerSideToolUsageDetails.Set(nil)
+}
+
+// UnsetServerSideToolUsageDetails ensures that no value is present for ServerSideToolUsageDetails, not even an explicit nil
+func (o *Usage) UnsetServerSideToolUsageDetails() {
+	o.ServerSideToolUsageDetails.Unset()
+}
+
 // GetTotalTokens returns the TotalTokens field value
 func (o *Usage) GetTotalTokens() int32 {
 	if o == nil {
@@ -232,7 +277,7 @@ func (o *Usage) SetTotalTokens(v int32) {
 }
 
 func (o Usage) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -247,6 +292,9 @@ func (o Usage) ToMap() (map[string]interface{}, error) {
 	toSerialize["num_sources_used"] = o.NumSourcesUsed
 	toSerialize["prompt_tokens"] = o.PromptTokens
 	toSerialize["prompt_tokens_details"] = o.PromptTokensDetails
+	if o.ServerSideToolUsageDetails.IsSet() {
+		toSerialize["server_side_tool_usage_details"] = o.ServerSideToolUsageDetails.Get()
+	}
 	toSerialize["total_tokens"] = o.TotalTokens
 
 	for key, value := range o.AdditionalProperties {
@@ -275,10 +323,10 @@ func (o *Usage) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -303,6 +351,7 @@ func (o *Usage) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "num_sources_used")
 		delete(additionalProperties, "prompt_tokens")
 		delete(additionalProperties, "prompt_tokens_details")
+		delete(additionalProperties, "server_side_tool_usage_details")
 		delete(additionalProperties, "total_tokens")
 		o.AdditionalProperties = additionalProperties
 	}

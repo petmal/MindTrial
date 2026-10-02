@@ -20,14 +20,17 @@ var _ MappedNullable = &ModelToolOneOf{}
 
 // ModelToolOneOf A function that the model can call.
 type ModelToolOneOf struct {
+	// When true, the definition is hidden from the model's prompt but stays callable, loaded via a `tool_search` step (`/v1/responses` only).
+	DeferLoading *bool `json:"defer_loading,omitempty"`
 	// A description of the function to indicate to the model when to call it.
 	Description *string `json:"description,omitempty"`
 	// The name of the function. If the model calls the function, this name is used in the response.
 	Name string `json:"name"`
+	// A JSON schema describing the function parameters. The model _should_ follow the schema, however, this is not enforced at the moment.
 	Parameters interface{} `json:"parameters"`
 	// Not supported. Only maintained for compatibility reasons.
-	Strict *bool `json:"strict,omitempty"`
-	Type string `json:"type"`
+	Strict               *bool  `json:"strict,omitempty"`
+	Type                 string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -51,6 +54,38 @@ func NewModelToolOneOf(name string, parameters interface{}, type_ string) *Model
 func NewModelToolOneOfWithDefaults() *ModelToolOneOf {
 	this := ModelToolOneOf{}
 	return &this
+}
+
+// GetDeferLoading returns the DeferLoading field value if set, zero value otherwise.
+func (o *ModelToolOneOf) GetDeferLoading() bool {
+	if o == nil || IsNil(o.DeferLoading) {
+		var ret bool
+		return ret
+	}
+	return *o.DeferLoading
+}
+
+// GetDeferLoadingOk returns a tuple with the DeferLoading field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelToolOneOf) GetDeferLoadingOk() (*bool, bool) {
+	if o == nil || IsNil(o.DeferLoading) {
+		return nil, false
+	}
+	return o.DeferLoading, true
+}
+
+// HasDeferLoading returns a boolean if a field has been set.
+func (o *ModelToolOneOf) HasDeferLoading() bool {
+	if o != nil && !IsNil(o.DeferLoading) {
+		return true
+	}
+
+	return false
+}
+
+// SetDeferLoading gets a reference to the given bool and assigns it to the DeferLoading field.
+func (o *ModelToolOneOf) SetDeferLoading(v bool) {
+	o.DeferLoading = &v
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise.
@@ -192,7 +227,7 @@ func (o *ModelToolOneOf) SetType(v string) {
 }
 
 func (o ModelToolOneOf) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -201,6 +236,9 @@ func (o ModelToolOneOf) MarshalJSON() ([]byte, error) {
 
 func (o ModelToolOneOf) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if !IsNil(o.DeferLoading) {
+		toSerialize["defer_loading"] = o.DeferLoading
+	}
 	if !IsNil(o.Description) {
 		toSerialize["description"] = o.Description
 	}
@@ -235,10 +273,10 @@ func (o *ModelToolOneOf) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -257,6 +295,7 @@ func (o *ModelToolOneOf) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "defer_loading")
 		delete(additionalProperties, "description")
 		delete(additionalProperties, "name")
 		delete(additionalProperties, "parameters")

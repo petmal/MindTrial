@@ -19,19 +19,21 @@ var _ MappedNullable = &GenerateVideoRequest{}
 
 // GenerateVideoRequest Request to generate video for `/v1/videos/generations` endpoint
 type GenerateVideoRequest struct {
-	// Aspect ratio of the generated video.
+	// Aspect ratio of the generated video. Ignored for image-to-video (first-frame `image` input): the aspect ratio is always derived from the input image.
 	AspectRatio NullableVideoAspectRatio `json:"aspect_ratio,omitempty"`
 	// Video duration in seconds. Range: [1, 15]. Default: 8. Also accepts `seconds` for OpenAI API compatibility. Accepts both number (8) and string (\"8\") values.
 	Duration NullableInt32 `json:"duration,omitempty"`
 	// Optional input image for image-to-video generation. If provided, generates video with this image as the first frame. Also accepts `input_reference` for compatibility (same semantics — first frame).
 	Image NullableImageUrl `json:"image,omitempty"`
+	// Optional mid-video keyframe anchors, strictly between the endpoint pins (`image` as the first frame, `last_frame` as the last). Each entry pins an image to appear literally at its timestamp. Only supported by select video models; at most 4 entries.
+	Keyframes []VideoKeyframe `json:"keyframes,omitempty"`
 	// Model to be used.
 	Model NullableString `json:"model,omitempty"`
 	// Optional output destination for generated video.
 	Output NullableVideoOutput `json:"output,omitempty"`
 	// Prompt for video generation. Required for text-to-video (T2V) and reference-to-video (R2V). Optional for image-to-video (I2V) — when omitted, the model generates a video from the image alone.
 	Prompt *string `json:"prompt,omitempty"`
-	// Optional reference audio (voice identity) for reference-to-video generation. Each entry selects a first-party preset voice via `voice_id`. Only supported by select video models; at most 3 entries. May be provided without `reference_images` (audio-only reference-to-video) — at least one reference of either kind selects the reference-to-video mode.
+	// Optional reference audio clips (voice identity) for reference-to-video generation. Each entry supplies a clip via `url` or selects a voice via `voice_id`; caller-supplied clips must be at most 15 seconds long. Only supported by select video models; at most 3 entries. May be provided without `reference_images` (audio-only reference-to-video) — at least one reference of either kind selects the reference-to-video mode.
 	ReferenceAudios []AudioUrl `json:"reference_audios,omitempty"`
 	// Optional reference images for reference-to-video (R2V) generation. When provided generates video using these images as style/content references.
 	ReferenceImages []ImageUrl `json:"reference_images,omitempty"`
@@ -40,7 +42,7 @@ type GenerateVideoRequest struct {
 	// Optional output storage configuration. When present, the generated video is stored in the Files API and a `file_output` reference is returned in the response alongside the ephemeral URL.
 	StorageOptions NullableStorageOptions `json:"storage_options,omitempty"`
 	// A unique identifier representing your end-user.
-	User NullableString `json:"user,omitempty"`
+	User                 NullableString `json:"user,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -99,6 +101,7 @@ func (o *GenerateVideoRequest) HasAspectRatio() bool {
 func (o *GenerateVideoRequest) SetAspectRatio(v VideoAspectRatio) {
 	o.AspectRatio.Set(&v)
 }
+
 // SetAspectRatioNil sets the value for AspectRatio to be an explicit nil
 func (o *GenerateVideoRequest) SetAspectRatioNil() {
 	o.AspectRatio.Set(nil)
@@ -141,6 +144,7 @@ func (o *GenerateVideoRequest) HasDuration() bool {
 func (o *GenerateVideoRequest) SetDuration(v int32) {
 	o.Duration.Set(&v)
 }
+
 // SetDurationNil sets the value for Duration to be an explicit nil
 func (o *GenerateVideoRequest) SetDurationNil() {
 	o.Duration.Set(nil)
@@ -183,6 +187,7 @@ func (o *GenerateVideoRequest) HasImage() bool {
 func (o *GenerateVideoRequest) SetImage(v ImageUrl) {
 	o.Image.Set(&v)
 }
+
 // SetImageNil sets the value for Image to be an explicit nil
 func (o *GenerateVideoRequest) SetImageNil() {
 	o.Image.Set(nil)
@@ -191,6 +196,38 @@ func (o *GenerateVideoRequest) SetImageNil() {
 // UnsetImage ensures that no value is present for Image, not even an explicit nil
 func (o *GenerateVideoRequest) UnsetImage() {
 	o.Image.Unset()
+}
+
+// GetKeyframes returns the Keyframes field value if set, zero value otherwise.
+func (o *GenerateVideoRequest) GetKeyframes() []VideoKeyframe {
+	if o == nil || IsNil(o.Keyframes) {
+		var ret []VideoKeyframe
+		return ret
+	}
+	return o.Keyframes
+}
+
+// GetKeyframesOk returns a tuple with the Keyframes field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *GenerateVideoRequest) GetKeyframesOk() ([]VideoKeyframe, bool) {
+	if o == nil || IsNil(o.Keyframes) {
+		return nil, false
+	}
+	return o.Keyframes, true
+}
+
+// HasKeyframes returns a boolean if a field has been set.
+func (o *GenerateVideoRequest) HasKeyframes() bool {
+	if o != nil && !IsNil(o.Keyframes) {
+		return true
+	}
+
+	return false
+}
+
+// SetKeyframes gets a reference to the given []VideoKeyframe and assigns it to the Keyframes field.
+func (o *GenerateVideoRequest) SetKeyframes(v []VideoKeyframe) {
+	o.Keyframes = v
 }
 
 // GetModel returns the Model field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -225,6 +262,7 @@ func (o *GenerateVideoRequest) HasModel() bool {
 func (o *GenerateVideoRequest) SetModel(v string) {
 	o.Model.Set(&v)
 }
+
 // SetModelNil sets the value for Model to be an explicit nil
 func (o *GenerateVideoRequest) SetModelNil() {
 	o.Model.Set(nil)
@@ -267,6 +305,7 @@ func (o *GenerateVideoRequest) HasOutput() bool {
 func (o *GenerateVideoRequest) SetOutput(v VideoOutput) {
 	o.Output.Set(&v)
 }
+
 // SetOutputNil sets the value for Output to be an explicit nil
 func (o *GenerateVideoRequest) SetOutputNil() {
 	o.Output.Set(nil)
@@ -405,6 +444,7 @@ func (o *GenerateVideoRequest) HasResolution() bool {
 func (o *GenerateVideoRequest) SetResolution(v VideoResolution) {
 	o.Resolution.Set(&v)
 }
+
 // SetResolutionNil sets the value for Resolution to be an explicit nil
 func (o *GenerateVideoRequest) SetResolutionNil() {
 	o.Resolution.Set(nil)
@@ -447,6 +487,7 @@ func (o *GenerateVideoRequest) HasStorageOptions() bool {
 func (o *GenerateVideoRequest) SetStorageOptions(v StorageOptions) {
 	o.StorageOptions.Set(&v)
 }
+
 // SetStorageOptionsNil sets the value for StorageOptions to be an explicit nil
 func (o *GenerateVideoRequest) SetStorageOptionsNil() {
 	o.StorageOptions.Set(nil)
@@ -489,6 +530,7 @@ func (o *GenerateVideoRequest) HasUser() bool {
 func (o *GenerateVideoRequest) SetUser(v string) {
 	o.User.Set(&v)
 }
+
 // SetUserNil sets the value for User to be an explicit nil
 func (o *GenerateVideoRequest) SetUserNil() {
 	o.User.Set(nil)
@@ -500,7 +542,7 @@ func (o *GenerateVideoRequest) UnsetUser() {
 }
 
 func (o GenerateVideoRequest) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -517,6 +559,9 @@ func (o GenerateVideoRequest) ToMap() (map[string]interface{}, error) {
 	}
 	if o.Image.IsSet() {
 		toSerialize["image"] = o.Image.Get()
+	}
+	if !IsNil(o.Keyframes) {
+		toSerialize["keyframes"] = o.Keyframes
 	}
 	if o.Model.IsSet() {
 		toSerialize["model"] = o.Model.Get()
@@ -567,6 +612,7 @@ func (o *GenerateVideoRequest) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "aspect_ratio")
 		delete(additionalProperties, "duration")
 		delete(additionalProperties, "image")
+		delete(additionalProperties, "keyframes")
 		delete(additionalProperties, "model")
 		delete(additionalProperties, "output")
 		delete(additionalProperties, "prompt")

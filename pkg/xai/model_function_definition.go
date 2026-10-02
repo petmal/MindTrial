@@ -20,13 +20,16 @@ var _ MappedNullable = &FunctionDefinition{}
 
 // FunctionDefinition Definition of the tool call made available to the model.
 type FunctionDefinition struct {
+	// When true, the definition is hidden from the model's prompt but stays callable, loaded via a `tool_search` step (`/v1/responses` only).
+	DeferLoading NullableBool `json:"defer_loading,omitempty"`
 	// A description of the function to indicate to the model when to call it.
 	Description NullableString `json:"description,omitempty"`
 	// The name of the function. If the model calls the function, this name is used in the response.
 	Name string `json:"name"`
+	// A JSON schema describing the function parameters. The model _should_ follow the schema, however, this is not enforced at the moment.
 	Parameters interface{} `json:"parameters"`
 	// Not supported. Only maintained for compatibility reasons.
-	Strict NullableBool `json:"strict,omitempty"`
+	Strict               NullableBool `json:"strict,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -49,6 +52,49 @@ func NewFunctionDefinition(name string, parameters interface{}) *FunctionDefinit
 func NewFunctionDefinitionWithDefaults() *FunctionDefinition {
 	this := FunctionDefinition{}
 	return &this
+}
+
+// GetDeferLoading returns the DeferLoading field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *FunctionDefinition) GetDeferLoading() bool {
+	if o == nil || IsNil(o.DeferLoading.Get()) {
+		var ret bool
+		return ret
+	}
+	return *o.DeferLoading.Get()
+}
+
+// GetDeferLoadingOk returns a tuple with the DeferLoading field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *FunctionDefinition) GetDeferLoadingOk() (*bool, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.DeferLoading.Get(), o.DeferLoading.IsSet()
+}
+
+// HasDeferLoading returns a boolean if a field has been set.
+func (o *FunctionDefinition) HasDeferLoading() bool {
+	if o != nil && o.DeferLoading.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetDeferLoading gets a reference to the given NullableBool and assigns it to the DeferLoading field.
+func (o *FunctionDefinition) SetDeferLoading(v bool) {
+	o.DeferLoading.Set(&v)
+}
+
+// SetDeferLoadingNil sets the value for DeferLoading to be an explicit nil
+func (o *FunctionDefinition) SetDeferLoadingNil() {
+	o.DeferLoading.Set(nil)
+}
+
+// UnsetDeferLoading ensures that no value is present for DeferLoading, not even an explicit nil
+func (o *FunctionDefinition) UnsetDeferLoading() {
+	o.DeferLoading.Unset()
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -83,6 +129,7 @@ func (o *FunctionDefinition) HasDescription() bool {
 func (o *FunctionDefinition) SetDescription(v string) {
 	o.Description.Set(&v)
 }
+
 // SetDescriptionNil sets the value for Description to be an explicit nil
 func (o *FunctionDefinition) SetDescriptionNil() {
 	o.Description.Set(nil)
@@ -175,6 +222,7 @@ func (o *FunctionDefinition) HasStrict() bool {
 func (o *FunctionDefinition) SetStrict(v bool) {
 	o.Strict.Set(&v)
 }
+
 // SetStrictNil sets the value for Strict to be an explicit nil
 func (o *FunctionDefinition) SetStrictNil() {
 	o.Strict.Set(nil)
@@ -186,7 +234,7 @@ func (o *FunctionDefinition) UnsetStrict() {
 }
 
 func (o FunctionDefinition) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -195,6 +243,9 @@ func (o FunctionDefinition) MarshalJSON() ([]byte, error) {
 
 func (o FunctionDefinition) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if o.DeferLoading.IsSet() {
+		toSerialize["defer_loading"] = o.DeferLoading.Get()
+	}
 	if o.Description.IsSet() {
 		toSerialize["description"] = o.Description.Get()
 	}
@@ -227,10 +278,10 @@ func (o *FunctionDefinition) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -249,6 +300,7 @@ func (o *FunctionDefinition) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "defer_loading")
 		delete(additionalProperties, "description")
 		delete(additionalProperties, "name")
 		delete(additionalProperties, "parameters")

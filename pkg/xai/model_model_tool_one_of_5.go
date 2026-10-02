@@ -20,8 +20,9 @@ var _ MappedNullable = &ModelToolOneOf5{}
 
 // ModelToolOneOf5 Execute code.
 type ModelToolOneOf5 struct {
-	Container interface{} `json:"container,omitempty"`
-	Type string `json:"type"`
+	// The code interpreter container. Can be a container ID or an object that specifies uploaded file IDs to make available to your code. For OpenAI API compatibility ONLY. Request will be rejected if this field is set.
+	Container            interface{} `json:"container,omitempty"`
+	Type                 string      `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -103,7 +104,7 @@ func (o *ModelToolOneOf5) SetType(v string) {
 }
 
 func (o ModelToolOneOf5) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -137,10 +138,10 @@ func (o *ModelToolOneOf5) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

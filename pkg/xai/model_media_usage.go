@@ -18,10 +18,20 @@ import (
 // checks if the MediaUsage type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &MediaUsage{}
 
-// MediaUsage Billing and cost information for media generation requests (image and video).
+// MediaUsage Billing and cost information for media generation requests (image and video).  The optional token fields follow the OpenAI Images API shape (`input_tokens` / `output_tokens` / `total_tokens` with per-side detail objects) and are populated only for image models with token-based usage reporting. They are omitted entirely for models billed per image and for video requests.
 type MediaUsage struct {
 	// The cost of this request expressed in USD ticks. One USD cent equals 100,000,000 ticks, so one US dollar equals 10,000,000,000 ticks.
 	CostInUsdTicks int64 `json:"cost_in_usd_ticks"`
+	// Total input tokens: prompt text tokens + input image tokens (the sum of `input_tokens_details`, where `cached_tokens` is a subset of `text_tokens`, not additive).
+	InputTokens NullableInt32 `json:"input_tokens,omitempty"`
+	// Breakdown of `input_tokens`.
+	InputTokensDetails NullableMediaInputTokensDetails `json:"input_tokens_details,omitempty"`
+	// Total output tokens: rewritten-prompt text tokens + reasoning tokens + generated image tokens (the sum of `output_tokens_details`).
+	OutputTokens NullableInt32 `json:"output_tokens,omitempty"`
+	// Breakdown of `output_tokens`.
+	OutputTokensDetails NullableMediaOutputTokensDetails `json:"output_tokens_details,omitempty"`
+	// Total tokens (input + output).
+	TotalTokens          NullableInt32 `json:"total_tokens,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -69,8 +79,223 @@ func (o *MediaUsage) SetCostInUsdTicks(v int64) {
 	o.CostInUsdTicks = v
 }
 
+// GetInputTokens returns the InputTokens field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *MediaUsage) GetInputTokens() int32 {
+	if o == nil || IsNil(o.InputTokens.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.InputTokens.Get()
+}
+
+// GetInputTokensOk returns a tuple with the InputTokens field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *MediaUsage) GetInputTokensOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.InputTokens.Get(), o.InputTokens.IsSet()
+}
+
+// HasInputTokens returns a boolean if a field has been set.
+func (o *MediaUsage) HasInputTokens() bool {
+	if o != nil && o.InputTokens.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetInputTokens gets a reference to the given NullableInt32 and assigns it to the InputTokens field.
+func (o *MediaUsage) SetInputTokens(v int32) {
+	o.InputTokens.Set(&v)
+}
+
+// SetInputTokensNil sets the value for InputTokens to be an explicit nil
+func (o *MediaUsage) SetInputTokensNil() {
+	o.InputTokens.Set(nil)
+}
+
+// UnsetInputTokens ensures that no value is present for InputTokens, not even an explicit nil
+func (o *MediaUsage) UnsetInputTokens() {
+	o.InputTokens.Unset()
+}
+
+// GetInputTokensDetails returns the InputTokensDetails field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *MediaUsage) GetInputTokensDetails() MediaInputTokensDetails {
+	if o == nil || IsNil(o.InputTokensDetails.Get()) {
+		var ret MediaInputTokensDetails
+		return ret
+	}
+	return *o.InputTokensDetails.Get()
+}
+
+// GetInputTokensDetailsOk returns a tuple with the InputTokensDetails field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *MediaUsage) GetInputTokensDetailsOk() (*MediaInputTokensDetails, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.InputTokensDetails.Get(), o.InputTokensDetails.IsSet()
+}
+
+// HasInputTokensDetails returns a boolean if a field has been set.
+func (o *MediaUsage) HasInputTokensDetails() bool {
+	if o != nil && o.InputTokensDetails.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetInputTokensDetails gets a reference to the given NullableMediaInputTokensDetails and assigns it to the InputTokensDetails field.
+func (o *MediaUsage) SetInputTokensDetails(v MediaInputTokensDetails) {
+	o.InputTokensDetails.Set(&v)
+}
+
+// SetInputTokensDetailsNil sets the value for InputTokensDetails to be an explicit nil
+func (o *MediaUsage) SetInputTokensDetailsNil() {
+	o.InputTokensDetails.Set(nil)
+}
+
+// UnsetInputTokensDetails ensures that no value is present for InputTokensDetails, not even an explicit nil
+func (o *MediaUsage) UnsetInputTokensDetails() {
+	o.InputTokensDetails.Unset()
+}
+
+// GetOutputTokens returns the OutputTokens field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *MediaUsage) GetOutputTokens() int32 {
+	if o == nil || IsNil(o.OutputTokens.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.OutputTokens.Get()
+}
+
+// GetOutputTokensOk returns a tuple with the OutputTokens field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *MediaUsage) GetOutputTokensOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.OutputTokens.Get(), o.OutputTokens.IsSet()
+}
+
+// HasOutputTokens returns a boolean if a field has been set.
+func (o *MediaUsage) HasOutputTokens() bool {
+	if o != nil && o.OutputTokens.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetOutputTokens gets a reference to the given NullableInt32 and assigns it to the OutputTokens field.
+func (o *MediaUsage) SetOutputTokens(v int32) {
+	o.OutputTokens.Set(&v)
+}
+
+// SetOutputTokensNil sets the value for OutputTokens to be an explicit nil
+func (o *MediaUsage) SetOutputTokensNil() {
+	o.OutputTokens.Set(nil)
+}
+
+// UnsetOutputTokens ensures that no value is present for OutputTokens, not even an explicit nil
+func (o *MediaUsage) UnsetOutputTokens() {
+	o.OutputTokens.Unset()
+}
+
+// GetOutputTokensDetails returns the OutputTokensDetails field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *MediaUsage) GetOutputTokensDetails() MediaOutputTokensDetails {
+	if o == nil || IsNil(o.OutputTokensDetails.Get()) {
+		var ret MediaOutputTokensDetails
+		return ret
+	}
+	return *o.OutputTokensDetails.Get()
+}
+
+// GetOutputTokensDetailsOk returns a tuple with the OutputTokensDetails field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *MediaUsage) GetOutputTokensDetailsOk() (*MediaOutputTokensDetails, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.OutputTokensDetails.Get(), o.OutputTokensDetails.IsSet()
+}
+
+// HasOutputTokensDetails returns a boolean if a field has been set.
+func (o *MediaUsage) HasOutputTokensDetails() bool {
+	if o != nil && o.OutputTokensDetails.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetOutputTokensDetails gets a reference to the given NullableMediaOutputTokensDetails and assigns it to the OutputTokensDetails field.
+func (o *MediaUsage) SetOutputTokensDetails(v MediaOutputTokensDetails) {
+	o.OutputTokensDetails.Set(&v)
+}
+
+// SetOutputTokensDetailsNil sets the value for OutputTokensDetails to be an explicit nil
+func (o *MediaUsage) SetOutputTokensDetailsNil() {
+	o.OutputTokensDetails.Set(nil)
+}
+
+// UnsetOutputTokensDetails ensures that no value is present for OutputTokensDetails, not even an explicit nil
+func (o *MediaUsage) UnsetOutputTokensDetails() {
+	o.OutputTokensDetails.Unset()
+}
+
+// GetTotalTokens returns the TotalTokens field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *MediaUsage) GetTotalTokens() int32 {
+	if o == nil || IsNil(o.TotalTokens.Get()) {
+		var ret int32
+		return ret
+	}
+	return *o.TotalTokens.Get()
+}
+
+// GetTotalTokensOk returns a tuple with the TotalTokens field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *MediaUsage) GetTotalTokensOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.TotalTokens.Get(), o.TotalTokens.IsSet()
+}
+
+// HasTotalTokens returns a boolean if a field has been set.
+func (o *MediaUsage) HasTotalTokens() bool {
+	if o != nil && o.TotalTokens.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetTotalTokens gets a reference to the given NullableInt32 and assigns it to the TotalTokens field.
+func (o *MediaUsage) SetTotalTokens(v int32) {
+	o.TotalTokens.Set(&v)
+}
+
+// SetTotalTokensNil sets the value for TotalTokens to be an explicit nil
+func (o *MediaUsage) SetTotalTokensNil() {
+	o.TotalTokens.Set(nil)
+}
+
+// UnsetTotalTokens ensures that no value is present for TotalTokens, not even an explicit nil
+func (o *MediaUsage) UnsetTotalTokens() {
+	o.TotalTokens.Unset()
+}
+
 func (o MediaUsage) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -80,6 +305,21 @@ func (o MediaUsage) MarshalJSON() ([]byte, error) {
 func (o MediaUsage) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["cost_in_usd_ticks"] = o.CostInUsdTicks
+	if o.InputTokens.IsSet() {
+		toSerialize["input_tokens"] = o.InputTokens.Get()
+	}
+	if o.InputTokensDetails.IsSet() {
+		toSerialize["input_tokens_details"] = o.InputTokensDetails.Get()
+	}
+	if o.OutputTokens.IsSet() {
+		toSerialize["output_tokens"] = o.OutputTokens.Get()
+	}
+	if o.OutputTokensDetails.IsSet() {
+		toSerialize["output_tokens_details"] = o.OutputTokensDetails.Get()
+	}
+	if o.TotalTokens.IsSet() {
+		toSerialize["total_tokens"] = o.TotalTokens.Get()
+	}
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -101,10 +341,10 @@ func (o *MediaUsage) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -124,6 +364,11 @@ func (o *MediaUsage) UnmarshalJSON(data []byte) (err error) {
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
 		delete(additionalProperties, "cost_in_usd_ticks")
+		delete(additionalProperties, "input_tokens")
+		delete(additionalProperties, "input_tokens_details")
+		delete(additionalProperties, "output_tokens")
+		delete(additionalProperties, "output_tokens_details")
+		delete(additionalProperties, "total_tokens")
 		o.AdditionalProperties = additionalProperties
 	}
 

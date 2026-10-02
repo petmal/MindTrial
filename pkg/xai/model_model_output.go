@@ -27,6 +27,8 @@ type ModelOutput struct {
 	OutputMessage       *OutputMessage
 	Reasoning           *Reasoning
 	ShellCall           *ShellCall
+	ToolSearchCall      *ToolSearchCall
+	ToolSearchOutput    *ToolSearchOutput
 	WebSearchCall       *WebSearchCall
 }
 
@@ -90,6 +92,20 @@ func ReasoningAsModelOutput(v *Reasoning) ModelOutput {
 func ShellCallAsModelOutput(v *ShellCall) ModelOutput {
 	return ModelOutput{
 		ShellCall: v,
+	}
+}
+
+// ToolSearchCallAsModelOutput is a convenience function that returns ToolSearchCall wrapped in ModelOutput
+func ToolSearchCallAsModelOutput(v *ToolSearchCall) ModelOutput {
+	return ModelOutput{
+		ToolSearchCall: v,
+	}
+}
+
+// ToolSearchOutputAsModelOutput is a convenience function that returns ToolSearchOutput wrapped in ModelOutput
+func ToolSearchOutputAsModelOutput(v *ToolSearchOutput) ModelOutput {
+	return ModelOutput{
+		ToolSearchOutput: v,
 	}
 }
 
@@ -257,6 +273,40 @@ func (dst *ModelOutput) UnmarshalJSON(data []byte) error {
 		dst.ShellCall = nil
 	}
 
+	// try to unmarshal data into ToolSearchCall
+	err = newStrictDecoder(data).Decode(&dst.ToolSearchCall)
+	if err == nil {
+		jsonToolSearchCall, _ := json.Marshal(dst.ToolSearchCall)
+		if string(jsonToolSearchCall) == "{}" { // empty struct
+			dst.ToolSearchCall = nil
+		} else {
+			if err = validator.Validate(dst.ToolSearchCall); err != nil {
+				dst.ToolSearchCall = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.ToolSearchCall = nil
+	}
+
+	// try to unmarshal data into ToolSearchOutput
+	err = newStrictDecoder(data).Decode(&dst.ToolSearchOutput)
+	if err == nil {
+		jsonToolSearchOutput, _ := json.Marshal(dst.ToolSearchOutput)
+		if string(jsonToolSearchOutput) == "{}" { // empty struct
+			dst.ToolSearchOutput = nil
+		} else {
+			if err = validator.Validate(dst.ToolSearchOutput); err != nil {
+				dst.ToolSearchOutput = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.ToolSearchOutput = nil
+	}
+
 	// try to unmarshal data into WebSearchCall
 	err = newStrictDecoder(data).Decode(&dst.WebSearchCall)
 	if err == nil {
@@ -285,6 +335,8 @@ func (dst *ModelOutput) UnmarshalJSON(data []byte) error {
 		dst.OutputMessage = nil
 		dst.Reasoning = nil
 		dst.ShellCall = nil
+		dst.ToolSearchCall = nil
+		dst.ToolSearchOutput = nil
 		dst.WebSearchCall = nil
 
 		return fmt.Errorf("data matches more than one schema in oneOf(ModelOutput)")
@@ -293,10 +345,9 @@ func (dst *ModelOutput) UnmarshalJSON(data []byte) error {
 	} else { // no match
 		if err != nil {
 			return fmt.Errorf("data failed to match schemas in oneOf(ModelOutput): %v", err)
-		} else {
-			return fmt.Errorf("data failed to match schemas in oneOf(ModelOutput)")
 		}
 
+		return fmt.Errorf("data failed to match schemas in oneOf(ModelOutput)")
 	}
 }
 
@@ -336,6 +387,14 @@ func (src ModelOutput) MarshalJSON() ([]byte, error) {
 
 	if src.ShellCall != nil {
 		return json.Marshal(&src.ShellCall)
+	}
+
+	if src.ToolSearchCall != nil {
+		return json.Marshal(&src.ToolSearchCall)
+	}
+
+	if src.ToolSearchOutput != nil {
+		return json.Marshal(&src.ToolSearchOutput)
 	}
 
 	if src.WebSearchCall != nil {
@@ -386,6 +445,14 @@ func (obj *ModelOutput) GetActualInstance() interface{} {
 		return obj.ShellCall
 	}
 
+	if obj.ToolSearchCall != nil {
+		return obj.ToolSearchCall
+	}
+
+	if obj.ToolSearchOutput != nil {
+		return obj.ToolSearchOutput
+	}
+
 	if obj.WebSearchCall != nil {
 		return obj.WebSearchCall
 	}
@@ -430,6 +497,14 @@ func (obj ModelOutput) GetActualInstanceValue() interface{} {
 
 	if obj.ShellCall != nil {
 		return *obj.ShellCall
+	}
+
+	if obj.ToolSearchCall != nil {
+		return *obj.ToolSearchCall
+	}
+
+	if obj.ToolSearchOutput != nil {
+		return *obj.ToolSearchOutput
 	}
 
 	if obj.WebSearchCall != nil {

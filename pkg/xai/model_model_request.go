@@ -32,10 +32,11 @@ type ModelRequest struct {
 	Instructions NullableString `json:"instructions,omitempty"`
 	// Whether to return log probabilities of the output tokens or not. If true, returns the log probabilities of each output token returned in the content of message. Not supported by models `grok-4.20` and newer; the field will be silently ignored if set.
 	Logprobs NullableBool `json:"logprobs,omitempty"`
-	// Max number of tokens that can be generated in a response. This includes both output and reasoning tokens. Defaults to 128,000 when unset; set a larger value to allow longer generations.
+	// Max number of tokens that can be generated in a response. Only applies to visible output tokens (i.e. does not apply to tokens used for reasoning or function calls). Defaults to 128,000 when unset; set a larger value to allow longer generations.
 	MaxOutputTokens NullableInt32 `json:"max_output_tokens,omitempty"`
-	// Maximum number of agentic tool calling turns allowed for this request. If not set, defaults to the server's global cap. This parameter will be ignored for any non-agentic requests.
+	// Maximum number of agentic tool calling turns allowed for this request. If not set, defaults to the server's global cap. This parameter will be ignored for any non-agentic requests, and for agentic SLOP requests that have neither a server-side tool nor a file attachment.
 	MaxTurns NullableInt32 `json:"max_turns,omitempty"`
+	// Not supported. Only maintained for compatibility reasons.
 	Metadata interface{} `json:"metadata,omitempty"`
 	// Min-p sampling: tokens whose probability is below `min_p` times the probability of the most likely token are excluded from sampling. Disabled when unset.
 	MinP NullableFloat32 `json:"min_p,omitempty"`
@@ -49,11 +50,13 @@ type ModelRequest struct {
 	PromptCacheKey NullableString `json:"prompt_cache_key,omitempty"`
 	// Reasoning configuration. Only for reasoning models.
 	Reasoning NullableReasoningConfiguration `json:"reasoning,omitempty"`
-	// reasoning_effort alternative to reasoning configuration. This is a non-standard field meant to ease user experience. We only look at this if the reasoning field is unset.
+	// Non-standard alternative to `reasoning.effort` that accepts the same values. We only look at this if the reasoning field is unset.
 	ReasoningEffort NullableString `json:"reasoning_effort,omitempty"`
+	// Supplied by the API client to identify the end user behind this request. A stable string that uniquely identifies each of your users; hash your internal user id or username rather than sending an email or name. Stored with the request metadata so a usage-policy violation can be attributed to that user rather than to the API key.
+	SafetyIdentifier NullableString `json:"safety_identifier,omitempty"`
 	// Set the parameters to be used for searched data. Takes precedence over `web_search_preview` tool if specified in the tools.
 	SearchParameters NullableSearchParameters `json:"search_parameters,omitempty"`
-	// Specifies the processing tier for this request. Set to `\"priority\"` for higher scheduling priority at a higher token price. Valid values: `\"auto\"` (default), `\"priority\"`.
+	// Processing tier. `\"fast\"` and `\"priority\"` are interchangeable: on models with a fast deployment both use it and its rates; otherwise both mean higher scheduling priority at a higher price. Valid: `\"auto\"`, `\"priority\"`, `\"fast\"`.
 	ServiceTier NullableServiceTier `json:"service_tier,omitempty"`
 	// Whether to store the input message(s) and model response for later retrieval.
 	Store NullableBool `json:"store,omitempty"`
@@ -65,7 +68,7 @@ type ModelRequest struct {
 	Text NullableModelResponseConfiguration `json:"text,omitempty"`
 	// Controls which (if any) tool is called by the model. `none` means the model will not call any tool and instead generates a message. auto means the model can pick between generating a message or calling one or more tools. required means the model must call one or more tools. Specifying a particular tool via `{\"type\": \"function\", \"function\": {\"name\": \"my_function\"}}` forces the model to call that tool. `none` is the default when no tools are present. `auto` is the default if tools are present.
 	ToolChoice NullableModelToolChoice `json:"tool_choice,omitempty"`
-	// A list of tools the model may call in JSON-schema. Currently, only functions and web search are supported as tools. A max of 128 tools are supported.`web_search_preview` tool, if specified, will be overridden by `search_parameters`.
+	// A list of tools the model may call in JSON-schema. Currently, only functions and web search are supported as tools. A max of 350 tools are supported.`web_search_preview` tool, if specified, will be overridden by `search_parameters`.
 	Tools []ModelTool `json:"tools,omitempty"`
 	// Top-k sampling: only the `top_k` most probable tokens are considered at each sampling step. Disabled when unset.
 	TopK NullableInt32 `json:"top_k,omitempty"`
@@ -76,7 +79,7 @@ type ModelRequest struct {
 	// Not supported. Only maintained for compatibility reasons.
 	Truncation NullableString `json:"truncation,omitempty"`
 	// A unique identifier representing your end-user, which can help xAI to monitor and detect abuse.
-	User NullableString `json:"user,omitempty"`
+	User                 NullableString `json:"user,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -160,6 +163,7 @@ func (o *ModelRequest) HasBackground() bool {
 func (o *ModelRequest) SetBackground(v bool) {
 	o.Background.Set(&v)
 }
+
 // SetBackgroundNil sets the value for Background to be an explicit nil
 func (o *ModelRequest) SetBackgroundNil() {
 	o.Background.Set(nil)
@@ -292,6 +296,7 @@ func (o *ModelRequest) HasInstructions() bool {
 func (o *ModelRequest) SetInstructions(v string) {
 	o.Instructions.Set(&v)
 }
+
 // SetInstructionsNil sets the value for Instructions to be an explicit nil
 func (o *ModelRequest) SetInstructionsNil() {
 	o.Instructions.Set(nil)
@@ -334,6 +339,7 @@ func (o *ModelRequest) HasLogprobs() bool {
 func (o *ModelRequest) SetLogprobs(v bool) {
 	o.Logprobs.Set(&v)
 }
+
 // SetLogprobsNil sets the value for Logprobs to be an explicit nil
 func (o *ModelRequest) SetLogprobsNil() {
 	o.Logprobs.Set(nil)
@@ -376,6 +382,7 @@ func (o *ModelRequest) HasMaxOutputTokens() bool {
 func (o *ModelRequest) SetMaxOutputTokens(v int32) {
 	o.MaxOutputTokens.Set(&v)
 }
+
 // SetMaxOutputTokensNil sets the value for MaxOutputTokens to be an explicit nil
 func (o *ModelRequest) SetMaxOutputTokensNil() {
 	o.MaxOutputTokens.Set(nil)
@@ -418,6 +425,7 @@ func (o *ModelRequest) HasMaxTurns() bool {
 func (o *ModelRequest) SetMaxTurns(v int32) {
 	o.MaxTurns.Set(&v)
 }
+
 // SetMaxTurnsNil sets the value for MaxTurns to be an explicit nil
 func (o *ModelRequest) SetMaxTurnsNil() {
 	o.MaxTurns.Set(nil)
@@ -493,6 +501,7 @@ func (o *ModelRequest) HasMinP() bool {
 func (o *ModelRequest) SetMinP(v float32) {
 	o.MinP.Set(&v)
 }
+
 // SetMinPNil sets the value for MinP to be an explicit nil
 func (o *ModelRequest) SetMinPNil() {
 	o.MinP.Set(nil)
@@ -567,6 +576,7 @@ func (o *ModelRequest) HasParallelToolCalls() bool {
 func (o *ModelRequest) SetParallelToolCalls(v bool) {
 	o.ParallelToolCalls.Set(&v)
 }
+
 // SetParallelToolCallsNil sets the value for ParallelToolCalls to be an explicit nil
 func (o *ModelRequest) SetParallelToolCallsNil() {
 	o.ParallelToolCalls.Set(nil)
@@ -609,6 +619,7 @@ func (o *ModelRequest) HasPreviousResponseId() bool {
 func (o *ModelRequest) SetPreviousResponseId(v string) {
 	o.PreviousResponseId.Set(&v)
 }
+
 // SetPreviousResponseIdNil sets the value for PreviousResponseId to be an explicit nil
 func (o *ModelRequest) SetPreviousResponseIdNil() {
 	o.PreviousResponseId.Set(nil)
@@ -651,6 +662,7 @@ func (o *ModelRequest) HasPromptCacheKey() bool {
 func (o *ModelRequest) SetPromptCacheKey(v string) {
 	o.PromptCacheKey.Set(&v)
 }
+
 // SetPromptCacheKeyNil sets the value for PromptCacheKey to be an explicit nil
 func (o *ModelRequest) SetPromptCacheKeyNil() {
 	o.PromptCacheKey.Set(nil)
@@ -693,6 +705,7 @@ func (o *ModelRequest) HasReasoning() bool {
 func (o *ModelRequest) SetReasoning(v ReasoningConfiguration) {
 	o.Reasoning.Set(&v)
 }
+
 // SetReasoningNil sets the value for Reasoning to be an explicit nil
 func (o *ModelRequest) SetReasoningNil() {
 	o.Reasoning.Set(nil)
@@ -735,6 +748,7 @@ func (o *ModelRequest) HasReasoningEffort() bool {
 func (o *ModelRequest) SetReasoningEffort(v string) {
 	o.ReasoningEffort.Set(&v)
 }
+
 // SetReasoningEffortNil sets the value for ReasoningEffort to be an explicit nil
 func (o *ModelRequest) SetReasoningEffortNil() {
 	o.ReasoningEffort.Set(nil)
@@ -743,6 +757,49 @@ func (o *ModelRequest) SetReasoningEffortNil() {
 // UnsetReasoningEffort ensures that no value is present for ReasoningEffort, not even an explicit nil
 func (o *ModelRequest) UnsetReasoningEffort() {
 	o.ReasoningEffort.Unset()
+}
+
+// GetSafetyIdentifier returns the SafetyIdentifier field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ModelRequest) GetSafetyIdentifier() string {
+	if o == nil || IsNil(o.SafetyIdentifier.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.SafetyIdentifier.Get()
+}
+
+// GetSafetyIdentifierOk returns a tuple with the SafetyIdentifier field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ModelRequest) GetSafetyIdentifierOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.SafetyIdentifier.Get(), o.SafetyIdentifier.IsSet()
+}
+
+// HasSafetyIdentifier returns a boolean if a field has been set.
+func (o *ModelRequest) HasSafetyIdentifier() bool {
+	if o != nil && o.SafetyIdentifier.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetSafetyIdentifier gets a reference to the given NullableString and assigns it to the SafetyIdentifier field.
+func (o *ModelRequest) SetSafetyIdentifier(v string) {
+	o.SafetyIdentifier.Set(&v)
+}
+
+// SetSafetyIdentifierNil sets the value for SafetyIdentifier to be an explicit nil
+func (o *ModelRequest) SetSafetyIdentifierNil() {
+	o.SafetyIdentifier.Set(nil)
+}
+
+// UnsetSafetyIdentifier ensures that no value is present for SafetyIdentifier, not even an explicit nil
+func (o *ModelRequest) UnsetSafetyIdentifier() {
+	o.SafetyIdentifier.Unset()
 }
 
 // GetSearchParameters returns the SearchParameters field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -777,6 +834,7 @@ func (o *ModelRequest) HasSearchParameters() bool {
 func (o *ModelRequest) SetSearchParameters(v SearchParameters) {
 	o.SearchParameters.Set(&v)
 }
+
 // SetSearchParametersNil sets the value for SearchParameters to be an explicit nil
 func (o *ModelRequest) SetSearchParametersNil() {
 	o.SearchParameters.Set(nil)
@@ -819,6 +877,7 @@ func (o *ModelRequest) HasServiceTier() bool {
 func (o *ModelRequest) SetServiceTier(v ServiceTier) {
 	o.ServiceTier.Set(&v)
 }
+
 // SetServiceTierNil sets the value for ServiceTier to be an explicit nil
 func (o *ModelRequest) SetServiceTierNil() {
 	o.ServiceTier.Set(nil)
@@ -861,6 +920,7 @@ func (o *ModelRequest) HasStore() bool {
 func (o *ModelRequest) SetStore(v bool) {
 	o.Store.Set(&v)
 }
+
 // SetStoreNil sets the value for Store to be an explicit nil
 func (o *ModelRequest) SetStoreNil() {
 	o.Store.Set(nil)
@@ -903,6 +963,7 @@ func (o *ModelRequest) HasStream() bool {
 func (o *ModelRequest) SetStream(v bool) {
 	o.Stream.Set(&v)
 }
+
 // SetStreamNil sets the value for Stream to be an explicit nil
 func (o *ModelRequest) SetStreamNil() {
 	o.Stream.Set(nil)
@@ -945,6 +1006,7 @@ func (o *ModelRequest) HasTemperature() bool {
 func (o *ModelRequest) SetTemperature(v float32) {
 	o.Temperature.Set(&v)
 }
+
 // SetTemperatureNil sets the value for Temperature to be an explicit nil
 func (o *ModelRequest) SetTemperatureNil() {
 	o.Temperature.Set(nil)
@@ -987,6 +1049,7 @@ func (o *ModelRequest) HasText() bool {
 func (o *ModelRequest) SetText(v ModelResponseConfiguration) {
 	o.Text.Set(&v)
 }
+
 // SetTextNil sets the value for Text to be an explicit nil
 func (o *ModelRequest) SetTextNil() {
 	o.Text.Set(nil)
@@ -1029,6 +1092,7 @@ func (o *ModelRequest) HasToolChoice() bool {
 func (o *ModelRequest) SetToolChoice(v ModelToolChoice) {
 	o.ToolChoice.Set(&v)
 }
+
 // SetToolChoiceNil sets the value for ToolChoice to be an explicit nil
 func (o *ModelRequest) SetToolChoiceNil() {
 	o.ToolChoice.Set(nil)
@@ -1104,6 +1168,7 @@ func (o *ModelRequest) HasTopK() bool {
 func (o *ModelRequest) SetTopK(v int32) {
 	o.TopK.Set(&v)
 }
+
 // SetTopKNil sets the value for TopK to be an explicit nil
 func (o *ModelRequest) SetTopKNil() {
 	o.TopK.Set(nil)
@@ -1146,6 +1211,7 @@ func (o *ModelRequest) HasTopLogprobs() bool {
 func (o *ModelRequest) SetTopLogprobs(v int32) {
 	o.TopLogprobs.Set(&v)
 }
+
 // SetTopLogprobsNil sets the value for TopLogprobs to be an explicit nil
 func (o *ModelRequest) SetTopLogprobsNil() {
 	o.TopLogprobs.Set(nil)
@@ -1188,6 +1254,7 @@ func (o *ModelRequest) HasTopP() bool {
 func (o *ModelRequest) SetTopP(v float32) {
 	o.TopP.Set(&v)
 }
+
 // SetTopPNil sets the value for TopP to be an explicit nil
 func (o *ModelRequest) SetTopPNil() {
 	o.TopP.Set(nil)
@@ -1230,6 +1297,7 @@ func (o *ModelRequest) HasTruncation() bool {
 func (o *ModelRequest) SetTruncation(v string) {
 	o.Truncation.Set(&v)
 }
+
 // SetTruncationNil sets the value for Truncation to be an explicit nil
 func (o *ModelRequest) SetTruncationNil() {
 	o.Truncation.Set(nil)
@@ -1272,6 +1340,7 @@ func (o *ModelRequest) HasUser() bool {
 func (o *ModelRequest) SetUser(v string) {
 	o.User.Set(&v)
 }
+
 // SetUserNil sets the value for User to be an explicit nil
 func (o *ModelRequest) SetUserNil() {
 	o.User.Set(nil)
@@ -1283,7 +1352,7 @@ func (o *ModelRequest) UnsetUser() {
 }
 
 func (o ModelRequest) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -1337,6 +1406,9 @@ func (o ModelRequest) ToMap() (map[string]interface{}, error) {
 	}
 	if o.ReasoningEffort.IsSet() {
 		toSerialize["reasoning_effort"] = o.ReasoningEffort.Get()
+	}
+	if o.SafetyIdentifier.IsSet() {
+		toSerialize["safety_identifier"] = o.SafetyIdentifier.Get()
 	}
 	if o.SearchParameters.IsSet() {
 		toSerialize["search_parameters"] = o.SearchParameters.Get()
@@ -1398,10 +1470,10 @@ func (o *ModelRequest) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -1436,6 +1508,7 @@ func (o *ModelRequest) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "prompt_cache_key")
 		delete(additionalProperties, "reasoning")
 		delete(additionalProperties, "reasoning_effort")
+		delete(additionalProperties, "safety_identifier")
 		delete(additionalProperties, "search_parameters")
 		delete(additionalProperties, "service_tier")
 		delete(additionalProperties, "store")

@@ -43,15 +43,17 @@ type ChatRequest struct {
 	PresencePenalty NullableFloat32 `json:"presence_penalty,omitempty"`
 	// A stable cache key for best-effort sticky routing / prompt-cache hits across requests sharing a prompt prefix. Plumbed to `x-grok-conv-id`, same as on `/v1/responses`.
 	PromptCacheKey NullableString `json:"prompt_cache_key,omitempty"`
-	// Constrains how hard a reasoning model thinks before responding. Only supported by `grok-4.3`. Possible values are `none` (disables reasoning completely), `low` (this is the default if not specified), `medium` and `high` (uses the most reasoning tokens).
+	// Constrains how hard a reasoning model thinks before responding. Higher efforts use more reasoning tokens for deeper thinking. The supported values and the default depend on the model.
 	ReasoningEffort NullableString `json:"reasoning_effort,omitempty"`
 	// An object specifying the format that the model must output. Specify `{ \"type\": \"json_object\" }` for JSON output, or `{ \"type\": \"json_schema\", \"json_schema\": {...} }` for structured outputs. If `{ \\\"type\\\": \\\"text\\\" }`, the model will return a text response.
 	ResponseFormat NullableResponseFormat `json:"response_format,omitempty"`
+	// Supplied by the API client to identify the end user behind this request. A stable string that uniquely identifies each of your users; hash your internal user id or username rather than sending an email or name. Stored with the request metadata so a usage-policy violation can be attributed to that user rather than to the API key.
+	SafetyIdentifier NullableString `json:"safety_identifier,omitempty"`
 	// Set the parameters to be used for searched data. If not set, no data will be acquired by the model.
 	SearchParameters NullableSearchParameters `json:"search_parameters,omitempty"`
 	// If specified, our system will make a best effort to sample deterministically, such that repeated requests with the same `seed` and parameters should return the same result. Determinism is not guaranteed, and you should refer to the `system_fingerprint` response parameter to monitor changes in the backend.
 	Seed NullableInt32 `json:"seed,omitempty"`
-	// Specifies the processing tier for this request. Set to `\"priority\"` for higher scheduling priority at a higher token price. Valid values: `\"auto\"` (default), `\"priority\"`.
+	// Processing tier. `\"fast\"` and `\"priority\"` are interchangeable: on models with a fast deployment both use it and its rates; otherwise both mean higher scheduling priority at a higher price. Valid: `\"auto\"`, `\"priority\"`, `\"fast\"`.
 	ServiceTier NullableServiceTier `json:"service_tier,omitempty"`
 	// (Not supported by reasoning models) Up to 4 sequences where the API will stop generating further tokens.
 	Stop []string `json:"stop,omitempty"`
@@ -63,7 +65,7 @@ type ChatRequest struct {
 	Temperature NullableFloat32 `json:"temperature,omitempty"`
 	// Controls which (if any) tool is called by the model. `none` means the model will not call any tool and instead generates a message. auto means the model can pick between generating a message or calling one or more tools. required means the model must call one or more tools. Specifying a particular tool via `{\"type\": \"function\", \"function\": {\"name\": \"my_function\"}}` forces the model to call that tool. `none` is the default when no tools are present. `auto` is the default if tools are present.
 	ToolChoice NullableToolChoice `json:"tool_choice,omitempty"`
-	// A list of tools the model may call in JSON-schema. Currently, only functions are supported as a tool. Use this to provide a list of functions the model may generate JSON inputs for. A max of 128 functions are supported.
+	// A list of tools the model may call in JSON-schema. Currently, only functions are supported as a tool. Use this to provide a list of functions the model may generate JSON inputs for. A max of 350 functions are supported.
 	Tools []Tool `json:"tools,omitempty"`
 	// An integer between 0 and 8 specifying the number of most likely tokens to return at each token position, each with an associated log probability. logprobs must be set to true if this parameter is used. Not supported by models `grok-4.20` and newer; the field will be silently ignored if set.
 	TopLogprobs NullableInt32 `json:"top_logprobs,omitempty"`
@@ -72,7 +74,7 @@ type ChatRequest struct {
 	// A unique identifier representing your end-user, which can help xAI to monitor and detect abuse.
 	User NullableString `json:"user,omitempty"`
 	// Options to control the web search. This is only included for compatibility reason. Prefer the usage of `realtime_data_parameters` instead.
-	WebSearchOptions NullableWebSearchOptions `json:"web_search_options,omitempty"`
+	WebSearchOptions     NullableWebSearchOptions `json:"web_search_options,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -163,6 +165,7 @@ func (o *ChatRequest) HasDeferred() bool {
 func (o *ChatRequest) SetDeferred(v bool) {
 	o.Deferred.Set(&v)
 }
+
 // SetDeferredNil sets the value for Deferred to be an explicit nil
 func (o *ChatRequest) SetDeferredNil() {
 	o.Deferred.Set(nil)
@@ -205,6 +208,7 @@ func (o *ChatRequest) HasFrequencyPenalty() bool {
 func (o *ChatRequest) SetFrequencyPenalty(v float32) {
 	o.FrequencyPenalty.Set(&v)
 }
+
 // SetFrequencyPenaltyNil sets the value for FrequencyPenalty to be an explicit nil
 func (o *ChatRequest) SetFrequencyPenaltyNil() {
 	o.FrequencyPenalty.Set(nil)
@@ -215,9 +219,9 @@ func (o *ChatRequest) UnsetFrequencyPenalty() {
 	o.FrequencyPenalty.Unset()
 }
 
-// GetLogitBias returns the LogitBias field value if set, zero value otherwise.
+// GetLogitBias returns the LogitBias field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *ChatRequest) GetLogitBias() map[string]float32 {
-	if o == nil || IsNil(o.LogitBias) {
+	if o == nil {
 		var ret map[string]float32
 		return ret
 	}
@@ -226,6 +230,7 @@ func (o *ChatRequest) GetLogitBias() map[string]float32 {
 
 // GetLogitBiasOk returns a tuple with the LogitBias field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *ChatRequest) GetLogitBiasOk() (map[string]float32, bool) {
 	if o == nil || IsNil(o.LogitBias) {
 		return map[string]float32{}, false
@@ -279,6 +284,7 @@ func (o *ChatRequest) HasLogprobs() bool {
 func (o *ChatRequest) SetLogprobs(v bool) {
 	o.Logprobs.Set(&v)
 }
+
 // SetLogprobsNil sets the value for Logprobs to be an explicit nil
 func (o *ChatRequest) SetLogprobsNil() {
 	o.Logprobs.Set(nil)
@@ -321,6 +327,7 @@ func (o *ChatRequest) HasMaxCompletionTokens() bool {
 func (o *ChatRequest) SetMaxCompletionTokens(v int32) {
 	o.MaxCompletionTokens.Set(&v)
 }
+
 // SetMaxCompletionTokensNil sets the value for MaxCompletionTokens to be an explicit nil
 func (o *ChatRequest) SetMaxCompletionTokensNil() {
 	o.MaxCompletionTokens.Set(nil)
@@ -363,6 +370,7 @@ func (o *ChatRequest) HasMaxTokens() bool {
 func (o *ChatRequest) SetMaxTokens(v int32) {
 	o.MaxTokens.Set(&v)
 }
+
 // SetMaxTokensNil sets the value for MaxTokens to be an explicit nil
 func (o *ChatRequest) SetMaxTokensNil() {
 	o.MaxTokens.Set(nil)
@@ -469,6 +477,7 @@ func (o *ChatRequest) HasN() bool {
 func (o *ChatRequest) SetN(v int32) {
 	o.N.Set(&v)
 }
+
 // SetNNil sets the value for N to be an explicit nil
 func (o *ChatRequest) SetNNil() {
 	o.N.Set(nil)
@@ -511,6 +520,7 @@ func (o *ChatRequest) HasParallelToolCalls() bool {
 func (o *ChatRequest) SetParallelToolCalls(v bool) {
 	o.ParallelToolCalls.Set(&v)
 }
+
 // SetParallelToolCallsNil sets the value for ParallelToolCalls to be an explicit nil
 func (o *ChatRequest) SetParallelToolCallsNil() {
 	o.ParallelToolCalls.Set(nil)
@@ -553,6 +563,7 @@ func (o *ChatRequest) HasPresencePenalty() bool {
 func (o *ChatRequest) SetPresencePenalty(v float32) {
 	o.PresencePenalty.Set(&v)
 }
+
 // SetPresencePenaltyNil sets the value for PresencePenalty to be an explicit nil
 func (o *ChatRequest) SetPresencePenaltyNil() {
 	o.PresencePenalty.Set(nil)
@@ -595,6 +606,7 @@ func (o *ChatRequest) HasPromptCacheKey() bool {
 func (o *ChatRequest) SetPromptCacheKey(v string) {
 	o.PromptCacheKey.Set(&v)
 }
+
 // SetPromptCacheKeyNil sets the value for PromptCacheKey to be an explicit nil
 func (o *ChatRequest) SetPromptCacheKeyNil() {
 	o.PromptCacheKey.Set(nil)
@@ -637,6 +649,7 @@ func (o *ChatRequest) HasReasoningEffort() bool {
 func (o *ChatRequest) SetReasoningEffort(v string) {
 	o.ReasoningEffort.Set(&v)
 }
+
 // SetReasoningEffortNil sets the value for ReasoningEffort to be an explicit nil
 func (o *ChatRequest) SetReasoningEffortNil() {
 	o.ReasoningEffort.Set(nil)
@@ -679,6 +692,7 @@ func (o *ChatRequest) HasResponseFormat() bool {
 func (o *ChatRequest) SetResponseFormat(v ResponseFormat) {
 	o.ResponseFormat.Set(&v)
 }
+
 // SetResponseFormatNil sets the value for ResponseFormat to be an explicit nil
 func (o *ChatRequest) SetResponseFormatNil() {
 	o.ResponseFormat.Set(nil)
@@ -687,6 +701,49 @@ func (o *ChatRequest) SetResponseFormatNil() {
 // UnsetResponseFormat ensures that no value is present for ResponseFormat, not even an explicit nil
 func (o *ChatRequest) UnsetResponseFormat() {
 	o.ResponseFormat.Unset()
+}
+
+// GetSafetyIdentifier returns the SafetyIdentifier field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ChatRequest) GetSafetyIdentifier() string {
+	if o == nil || IsNil(o.SafetyIdentifier.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.SafetyIdentifier.Get()
+}
+
+// GetSafetyIdentifierOk returns a tuple with the SafetyIdentifier field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ChatRequest) GetSafetyIdentifierOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.SafetyIdentifier.Get(), o.SafetyIdentifier.IsSet()
+}
+
+// HasSafetyIdentifier returns a boolean if a field has been set.
+func (o *ChatRequest) HasSafetyIdentifier() bool {
+	if o != nil && o.SafetyIdentifier.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetSafetyIdentifier gets a reference to the given NullableString and assigns it to the SafetyIdentifier field.
+func (o *ChatRequest) SetSafetyIdentifier(v string) {
+	o.SafetyIdentifier.Set(&v)
+}
+
+// SetSafetyIdentifierNil sets the value for SafetyIdentifier to be an explicit nil
+func (o *ChatRequest) SetSafetyIdentifierNil() {
+	o.SafetyIdentifier.Set(nil)
+}
+
+// UnsetSafetyIdentifier ensures that no value is present for SafetyIdentifier, not even an explicit nil
+func (o *ChatRequest) UnsetSafetyIdentifier() {
+	o.SafetyIdentifier.Unset()
 }
 
 // GetSearchParameters returns the SearchParameters field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -721,6 +778,7 @@ func (o *ChatRequest) HasSearchParameters() bool {
 func (o *ChatRequest) SetSearchParameters(v SearchParameters) {
 	o.SearchParameters.Set(&v)
 }
+
 // SetSearchParametersNil sets the value for SearchParameters to be an explicit nil
 func (o *ChatRequest) SetSearchParametersNil() {
 	o.SearchParameters.Set(nil)
@@ -763,6 +821,7 @@ func (o *ChatRequest) HasSeed() bool {
 func (o *ChatRequest) SetSeed(v int32) {
 	o.Seed.Set(&v)
 }
+
 // SetSeedNil sets the value for Seed to be an explicit nil
 func (o *ChatRequest) SetSeedNil() {
 	o.Seed.Set(nil)
@@ -805,6 +864,7 @@ func (o *ChatRequest) HasServiceTier() bool {
 func (o *ChatRequest) SetServiceTier(v ServiceTier) {
 	o.ServiceTier.Set(&v)
 }
+
 // SetServiceTierNil sets the value for ServiceTier to be an explicit nil
 func (o *ChatRequest) SetServiceTierNil() {
 	o.ServiceTier.Set(nil)
@@ -880,6 +940,7 @@ func (o *ChatRequest) HasStream() bool {
 func (o *ChatRequest) SetStream(v bool) {
 	o.Stream.Set(&v)
 }
+
 // SetStreamNil sets the value for Stream to be an explicit nil
 func (o *ChatRequest) SetStreamNil() {
 	o.Stream.Set(nil)
@@ -922,6 +983,7 @@ func (o *ChatRequest) HasStreamOptions() bool {
 func (o *ChatRequest) SetStreamOptions(v StreamOptions) {
 	o.StreamOptions.Set(&v)
 }
+
 // SetStreamOptionsNil sets the value for StreamOptions to be an explicit nil
 func (o *ChatRequest) SetStreamOptionsNil() {
 	o.StreamOptions.Set(nil)
@@ -964,6 +1026,7 @@ func (o *ChatRequest) HasTemperature() bool {
 func (o *ChatRequest) SetTemperature(v float32) {
 	o.Temperature.Set(&v)
 }
+
 // SetTemperatureNil sets the value for Temperature to be an explicit nil
 func (o *ChatRequest) SetTemperatureNil() {
 	o.Temperature.Set(nil)
@@ -1006,6 +1069,7 @@ func (o *ChatRequest) HasToolChoice() bool {
 func (o *ChatRequest) SetToolChoice(v ToolChoice) {
 	o.ToolChoice.Set(&v)
 }
+
 // SetToolChoiceNil sets the value for ToolChoice to be an explicit nil
 func (o *ChatRequest) SetToolChoiceNil() {
 	o.ToolChoice.Set(nil)
@@ -1081,6 +1145,7 @@ func (o *ChatRequest) HasTopLogprobs() bool {
 func (o *ChatRequest) SetTopLogprobs(v int32) {
 	o.TopLogprobs.Set(&v)
 }
+
 // SetTopLogprobsNil sets the value for TopLogprobs to be an explicit nil
 func (o *ChatRequest) SetTopLogprobsNil() {
 	o.TopLogprobs.Set(nil)
@@ -1123,6 +1188,7 @@ func (o *ChatRequest) HasTopP() bool {
 func (o *ChatRequest) SetTopP(v float32) {
 	o.TopP.Set(&v)
 }
+
 // SetTopPNil sets the value for TopP to be an explicit nil
 func (o *ChatRequest) SetTopPNil() {
 	o.TopP.Set(nil)
@@ -1165,6 +1231,7 @@ func (o *ChatRequest) HasUser() bool {
 func (o *ChatRequest) SetUser(v string) {
 	o.User.Set(&v)
 }
+
 // SetUserNil sets the value for User to be an explicit nil
 func (o *ChatRequest) SetUserNil() {
 	o.User.Set(nil)
@@ -1207,6 +1274,7 @@ func (o *ChatRequest) HasWebSearchOptions() bool {
 func (o *ChatRequest) SetWebSearchOptions(v WebSearchOptions) {
 	o.WebSearchOptions.Set(&v)
 }
+
 // SetWebSearchOptionsNil sets the value for WebSearchOptions to be an explicit nil
 func (o *ChatRequest) SetWebSearchOptionsNil() {
 	o.WebSearchOptions.Set(nil)
@@ -1218,7 +1286,7 @@ func (o *ChatRequest) UnsetWebSearchOptions() {
 }
 
 func (o ChatRequest) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -1233,7 +1301,7 @@ func (o ChatRequest) ToMap() (map[string]interface{}, error) {
 	if o.FrequencyPenalty.IsSet() {
 		toSerialize["frequency_penalty"] = o.FrequencyPenalty.Get()
 	}
-	if !IsNil(o.LogitBias) {
+	if o.LogitBias != nil {
 		toSerialize["logit_bias"] = o.LogitBias
 	}
 	if o.Logprobs.IsSet() {
@@ -1268,6 +1336,9 @@ func (o ChatRequest) ToMap() (map[string]interface{}, error) {
 	}
 	if o.ResponseFormat.IsSet() {
 		toSerialize["response_format"] = o.ResponseFormat.Get()
+	}
+	if o.SafetyIdentifier.IsSet() {
+		toSerialize["safety_identifier"] = o.SafetyIdentifier.Get()
 	}
 	if o.SearchParameters.IsSet() {
 		toSerialize["search_parameters"] = o.SearchParameters.Get()
@@ -1344,6 +1415,7 @@ func (o *ChatRequest) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "prompt_cache_key")
 		delete(additionalProperties, "reasoning_effort")
 		delete(additionalProperties, "response_format")
+		delete(additionalProperties, "safety_identifier")
 		delete(additionalProperties, "search_parameters")
 		delete(additionalProperties, "seed")
 		delete(additionalProperties, "service_tier")

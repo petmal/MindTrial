@@ -111,10 +111,9 @@ func (dst *RetrievalMode) UnmarshalJSON(data []byte) error {
 	} else { // no match
 		if err != nil {
 			return fmt.Errorf("data failed to match schemas in oneOf(RetrievalMode): %v", err)
-		} else {
-			return fmt.Errorf("data failed to match schemas in oneOf(RetrievalMode)")
 		}
 
+		return fmt.Errorf("data failed to match schemas in oneOf(RetrievalMode)")
 	}
 }
 

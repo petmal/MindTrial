@@ -20,7 +20,7 @@ var _ MappedNullable = &GroupByAggregateOneOf1{}
 
 // GroupByAggregateOneOf1 Keep the k records with the largest values.
 type GroupByAggregateOneOf1 struct {
-	MaxK GroupByAggregateOneOf1MaxK `json:"max_k"`
+	MaxK                 GroupByAggregateOneOf1MaxK `json:"max_k"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -69,7 +69,7 @@ func (o *GroupByAggregateOneOf1) SetMaxK(v GroupByAggregateOneOf1MaxK) {
 }
 
 func (o GroupByAggregateOneOf1) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -100,10 +100,10 @@ func (o *GroupByAggregateOneOf1) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

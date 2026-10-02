@@ -28,19 +28,21 @@ type ImageGenerationModel struct {
 	Fingerprint string `json:"fingerprint"`
 	// Model ID.
 	Id string `json:"id"`
-	// Price of a single image in USD cents.
+	// Price of a single image in USD cents. The default tier: medium quality at the default (1k) resolution. See `pricing` for the full quality/resolution matrix.
 	ImagePrice int64 `json:"image_price"`
 	// The input modalities supported by the model.
 	InputModalities []string `json:"input_modalities"`
-	MaxPromptLength int64 `json:"max_prompt_length"`
+	MaxPromptLength int64    `json:"max_prompt_length"`
 	// The object type, which is always `\"model\"`.
 	Object string `json:"object"`
 	// The output modalities supported by the model.
 	OutputModalities []string `json:"output_modalities"`
 	// Owner of the model.
 	OwnedBy string `json:"owned_by"`
+	// Per-image prices by (quality, resolution) tier. One entry per combination the model serves; omitted when the model prices all qualities identically (see `image_price`).
+	Pricing []ImagePricingTier `json:"pricing,omitempty"`
 	// Version of the model.
-	Version string `json:"version"`
+	Version              string `json:"version"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -314,6 +316,38 @@ func (o *ImageGenerationModel) SetOwnedBy(v string) {
 	o.OwnedBy = v
 }
 
+// GetPricing returns the Pricing field value if set, zero value otherwise.
+func (o *ImageGenerationModel) GetPricing() []ImagePricingTier {
+	if o == nil || IsNil(o.Pricing) {
+		var ret []ImagePricingTier
+		return ret
+	}
+	return o.Pricing
+}
+
+// GetPricingOk returns a tuple with the Pricing field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ImageGenerationModel) GetPricingOk() ([]ImagePricingTier, bool) {
+	if o == nil || IsNil(o.Pricing) {
+		return nil, false
+	}
+	return o.Pricing, true
+}
+
+// HasPricing returns a boolean if a field has been set.
+func (o *ImageGenerationModel) HasPricing() bool {
+	if o != nil && !IsNil(o.Pricing) {
+		return true
+	}
+
+	return false
+}
+
+// SetPricing gets a reference to the given []ImagePricingTier and assigns it to the Pricing field.
+func (o *ImageGenerationModel) SetPricing(v []ImagePricingTier) {
+	o.Pricing = v
+}
+
 // GetVersion returns the Version field value
 func (o *ImageGenerationModel) GetVersion() string {
 	if o == nil {
@@ -339,7 +373,7 @@ func (o *ImageGenerationModel) SetVersion(v string) {
 }
 
 func (o ImageGenerationModel) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -358,6 +392,9 @@ func (o ImageGenerationModel) ToMap() (map[string]interface{}, error) {
 	toSerialize["object"] = o.Object
 	toSerialize["output_modalities"] = o.OutputModalities
 	toSerialize["owned_by"] = o.OwnedBy
+	if !IsNil(o.Pricing) {
+		toSerialize["pricing"] = o.Pricing
+	}
 	toSerialize["version"] = o.Version
 
 	for key, value := range o.AdditionalProperties {
@@ -390,10 +427,10 @@ func (o *ImageGenerationModel) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -422,6 +459,7 @@ func (o *ImageGenerationModel) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "object")
 		delete(additionalProperties, "output_modalities")
 		delete(additionalProperties, "owned_by")
+		delete(additionalProperties, "pricing")
 		delete(additionalProperties, "version")
 		o.AdditionalProperties = additionalProperties
 	}

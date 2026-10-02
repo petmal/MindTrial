@@ -27,7 +27,7 @@ type ModelInputPartOneOf struct {
 	// The role of the message. Possible values are `user`, `assistant`, `system` and `developer`.
 	Role string `json:"role"`
 	// The type of the message, which is always `message`.
-	Type NullableString `json:"type,omitempty"`
+	Type                 NullableString `json:"type,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -108,6 +108,7 @@ func (o *ModelInputPartOneOf) HasName() bool {
 func (o *ModelInputPartOneOf) SetName(v string) {
 	o.Name.Set(&v)
 }
+
 // SetNameNil sets the value for Name to be an explicit nil
 func (o *ModelInputPartOneOf) SetNameNil() {
 	o.Name.Set(nil)
@@ -174,6 +175,7 @@ func (o *ModelInputPartOneOf) HasType() bool {
 func (o *ModelInputPartOneOf) SetType(v string) {
 	o.Type.Set(&v)
 }
+
 // SetTypeNil sets the value for Type to be an explicit nil
 func (o *ModelInputPartOneOf) SetTypeNil() {
 	o.Type.Set(nil)
@@ -185,7 +187,7 @@ func (o *ModelInputPartOneOf) UnsetType() {
 }
 
 func (o ModelInputPartOneOf) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -224,10 +226,10 @@ func (o *ModelInputPartOneOf) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

@@ -21,8 +21,8 @@ var _ MappedNullable = &ToolResultContentBlockOneOf1{}
 // ToolResultContentBlockOneOf1 Image content block.
 type ToolResultContentBlockOneOf1 struct {
 	// Image source.
-	Source MessageImageContent `json:"source"`
-	Type string `json:"type"`
+	Source               MessageImageContent `json:"source"`
+	Type                 string              `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -96,7 +96,7 @@ func (o *ToolResultContentBlockOneOf1) SetType(v string) {
 }
 
 func (o ToolResultContentBlockOneOf1) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -129,10 +129,10 @@ func (o *ToolResultContentBlockOneOf1) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

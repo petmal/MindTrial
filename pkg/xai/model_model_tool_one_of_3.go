@@ -21,8 +21,8 @@ var _ MappedNullable = &ModelToolOneOf3{}
 // ModelToolOneOf3 Generate images from text prompts.
 type ModelToolOneOf3 struct {
 	// Which image capabilities to expose to the model. One of `auto` (the default; both generation and editing), `generate` (text-to-image only), or `edit` (image editing only).
-	Action NullableString `json:"action,omitempty"`
-	Type string `json:"type"`
+	Action               NullableString `json:"action,omitempty"`
+	Type                 string         `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -78,6 +78,7 @@ func (o *ModelToolOneOf3) HasAction() bool {
 func (o *ModelToolOneOf3) SetAction(v string) {
 	o.Action.Set(&v)
 }
+
 // SetActionNil sets the value for Action to be an explicit nil
 func (o *ModelToolOneOf3) SetActionNil() {
 	o.Action.Set(nil)
@@ -113,7 +114,7 @@ func (o *ModelToolOneOf3) SetType(v string) {
 }
 
 func (o ModelToolOneOf3) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -147,10 +148,10 @@ func (o *ModelToolOneOf3) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

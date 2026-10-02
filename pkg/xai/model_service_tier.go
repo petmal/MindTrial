@@ -15,19 +15,21 @@ import (
 	"fmt"
 )
 
-// ServiceTier Processing tier for a request. Determines scheduling priority and billing.
+// ServiceTier Processing tier for a request. `Fast` and `Priority` are interchangeable: the model's fast deployment and its rates where configured, else higher scheduling priority at a higher price.
 type ServiceTier string
 
 // List of ServiceTier
 const (
-	SERVICETIER_DEFAULT ServiceTier = "default"
+	SERVICETIER_DEFAULT  ServiceTier = "default"
 	SERVICETIER_PRIORITY ServiceTier = "priority"
+	SERVICETIER_FAST     ServiceTier = "fast"
 )
 
 // All allowed values of ServiceTier enum
 var AllowedServiceTierEnumValues = []ServiceTier{
 	"default",
 	"priority",
+	"fast",
 }
 
 func (v *ServiceTier) UnmarshalJSON(src []byte) error {

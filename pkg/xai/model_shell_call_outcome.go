@@ -85,10 +85,9 @@ func (dst *ShellCallOutcome) UnmarshalJSON(data []byte) error {
 	} else { // no match
 		if err != nil {
 			return fmt.Errorf("data failed to match schemas in oneOf(ShellCallOutcome): %v", err)
-		} else {
-			return fmt.Errorf("data failed to match schemas in oneOf(ShellCallOutcome)")
 		}
 
+		return fmt.Errorf("data failed to match schemas in oneOf(ShellCallOutcome)")
 	}
 }
 

@@ -29,7 +29,7 @@ type ImageGenerationCall struct {
 	// The status of the image generation tool call. One of `in_progress`, `generating`, `completed` or `failed`.
 	Status *string `json:"status,omitempty"`
 	// Type tag for [`ImageGenerationCall`]. Serializes as `\"image_generation_call\"`.  A single-variant enum rather than a `String`: `ImageGenerationCall` lives in the untagged `ModelOutput` / `ModelInputPart` enums and every other field is defaulted or optional, so with a plain `String` type field the struct would match *any* JSON object carrying a `type` key — swallowing `function_call_output` (and similar) input items before their own variants are tried.
-	Type string `json:"type"`
+	Type                 string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -117,6 +117,7 @@ func (o *ImageGenerationCall) HasPrompt() bool {
 func (o *ImageGenerationCall) SetPrompt(v string) {
 	o.Prompt.Set(&v)
 }
+
 // SetPromptNil sets the value for Prompt to be an explicit nil
 func (o *ImageGenerationCall) SetPromptNil() {
 	o.Prompt.Set(nil)
@@ -159,6 +160,7 @@ func (o *ImageGenerationCall) HasResult() bool {
 func (o *ImageGenerationCall) SetResult(v string) {
 	o.Result.Set(&v)
 }
+
 // SetResultNil sets the value for Result to be an explicit nil
 func (o *ImageGenerationCall) SetResultNil() {
 	o.Result.Set(nil)
@@ -226,7 +228,7 @@ func (o *ImageGenerationCall) SetType(v string) {
 }
 
 func (o ImageGenerationCall) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -269,10 +271,10 @@ func (o *ImageGenerationCall) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

@@ -85,10 +85,9 @@ func (dst *PublicUrlInput) UnmarshalJSON(data []byte) error {
 	} else { // no match
 		if err != nil {
 			return fmt.Errorf("data failed to match schemas in oneOf(PublicUrlInput): %v", err)
-		} else {
-			return fmt.Errorf("data failed to match schemas in oneOf(PublicUrlInput)")
 		}
 
+		return fmt.Errorf("data failed to match schemas in oneOf(PublicUrlInput)")
 	}
 }
 

@@ -32,8 +32,12 @@ type ServerSideToolUsageDetails struct {
 	McpCalls int32 `json:"mcp_calls"`
 	// Number of web search calls.
 	WebSearchCalls int32 `json:"web_search_calls"`
+	// Number of X posts fetched across all X search calls, including nested parent/quote posts and every post of a fetched thread, without de-duplication. X search is billed per fetched item.
+	XPostsFetched int32 `json:"x_posts_fetched"`
 	// Number of X search calls.
 	XSearchCalls int32 `json:"x_search_calls"`
+	// Number of X user profiles fetched across all X search calls, without de-duplication. X search is billed per fetched item.
+	XUsersFetched        int32 `json:"x_users_fetched"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -43,7 +47,7 @@ type _ServerSideToolUsageDetails ServerSideToolUsageDetails
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewServerSideToolUsageDetails(codeInterpreterCalls int32, documentSearchCalls int32, fileSearchCalls int32, imageGenerationCalls int32, mcpCalls int32, webSearchCalls int32, xSearchCalls int32) *ServerSideToolUsageDetails {
+func NewServerSideToolUsageDetails(codeInterpreterCalls int32, documentSearchCalls int32, fileSearchCalls int32, imageGenerationCalls int32, mcpCalls int32, webSearchCalls int32, xPostsFetched int32, xSearchCalls int32, xUsersFetched int32) *ServerSideToolUsageDetails {
 	this := ServerSideToolUsageDetails{}
 	this.CodeInterpreterCalls = codeInterpreterCalls
 	this.DocumentSearchCalls = documentSearchCalls
@@ -51,7 +55,9 @@ func NewServerSideToolUsageDetails(codeInterpreterCalls int32, documentSearchCal
 	this.ImageGenerationCalls = imageGenerationCalls
 	this.McpCalls = mcpCalls
 	this.WebSearchCalls = webSearchCalls
+	this.XPostsFetched = xPostsFetched
 	this.XSearchCalls = xSearchCalls
+	this.XUsersFetched = xUsersFetched
 	return &this
 }
 
@@ -207,6 +213,30 @@ func (o *ServerSideToolUsageDetails) SetWebSearchCalls(v int32) {
 	o.WebSearchCalls = v
 }
 
+// GetXPostsFetched returns the XPostsFetched field value
+func (o *ServerSideToolUsageDetails) GetXPostsFetched() int32 {
+	if o == nil {
+		var ret int32
+		return ret
+	}
+
+	return o.XPostsFetched
+}
+
+// GetXPostsFetchedOk returns a tuple with the XPostsFetched field value
+// and a boolean to check if the value has been set.
+func (o *ServerSideToolUsageDetails) GetXPostsFetchedOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.XPostsFetched, true
+}
+
+// SetXPostsFetched sets field value
+func (o *ServerSideToolUsageDetails) SetXPostsFetched(v int32) {
+	o.XPostsFetched = v
+}
+
 // GetXSearchCalls returns the XSearchCalls field value
 func (o *ServerSideToolUsageDetails) GetXSearchCalls() int32 {
 	if o == nil {
@@ -231,8 +261,32 @@ func (o *ServerSideToolUsageDetails) SetXSearchCalls(v int32) {
 	o.XSearchCalls = v
 }
 
+// GetXUsersFetched returns the XUsersFetched field value
+func (o *ServerSideToolUsageDetails) GetXUsersFetched() int32 {
+	if o == nil {
+		var ret int32
+		return ret
+	}
+
+	return o.XUsersFetched
+}
+
+// GetXUsersFetchedOk returns a tuple with the XUsersFetched field value
+// and a boolean to check if the value has been set.
+func (o *ServerSideToolUsageDetails) GetXUsersFetchedOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.XUsersFetched, true
+}
+
+// SetXUsersFetched sets field value
+func (o *ServerSideToolUsageDetails) SetXUsersFetched(v int32) {
+	o.XUsersFetched = v
+}
+
 func (o ServerSideToolUsageDetails) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -247,7 +301,9 @@ func (o ServerSideToolUsageDetails) ToMap() (map[string]interface{}, error) {
 	toSerialize["image_generation_calls"] = o.ImageGenerationCalls
 	toSerialize["mcp_calls"] = o.McpCalls
 	toSerialize["web_search_calls"] = o.WebSearchCalls
+	toSerialize["x_posts_fetched"] = o.XPostsFetched
 	toSerialize["x_search_calls"] = o.XSearchCalls
+	toSerialize["x_users_fetched"] = o.XUsersFetched
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -267,7 +323,9 @@ func (o *ServerSideToolUsageDetails) UnmarshalJSON(data []byte) (err error) {
 		"image_generation_calls",
 		"mcp_calls",
 		"web_search_calls",
+		"x_posts_fetched",
 		"x_search_calls",
+		"x_users_fetched",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -275,10 +333,10 @@ func (o *ServerSideToolUsageDetails) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -303,7 +361,9 @@ func (o *ServerSideToolUsageDetails) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "image_generation_calls")
 		delete(additionalProperties, "mcp_calls")
 		delete(additionalProperties, "web_search_calls")
+		delete(additionalProperties, "x_posts_fetched")
 		delete(additionalProperties, "x_search_calls")
+		delete(additionalProperties, "x_users_fetched")
 		o.AdditionalProperties = additionalProperties
 	}
 

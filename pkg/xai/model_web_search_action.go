@@ -111,10 +111,9 @@ func (dst *WebSearchAction) UnmarshalJSON(data []byte) error {
 	} else { // no match
 		if err != nil {
 			return fmt.Errorf("data failed to match schemas in oneOf(WebSearchAction): %v", err)
-		} else {
-			return fmt.Errorf("data failed to match schemas in oneOf(WebSearchAction)")
 		}
 
+		return fmt.Errorf("data failed to match schemas in oneOf(WebSearchAction)")
 	}
 }
 

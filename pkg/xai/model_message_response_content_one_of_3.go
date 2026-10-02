@@ -22,10 +22,11 @@ var _ MappedNullable = &MessageResponseContentOneOf3{}
 type MessageResponseContentOneOf3 struct {
 	// Tool call ID.
 	Id string `json:"id"`
+	// Input to the tool call follwing the `input_schema`.
 	Input interface{} `json:"input"`
 	// Name of the tool call to be used.
-	Name string `json:"name"`
-	Type string `json:"type"`
+	Name                 string `json:"name"`
+	Type                 string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -151,7 +152,7 @@ func (o *MessageResponseContentOneOf3) SetType(v string) {
 }
 
 func (o MessageResponseContentOneOf3) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -190,10 +191,10 @@ func (o *MessageResponseContentOneOf3) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

@@ -20,14 +20,16 @@ type ImageResolution string
 
 // List of ImageResolution
 const (
-	IMAGERESOLUTION__1K ImageResolution = "1k"
-	IMAGERESOLUTION__2K ImageResolution = "2k"
+	IMAGERESOLUTION__1K   ImageResolution = "1k"
+	IMAGERESOLUTION__2K   ImageResolution = "2k"
+	IMAGERESOLUTION__1_5K ImageResolution = "1.5k"
 )
 
 // All allowed values of ImageResolution enum
 var AllowedImageResolutionEnumValues = []ImageResolution{
 	"1k",
 	"2k",
+	"1.5k",
 }
 
 func (v *ImageResolution) UnmarshalJSON(src []byte) error {

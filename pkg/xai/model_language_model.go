@@ -26,6 +26,8 @@ type LanguageModel struct {
 	CachedPromptTextTokenPrice int64 `json:"cached_prompt_text_token_price"`
 	// Price of the cached prompt text token for long context requests (USD cents per 100 million tokens). When 0, falls back to cached_prompt_text_token_price.
 	CachedPromptTextTokenPriceLongContext int64 `json:"cached_prompt_text_token_price_long_context"`
+	// Optional request parameters this model accepts.
+	Capabilities NullableModelCapabilities `json:"capabilities,omitempty"`
 	// Price of the completion text token in USD cents per 100 million token.
 	CompletionTextTokenPrice int64 `json:"completion_text_token_price"`
 	// Price of the completion text token for long context requests (USD cents per 100 million tokens). When 0, the standard completion_text_token_price applies.
@@ -55,7 +57,7 @@ type LanguageModel struct {
 	// Price of the search in USD cents per 100 million searches.
 	SearchPrice int64 `json:"search_price"`
 	// Version of the model.
-	Version string `json:"version"`
+	Version              string `json:"version"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -166,6 +168,49 @@ func (o *LanguageModel) GetCachedPromptTextTokenPriceLongContextOk() (*int64, bo
 // SetCachedPromptTextTokenPriceLongContext sets field value
 func (o *LanguageModel) SetCachedPromptTextTokenPriceLongContext(v int64) {
 	o.CachedPromptTextTokenPriceLongContext = v
+}
+
+// GetCapabilities returns the Capabilities field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *LanguageModel) GetCapabilities() ModelCapabilities {
+	if o == nil || IsNil(o.Capabilities.Get()) {
+		var ret ModelCapabilities
+		return ret
+	}
+	return *o.Capabilities.Get()
+}
+
+// GetCapabilitiesOk returns a tuple with the Capabilities field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *LanguageModel) GetCapabilitiesOk() (*ModelCapabilities, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Capabilities.Get(), o.Capabilities.IsSet()
+}
+
+// HasCapabilities returns a boolean if a field has been set.
+func (o *LanguageModel) HasCapabilities() bool {
+	if o != nil && o.Capabilities.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetCapabilities gets a reference to the given NullableModelCapabilities and assigns it to the Capabilities field.
+func (o *LanguageModel) SetCapabilities(v ModelCapabilities) {
+	o.Capabilities.Set(&v)
+}
+
+// SetCapabilitiesNil sets the value for Capabilities to be an explicit nil
+func (o *LanguageModel) SetCapabilitiesNil() {
+	o.Capabilities.Set(nil)
+}
+
+// UnsetCapabilities ensures that no value is present for Capabilities, not even an explicit nil
+func (o *LanguageModel) UnsetCapabilities() {
+	o.Capabilities.Unset()
 }
 
 // GetCompletionTextTokenPrice returns the CompletionTextTokenPrice field value
@@ -529,7 +574,7 @@ func (o *LanguageModel) SetVersion(v string) {
 }
 
 func (o LanguageModel) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -541,6 +586,9 @@ func (o LanguageModel) ToMap() (map[string]interface{}, error) {
 	toSerialize["aliases"] = o.Aliases
 	toSerialize["cached_prompt_text_token_price"] = o.CachedPromptTextTokenPrice
 	toSerialize["cached_prompt_text_token_price_long_context"] = o.CachedPromptTextTokenPriceLongContext
+	if o.Capabilities.IsSet() {
+		toSerialize["capabilities"] = o.Capabilities.Get()
+	}
 	toSerialize["completion_text_token_price"] = o.CompletionTextTokenPrice
 	toSerialize["completion_text_token_price_long_context"] = o.CompletionTextTokenPriceLongContext
 	toSerialize["created"] = o.Created
@@ -594,10 +642,10 @@ func (o *LanguageModel) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -619,6 +667,7 @@ func (o *LanguageModel) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "aliases")
 		delete(additionalProperties, "cached_prompt_text_token_price")
 		delete(additionalProperties, "cached_prompt_text_token_price_long_context")
+		delete(additionalProperties, "capabilities")
 		delete(additionalProperties, "completion_text_token_price")
 		delete(additionalProperties, "completion_text_token_price_long_context")
 		delete(additionalProperties, "created")

@@ -82,6 +82,7 @@ model_hybrid_retrieval.go
 model_image_aspect_ratio.go
 model_image_generation_call.go
 model_image_generation_model.go
+model_image_pricing_tier.go
 model_image_resolution.go
 model_image_url.go
 model_incomplete_details.go
@@ -106,6 +107,8 @@ model_log_probs.go
 model_mcp_call.go
 model_me_api_key_info.go
 model_me_o_auth_info.go
+model_media_input_tokens_details.go
+model_media_output_tokens_details.go
 model_media_usage.go
 model_message.go
 model_message_body.go
@@ -141,6 +144,7 @@ model_message_tool_input_schema.go
 model_message_tools.go
 model_message_usage.go
 model_model.go
+model_model_capabilities.go
 model_model_input.go
 model_model_input_content.go
 model_model_input_content_item.go
@@ -169,6 +173,7 @@ model_model_tool_one_of_4.go
 model_model_tool_one_of_5.go
 model_model_tool_one_of_6.go
 model_model_tool_one_of_7.go
+model_model_tool_one_of_8.go
 model_model_usage.go
 model_output_file.go
 model_output_message.go
@@ -241,12 +246,15 @@ model_tool_result_content.go
 model_tool_result_content_block.go
 model_tool_result_content_block_one_of.go
 model_tool_result_content_block_one_of_1.go
+model_tool_search_call.go
+model_tool_search_output.go
 model_top_log_prob.go
 model_usage.go
 model_video_aspect_ratio.go
 model_video_error.go
 model_video_error_code.go
 model_video_generation_model.go
+model_video_keyframe.go
 model_video_output.go
 model_video_resolution.go
 model_video_response.go

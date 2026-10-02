@@ -26,6 +26,8 @@ type Model struct {
 	CachedPromptTextTokenPrice NullableInt64 `json:"cached_prompt_text_token_price,omitempty"`
 	// Price of the cached prompt text token for long context requests (USD cents per 100 million tokens).
 	CachedPromptTextTokenPriceLongContext NullableInt64 `json:"cached_prompt_text_token_price_long_context,omitempty"`
+	// Optional request parameters this model accepts.
+	Capabilities NullableModelCapabilities `json:"capabilities,omitempty"`
 	// Price of the completion text token in USD cents per 100 million tokens.
 	CompletionTextTokenPrice NullableInt64 `json:"completion_text_token_price,omitempty"`
 	// Price of the completion text token for long context requests (USD cents per 100 million tokens).
@@ -36,7 +38,7 @@ type Model struct {
 	Created int64 `json:"created"`
 	// Model ID. Obtainable from <https://console.x.ai/team/default/models> or <https://docs.x.ai/docs/models>.
 	Id string `json:"id"`
-	// Price per image in USD cents (image generation models).
+	// Price per image in USD cents (image generation models). The default tier: medium quality at the default (1k) resolution. See `pricing` for the full quality/resolution matrix.
 	ImagePrice NullableInt64 `json:"image_price,omitempty"`
 	// Token count at or above which the long context prices apply.
 	LongContextThreshold NullableInt64 `json:"long_context_threshold,omitempty"`
@@ -44,13 +46,15 @@ type Model struct {
 	Object string `json:"object"`
 	// Owner of the model.
 	OwnedBy string `json:"owned_by"`
+	// Per-image prices by (quality, resolution) tier (image generation models). Omitted when the model prices all qualities identically (see `image_price`).
+	Pricing []ImagePricingTier `json:"pricing,omitempty"`
 	// Price of the prompt image token in USD cents per 100 million tokens.
 	PromptImageTokenPrice NullableInt64 `json:"prompt_image_token_price,omitempty"`
 	// Price of the prompt text token in USD cents per 100 million tokens.
 	PromptTextTokenPrice NullableInt64 `json:"prompt_text_token_price,omitempty"`
 	// Price of the prompt text token for long context requests (USD cents per 100 million tokens).
 	PromptTextTokenPriceLongContext NullableInt64 `json:"prompt_text_token_price_long_context,omitempty"`
-	AdditionalProperties map[string]interface{}
+	AdditionalProperties            map[string]interface{}
 }
 
 type _Model Model
@@ -133,6 +137,7 @@ func (o *Model) HasCachedPromptTextTokenPrice() bool {
 func (o *Model) SetCachedPromptTextTokenPrice(v int64) {
 	o.CachedPromptTextTokenPrice.Set(&v)
 }
+
 // SetCachedPromptTextTokenPriceNil sets the value for CachedPromptTextTokenPrice to be an explicit nil
 func (o *Model) SetCachedPromptTextTokenPriceNil() {
 	o.CachedPromptTextTokenPrice.Set(nil)
@@ -175,6 +180,7 @@ func (o *Model) HasCachedPromptTextTokenPriceLongContext() bool {
 func (o *Model) SetCachedPromptTextTokenPriceLongContext(v int64) {
 	o.CachedPromptTextTokenPriceLongContext.Set(&v)
 }
+
 // SetCachedPromptTextTokenPriceLongContextNil sets the value for CachedPromptTextTokenPriceLongContext to be an explicit nil
 func (o *Model) SetCachedPromptTextTokenPriceLongContextNil() {
 	o.CachedPromptTextTokenPriceLongContext.Set(nil)
@@ -183,6 +189,49 @@ func (o *Model) SetCachedPromptTextTokenPriceLongContextNil() {
 // UnsetCachedPromptTextTokenPriceLongContext ensures that no value is present for CachedPromptTextTokenPriceLongContext, not even an explicit nil
 func (o *Model) UnsetCachedPromptTextTokenPriceLongContext() {
 	o.CachedPromptTextTokenPriceLongContext.Unset()
+}
+
+// GetCapabilities returns the Capabilities field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *Model) GetCapabilities() ModelCapabilities {
+	if o == nil || IsNil(o.Capabilities.Get()) {
+		var ret ModelCapabilities
+		return ret
+	}
+	return *o.Capabilities.Get()
+}
+
+// GetCapabilitiesOk returns a tuple with the Capabilities field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *Model) GetCapabilitiesOk() (*ModelCapabilities, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Capabilities.Get(), o.Capabilities.IsSet()
+}
+
+// HasCapabilities returns a boolean if a field has been set.
+func (o *Model) HasCapabilities() bool {
+	if o != nil && o.Capabilities.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetCapabilities gets a reference to the given NullableModelCapabilities and assigns it to the Capabilities field.
+func (o *Model) SetCapabilities(v ModelCapabilities) {
+	o.Capabilities.Set(&v)
+}
+
+// SetCapabilitiesNil sets the value for Capabilities to be an explicit nil
+func (o *Model) SetCapabilitiesNil() {
+	o.Capabilities.Set(nil)
+}
+
+// UnsetCapabilities ensures that no value is present for Capabilities, not even an explicit nil
+func (o *Model) UnsetCapabilities() {
+	o.Capabilities.Unset()
 }
 
 // GetCompletionTextTokenPrice returns the CompletionTextTokenPrice field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -217,6 +266,7 @@ func (o *Model) HasCompletionTextTokenPrice() bool {
 func (o *Model) SetCompletionTextTokenPrice(v int64) {
 	o.CompletionTextTokenPrice.Set(&v)
 }
+
 // SetCompletionTextTokenPriceNil sets the value for CompletionTextTokenPrice to be an explicit nil
 func (o *Model) SetCompletionTextTokenPriceNil() {
 	o.CompletionTextTokenPrice.Set(nil)
@@ -259,6 +309,7 @@ func (o *Model) HasCompletionTextTokenPriceLongContext() bool {
 func (o *Model) SetCompletionTextTokenPriceLongContext(v int64) {
 	o.CompletionTextTokenPriceLongContext.Set(&v)
 }
+
 // SetCompletionTextTokenPriceLongContextNil sets the value for CompletionTextTokenPriceLongContext to be an explicit nil
 func (o *Model) SetCompletionTextTokenPriceLongContextNil() {
 	o.CompletionTextTokenPriceLongContext.Set(nil)
@@ -301,6 +352,7 @@ func (o *Model) HasContextLength() bool {
 func (o *Model) SetContextLength(v int64) {
 	o.ContextLength.Set(&v)
 }
+
 // SetContextLengthNil sets the value for ContextLength to be an explicit nil
 func (o *Model) SetContextLengthNil() {
 	o.ContextLength.Set(nil)
@@ -391,6 +443,7 @@ func (o *Model) HasImagePrice() bool {
 func (o *Model) SetImagePrice(v int64) {
 	o.ImagePrice.Set(&v)
 }
+
 // SetImagePriceNil sets the value for ImagePrice to be an explicit nil
 func (o *Model) SetImagePriceNil() {
 	o.ImagePrice.Set(nil)
@@ -433,6 +486,7 @@ func (o *Model) HasLongContextThreshold() bool {
 func (o *Model) SetLongContextThreshold(v int64) {
 	o.LongContextThreshold.Set(&v)
 }
+
 // SetLongContextThresholdNil sets the value for LongContextThreshold to be an explicit nil
 func (o *Model) SetLongContextThresholdNil() {
 	o.LongContextThreshold.Set(nil)
@@ -491,6 +545,38 @@ func (o *Model) SetOwnedBy(v string) {
 	o.OwnedBy = v
 }
 
+// GetPricing returns the Pricing field value if set, zero value otherwise.
+func (o *Model) GetPricing() []ImagePricingTier {
+	if o == nil || IsNil(o.Pricing) {
+		var ret []ImagePricingTier
+		return ret
+	}
+	return o.Pricing
+}
+
+// GetPricingOk returns a tuple with the Pricing field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *Model) GetPricingOk() ([]ImagePricingTier, bool) {
+	if o == nil || IsNil(o.Pricing) {
+		return nil, false
+	}
+	return o.Pricing, true
+}
+
+// HasPricing returns a boolean if a field has been set.
+func (o *Model) HasPricing() bool {
+	if o != nil && !IsNil(o.Pricing) {
+		return true
+	}
+
+	return false
+}
+
+// SetPricing gets a reference to the given []ImagePricingTier and assigns it to the Pricing field.
+func (o *Model) SetPricing(v []ImagePricingTier) {
+	o.Pricing = v
+}
+
 // GetPromptImageTokenPrice returns the PromptImageTokenPrice field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *Model) GetPromptImageTokenPrice() int64 {
 	if o == nil || IsNil(o.PromptImageTokenPrice.Get()) {
@@ -523,6 +609,7 @@ func (o *Model) HasPromptImageTokenPrice() bool {
 func (o *Model) SetPromptImageTokenPrice(v int64) {
 	o.PromptImageTokenPrice.Set(&v)
 }
+
 // SetPromptImageTokenPriceNil sets the value for PromptImageTokenPrice to be an explicit nil
 func (o *Model) SetPromptImageTokenPriceNil() {
 	o.PromptImageTokenPrice.Set(nil)
@@ -565,6 +652,7 @@ func (o *Model) HasPromptTextTokenPrice() bool {
 func (o *Model) SetPromptTextTokenPrice(v int64) {
 	o.PromptTextTokenPrice.Set(&v)
 }
+
 // SetPromptTextTokenPriceNil sets the value for PromptTextTokenPrice to be an explicit nil
 func (o *Model) SetPromptTextTokenPriceNil() {
 	o.PromptTextTokenPrice.Set(nil)
@@ -607,6 +695,7 @@ func (o *Model) HasPromptTextTokenPriceLongContext() bool {
 func (o *Model) SetPromptTextTokenPriceLongContext(v int64) {
 	o.PromptTextTokenPriceLongContext.Set(&v)
 }
+
 // SetPromptTextTokenPriceLongContextNil sets the value for PromptTextTokenPriceLongContext to be an explicit nil
 func (o *Model) SetPromptTextTokenPriceLongContextNil() {
 	o.PromptTextTokenPriceLongContext.Set(nil)
@@ -618,7 +707,7 @@ func (o *Model) UnsetPromptTextTokenPriceLongContext() {
 }
 
 func (o Model) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -633,6 +722,9 @@ func (o Model) ToMap() (map[string]interface{}, error) {
 	}
 	if o.CachedPromptTextTokenPriceLongContext.IsSet() {
 		toSerialize["cached_prompt_text_token_price_long_context"] = o.CachedPromptTextTokenPriceLongContext.Get()
+	}
+	if o.Capabilities.IsSet() {
+		toSerialize["capabilities"] = o.Capabilities.Get()
 	}
 	if o.CompletionTextTokenPrice.IsSet() {
 		toSerialize["completion_text_token_price"] = o.CompletionTextTokenPrice.Get()
@@ -653,6 +745,9 @@ func (o Model) ToMap() (map[string]interface{}, error) {
 	}
 	toSerialize["object"] = o.Object
 	toSerialize["owned_by"] = o.OwnedBy
+	if !IsNil(o.Pricing) {
+		toSerialize["pricing"] = o.Pricing
+	}
 	if o.PromptImageTokenPrice.IsSet() {
 		toSerialize["prompt_image_token_price"] = o.PromptImageTokenPrice.Get()
 	}
@@ -687,10 +782,10 @@ func (o *Model) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -712,6 +807,7 @@ func (o *Model) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "aliases")
 		delete(additionalProperties, "cached_prompt_text_token_price")
 		delete(additionalProperties, "cached_prompt_text_token_price_long_context")
+		delete(additionalProperties, "capabilities")
 		delete(additionalProperties, "completion_text_token_price")
 		delete(additionalProperties, "completion_text_token_price_long_context")
 		delete(additionalProperties, "context_length")
@@ -721,6 +817,7 @@ func (o *Model) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "long_context_threshold")
 		delete(additionalProperties, "object")
 		delete(additionalProperties, "owned_by")
+		delete(additionalProperties, "pricing")
 		delete(additionalProperties, "prompt_image_token_price")
 		delete(additionalProperties, "prompt_text_token_price")
 		delete(additionalProperties, "prompt_text_token_price_long_context")

@@ -137,10 +137,9 @@ func (dst *EmbeddingInput) UnmarshalJSON(data []byte) error {
 	} else { // no match
 		if err != nil {
 			return fmt.Errorf("data failed to match schemas in oneOf(EmbeddingInput): %v", err)
-		} else {
-			return fmt.Errorf("data failed to match schemas in oneOf(EmbeddingInput)")
 		}
 
+		return fmt.Errorf("data failed to match schemas in oneOf(EmbeddingInput)")
 	}
 }
 

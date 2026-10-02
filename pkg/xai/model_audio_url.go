@@ -12,16 +12,17 @@ package xai
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 // checks if the AudioUrl type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &AudioUrl{}
 
-// AudioUrl Reference audio input for video generation. Selects a first-party preset voice by `voice_id`.
+// AudioUrl Reference audio input for video generation. Accepts a caller-supplied clip via `url` or selects a voice via `voice_id`. Exactly one source must be set.
 type AudioUrl struct {
-	// Identifier of a first-party preset voice (e.g. \"ara\"; same voice identifiers as the TTS API), resolved server-side to a curated reference clip from the model's voice-preset catalog.
-	VoiceId string `json:"voice_id"`
+	// Base64-encoded audio data URL (e.g. `data:audio/wav;base64,...`) or an http(s) URL to a downloadable audio clip of at most 15 seconds. Mutually exclusive with `voice_id`.
+	Url NullableString `json:"url,omitempty"`
+	// Identifier of a first-party preset voice (e.g. \"ara\"; same voice identifiers as the TTS API), resolved server-side to a curated reference clip from the model's voice-preset catalog. Models configured for custom voices also accept a custom voice identifier. Mutually exclusive with `url`.
+	VoiceId              NullableString `json:"voice_id,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -31,9 +32,8 @@ type _AudioUrl AudioUrl
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewAudioUrl(voiceId string) *AudioUrl {
+func NewAudioUrl() *AudioUrl {
 	this := AudioUrl{}
-	this.VoiceId = voiceId
 	return &this
 }
 
@@ -45,32 +45,94 @@ func NewAudioUrlWithDefaults() *AudioUrl {
 	return &this
 }
 
-// GetVoiceId returns the VoiceId field value
-func (o *AudioUrl) GetVoiceId() string {
-	if o == nil {
+// GetUrl returns the Url field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *AudioUrl) GetUrl() string {
+	if o == nil || IsNil(o.Url.Get()) {
 		var ret string
 		return ret
 	}
-
-	return o.VoiceId
+	return *o.Url.Get()
 }
 
-// GetVoiceIdOk returns a tuple with the VoiceId field value
+// GetUrlOk returns a tuple with the Url field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *AudioUrl) GetUrlOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Url.Get(), o.Url.IsSet()
+}
+
+// HasUrl returns a boolean if a field has been set.
+func (o *AudioUrl) HasUrl() bool {
+	if o != nil && o.Url.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetUrl gets a reference to the given NullableString and assigns it to the Url field.
+func (o *AudioUrl) SetUrl(v string) {
+	o.Url.Set(&v)
+}
+
+// SetUrlNil sets the value for Url to be an explicit nil
+func (o *AudioUrl) SetUrlNil() {
+	o.Url.Set(nil)
+}
+
+// UnsetUrl ensures that no value is present for Url, not even an explicit nil
+func (o *AudioUrl) UnsetUrl() {
+	o.Url.Unset()
+}
+
+// GetVoiceId returns the VoiceId field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *AudioUrl) GetVoiceId() string {
+	if o == nil || IsNil(o.VoiceId.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.VoiceId.Get()
+}
+
+// GetVoiceIdOk returns a tuple with the VoiceId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *AudioUrl) GetVoiceIdOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.VoiceId, true
+	return o.VoiceId.Get(), o.VoiceId.IsSet()
 }
 
-// SetVoiceId sets field value
+// HasVoiceId returns a boolean if a field has been set.
+func (o *AudioUrl) HasVoiceId() bool {
+	if o != nil && o.VoiceId.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetVoiceId gets a reference to the given NullableString and assigns it to the VoiceId field.
 func (o *AudioUrl) SetVoiceId(v string) {
-	o.VoiceId = v
+	o.VoiceId.Set(&v)
+}
+
+// SetVoiceIdNil sets the value for VoiceId to be an explicit nil
+func (o *AudioUrl) SetVoiceIdNil() {
+	o.VoiceId.Set(nil)
+}
+
+// UnsetVoiceId ensures that no value is present for VoiceId, not even an explicit nil
+func (o *AudioUrl) UnsetVoiceId() {
+	o.VoiceId.Unset()
 }
 
 func (o AudioUrl) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -79,7 +141,12 @@ func (o AudioUrl) MarshalJSON() ([]byte, error) {
 
 func (o AudioUrl) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["voice_id"] = o.VoiceId
+	if o.Url.IsSet() {
+		toSerialize["url"] = o.Url.Get()
+	}
+	if o.VoiceId.IsSet() {
+		toSerialize["voice_id"] = o.VoiceId.Get()
+	}
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -89,27 +156,6 @@ func (o AudioUrl) ToMap() (map[string]interface{}, error) {
 }
 
 func (o *AudioUrl) UnmarshalJSON(data []byte) (err error) {
-	// This validates that all required properties are included in the JSON object
-	// by unmarshalling the object into a generic map with string keys and checking
-	// that every required field exists as a key in the generic map.
-	requiredProperties := []string{
-		"voice_id",
-	}
-
-	allProperties := make(map[string]interface{})
-
-	err = json.Unmarshal(data, &allProperties)
-
-	if err != nil {
-		return err;
-	}
-
-	for _, requiredProperty := range(requiredProperties) {
-		if _, exists := allProperties[requiredProperty]; !exists {
-			return fmt.Errorf("no value given for required property %v", requiredProperty)
-		}
-	}
-
 	varAudioUrl := _AudioUrl{}
 
 	err = json.Unmarshal(data, &varAudioUrl)
@@ -123,6 +169,7 @@ func (o *AudioUrl) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "url")
 		delete(additionalProperties, "voice_id")
 		o.AdditionalProperties = additionalProperties
 	}

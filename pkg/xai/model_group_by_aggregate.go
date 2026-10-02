@@ -85,10 +85,9 @@ func (dst *GroupByAggregate) UnmarshalJSON(data []byte) error {
 	} else { // no match
 		if err != nil {
 			return fmt.Errorf("data failed to match schemas in oneOf(GroupByAggregate): %v", err)
-		} else {
-			return fmt.Errorf("data failed to match schemas in oneOf(GroupByAggregate)")
 		}
 
+		return fmt.Errorf("data failed to match schemas in oneOf(GroupByAggregate)")
 	}
 }
 

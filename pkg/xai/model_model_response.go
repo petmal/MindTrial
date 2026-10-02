@@ -26,6 +26,7 @@ type ModelResponse struct {
 	CompletedAt NullableInt64 `json:"completed_at,omitempty"`
 	// The Unix timestamp (in seconds) for the response creation time.
 	CreatedAt int64 `json:"created_at"`
+	// An error object returned when the model fails to generate a response.
 	Error interface{} `json:"error,omitempty"`
 	// (NOT SUPPORTED in Responses API) Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.
 	FrequencyPenalty float32 `json:"frequency_penalty"`
@@ -35,10 +36,11 @@ type ModelResponse struct {
 	IncompleteDetails NullableIncompleteDetails `json:"incomplete_details,omitempty"`
 	// A system (or developer) message inserted into the model's context.
 	Instructions NullableString `json:"instructions,omitempty"`
-	// Max number of tokens that can be generated in a response. This includes both output and reasoning tokens.
+	// Max number of tokens that can be generated in a response. Only applies to visible output tokens (i.e. does not apply to tokens used for reasoning or function calls).
 	MaxOutputTokens NullableInt32 `json:"max_output_tokens,omitempty"`
 	// The maximum number of tool calls allowed for this response.
 	MaxToolCalls NullableInt32 `json:"max_tool_calls,omitempty"`
+	// Only included for compatibility.
 	Metadata interface{} `json:"metadata"`
 	// Model name used to generate the response.
 	Model string `json:"model"`
@@ -70,7 +72,7 @@ type ModelResponse struct {
 	Text ModelResponseConfiguration `json:"text"`
 	// Controls which (if any) tool is called by the model. auto means the model can pick between generating a message or calling one or more tools. required means the model must call one or more tools. Specifying a particular tool via `{\"type\": \"function\", \"function\": {\"name\": \"my_function\"}}` forces the model to call that tool. `none` is the default when no tools are present. `auto` is the default if tools are present.
 	ToolChoice ModelToolChoice `json:"tool_choice"`
-	// A list of tools the model may call in JSON-schema. Currently, only functions and web search are supported as tools. A max of 128 tools are supported.
+	// A list of tools the model may call in JSON-schema. Currently, only functions and web search are supported as tools. A max of 350 tools are supported.
 	Tools []ModelTool `json:"tools"`
 	// An integer between 0 and 8 specifying the number of most likely tokens to return at each token position.
 	TopLogprobs int32 `json:"top_logprobs"`
@@ -81,7 +83,7 @@ type ModelResponse struct {
 	// Token usage information.
 	Usage NullableModelUsage `json:"usage,omitempty"`
 	// A unique identifier representing your end-user, which can help xAI to monitor and detect abuse.
-	User NullableString `json:"user,omitempty"`
+	User                 NullableString `json:"user,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -192,6 +194,7 @@ func (o *ModelResponse) HasCompletedAt() bool {
 func (o *ModelResponse) SetCompletedAt(v int64) {
 	o.CompletedAt.Set(&v)
 }
+
 // SetCompletedAtNil sets the value for CompletedAt to be an explicit nil
 func (o *ModelResponse) SetCompletedAtNil() {
 	o.CompletedAt.Set(nil)
@@ -339,6 +342,7 @@ func (o *ModelResponse) HasIncompleteDetails() bool {
 func (o *ModelResponse) SetIncompleteDetails(v IncompleteDetails) {
 	o.IncompleteDetails.Set(&v)
 }
+
 // SetIncompleteDetailsNil sets the value for IncompleteDetails to be an explicit nil
 func (o *ModelResponse) SetIncompleteDetailsNil() {
 	o.IncompleteDetails.Set(nil)
@@ -381,6 +385,7 @@ func (o *ModelResponse) HasInstructions() bool {
 func (o *ModelResponse) SetInstructions(v string) {
 	o.Instructions.Set(&v)
 }
+
 // SetInstructionsNil sets the value for Instructions to be an explicit nil
 func (o *ModelResponse) SetInstructionsNil() {
 	o.Instructions.Set(nil)
@@ -423,6 +428,7 @@ func (o *ModelResponse) HasMaxOutputTokens() bool {
 func (o *ModelResponse) SetMaxOutputTokens(v int32) {
 	o.MaxOutputTokens.Set(&v)
 }
+
 // SetMaxOutputTokensNil sets the value for MaxOutputTokens to be an explicit nil
 func (o *ModelResponse) SetMaxOutputTokensNil() {
 	o.MaxOutputTokens.Set(nil)
@@ -465,6 +471,7 @@ func (o *ModelResponse) HasMaxToolCalls() bool {
 func (o *ModelResponse) SetMaxToolCalls(v int32) {
 	o.MaxToolCalls.Set(&v)
 }
+
 // SetMaxToolCallsNil sets the value for MaxToolCalls to be an explicit nil
 func (o *ModelResponse) SetMaxToolCallsNil() {
 	o.MaxToolCalls.Set(nil)
@@ -653,6 +660,7 @@ func (o *ModelResponse) HasPreviousResponseId() bool {
 func (o *ModelResponse) SetPreviousResponseId(v string) {
 	o.PreviousResponseId.Set(&v)
 }
+
 // SetPreviousResponseIdNil sets the value for PreviousResponseId to be an explicit nil
 func (o *ModelResponse) SetPreviousResponseIdNil() {
 	o.PreviousResponseId.Set(nil)
@@ -695,6 +703,7 @@ func (o *ModelResponse) HasPromptCacheKey() bool {
 func (o *ModelResponse) SetPromptCacheKey(v string) {
 	o.PromptCacheKey.Set(&v)
 }
+
 // SetPromptCacheKeyNil sets the value for PromptCacheKey to be an explicit nil
 func (o *ModelResponse) SetPromptCacheKeyNil() {
 	o.PromptCacheKey.Set(nil)
@@ -737,6 +746,7 @@ func (o *ModelResponse) HasReasoning() bool {
 func (o *ModelResponse) SetReasoning(v ReasoningConfiguration) {
 	o.Reasoning.Set(&v)
 }
+
 // SetReasoningNil sets the value for Reasoning to be an explicit nil
 func (o *ModelResponse) SetReasoningNil() {
 	o.Reasoning.Set(nil)
@@ -779,6 +789,7 @@ func (o *ModelResponse) HasSafetyIdentifier() bool {
 func (o *ModelResponse) SetSafetyIdentifier(v string) {
 	o.SafetyIdentifier.Set(&v)
 }
+
 // SetSafetyIdentifierNil sets the value for SafetyIdentifier to be an explicit nil
 func (o *ModelResponse) SetSafetyIdentifierNil() {
 	o.SafetyIdentifier.Set(nil)
@@ -893,6 +904,7 @@ func (o *ModelResponse) HasTemperature() bool {
 func (o *ModelResponse) SetTemperature(v float32) {
 	o.Temperature.Set(&v)
 }
+
 // SetTemperatureNil sets the value for Temperature to be an explicit nil
 func (o *ModelResponse) SetTemperatureNil() {
 	o.Temperature.Set(nil)
@@ -1031,6 +1043,7 @@ func (o *ModelResponse) HasTopP() bool {
 func (o *ModelResponse) SetTopP(v float32) {
 	o.TopP.Set(&v)
 }
+
 // SetTopPNil sets the value for TopP to be an explicit nil
 func (o *ModelResponse) SetTopPNil() {
 	o.TopP.Set(nil)
@@ -1097,6 +1110,7 @@ func (o *ModelResponse) HasUsage() bool {
 func (o *ModelResponse) SetUsage(v ModelUsage) {
 	o.Usage.Set(&v)
 }
+
 // SetUsageNil sets the value for Usage to be an explicit nil
 func (o *ModelResponse) SetUsageNil() {
 	o.Usage.Set(nil)
@@ -1139,6 +1153,7 @@ func (o *ModelResponse) HasUser() bool {
 func (o *ModelResponse) SetUser(v string) {
 	o.User.Set(&v)
 }
+
 // SetUserNil sets the value for User to be an explicit nil
 func (o *ModelResponse) SetUserNil() {
 	o.User.Set(nil)
@@ -1150,7 +1165,7 @@ func (o *ModelResponse) UnsetUser() {
 }
 
 func (o ModelResponse) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -1259,10 +1274,10 @@ func (o *ModelResponse) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

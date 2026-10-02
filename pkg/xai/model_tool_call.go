@@ -27,7 +27,7 @@ type ToolCall struct {
 	// Index of the tool call.
 	Index NullableInt32 `json:"index,omitempty"`
 	// Type of tool call, should be `\"function\"` or `\"web_search_call\"` or `\"x_search_call\"` or `\"code_interpreter_call\"` or `\"mcp_call\"`
-	Type NullableString `json:"type,omitempty"`
+	Type                 NullableString `json:"type,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -132,6 +132,7 @@ func (o *ToolCall) HasIndex() bool {
 func (o *ToolCall) SetIndex(v int32) {
 	o.Index.Set(&v)
 }
+
 // SetIndexNil sets the value for Index to be an explicit nil
 func (o *ToolCall) SetIndexNil() {
 	o.Index.Set(nil)
@@ -174,6 +175,7 @@ func (o *ToolCall) HasType() bool {
 func (o *ToolCall) SetType(v string) {
 	o.Type.Set(&v)
 }
+
 // SetTypeNil sets the value for Type to be an explicit nil
 func (o *ToolCall) SetTypeNil() {
 	o.Type.Set(nil)
@@ -185,7 +187,7 @@ func (o *ToolCall) UnsetType() {
 }
 
 func (o ToolCall) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -224,10 +226,10 @@ func (o *ToolCall) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

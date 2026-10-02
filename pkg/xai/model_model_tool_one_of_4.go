@@ -20,12 +20,14 @@ var _ MappedNullable = &ModelToolOneOf4{}
 
 // ModelToolOneOf4 Search the knowledge bases.
 type ModelToolOneOf4 struct {
-	Filters interface{} `json:"filters,omitempty"`
+	// A filter to apply. For OpenAI API compatibility ONLY. Request will be rejected if this field is set.
+	Filters       interface{}   `json:"filters,omitempty"`
 	MaxNumResults NullableInt32 `json:"max_num_results,omitempty"`
+	// Ranking options for search. For OpenAI API compatibility ONLY. Request will be rejected if this field is set.
 	RankingOptions interface{} `json:"ranking_options,omitempty"`
-	Type string `json:"type"`
+	Type           string      `json:"type"`
 	// List of vector store IDs to search within.
-	VectorStoreIds []string `json:"vector_store_ids"`
+	VectorStoreIds       []string `json:"vector_store_ids"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -115,6 +117,7 @@ func (o *ModelToolOneOf4) HasMaxNumResults() bool {
 func (o *ModelToolOneOf4) SetMaxNumResults(v int32) {
 	o.MaxNumResults.Set(&v)
 }
+
 // SetMaxNumResultsNil sets the value for MaxNumResults to be an explicit nil
 func (o *ModelToolOneOf4) SetMaxNumResultsNil() {
 	o.MaxNumResults.Set(nil)
@@ -207,7 +210,7 @@ func (o *ModelToolOneOf4) SetVectorStoreIds(v []string) {
 }
 
 func (o ModelToolOneOf4) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -249,10 +252,10 @@ func (o *ModelToolOneOf4) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}

@@ -20,10 +20,11 @@ var _ MappedNullable = &MessageContentPartOneOf{}
 
 // MessageContentPartOneOf Text prompt message content part.
 type MessageContentPartOneOf struct {
+	// (Unsupported) Cache control.
 	CacheControl interface{} `json:"cache_control,omitempty"`
 	// Text prompt.
-	Text string `json:"text"`
-	Type string `json:"type"`
+	Text                 string `json:"text"`
+	Type                 string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -130,7 +131,7 @@ func (o *MessageContentPartOneOf) SetType(v string) {
 }
 
 func (o MessageContentPartOneOf) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -166,10 +167,10 @@ func (o *MessageContentPartOneOf) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
