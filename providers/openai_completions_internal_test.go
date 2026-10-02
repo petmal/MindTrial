@@ -9,6 +9,7 @@ package providers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -51,6 +52,27 @@ func TestOpenAICompletions_Run_IncompatibleResponseFormat(t *testing.T) {
 	}
 	_, err := p.Run(context.Background(), logger, runCfg, config.Task{Name: "t"}, nil)
 	require.ErrorIs(t, err, ErrIncompatibleResponseFormat)
+}
+
+func TestOpenAICompletionsProvider_ExtensionPoints(t *testing.T) {
+	provider := newOpenAICompletionsProvider(nil)
+	require.Equal(t, InputTokenAccountingCacheTokensIncluded, provider.InputTokenAccounting)
+	require.Equal(t, OutputTokenAccountingReasoningTokensIncluded, provider.OutputTokenAccounting)
+	assert.True(t, provider.isTransientResponse(ErrStreamResponse))
+	assert.False(t, provider.isTransientResponse(errors.ErrUnsupported))
+
+	provider.OutputTokenAccounting = OutputTokenAccountingReasoningTokensSeparate
+	assert.Equal(t, OutputTokenAccountingReasoningTokensSeparate, provider.OutputTokenAccounting)
+	provider.InputTokenAccounting = InputTokenAccountingCacheTokensSeparate
+	assert.Equal(t, InputTokenAccountingCacheTokensSeparate, provider.InputTokenAccounting)
+
+	called := false
+	provider.IsRetryableError = func(err error) bool {
+		called = true
+		return err != nil
+	}
+	assert.True(t, provider.isTransientResponse(errors.ErrUnsupported))
+	assert.True(t, called)
 }
 
 func TestOpenAICompletions_Run_ServerTools_CapturedBeforeValidation(t *testing.T) {

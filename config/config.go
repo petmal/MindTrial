@@ -822,7 +822,7 @@ type AnthropicModelParams struct {
 
 	// ThinkingBudgetTokens enables extended thinking with a fixed token budget, giving the model
 	// more reasoning capacity on complex tasks. Must be at least 1024 and less than MaxTokens.
-	// Ignored when Effort is also set. If neither is set, extended thinking is disabled.
+	// Ignored when Effort is also set. When neither is set, behavior depends on the model default.
 	//
 	// Deprecated: Claude Opus 4.7+ removed fixed thinking budgets; setting this returns a 400 error.
 	// Use Effort with adaptive thinking instead. Retained for backward compatibility with older models.
@@ -831,7 +831,7 @@ type AnthropicModelParams struct {
 	// Effort enables adaptive extended thinking and guides how deeply the model reasons before responding,
 	// from quick answers ("low") to thorough multi-step reasoning ("max").
 	// Valid values: "low", "medium", "high", "xhigh", "max".
-	// If neither is set, extended thinking is disabled.
+	// When neither this nor ThinkingBudgetTokens is set, behavior depends on the model default.
 	// When set, ThinkingBudgetTokens is ignored.
 	// Use MaxTokens to cap total output (thinking + response text).
 	// The "xhigh" level is recommended for coding and agentic use cases on Claude Opus 4.7+.
@@ -840,11 +840,12 @@ type AnthropicModelParams struct {
 	// Thinking explicitly overrides the thinking mode when supported.
 	//
 	// Accepted values:
-	//   - "disabled": explicitly disable thinking; cannot be combined with ThinkingBudgetTokens, or with Effort levels greater than `high`
+	//   - "disabled": explicitly disable thinking; cannot be combined with ThinkingBudgetTokens, or with Effort levels greater than "high"
+	//   - "between_tools": disables up-front thinking while preserving progress thinking between tool calls; supports Effort up to "high" and cannot be combined with ThinkingBudgetTokens
 	//
 	// When omitted, the model's default thinking behaviour is used unless
 	// Effort or ThinkingBudgetTokens requests an explicit mode.
-	Thinking *string `yaml:"thinking" validate:"omitempty,oneof=disabled"`
+	Thinking *string `yaml:"thinking" validate:"omitempty,oneof=disabled between_tools"`
 
 	// Temperature controls the randomness or "creativity" of responses.
 	// Values range from 0.0 to 1.0, with lower values making the output more focused.

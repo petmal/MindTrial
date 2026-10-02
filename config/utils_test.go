@@ -963,6 +963,12 @@ func TestLoadConfigFromFile(t *testing.T) {
                     thinking: disabled
                     effort: medium
                     legacy-structured-output: true
+              - name: "Claude Sonnet 5.5"
+                model: "claude-sonnet-5-5"
+                model-parameters:
+                    max-tokens: 16000
+                    thinking: between_tools
+                    effort: high
         - name: deepseek
           client-config:
               api-key: "b8d40c7c-b169-49a9-9a5c-291741e86daa"
@@ -1256,6 +1262,16 @@ func TestLoadConfigFromFile(t *testing.T) {
 										Thinking:               testutils.Ptr("disabled"),
 										Effort:                 testutils.Ptr("medium"),
 										LegacyStructuredOutput: true,
+									},
+								},
+								{
+									Name:                 "Claude Sonnet 5.5",
+									Model:                "claude-sonnet-5-5",
+									MaxRequestsPerMinute: 0,
+									ModelParams: AnthropicModelParams{
+										MaxTokens: testutils.Ptr(int64(16000)),
+										Thinking:  testutils.Ptr("between_tools"),
+										Effort:    testutils.Ptr("high"),
 									},
 								},
 							},

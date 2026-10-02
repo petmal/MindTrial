@@ -120,6 +120,15 @@ type openAIResponsesProvider struct {
 	// for each API call (both streaming and non-streaming). When nil, the
 	// defaultResponseHandler is used.
 	NewResponseHandler func() ResponseHandler
+
+	// IsRetryableError optionally overrides the default OpenAI transient-error classifier.
+	IsRetryableError func(error) bool
+
+	// InputTokenAccounting describes whether cache read and write tokens are included in input tokens.
+	InputTokenAccounting InputTokenAccounting
+
+	// OutputTokenAccounting describes whether reasoning tokens are included in output tokens.
+	OutputTokenAccounting OutputTokenAccounting
 }
 
 func newOpenAIResponsesProvider(availableTools []config.ToolConfig, opts ...option.RequestOption) *openAIResponsesProvider {
@@ -128,8 +137,10 @@ func newOpenAIResponsesProvider(availableTools []config.ToolConfig, opts ...opti
 	}, opts...)
 
 	return &openAIResponsesProvider{
-		client:         openai.NewClient(clientOpts...),
-		availableTools: availableTools,
+		client:                openai.NewClient(clientOpts...),
+		availableTools:        availableTools,
+		InputTokenAccounting:  InputTokenAccountingCacheTokensIncluded,
+		OutputTokenAccounting: OutputTokenAccountingReasoningTokensIncluded,
 	}
 }
 
@@ -324,7 +335,7 @@ func (o *openAIResponsesProvider) Run(ctx context.Context, logger logging.Logger
 		}
 
 		cacheWriteTokens, cacheReadTokens := handler.InputCacheTokens(resp.Usage)
-		recordUsage(InputTokenAccountingCacheTokensIncluded, OutputTokenAccountingReasoningTokensIncluded, &resp.Usage.InputTokens, &resp.Usage.OutputTokens, handler.ReasoningTokens(resp.Usage), cacheWriteTokens, cacheReadTokens, &result.usage)
+		recordUsage(o.InputTokenAccounting, o.OutputTokenAccounting, &resp.Usage.InputTokens, &resp.Usage.OutputTokens, handler.ReasoningTokens(resp.Usage), cacheWriteTokens, cacheReadTokens, &result.usage)
 
 		isTerminal := o.isTerminalResponseStatus(resp)
 		logFinishReason(ctx, logger, string(resp.Status), isTerminal)
@@ -563,6 +574,9 @@ func (o *openAIResponsesProvider) handleStreamingRequest(ctx context.Context, lo
 }
 
 func (o *openAIResponsesProvider) isTransientResponse(err error) bool {
+	if o.IsRetryableError != nil {
+		return o.IsRetryableError(err)
+	}
 	return isOpenAITransientResponse(err)
 }
 

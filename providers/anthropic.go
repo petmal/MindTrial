@@ -143,6 +143,14 @@ func (o *Anthropic) Run(ctx context.Context, logger logging.Logger, cfg config.R
 						OfDisabled: &disabled,
 					}
 					// Disabled thinking is compatible with some OutputConfig.Effort levels, hence we keep the field if set.
+				case "between_tools":
+					if modelParams.ThinkingBudgetTokens != nil {
+						return result, fmt.Errorf("%w: %s: thinking-budget-tokens must not be set when thinking is between_tools", ErrInvalidModelParams, cfg.Name)
+					}
+					betweenTools := anthropic.NewThinkingConfigBetweenToolsParam()
+					request.Thinking = anthropic.ThinkingConfigParamUnion{
+						OfBetweenTools: &betweenTools,
+					}
 				}
 			}
 			if modelParams.Temperature != nil {

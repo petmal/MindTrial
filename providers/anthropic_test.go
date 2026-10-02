@@ -8,9 +8,13 @@ package providers
 
 import (
 	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	anthropic "github.com/anthropics/anthropic-sdk-go"
+	anthropicoption "github.com/anthropics/anthropic-sdk-go/option"
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/testutils"
 	"github.com/stretchr/testify/assert"
@@ -120,20 +124,72 @@ func TestSanitizeAssistantMessage(t *testing.T) {
 }
 
 func TestAnthropic_Run_IncompatibleThinking(t *testing.T) {
-	logger := testutils.NewTestLogger(t)
-	p := &Anthropic{}
+	tests := []struct {
+		name     string
+		thinking string
+		budget   *int64
+	}{
+		{name: "disabled with fixed budget", thinking: "disabled", budget: testutils.Ptr(int64(1024))},
+		{name: "between tools with fixed budget", thinking: "between_tools", budget: testutils.Ptr(int64(1024))},
+	}
 
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			logger := testutils.NewTestLogger(t)
+			p := &Anthropic{}
+			runCfg := config.RunConfig{
+				Name:  "test-run",
+				Model: "claude",
+				ModelParams: config.AnthropicModelParams{
+					Thinking:             testutils.Ptr(tt.thinking),
+					ThinkingBudgetTokens: tt.budget, //nolint:staticcheck // Keep coverage for the legacy parameter.
+				},
+			}
+			_, err := p.Run(context.Background(), logger, runCfg, config.Task{Name: "t"}, nil)
+			require.ErrorIs(t, err, ErrInvalidModelParams)
+		})
+	}
+}
+
+func TestAnthropic_Run_BetweenToolsThinking(t *testing.T) {
+	requestBodies := make(chan map[string]any, 1)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var requestBody map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+			http.Error(w, "invalid request", http.StatusBadRequest)
+			return
+		}
+		requestBodies <- requestBody
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"id":"msg_test","type":"message","role":"assistant","model":"claude-sonnet-5-5","content":[{"type":"text","text":"done"}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":1,"output_tokens":1}}`))
+	}))
+	t.Cleanup(server.Close)
+
+	p := &Anthropic{client: anthropic.NewClient(
+		anthropicoption.WithAPIKey("test"),
+		anthropicoption.WithBaseURL(server.URL),
+	)}
 	runCfg := config.RunConfig{
-		Name:  "test-run",
-		Model: "claude",
+		Name:                    "test-run",
+		Model:                   "claude-sonnet-5-5",
+		DisableStructuredOutput: true,
 		ModelParams: config.AnthropicModelParams{
-			Thinking:             testutils.Ptr("disabled"), // incompatible with ThinkingBudgetTokens
-			ThinkingBudgetTokens: testutils.Ptr(int64(1024)),
+			MaxTokens: testutils.Ptr(int64(128)),
+			Thinking:  testutils.Ptr("between_tools"),
+			Effort:    testutils.Ptr("high"),
 		},
 	}
-	task := config.Task{Name: "t"}
-	_, err := p.Run(context.Background(), logger, runCfg, task, nil)
-	require.ErrorIs(t, err, ErrInvalidModelParams) // Should error due to ErrInvalidModelParams
+	result, err := p.Run(context.Background(), testutils.NewTestLogger(t), runCfg, config.Task{Name: "t", Prompt: "Answer."}, nil)
+	require.NoError(t, err)
+	assert.Equal(t, "done", result.GetFinalAnswerContent())
+
+	requestBody := <-requestBodies
+	thinking, ok := requestBody["thinking"].(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "between_tools", thinking["type"])
+	outputConfig, ok := requestBody["output_config"].(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "high", outputConfig["effort"])
 }
 
 func TestAnthropic_ConfigurePromptCaching(t *testing.T) {

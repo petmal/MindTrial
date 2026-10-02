@@ -176,6 +176,15 @@ type openAICompletionsProvider struct {
 	// and type-assert it inside their factory. When nil, the defaultCompletionHandler
 	// is used.
 	NewCompletionHandler func(args any) CompletionHandler
+
+	// IsRetryableError optionally overrides the default OpenAI transient-error classifier.
+	IsRetryableError func(error) bool
+
+	// InputTokenAccounting describes whether cache read and write tokens are included in input tokens.
+	InputTokenAccounting InputTokenAccounting
+
+	// OutputTokenAccounting describes whether reasoning tokens are included in output tokens.
+	OutputTokenAccounting OutputTokenAccounting
 }
 
 // openAIV3ModelParams is an internal model configuration used by OpenAI implementations.
@@ -273,8 +282,10 @@ func newOpenAICompletionsProvider(availableTools []config.ToolConfig, opts ...op
 	}, opts...)
 
 	return &openAICompletionsProvider{
-		client:         openai.NewClient(clientOpts...),
-		availableTools: availableTools,
+		client:                openai.NewClient(clientOpts...),
+		availableTools:        availableTools,
+		InputTokenAccounting:  InputTokenAccountingCacheTokensIncluded,
+		OutputTokenAccounting: OutputTokenAccountingReasoningTokensIncluded,
 	}
 }
 
@@ -458,7 +469,7 @@ func (o *openAICompletionsProvider) run(ctx context.Context, logger logging.Logg
 		}
 
 		cacheWriteTokens, cacheReadTokens := handler.InputCacheTokens(resp.Usage)
-		recordUsage(InputTokenAccountingCacheTokensIncluded, OutputTokenAccountingReasoningTokensIncluded, &resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, handler.ReasoningTokens(resp.Usage), cacheWriteTokens, cacheReadTokens, &result.usage)
+		recordUsage(o.InputTokenAccounting, o.OutputTokenAccounting, &resp.Usage.PromptTokens, &resp.Usage.CompletionTokens, handler.ReasoningTokens(resp.Usage), cacheWriteTokens, cacheReadTokens, &result.usage)
 
 		if len(resp.Choices) == 0 {
 			return result, ErrNoResponseCandidates
@@ -586,6 +597,9 @@ func (o *openAICompletionsProvider) mapImageDetailToOpenAI(ctx context.Context, 
 }
 
 func (o *openAICompletionsProvider) isTransientResponse(err error) bool {
+	if o.IsRetryableError != nil {
+		return o.IsRetryableError(err)
+	}
 	return isOpenAITransientResponse(err)
 }
 
