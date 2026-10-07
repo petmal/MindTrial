@@ -8,8 +8,10 @@ package tools
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"maps"
 	"net/http"
 	"runtime"
@@ -20,6 +22,7 @@ import (
 	"time"
 
 	"github.com/petmal/mindtrial/config"
+	"github.com/petmal/mindtrial/pkg/logging"
 	"github.com/petmal/mindtrial/pkg/testutils"
 	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/stretchr/testify/assert"
@@ -34,6 +37,7 @@ type serviceDocker struct {
 	stopAll        bool
 	healthSequence []string
 	failImage      string
+	images         map[string]any // image inspect responses by image ID; missing images are not found
 }
 
 // serviceDockerState records the Docker objects and requests seen by serviceDocker.
@@ -43,8 +47,10 @@ type serviceDockerState struct {
 	containerNames    map[string]string                 // by container ID
 	createdNetworkIDs []string
 	createdIDs        []string
+	startedIDs        []string
 	removedContainers []string
 	removedNetworks   []string
+	inspectedImages   []string
 	inspectCount      int
 	logRequests       int
 }
@@ -108,7 +114,11 @@ func newServiceDocker(t *testing.T, apiVersion string) *serviceDocker {
 		docker.state.createdIDs = append(docker.state.createdIDs, id)
 		writeJSON(t, w, http.StatusCreated, map[string]string{"Id": id})
 	}
-	mock.onStart = func(w http.ResponseWriter, _ *http.Request) {
+	mock.onStart = func(w http.ResponseWriter, r *http.Request) {
+		id := strings.TrimSuffix(strings.TrimPrefix(r.URL.Path, mock.basePath()+"/containers/"), "/start")
+		docker.mu.Lock()
+		docker.state.startedIDs = append(docker.state.startedIDs, id)
+		docker.mu.Unlock()
 		w.WriteHeader(http.StatusNoContent)
 	}
 	mock.onInspect = func(w http.ResponseWriter, r *http.Request) {
@@ -117,14 +127,30 @@ func newServiceDocker(t *testing.T, apiVersion string) *serviceDocker {
 		docker.state.inspectCount++
 		state := map[string]any{"Running": !docker.stopAll && !docker.stopped[id]}
 		if docker.state.containers[id].Healthcheck != nil {
-			status := "healthy"
-			if len(docker.healthSequence) > 0 {
-				status, docker.healthSequence = docker.healthSequence[0], docker.healthSequence[1:]
+			status := "starting"
+			if slices.Contains(docker.state.startedIDs, id) {
+				status = "healthy"
+				if len(docker.healthSequence) > 0 {
+					status, docker.healthSequence = docker.healthSequence[0], docker.healthSequence[1:]
+				}
 			}
 			state["Health"] = map[string]string{"Status": status}
 		}
+		imageID := testImageID(docker.state.containers[id].Image)
 		docker.mu.Unlock()
-		writeJSON(t, w, http.StatusOK, map[string]any{"Id": id, "State": state})
+		writeJSON(t, w, http.StatusOK, map[string]any{"Id": id, "Image": imageID, "State": state})
+	}
+	mock.onImageInspect = func(w http.ResponseWriter, r *http.Request) {
+		id := strings.TrimSuffix(strings.TrimPrefix(r.URL.Path, mock.basePath()+"/images/"), "/json")
+		docker.mu.Lock()
+		docker.state.inspectedImages = append(docker.state.inspectedImages, id)
+		inspected, ok := docker.images[id]
+		docker.mu.Unlock()
+		if !ok {
+			writeJSON(t, w, http.StatusNotFound, map[string]string{"message": "no such image"})
+			return
+		}
+		writeJSON(t, w, http.StatusOK, inspected)
 	}
 	mock.onWait = func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(t, w, http.StatusOK, map[string]int{"StatusCode": 0})
@@ -143,6 +169,11 @@ func newServiceDocker(t *testing.T, apiVersion string) *serviceDocker {
 		w.WriteHeader(http.StatusNoContent)
 	}
 	return docker
+}
+
+// testImageID returns the fake content-addressable image ID of an image reference.
+func testImageID(imageReference string) string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(imageReference)))
 }
 
 func writeJSON(t *testing.T, w http.ResponseWriter, status int, value any) {
@@ -189,8 +220,10 @@ func (d *serviceDocker) snapshot() serviceDockerState {
 		containerNames:    maps.Clone(d.state.containerNames),
 		createdNetworkIDs: slices.Clone(d.state.createdNetworkIDs),
 		createdIDs:        slices.Clone(d.state.createdIDs),
+		startedIDs:        slices.Clone(d.state.startedIDs),
 		removedContainers: slices.Clone(d.state.removedContainers),
 		removedNetworks:   slices.Clone(d.state.removedNetworks),
+		inspectedImages:   slices.Clone(d.state.inspectedImages),
 		inspectCount:      d.state.inspectCount,
 		logRequests:       d.state.logRequests,
 	}
@@ -714,4 +747,145 @@ func TestTaskRuntimeServiceInputTemplateErrors(t *testing.T) {
 
 	require.ErrorIs(t, err, ErrTaskRuntimeConfig)
 	assert.Contains(t, err.Error(), `service "world" input "seed"`)
+}
+
+func TestNewTaskRuntimeLogsServiceImageIdentity(t *testing.T) {
+	tests := []struct {
+		name         string
+		images       map[string]any
+		wantLevel    slog.Level
+		wantContains []string
+		wantExcludes []string
+	}{
+		{
+			name: "image with registry digest, tags, and labels",
+			images: map[string]any{
+				testImageID("shop:latest"): map[string]any{
+					"Id":          testImageID("shop:latest"),
+					"RepoTags":    []string{"shop:latest"},
+					"RepoDigests": []string{"registry.example/shop@sha256:feed"},
+					"Config": map[string]any{
+						"Labels": map[string]string{
+							"org.opencontainers.image.revision": "abc123",
+							"org.opencontainers.image.version":  "1.2.3",
+							"io.buildah.version":                "1.39.0",
+						},
+					},
+				},
+			},
+			wantLevel: logging.LevelInfo,
+			wantContains: []string{
+				`service shop: using image "shop:latest" (ID: ` + testImageID("shop:latest"),
+				"digests: [registry.example/shop@sha256:feed]",
+				"tags: [shop:latest]",
+				"OCI labels: [org.opencontainers.image.revision=abc123 org.opencontainers.image.version=1.2.3]",
+			},
+			wantExcludes: []string{"io.buildah.version"},
+		},
+		{
+			name:         "image inspect failure does not prevent startup",
+			wantLevel:    logging.LevelWarn,
+			wantContains: []string{`service shop: failed to inspect service image "shop:latest" (ID: ` + testImageID("shop:latest") + ")"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			docker := newServiceDocker(t, testAPIVersion)
+			docker.configure(func() { docker.images = tt.images })
+			logger := newRecordingLogger()
+
+			taskRuntime, err := NewTaskRuntime(t.Context(), logger, TaskRuntimeConfig{
+				Services:         testServices(),
+				RequiredServices: []string{"shop"},
+			})
+			require.NoError(t, err)
+			t.Cleanup(func() { assert.NoError(t, taskRuntime.Close(context.WithoutCancel(t.Context()))) })
+
+			assert.Equal(t, []string{testImageID("shop:latest")}, docker.snapshot().inspectedImages, "the image of the created container is inspected")
+			message, ok := logger.find(tt.wantContains[0])
+			require.True(t, ok, "image identity must be logged")
+			assert.Equal(t, tt.wantLevel, message.level)
+			for _, want := range tt.wantContains {
+				assert.Contains(t, message.text, want)
+			}
+			for _, unwanted := range tt.wantExcludes {
+				assert.NotContains(t, message.text, unwanted)
+			}
+		})
+	}
+}
+
+func TestNewTaskRuntimeLogsServiceStartupOutput(t *testing.T) {
+	docker := newServiceDocker(t, testAPIVersion)
+	logger := newRecordingLogger()
+	taskRuntime, err := NewTaskRuntime(t.Context(), logger, TaskRuntimeConfig{
+		Services:         testServices(),
+		RequiredServices: []string{"shop"},
+	})
+	require.NoError(t, err)
+	shopID, _ := docker.containerByImage(t, "shop:latest")
+
+	assert.Equal(t, 1, docker.snapshot().logRequests, "startup output is read once the service is ready")
+	message, ok := logger.find(fmt.Sprintf("service shop: service container %q output (last %d bytes per stream)", shopID, maxServiceDiagnosticLogBytes))
+	require.True(t, ok, "startup output must be logged")
+	assert.Equal(t, logging.LevelDebug, message.level)
+	assert.Contains(t, message.text, `{"status":"ok"}`)
+
+	require.NoError(t, taskRuntime.Close(t.Context()))
+	assert.Equal(t, 1, docker.snapshot().logRequests, "service output is not read again at shutdown")
+}
+
+// recordedLogMessage is one formatted message captured by recordingLogger.
+type recordedLogMessage struct {
+	level slog.Level
+	text  string
+}
+
+// recordingLogger captures formatted log messages, including those of derived loggers.
+type recordingLogger struct {
+	mu       *sync.Mutex
+	messages *[]recordedLogMessage
+	prefix   string
+}
+
+func newRecordingLogger() *recordingLogger {
+	return &recordingLogger{
+		mu:       &sync.Mutex{},
+		messages: &[]recordedLogMessage{},
+	}
+}
+
+func (l *recordingLogger) Message(_ context.Context, level slog.Level, msg string, args ...any) {
+	l.record(level, fmt.Sprintf(msg, args...))
+}
+
+func (l *recordingLogger) Error(_ context.Context, level slog.Level, err error, msg string, args ...any) {
+	l.record(level, fmt.Sprintf(msg, args...)+": "+err.Error())
+}
+
+func (l *recordingLogger) WithContext(context string) logging.Logger {
+	return &recordingLogger{
+		mu:       l.mu,
+		messages: l.messages,
+		prefix:   l.prefix + context,
+	}
+}
+
+func (l *recordingLogger) record(level slog.Level, text string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	*l.messages = append(*l.messages, recordedLogMessage{level: level, text: l.prefix + text})
+}
+
+// find returns the first captured message containing substring.
+func (l *recordingLogger) find(substring string) (recordedLogMessage, bool) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	for _, message := range *l.messages {
+		if strings.Contains(message.text, substring) {
+			return message, true
+		}
+	}
+	return recordedLogMessage{}, false
 }

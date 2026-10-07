@@ -11,6 +11,8 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"log/slog"
+	"strings"
 	"sync"
 	"time"
 
@@ -30,8 +32,10 @@ const (
 
 	serviceHealthcheckStartInterval = 250 * time.Millisecond
 	serviceReadinessPollInterval    = 100 * time.Millisecond
-	serviceDiagnosticLogLines       = "50"
-	maxServiceDiagnosticLogBytes    = 4096
+	maxServiceDiagnosticLogBytes    = 8192
+	// ociImageLabelPrefix is the namespace of the standard OCI image annotations, such as
+	// org.opencontainers.image.revision and org.opencontainers.image.version.
+	ociImageLabelPrefix = "org.opencontainers.image."
 )
 
 var (
@@ -268,6 +272,7 @@ func (r *TaskRuntime) startService(ctx context.Context, logger logging.Logger, s
 	}
 	instance.containerID = created.ID
 	serviceLogger.Message(ctx, logging.LevelDebug, "created service container %q (ID: %s)", containerName, created.ID)
+	r.logServiceImage(ctx, serviceLogger, created.ID, service.Image)
 
 	serviceLogger.Message(ctx, logging.LevelInfo, "starting execution")
 	if err := r.client.ContainerStart(ctx, created.ID, container.StartOptions{}); err != nil {
@@ -277,14 +282,48 @@ func (r *TaskRuntime) startService(ctx context.Context, logger logging.Logger, s
 		serviceLogger.Message(ctx, logging.LevelDebug, "waiting up to %s for service healthcheck", service.GetStartupTimeout())
 	}
 	if err := r.waitForService(ctx, created.ID, service); err != nil {
-		r.logServiceDiagnostics(ctx, serviceLogger, created.ID)
+		r.logServiceDiagnostics(ctx, serviceLogger, logging.LevelWarn, created.ID)
 		return fmt.Errorf("service %q failed readiness: %w", service.Name, err)
 	}
 
 	r.instances[service.Name] = instance
 	started = true
 	serviceLogger.Message(ctx, logging.LevelInfo, "service container %q is ready", created.ID)
+	r.logServiceDiagnostics(ctx, serviceLogger, logging.LevelDebug, created.ID)
 	return nil
+}
+
+// logServiceImage logs the identity of the exact image a service container was created from:
+// its content-addressable ID, registry digests, tags, and standard OCI labels. Failures are
+// logged but do not prevent the service from starting.
+func (r *TaskRuntime) logServiceImage(ctx context.Context, logger logging.Logger, containerID string, imageReference string) {
+	inspectedContainer, err := r.client.ContainerInspect(ctx, containerID)
+	if err != nil {
+		logger.Error(ctx, logging.LevelWarn, err, "failed to inspect service container for image identity")
+		return
+	}
+	inspectedImage, err := r.client.ImageInspect(ctx, inspectedContainer.Image)
+	if err != nil {
+		logger.Error(ctx, logging.LevelWarn, err, "failed to inspect service image %q (ID: %s)", imageReference, inspectedContainer.Image)
+		return
+	}
+	var labels map[string]string
+	if inspectedImage.Config != nil {
+		labels = inspectedImage.Config.Labels
+	}
+	logger.Message(ctx, logging.LevelInfo, "using image %q (ID: %s, digests: %v, tags: %v, OCI labels: %v)",
+		imageReference, inspectedImage.ID, inspectedImage.RepoDigests, inspectedImage.RepoTags, ociImageLabels(labels))
+}
+
+// ociImageLabels returns the standard OCI image labels formatted as sorted key=value pairs.
+func ociImageLabels(labels map[string]string) []string {
+	var result []string
+	for _, key := range utils.SortedKeys(labels) {
+		if strings.HasPrefix(key, ociImageLabelPrefix) {
+			result = append(result, fmt.Sprintf("%s=%s", key, labels[key]))
+		}
+	}
+	return result
 }
 
 func (r *TaskRuntime) resolveServiceEnv(service config.ServiceConfig) (map[string]string, error) {
@@ -364,19 +403,19 @@ func (r *TaskRuntime) checkServiceRunning(ctx context.Context, containerID strin
 	return nil
 }
 
-// logServiceDiagnostics logs bounded service output; it is never returned in errors, which may
-// reach the model through tool results.
-func (r *TaskRuntime) logServiceDiagnostics(ctx context.Context, logger logging.Logger, containerID string) {
+// logServiceDiagnostics logs bounded service output at the given level; it is never returned in
+// errors, which may reach the model through tool results.
+func (r *TaskRuntime) logServiceDiagnostics(ctx context.Context, logger logging.Logger, level slog.Level, containerID string) {
 	logCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), dockerCleanupTimeout)
 	defer cancel()
 
-	stdout, stderr, err := readDockerContainerLogs(logCtx, r.client, containerID, "service", serviceDiagnosticLogLines)
+	stdout, stderr, err := readDockerContainerLogs(logCtx, r.client, containerID, "service", "")
 	if err != nil {
 		logger.Error(ctx, logging.LevelWarn, err, "failed to retrieve service container logs")
 		return
 	}
-	logger.Message(ctx, logging.LevelWarn, "service container %q output (last %s lines):\nstdout:\n%s\nstderr:\n%s",
-		containerID, serviceDiagnosticLogLines, lastBytes(stdout, maxServiceDiagnosticLogBytes), lastBytes(stderr, maxServiceDiagnosticLogBytes))
+	logger.Message(ctx, level, "service container %q output (last %d bytes per stream):\nstdout:\n%s\nstderr:\n%s",
+		containerID, maxServiceDiagnosticLogBytes, lastBytes(stdout, maxServiceDiagnosticLogBytes), lastBytes(stderr, maxServiceDiagnosticLogBytes))
 }
 
 func lastBytes(value string, limit int) string {
@@ -421,7 +460,7 @@ func (r *TaskRuntime) bindDependencies(ctx context.Context, logger logging.Logge
 			return dependencyBinding{}, fmt.Errorf("%w: service %q was not started for this task attempt", ErrTaskRuntimeConfig, dependency.Service)
 		}
 		if err := r.checkServiceRunning(ctx, instance.containerID); err != nil {
-			r.logServiceDiagnostics(ctx, logger.WithContext(fmt.Sprintf("service %s: ", instance.Name)), instance.containerID)
+			r.logServiceDiagnostics(ctx, logger.WithContext(fmt.Sprintf("service %s: ", instance.Name)), logging.LevelWarn, instance.containerID)
 			return dependencyBinding{}, fmt.Errorf("service %q is unavailable: %w", instance.Name, err)
 		}
 		for name, raw := range dependency.Env {
