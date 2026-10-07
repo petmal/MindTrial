@@ -22,7 +22,7 @@ import (
 	"github.com/petmal/mindtrial/pkg/utils"
 )
 
-const dockerCleanupTimeout = 5 * time.Second
+const dockerCleanupTimeout = 15 * time.Second
 
 // dockerResourceName returns a unique Docker object name that never embeds user-configured names.
 func dockerResourceName(kind string) string {

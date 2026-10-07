@@ -190,6 +190,7 @@ type containerCreatePayload struct {
 		Test          []string      `json:"Test"`
 		StartPeriod   time.Duration `json:"StartPeriod"`
 		StartInterval time.Duration `json:"StartInterval"`
+		Interval      time.Duration `json:"Interval"`
 		Timeout       time.Duration `json:"Timeout"`
 		Retries       int           `json:"Retries"`
 	} `json:"Healthcheck"`
