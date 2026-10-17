@@ -155,9 +155,11 @@ func newServiceDocker(t *testing.T, apiVersion string) *serviceDocker {
 	mock.onWait = func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(t, w, http.StatusOK, map[string]int{"StatusCode": 0})
 	}
-	mock.onLogs = func(w http.ResponseWriter, _ *http.Request) {
+	mock.onLogs = func(w http.ResponseWriter, r *http.Request) {
 		docker.mu.Lock()
 		docker.state.logRequests++
+		containerID := strings.TrimSuffix(strings.TrimPrefix(r.URL.Path, mock.basePath()+"/containers/"), "/logs")
+		assert.NotContains(t, docker.state.removedContainers, containerID, "service logs must be read before container removal")
 		docker.mu.Unlock()
 		w.Header().Set("Content-Type", "application/vnd.docker.raw-stream")
 		_, _ = w.Write(encodeDockerFrames(dockerLogFrame{Stream: 1, Data: `{"status":"ok"}`}))
@@ -817,7 +819,7 @@ func TestNewTaskRuntimeLogsServiceImageIdentity(t *testing.T) {
 	}
 }
 
-func TestNewTaskRuntimeLogsServiceStartupOutput(t *testing.T) {
+func TestTaskRuntimeLogsServiceStartupAndShutdownOutput(t *testing.T) {
 	docker := newServiceDocker(t, testAPIVersion)
 	logger := newRecordingLogger()
 	taskRuntime, err := NewTaskRuntime(t.Context(), logger, TaskRuntimeConfig{
@@ -833,8 +835,21 @@ func TestNewTaskRuntimeLogsServiceStartupOutput(t *testing.T) {
 	assert.Equal(t, logging.LevelDebug, message.level)
 	assert.Contains(t, message.text, `{"status":"ok"}`)
 
-	require.NoError(t, taskRuntime.Close(t.Context()))
-	assert.Equal(t, 1, docker.snapshot().logRequests, "service output is not read again at shutdown")
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+	require.NoError(t, taskRuntime.Close(ctx))
+	assert.Equal(t, 2, docker.snapshot().logRequests, "service output is also read at shutdown, even after cancellation")
+	logger.mu.Lock()
+	messages := slices.Clone(*logger.messages)
+	logger.mu.Unlock()
+	shutdownMessage := messages[len(messages)-1]
+	assert.Equal(t, logging.LevelTrace, shutdownMessage.level)
+	assert.Contains(t, shutdownMessage.text, fmt.Sprintf("service shop: service container %q output", shopID))
+	assert.Contains(t, shutdownMessage.text, `{"status":"ok"}`)
+	assert.Contains(t, docker.snapshot().removedContainers, shopID)
+
+	require.NoError(t, taskRuntime.Close(ctx))
+	assert.Equal(t, 2, docker.snapshot().logRequests, "repeated shutdown does not read service output again")
 }
 
 // recordedLogMessage is one formatted message captured by recordingLogger.

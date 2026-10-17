@@ -98,6 +98,7 @@ type TaskRuntimeConfig struct {
 // TaskRuntime owns the Docker services and networks of one provider task attempt.
 type TaskRuntime struct {
 	client        *client.Client
+	logger        logging.Logger
 	serviceInputs map[string]map[string]interface{}
 	templateData  ExecutionTemplateData
 
@@ -152,6 +153,7 @@ func NewTaskRuntime(ctx context.Context, logger logging.Logger, cfg TaskRuntimeC
 	}
 	taskRuntime := &TaskRuntime{
 		client:        cli,
+		logger:        logger,
 		serviceInputs: cfg.ServiceInputs,
 		templateData:  cfg.TemplateData,
 		instances:     make(map[string]serviceInstance, len(cfg.RequiredServices)),
@@ -493,7 +495,8 @@ func (b dependencyBinding) containerNetworking() (container.NetworkMode, *networ
 	return container.NetworkMode(b.networks[0]), &network.NetworkingConfig{EndpointsConfig: endpoints}
 }
 
-// Close removes all service containers and networks. It is safe to call more than once.
+// Close logs service diagnostics at TRACE level before removing all service containers and
+// networks. It is safe to call more than once.
 func (r *TaskRuntime) Close(ctx context.Context) error {
 	if r == nil {
 		return nil
@@ -509,6 +512,7 @@ func (r *TaskRuntime) Close(ctx context.Context) error {
 	var errs []error
 	serviceNames := utils.SortedKeys(r.instances)
 	for _, name := range serviceNames {
+		r.logServiceDiagnostics(ctx, r.logger.WithContext(fmt.Sprintf("service %s: ", name)), logging.LevelTrace, r.instances[name].containerID)
 		if err := removeDockerContainer(ctx, r.client, r.instances[name].containerID); err != nil {
 			errs = append(errs, fmt.Errorf("%w: remove service %q container: %w", ErrTaskRuntimeInternal, name, err))
 		}
