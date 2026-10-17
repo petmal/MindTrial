@@ -131,6 +131,15 @@ config:
             reasoning-effort: "max"
             max-completion-tokens: 65536
             response-format: "json-object"
+        - name: "Meta Muse Wonder (max reasoning)"
+          model: "meta/muse-wonder"
+          max-requests-per-minute: 10
+          pricing:
+            input-per-million: 4.00
+            cache-read-per-million: 0.20
+            output-per-million: 20.00
+          model-parameters:
+            reasoning_effort: "max"
         - name: "StepFun Step3"
           model: "stepfun-ai/step3"
           max-requests-per-minute: 10
@@ -204,6 +213,17 @@ config:
             input-per-million: 0.75
             cache-read-per-million: 0.075
             output-per-million: 3.75
+          model-parameters:
+            thinking-level: "high"
+            media-resolution: "high"
+        - name: "Gemini 4 Argon (high thinking)"
+          model: "gemini-4-argon"
+          max-requests-per-minute: 3
+          pricing:
+            # Introductory pricing through 2026-11-30; update to $4/$0.20/$20 on 2026-12-01.
+            input-per-million: 2.00
+            cache-read-per-million: 0.10
+            output-per-million: 10.00
           model-parameters:
             thinking-level: "high"
             media-resolution: "high"
@@ -312,6 +332,17 @@ config:
       client-config:
         api-key: ""
       runs:
+        - name: "Mistral Large 4 - latest"
+          model: "mistral-large-4"
+          max-requests-per-minute: 5
+          pricing:
+            # 50% launch discount for two weeks after 2026-10-06; regular rates are $1.36/$0.14/$4.18.
+            input-per-million: 0.68
+            cache-read-per-million: 0.07
+            output-per-million: 2.09
+          model-parameters:
+            max-tokens: 65536
+            reasoning-effort: "high"
         - name: "Mistral Large - latest"
           model: "mistral-large-latest"
           max-requests-per-minute: 5

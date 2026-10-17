@@ -26,8 +26,14 @@ type UsageInfo struct {
 	PromptTokens        int32                       `json:"prompt_tokens"`
 	PromptTokensDetails NullablePromptTokensDetails `json:"prompt_tokens_details,omitempty"`
 	TotalTokens         int32                       `json:"total_tokens"`
-	// ServiceTier is undeclared in the spec but returned by the API; hand-maintained like PromptTokensDetails above.
-	ServiceTier *string `json:"service_tier,omitempty"`
+	// ServiceTier and CompletionTokensDetails are returned by the API but omitted from the Chat Completions schema.
+	ServiceTier             *string                  `json:"service_tier,omitempty"`
+	CompletionTokensDetails *CompletionTokensDetails `json:"completion_tokens_details,omitempty"`
+}
+
+// CompletionTokensDetails reports reasoning-token usage for a completion.
+type CompletionTokensDetails struct {
+	ReasoningTokens *int32 `json:"reasoning_tokens,omitempty"`
 }
 
 type _UsageInfo UsageInfo
@@ -269,6 +275,9 @@ func (o UsageInfo) ToMap() (map[string]interface{}, error) {
 	toSerialize["total_tokens"] = o.TotalTokens
 	if !IsNil(o.ServiceTier) {
 		toSerialize["service_tier"] = o.ServiceTier
+	}
+	if o.CompletionTokensDetails != nil {
+		toSerialize["completion_tokens_details"] = o.CompletionTokensDetails
 	}
 	return toSerialize, nil
 }

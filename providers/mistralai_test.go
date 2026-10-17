@@ -24,12 +24,19 @@ func TestMistralApplyReasoningEffort(t *testing.T) {
 	require.Equal(t, mistralai.REASONINGEFFORT_HIGH, request.GetReasoningEffort())
 }
 
-func TestMistralUsageCachedTokens(t *testing.T) {
+func TestMistralUsageDetails(t *testing.T) {
 	var usage mistralai.UsageInfo
-	require.NoError(t, json.Unmarshal([]byte(`{"prompt_tokens":100,"completion_tokens":20,"total_tokens":120,"prompt_tokens_details":{"cached_tokens":75}}`), &usage))
+	require.NoError(t, json.Unmarshal([]byte(`{"prompt_tokens":100,"completion_tokens":20,"total_tokens":120,"prompt_tokens_details":{"cached_tokens":75},"completion_tokens_details":{"reasoning_tokens":15}}`), &usage))
 	details, ok := usage.GetPromptTokensDetailsOk()
 	require.True(t, ok)
 	require.Equal(t, int32(75), details.GetCachedTokens())
+	require.NotNil(t, usage.CompletionTokensDetails)
+	require.NotNil(t, usage.CompletionTokensDetails.ReasoningTokens)
+	require.Equal(t, int32(15), *usage.CompletionTokensDetails.ReasoningTokens)
+
+	var result Result
+	recordUsage(InputTokenAccountingCacheTokensIncluded, OutputTokenAccountingReasoningTokensIncluded, &usage.PromptTokens, &usage.CompletionTokens, usage.CompletionTokensDetails.ReasoningTokens, nil, nil, &result.usage)
+	require.Equal(t, int64(15), *result.usage.ReasoningTokens)
 }
 
 func TestMistralGetMessageTextExcludesThinking(t *testing.T) {
