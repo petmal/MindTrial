@@ -102,6 +102,18 @@ config:
           text-only: true
           model-parameters:
             response-format: "text"
+        - name: "Inception Mercury 3 (diffusion, text-only, high reasoning)"
+          model: "inception/mercury-3"
+          max-requests-per-minute: 10
+          disable-structured-output: true
+          text-only: true
+          pricing:
+            # 50% launch discount; regular input/cache-read/output rates are $0.20/$0.02/$0.70.
+            input-per-million: 0.10
+            cache-read-per-million: 0.01
+            output-per-million: 0.35
+          model-parameters:
+            reasoning-effort: "high"
         - name: "ByteDance Seed 1.6"
           model: "bytedance-seed/seed-1.6"
           max-requests-per-minute: 10
@@ -146,6 +158,16 @@ config:
           disable-structured-output: true
           model-parameters:
             response-format: "text"
+        - name: "StepFun Step 5 Preview (xhigh reasoning)"
+          model: "stepfun/step-5-preview"
+          max-requests-per-minute: 10
+          pricing:
+            # Conservative cache-read estimate; InferenceNet currently charges $0.05/MTok.
+            input-per-million: 1.00
+            cache-read-per-million: 0.10
+            output-per-million: 2.70
+          model-parameters:
+            reasoning-effort: "xhigh"
     - name: google
       client-config:
         api-key: ""
@@ -325,6 +347,17 @@ config:
           model-parameters:
             thinking: enabled
             reasoning-effort: max
+        - name: "DeepSeek V4.1 Flash - DeepSeek-V4.1-Flash-1017 (thinking, max effort)"
+          model: "deepseek-flash"
+          max-requests-per-minute: 15
+          pricing:
+            # Peak pricing; off-peak rates are half these rates.
+            input-per-million: 0.30
+            cache-read-per-million: 0.006
+            output-per-million: 1.20
+          model-parameters:
+            reasoning-effort: max
+            max-tokens: 65536
     - name: mistralai
       retry-policy:
         max-retry-attempts: 5
@@ -480,6 +513,20 @@ config:
             reasoning-effort: "max"
             max-completion-tokens: 65536
             response-format: "json-schema"
+            stream: true
+        - name: "Kimi K3.1 Pro (max reasoning)"
+          model: "kimi-k3.1-pro"
+          max-requests-per-minute: 3
+          pricing:
+            # Default implicit cache TTL is 5m; 1h cache writes would cost $4.00/MTok.
+            input-per-million: 2.00
+            cache-read-per-million: 0.20
+            cache-write-per-million: 2.00
+            output-per-million: 10.00
+          model-parameters:
+            reasoning-effort: "max"
+            max-completion-tokens: 65536
+            response-format: "text"
             stream: true
   judges:
     - name: "default"

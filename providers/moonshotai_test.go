@@ -370,12 +370,23 @@ func TestMoonshotAICompletionHandler_InputCacheTokens(t *testing.T) {
 	tests := []struct {
 		name      string
 		usageJSON string
+		write     *int64
 		read      *int64
 	}{
 		{name: "omitted", usageJSON: `{"prompt_tokens":19,"completion_tokens":21,"total_tokens":40}`},
 		{name: "reported", usageJSON: `{"prompt_tokens":19,"completion_tokens":21,"total_tokens":40,"cached_tokens":10}`, read: testutils.Ptr(int64(10))},
 		{name: "reported zero is not absent", usageJSON: `{"prompt_tokens":19,"completion_tokens":21,"total_tokens":40,"cached_tokens":0}`, read: testutils.Ptr(int64(0))},
 		{name: "explicit null is absent", usageJSON: `{"prompt_tokens":19,"completion_tokens":21,"total_tokens":40,"cached_tokens":null}`},
+		{name: "nested counters", usageJSON: `{"prompt_tokens_details":{"cached_tokens":10,"cache_write_tokens":5}}`, write: testutils.Ptr(int64(5)), read: testutils.Ptr(int64(10))},
+		{name: "nested zero counters are not absent", usageJSON: `{"prompt_tokens_details":{"cached_tokens":0,"cache_write_tokens":0}}`, write: testutils.Ptr(int64(0)), read: testutils.Ptr(int64(0))},
+		{name: "nested read only", usageJSON: `{"prompt_tokens_details":{"cached_tokens":10}}`, read: testutils.Ptr(int64(10))},
+		{name: "nested write only", usageJSON: `{"prompt_tokens_details":{"cache_write_tokens":5}}`, write: testutils.Ptr(int64(5))},
+		{name: "nested null counters are absent", usageJSON: `{"prompt_tokens_details":{"cached_tokens":null,"cache_write_tokens":null}}`},
+		{name: "nested read takes precedence", usageJSON: `{"cached_tokens":7,"prompt_tokens_details":{"cached_tokens":10,"cache_write_tokens":5}}`, write: testutils.Ptr(int64(5)), read: testutils.Ptr(int64(10))},
+		{name: "nested zero read takes precedence", usageJSON: `{"cached_tokens":7,"prompt_tokens_details":{"cached_tokens":0}}`, read: testutils.Ptr(int64(0))},
+		{name: "legacy read with nested write", usageJSON: `{"cached_tokens":7,"prompt_tokens_details":{"cache_write_tokens":5}}`, write: testutils.Ptr(int64(5)), read: testutils.Ptr(int64(7))},
+		{name: "nested null read permits legacy fallback", usageJSON: `{"cached_tokens":7,"prompt_tokens_details":{"cached_tokens":null,"cache_write_tokens":5}}`, write: testutils.Ptr(int64(5)), read: testutils.Ptr(int64(7))},
+		{name: "invalid legacy read preserves nested write", usageJSON: `{"cached_tokens":"invalid","prompt_tokens_details":{"cache_write_tokens":5}}`, write: testutils.Ptr(int64(5))},
 	}
 
 	var handler CompletionHandler = &moonshotAICompletionHandler{}
@@ -384,7 +395,7 @@ func TestMoonshotAICompletionHandler_InputCacheTokens(t *testing.T) {
 			var usage openai.CompletionUsage
 			require.NoError(t, json.Unmarshal([]byte(test.usageJSON), &usage))
 			write, read := handler.InputCacheTokens(usage)
-			require.Nil(t, write, "Moonshot does not report a distinct cache-write counter")
+			require.Equal(t, test.write, write)
 			require.Equal(t, test.read, read)
 		})
 	}

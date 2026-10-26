@@ -186,18 +186,20 @@ func (h *moonshotAICompletionHandler) setReasoningContent(param *openai.ChatComp
 	})
 }
 
-// InputCacheTokens reads Moonshot's cached_tokens count, which is a top-level
-// sibling of prompt_tokens/completion_tokens rather than nested under
-// prompt_tokens_details like the OpenAI-standard shape. Moonshot does not
-// report a distinct cache-write counter.
-// See: https://platform.kimi.ai/docs/api/chat#response-usage
+// InputCacheTokens prefers K3's standard nested cache counters, falling back to
+// the legacy top-level cached_tokens field for older Moonshot responses.
+// See: https://platform.kimi.ai/docs/guide/context-caching#check-cache-usage
 func (h *moonshotAICompletionHandler) InputCacheTokens(usage openai.CompletionUsage) (writeTokens *int64, readTokens *int64) {
+	writeTokens, readTokens = h.defaultCompletionHandler.InputCacheTokens(usage)
+	if readTokens != nil {
+		return writeTokens, readTokens
+	}
 	if raw, ok := extractExtraFieldRaw(usage.JSON.ExtraFields, "cached_tokens"); ok {
 		var value int64
 		if err := json.Unmarshal([]byte(raw), &value); err != nil {
-			return nil, nil
+			return writeTokens, readTokens
 		}
 		readTokens = &value
 	}
-	return nil, readTokens
+	return writeTokens, readTokens
 }
