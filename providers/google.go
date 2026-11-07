@@ -8,6 +8,7 @@ package providers
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -20,6 +21,11 @@ import (
 	"github.com/petmal/mindtrial/pkg/utils"
 	"github.com/petmal/mindtrial/providers/tools"
 	"google.golang.org/genai"
+	"google.golang.org/genai/interactions/models/apierrors"
+	"google.golang.org/genai/interactions/models/components"
+	"google.golang.org/genai/interactions/models/interactions"
+	"google.golang.org/genai/interactions/models/operations"
+	"google.golang.org/genai/interactions/retry"
 )
 
 // NewGoogleAI creates a new GoogleAI provider instance with the given configuration.
@@ -49,10 +55,12 @@ func (o GoogleAI) Name() string {
 }
 
 func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task, environment ExecutionEnvironment) (result Result, err error) {
-	// Create the generation config. CandidateCount is left unset: the API already
-	// defaults to a single candidate, and Gemini 3.x rejects the field outright.
-	// See: https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.5#migration-checklist
-	generateConfig := &genai.GenerateContentConfig{}
+	// Store is required to chain conversation turns via previous_interaction_id.
+	request := interactions.CreateModelInteraction{
+		Model:            interactions.Model(cfg.Model),
+		Store:            genai.Ptr(true),
+		GenerationConfig: &interactions.GenerationConfig{},
+	}
 
 	forceTextResponseFormat := cfg.DisableStructuredOutput
 
@@ -74,86 +82,62 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 			}
 			tool := tools.NewDockerTool(toolCfg, toolSelection.MaxCalls, toolSelection.Timeout, toolSelection.MaxMemoryMB, toolSelection.CpuPercent)
 			executor.RegisterTool(tool)
-			generateConfig.Tools = append(generateConfig.Tools, &genai.Tool{
-				FunctionDeclarations: []*genai.FunctionDeclaration{{
-					Name:                 toolCfg.Name,
-					Description:          toolCfg.Description,
-					ParametersJsonSchema: toolCfg.Parameters,
-				}},
-			})
+			function := interactions.Function{
+				Name: genai.Ptr(toolCfg.Name),
+			}
+			if toolCfg.Description != "" {
+				function.Description = genai.Ptr(toolCfg.Description)
+			}
+			if toolCfg.Parameters != nil {
+				function.Parameters = toolCfg.Parameters
+			}
+			request.Tools = append(request.Tools, interactions.NewTool(function))
 		}
 		// If user tools are present, allow auto tool choice.
-		generateConfig.ToolConfig = &genai.ToolConfig{
-			FunctionCallingConfig: &genai.FunctionCallingConfig{
-				Mode: genai.FunctionCallingConfigModeAuto,
-			},
-		}
+		request.GenerationConfig.ToolChoice = genai.Ptr(interactions.NewToolChoice(interactions.ToolChoiceTypeAuto))
 	}
 
 	// Handle model parameters.
+	var defaultImageResolution *interactions.MediaResolution
 	if cfg.ModelParams != nil {
 		if modelParams, ok := cfg.ModelParams.(config.GoogleAIModelParams); ok {
 			// Apply TextResponseFormat (all tasks) or TextResponseFormatWithTools (only tasks with tools).
 			// Preserve disableStructuredOutput - it always forces text format.
 			forceTextResponseFormat = cfg.DisableStructuredOutput ||
 				modelParams.TextResponseFormat ||
-				(len(generateConfig.Tools) > 0 && modelParams.TextResponseFormatWithTools)
+				(len(request.Tools) > 0 && modelParams.TextResponseFormatWithTools)
 
-			// Apply ThinkingLevel parameter.
 			if modelParams.ThinkingLevel != nil {
-				var thinkingLevel genai.ThinkingLevel
-				switch *modelParams.ThinkingLevel {
-				case "minimal":
-					thinkingLevel = genai.ThinkingLevelMinimal
-				case "low":
-					thinkingLevel = genai.ThinkingLevelLow
-				case "medium":
-					thinkingLevel = genai.ThinkingLevelMedium
-				case "high":
-					thinkingLevel = genai.ThinkingLevelHigh
-				default:
-					thinkingLevel = genai.ThinkingLevelUnspecified
-				}
-				generateConfig.ThinkingConfig = &genai.ThinkingConfig{
-					ThinkingLevel: thinkingLevel,
-				}
+				request.GenerationConfig.ThinkingLevel = o.mapThinkingLevel(*modelParams.ThinkingLevel)
 			}
-
-			// Apply MediaResolution parameter.
+			if modelParams.ThinkingSummaries != nil {
+				request.GenerationConfig.ThinkingSummaries = o.mapThinkingSummaries(*modelParams.ThinkingSummaries)
+			}
 			if modelParams.MediaResolution != nil {
-				var mediaResolution genai.MediaResolution
-				switch *modelParams.MediaResolution {
-				case "low":
-					mediaResolution = genai.MediaResolutionLow
-				case "medium":
-					mediaResolution = genai.MediaResolutionMedium
-				case "high":
-					mediaResolution = genai.MediaResolutionHigh
-				default:
-					mediaResolution = genai.MediaResolutionUnspecified
-				}
-				generateConfig.MediaResolution = mediaResolution
+				defaultImageResolution = o.mapMediaResolution(*modelParams.MediaResolution)
 			}
-
+			if modelParams.MaxOutputTokens != nil {
+				request.GenerationConfig.MaxOutputTokens = genai.Ptr(int(*modelParams.MaxOutputTokens))
+			}
 			if modelParams.Temperature != nil {
-				generateConfig.Temperature = modelParams.Temperature
+				logger.Message(ctx, logging.LevelWarn, "temperature parameter is deprecated by the Interactions API and may be ignored by the model")
+				request.GenerationConfig.Temperature = modelParams.Temperature
 			}
 			if modelParams.TopP != nil {
-				generateConfig.TopP = modelParams.TopP
+				logger.Message(ctx, logging.LevelWarn, "top-p parameter is deprecated by the Interactions API and may be ignored by the model")
+				request.GenerationConfig.TopP = modelParams.TopP
 			}
 			if modelParams.TopK != nil {
-				// TopK should logically be an integer (number of tokens), but the Go genai library
-				// expects float32.
-				generateConfig.TopK = genai.Ptr(float32(*modelParams.TopK))
+				logger.Message(ctx, logging.LevelWarn, "top-k parameter is not supported by the Interactions API and will be ignored")
 			}
 			if modelParams.PresencePenalty != nil {
-				generateConfig.PresencePenalty = modelParams.PresencePenalty
+				logger.Message(ctx, logging.LevelWarn, "presence-penalty parameter is not supported by the Interactions API and will be ignored")
 			}
 			if modelParams.FrequencyPenalty != nil {
-				generateConfig.FrequencyPenalty = modelParams.FrequencyPenalty
+				logger.Message(ctx, logging.LevelWarn, "frequency-penalty parameter is not supported by the Interactions API and will be ignored")
 			}
 			if modelParams.Seed != nil {
-				generateConfig.Seed = modelParams.Seed
+				request.GenerationConfig.Seed = genai.Ptr(int(*modelParams.Seed))
 			}
 		} else {
 			return result, fmt.Errorf("%w: %s", ErrInvalidModelParams, cfg.Name)
@@ -161,50 +145,54 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 	}
 
 	// Configure response format.
-	var systemParts []*genai.Part
+	var systemParts []string
 	if forceTextResponseFormat {
-		generateConfig.ResponseMIMEType = "text/plain"
-		generateConfig.ResponseJsonSchema = nil
+		request.ResponseFormat = o.newResponseFormat(interactions.TextResponseFormatMimeTypeTextPlain, nil)
 		// Add response format instruction only when not in unstructured mode.
 		if !cfg.DisableStructuredOutput {
 			responseFormatInstruction, err := DefaultResponseFormatInstruction(task.ResponseResultFormat)
 			if err != nil {
 				return result, err
 			}
-			systemParts = append(systemParts, genai.NewPartFromText(result.recordPrompt(responseFormatInstruction)))
+			systemParts = append(systemParts, result.recordPrompt(responseFormatInstruction))
 		}
 	} else {
 		responseSchema, err := ResultJSONSchemaRaw(task.ResponseResultFormat)
 		if err != nil {
 			return result, err
 		}
-		generateConfig.ResponseMIMEType = "application/json"
-		generateConfig.ResponseJsonSchema = responseSchema
+		request.ResponseFormat = o.newResponseFormat(interactions.TextResponseFormatMimeTypeApplicationJSON, responseSchema)
 	}
 
 	if cfg.DisableStructuredOutput {
-		systemParts = append(systemParts, genai.NewPartFromText(result.recordPrompt(DefaultUnstructuredResponseInstruction())))
+		systemParts = append(systemParts, result.recordPrompt(DefaultUnstructuredResponseInstruction()))
 	}
 
 	// Add answer format instruction to system instructions.
 	if answerFormatInstruction := DefaultAnswerFormatInstruction(task); answerFormatInstruction != "" {
-		systemParts = append(systemParts, genai.NewPartFromText(result.recordPrompt(answerFormatInstruction)))
+		systemParts = append(systemParts, result.recordPrompt(answerFormatInstruction))
 	}
 
-	// Set system instruction if we have any.
+	// The Interactions API accepts a single system instruction string.
 	if len(systemParts) > 0 {
-		generateConfig.SystemInstruction = &genai.Content{Parts: systemParts}
+		request.SystemInstruction = genai.Ptr(strings.Join(systemParts, "\n\n"))
 	}
 
 	// Create prompt content.
-	promptParts, err := o.createPromptMessageParts(ctx, task.Prompt, task.Files, &result)
+	promptContent, err := o.createPromptContent(ctx, logger, task.Prompt, task.Files, defaultImageResolution, &result)
 	if errors.Is(err, ErrFeatureNotSupported) {
 		return result, err
 	} else if err != nil {
 		return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
 	}
+	request.Input = genai.Ptr(interactions.NewInteractionsInput(promptContent))
 
-	contents := []*genai.Content{{Parts: promptParts}}
+	// Disable SDK retries: they resend the identical request without an idempotency key,
+	// which can create duplicate billed interactions. MindTrial's retry policy restarts the
+	// whole task instead, so no interaction ID is ever reused across attempts.
+	requestOptions := []operations.Option{
+		operations.WithRetries(retry.Config{Strategy: "none"}),
+	}
 
 	// Conversation loop to handle tool calls.
 	var turn int
@@ -214,213 +202,481 @@ func (o *GoogleAI) Run(ctx context.Context, logger logging.Logger, cfg config.Ru
 			return result, err
 		}
 
-		// Execute the completion request.
-		resp, err := timed(func() (*genai.GenerateContentResponse, error) {
-			response, err := o.client.Models.GenerateContent(ctx, cfg.Model, contents, generateConfig)
-			if err != nil && o.isTransientResponse(err) {
-				return response, WrapErrRetryable(err)
+		// Execute the interaction request. Interactions that require continuation are
+		// resumed automatically by the SDK and returned merged as a single interaction.
+		resp, err := timed(func() (*interactions.Interaction, error) {
+			response, err := o.client.Interactions.Create(ctx, operations.CreateInteractionRequest{
+				Body: operations.NewCreateInteractionRequestBody(request),
+			}, requestOptions...)
+			var interaction *interactions.Interaction
+			if response != nil {
+				interaction = response.Interaction
 			}
-			return response, err
+			if err != nil && o.isTransientResponse(err) {
+				return interaction, WrapErrRetryable(err)
+			}
+			return interaction, err
 		}, &result.duration)
 		result.recordToolUsage(executor.GetUsageStats())
 		result.recordToolCalls(executor.GetCallSummaries())
 		if err != nil {
+			// Tokens of continuation hops that completed before the failure were billed.
+			var interruptedErr *apierrors.ContinuationInterruptedError
+			if errors.As(err, &interruptedErr) {
+				logger.Message(ctx, logging.LevelDebug, "continuation interrupted after %d hop(s) (interaction ID: %q, continuation token: %q)", len(interruptedErr.ContinuationIDs), interruptedErr.InteractionID, interruptedErr.ContinuationToken)
+				if interruptedErr.PartialInteraction != nil {
+					o.recordInteractionUsage(interruptedErr.PartialInteraction.Usage, &result.usage)
+				}
+			}
 			return result, WrapErrGenerateResponse(err)
 		} else if resp == nil {
 			return result, nil // return current result state
 		}
 
-		// Parse the completion response.
+		// Parse the interaction response.
+		o.recordInteractionUsage(resp.Usage, &result.usage)
+		o.logThoughtSummaries(ctx, logger, resp.Steps)
 
-		if resp.UsageMetadata != nil {
-			recordUsage(InputTokenAccountingCacheTokensIncluded, OutputTokenAccountingReasoningTokensSeparate, &resp.UsageMetadata.PromptTokenCount, &resp.UsageMetadata.CandidatesTokenCount, &resp.UsageMetadata.ThoughtsTokenCount, nil, &resp.UsageMetadata.CachedContentTokenCount, &result.usage)
-		}
-		if len(resp.Candidates) == 0 {
-			return result, ErrNoResponseCandidates
-		}
-		for _, candidate := range resp.Candidates {
-			isTerminal := o.hasTerminalStopReason(candidate)
-			logFinishReason(ctx, logger, string(candidate.FinishReason), isTerminal)
+		outputSteps := o.outputSteps(resp.Steps)
+		stopReason := o.stopReason(resp)
+		isTerminal := !o.hasPendingFunctionCalls(resp.Status, outputSteps)
+		logFinishReason(ctx, logger, stopReason, isTerminal)
 
-			if !isTerminal {
-				if candidate.Content != nil {
-					// Append assistant content for every non-terminal turn.
-					contents = append(contents, candidate.Content)
-
-					// Collect one FunctionResponse Part per FunctionCall Part, in order,
-					// and bundle them into a single user Content. Gemini 3.x requires one
-					// Content with N Parts for N parallel FunctionCalls; interleaving each
-					// FR as its own Content causes HTTP 400.
-					var frParts []*genai.Part
-					for _, part := range candidate.Content.Parts {
-						logSkippedPreambleText(ctx, logger, string(candidate.FinishReason), part.Text)
-						if part.FunctionCall != nil {
-							argsBytes, err := json.Marshal(part.FunctionCall.Args)
-							if err != nil {
-								return result, fmt.Errorf("%w: failed to marshal function args: %v", ErrToolUse, err)
-							}
-							data, err := taskFilesToDataMap(ctx, task.Files)
-							if err != nil {
-								return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
-							}
-							response := map[string]interface{}{}
-							// Model should not call tools that already reached max calls limit, but in case it does,
-							// allow one final call of the tool (should short-circuit) and
-							// remove it from the available tools to prevent further errors.
-							wasExhausted := executor.IsToolExhausted(part.FunctionCall.Name)
-							toolResult, err := executor.ExecuteTool(ctx, logger, part.FunctionCall.Name, json.RawMessage(argsBytes), data, &tools.ToolCallContext{CallID: part.FunctionCall.ID, ConversationTurn: turn})
-							if runtimeErr := taskRuntimeToolError(err); runtimeErr != nil {
-								return result, runtimeErr
-							}
-							if err != nil {
-								response["error"] = formatToolExecutionError(err)
-							} else {
-								response["result"] = string(toolResult)
-							}
-							if wasExhausted {
-								logger.Message(ctx, logging.LevelWarn, "tool %q was called again after max-calls error; removing it from available tools for next turn", part.FunctionCall.Name)
-								removeFunctionCallFromRequestConfig(generateConfig, part.FunctionCall.Name)
-							}
-							frPart := genai.NewPartFromFunctionResponse(part.FunctionCall.Name, response)
-							frPart.FunctionResponse.ID = part.FunctionCall.ID
-							frParts = append(frParts, frPart)
-						}
-					}
-					if len(frParts) > 0 {
-						contents = append(contents, genai.NewContentFromParts(frParts, genai.RoleUser))
-					}
-				}
-			} else {
-				if textContent, ok := o.getMessageText(candidate); ok {
-					if cfg.DisableStructuredOutput {
-						err = UnmarshalUnstructuredResponse(ctx, logger, []byte(textContent), &result)
-					} else {
-						content := []byte(textContent)
-						if generateConfig.ResponseJsonSchema == nil {
-							repaired, err := utils.RepairTextJSON(textContent)
-							if err != nil {
-								return result, NewErrUnmarshalResponse(err, []byte(textContent), []byte(string(candidate.FinishReason)))
-							}
-							content = []byte(repaired)
-						}
-						err = json.Unmarshal(content, &result)
-					}
-					if err != nil {
-						return result, NewErrUnmarshalResponse(err, []byte(textContent), []byte(string(candidate.FinishReason)))
-					}
-					return result, nil
-				}
-
-				return result, NewErrNoActionableContent([]byte(string(candidate.FinishReason)), nil)
+		// Handle explicit failure, cancellation and unfinished statuses.
+		switch resp.Status {
+		case interactions.InteractionStatusFailed:
+			err := fmt.Errorf("%w: interaction failed: %s", ErrGenerateResponse, o.errorDetails(resp))
+			if o.isRetryableInteractionFailure(resp) {
+				return result, WrapErrRetryable(err)
 			}
+			return result, err
+		case interactions.InteractionStatusCancelled:
+			return result, ErrNoResponseCandidates
+		case interactions.InteractionStatusInProgress, interactions.InteractionStatusQueued, interactions.InteractionStatusRequiresContinuation:
+			// Synchronous interactions should never return unfinished. The SDK resumes continuations
+			// automatically and only returns one when it cannot make progress; the task can be retried.
+			return result, WrapErrRetryable(fmt.Errorf("%w: unexpected interaction status %q", ErrGenerateResponse, resp.Status))
+		case interactions.InteractionStatusIncomplete, interactions.InteractionStatusBudgetExceeded:
+			logger.Message(ctx, logging.LevelDebug, "interaction ended early with status %q: %s", resp.Status, o.errorDetails(resp))
+		}
+
+		if !isTerminal {
+			if resp.ID == nil || *resp.ID == "" {
+				return result, fmt.Errorf("%w: interaction ID is missing, cannot continue the conversation", ErrGenerateResponse)
+			}
+			// Maintain conversation context for the next turn; managed by the server.
+			request.PreviousInteractionID = resp.ID
+
+			logSkippedPreambleText(ctx, logger, stopReason, o.outputText(outputSteps))
+
+			// Execute function calls and collect their results, in order, for the next turn.
+			var functionResultSteps []interactions.Step
+			for _, step := range outputSteps {
+				if step.Type != interactions.StepTypeFunctionCall || step.FunctionCallStep == nil {
+					continue
+				}
+				functionCall := step.FunctionCallStep
+				argsBytes, err := json.Marshal(functionCall.Arguments)
+				if err != nil {
+					return result, fmt.Errorf("%w: failed to marshal function args: %v", ErrToolUse, err)
+				}
+				data, err := taskFilesToDataMap(ctx, task.Files)
+				if err != nil {
+					return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
+				}
+				response := map[string]interface{}{}
+				// Model should not call tools that already reached max calls limit, but in case it does,
+				// allow one final call of the tool (should short-circuit) and
+				// remove it from the available tools to prevent further errors.
+				wasExhausted := executor.IsToolExhausted(functionCall.Name)
+				toolResult, err := executor.ExecuteTool(ctx, logger, functionCall.Name, json.RawMessage(argsBytes), data, &tools.ToolCallContext{CallID: functionCall.ID, ConversationTurn: turn})
+				if runtimeErr := taskRuntimeToolError(err); runtimeErr != nil {
+					return result, runtimeErr
+				}
+				isError := err != nil
+				if isError {
+					response["error"] = formatToolExecutionError(err)
+				} else {
+					response["result"] = string(toolResult)
+				}
+				if wasExhausted {
+					logger.Message(ctx, logging.LevelWarn, "tool %q was called again after max-calls error; removing it from available tools for next turn", functionCall.Name)
+					o.removeFunctionTool(&request, functionCall.Name)
+				}
+				resultStep, err := o.newFunctionResultStep(functionCall, response, isError)
+				if err != nil {
+					return result, fmt.Errorf("%w: failed to marshal function result: %v", ErrToolUse, err)
+				}
+				functionResultSteps = append(functionResultSteps, resultStep)
+			}
+
+			// With PreviousInteractionID, only the function results are needed as new input.
+			request.Input = genai.Ptr(interactions.NewInteractionsInput(functionResultSteps))
+		} else {
+			if textContent := o.outputText(outputSteps); textContent != "" {
+				if cfg.DisableStructuredOutput {
+					err = UnmarshalUnstructuredResponse(ctx, logger, []byte(textContent), &result)
+				} else {
+					content := []byte(textContent)
+					if forceTextResponseFormat {
+						repaired, err := utils.RepairTextJSON(textContent)
+						if err != nil {
+							return result, NewErrUnmarshalResponse(err, []byte(textContent), []byte(stopReason))
+						}
+						content = []byte(repaired)
+					}
+					err = json.Unmarshal(content, &result)
+				}
+				if err != nil {
+					return result, NewErrUnmarshalResponse(err, []byte(textContent), []byte(stopReason))
+				}
+				return result, nil
+			}
+
+			return result, NewErrNoActionableContent([]byte(stopReason), nil)
 		}
 	} // move to the next conversation turn
+}
+
+// mapThinkingLevel maps a configured thinking level to the Interactions API value.
+// Unrecognized values leave the thinking level unset (model default).
+func (o *GoogleAI) mapThinkingLevel(level string) *interactions.ThinkingLevel {
+	switch level {
+	case "minimal":
+		return genai.Ptr(interactions.ThinkingLevelMinimal)
+	case "low":
+		return genai.Ptr(interactions.ThinkingLevelLow)
+	case "medium":
+		return genai.Ptr(interactions.ThinkingLevelMedium)
+	case "high":
+		return genai.Ptr(interactions.ThinkingLevelHigh)
+	default:
+		return nil
+	}
+}
+
+// mapThinkingSummaries maps a configured thinking summaries mode to the Interactions API value.
+// Unrecognized values leave the mode unset (model default).
+func (o *GoogleAI) mapThinkingSummaries(mode string) *interactions.ThinkingSummaries {
+	switch mode {
+	case "auto":
+		return genai.Ptr(interactions.ThinkingSummariesAuto)
+	case "none":
+		return genai.Ptr(interactions.ThinkingSummariesNone)
+	default:
+		return nil
+	}
+}
+
+// mapMediaResolution maps a configured media resolution to the Interactions API value.
+// Unrecognized values leave the resolution unset (model default).
+func (o *GoogleAI) mapMediaResolution(resolution string) *interactions.MediaResolution {
+	switch resolution {
+	case "low":
+		return genai.Ptr(interactions.MediaResolutionLow)
+	case "medium":
+		return genai.Ptr(interactions.MediaResolutionMedium)
+	case "high":
+		return genai.Ptr(interactions.MediaResolutionHigh)
+	case "ultra_high":
+		return genai.Ptr(interactions.MediaResolutionUltraHigh)
+	default:
+		return nil
+	}
+}
+
+func (o *GoogleAI) newResponseFormat(mimeType interactions.TextResponseFormatMimeType, schema map[string]interface{}) *interactions.CreateModelInteractionResponseFormat {
+	return genai.Ptr(interactions.NewCreateModelInteractionResponseFormat(
+		interactions.NewResponseFormat(interactions.TextResponseFormat{
+			MimeType: &mimeType,
+			Schema:   schema,
+		}),
+	))
+}
+
+// retryableGoogleStatusCodes lists the HTTP status codes that the retry policy should attempt again.
+var retryableGoogleStatusCodes = []int{
+	http.StatusTooManyRequests,
+	http.StatusInternalServerError,
+	http.StatusServiceUnavailable,
 }
 
 // isTransientResponse checks whether the error represents a transient condition
 // that the retry policy should attempt again.
 func (o *GoogleAI) isTransientResponse(err error) bool {
-	var apiErr genai.APIError
-	if errors.As(err, &apiErr) {
-		return slices.Contains([]int{
-			http.StatusTooManyRequests,
-			http.StatusInternalServerError,
-			http.StatusServiceUnavailable,
-		}, apiErr.Code)
-	}
-	return false
+	statusCode, ok := o.errorStatusCode(err)
+	return ok && slices.Contains(retryableGoogleStatusCodes, statusCode)
 }
 
-func removeFunctionCallFromRequestConfig(config *genai.GenerateContentConfig, toolName string) {
-	if config != nil {
-		for _, tool := range config.Tools {
-			if tool != nil {
-				tool.FunctionDeclarations = slices.DeleteFunc(tool.FunctionDeclarations, func(declaration *genai.FunctionDeclaration) bool {
-					return declaration != nil && declaration.Name == toolName
-				})
+// errorStatusCode extracts the HTTP status code from an Interactions API error.
+func (o *GoogleAI) errorStatusCode(err error) (int, bool) {
+	var clientErr *apierrors.CreateInteractionClientError
+	var serverErr *apierrors.CreateInteractionServerError
+	var apiErr *apierrors.APIError
+	var validationErr *apierrors.ResponseValidationError
+	switch {
+	case errors.As(err, &clientErr):
+		return o.httpStatusCode(clientErr.HTTPMeta)
+	case errors.As(err, &serverErr):
+		return o.httpStatusCode(serverErr.HTTPMeta)
+	case errors.As(err, &apiErr):
+		return apiErr.StatusCode, true
+	case errors.As(err, &validationErr):
+		return validationErr.StatusCode, true
+	}
+	return 0, false
+}
+
+func (o *GoogleAI) httpStatusCode(meta components.HTTPMetadata) (int, bool) {
+	if meta.Response == nil {
+		return 0, false
+	}
+	return meta.Response.StatusCode, true
+}
+
+// recordInteractionUsage records the token usage of an interaction, if available.
+func (o *GoogleAI) recordInteractionUsage(usage *interactions.Usage, out *Usage) {
+	if usage != nil {
+		recordUsage(InputTokenAccountingCacheTokensIncluded, OutputTokenAccountingReasoningTokensSeparate, usage.TotalInputTokens, usage.TotalOutputTokens, usage.TotalThoughtTokens, nil, usage.TotalCachedTokens, out)
+	}
+}
+
+// logThoughtSummaries logs the text thought summaries included in the interaction steps.
+// Summaries are only returned when thinking summaries are enabled. Each summary is
+// prefixed with the index of its step in the interaction.
+func (o *GoogleAI) logThoughtSummaries(ctx context.Context, logger logging.Logger, steps []interactions.Step) {
+	thoughtLogger := logger.WithContext("thought summary: ")
+	for index, step := range steps {
+		if step.Type != interactions.StepTypeThought || step.ThoughtStep == nil {
+			continue
+		}
+		for _, summary := range step.ThoughtStep.Summary {
+			if summary.TextContent != nil && summary.TextContent.Text != "" {
+				thoughtLogger.Message(ctx, logging.LevelInfo, "step %d: %s", index, summary.TextContent.Text)
 			}
 		}
 	}
 }
 
-func (o *GoogleAI) hasTerminalStopReason(candidate *genai.Candidate) bool {
-	var undefined genai.FinishReason
-	if candidate == nil {
+// outputSteps returns the steps produced by the model in the current turn,
+// i.e. the steps following the last input (user input or function result) step.
+func (o *GoogleAI) outputSteps(steps []interactions.Step) []interactions.Step {
+	for index, step := range slices.Backward(steps) {
+		if step.Type == interactions.StepTypeUserInput || step.Type == interactions.StepTypeFunctionResult {
+			return steps[index+1:]
+		}
+	}
+	return steps
+}
+
+// stopReason describes why the interaction stopped: its status, followed by
+// the first reported error code, if any.
+func (o *GoogleAI) stopReason(interaction *interactions.Interaction) string {
+	stopReason := string(interaction.Status)
+	for _, interactionErr := range interaction.Errors {
+		if interactionErr.Code != nil && *interactionErr.Code != "" {
+			return fmt.Sprintf("%s: %s", stopReason, *interactionErr.Code)
+		}
+	}
+	return stopReason
+}
+
+// hasPendingFunctionCalls checks whether the model requested function calls that
+// should be executed before the conversation can continue. Per the Interactions API, a tool
+// request is signalled by the requires_action status; function calls returned with any other
+// status (e.g. incomplete) are not executed and end the conversation.
+func (o *GoogleAI) hasPendingFunctionCalls(status interactions.InteractionStatus, outputSteps []interactions.Step) bool {
+	if status != interactions.InteractionStatusRequiresAction {
 		return false
 	}
+	return slices.ContainsFunc(outputSteps, func(step interactions.Step) bool {
+		return step.Type == interactions.StepTypeFunctionCall && step.FunctionCallStep != nil
+	})
+}
 
-	if o.hasFunctionCalls(candidate) {
-		return !slices.Contains(
-			[]genai.FinishReason{genai.FinishReasonStop, genai.FinishReasonUnspecified, undefined},
-			candidate.FinishReason,
-		)
+// errorDetails describes the errors reported for an interaction.
+func (o *GoogleAI) errorDetails(interaction *interactions.Interaction) string {
+	var details []string
+	for _, interactionErr := range interaction.Errors {
+		details = append(details, o.formatErrorDetail(interactionErr.Code, interactionErr.Message))
 	}
-
-	return !slices.Contains([]genai.FinishReason{undefined, genai.FinishReasonUnspecified}, candidate.FinishReason)
+	if len(details) == 0 {
+		return "no error details provided"
+	}
+	return strings.Join(details, "; ")
 }
 
-func (o *GoogleAI) hasFunctionCalls(candidate *genai.Candidate) bool {
-	return candidate != nil &&
-		candidate.Content != nil &&
-		slices.ContainsFunc(candidate.Content.Parts, func(part *genai.Part) bool {
-			return part != nil && part.FunctionCall != nil
-		})
+func (o *GoogleAI) formatErrorDetail(code *string, message *string) string {
+	var detail strings.Builder
+	if code != nil && *code != "" {
+		detail.WriteString(*code)
+	}
+	if message != nil && *message != "" {
+		if detail.Len() > 0 {
+			detail.WriteString(": ")
+		}
+		detail.WriteString(*message)
+	}
+	if detail.Len() == 0 {
+		return "unknown error"
+	}
+	return detail.String()
 }
 
-func (o *GoogleAI) getMessageText(candidate *genai.Candidate) (text string, ok bool) {
-	if candidate != nil && candidate.Content != nil {
-		var textBuilder strings.Builder
-		for _, part := range candidate.Content.Parts {
-			if part != nil {
-				textBuilder.WriteString(part.Text)
+// retryableGoogleErrorCodes lists the Interactions API error codes that the retry policy should
+// attempt again: the documented snake_case codes delivered with the HTTP statuses of
+// retryableGoogleStatusCodes (429, 500 and 503), including the snake_case status name fallback.
+// See: https://aistudio.google.com/docs/api-errors
+var retryableGoogleErrorCodes = []string{
+	"rate_limit_exceeded", "quota_exceeded", "too_many_requests",
+	"api_error", "internal_server_error",
+	"service_unavailable",
+}
+
+// isRetryableInteractionFailure checks whether a failed interaction reported a transient error.
+func (o *GoogleAI) isRetryableInteractionFailure(interaction *interactions.Interaction) bool {
+	return slices.ContainsFunc(interaction.Errors, func(interactionErr interactions.Error) bool {
+		return interactionErr.Code != nil && slices.Contains(retryableGoogleErrorCodes, strings.ToLower(*interactionErr.Code))
+	})
+}
+
+// outputText concatenates the text content of all model output steps.
+// Thought steps are excluded.
+func (o *GoogleAI) outputText(outputSteps []interactions.Step) string {
+	var textBuilder strings.Builder
+	for _, step := range outputSteps {
+		if step.Type != interactions.StepTypeModelOutput || step.ModelOutputStep == nil {
+			continue
+		}
+		for _, content := range step.ModelOutputStep.Content {
+			if content.TextContent != nil {
+				textBuilder.WriteString(content.TextContent.Text)
 			}
 		}
-		text = textBuilder.String()
-		ok = text != ""
 	}
-	return
+	return textBuilder.String()
 }
 
-// googleSupportedDocumentMimeTypes lists the non-image types Gemini accepts as document
-// input. Transcribed in full from the "Supported content types" list in the Gemini file
-// input guide. See: https://ai.google.dev/gemini-api/docs/file-input-methods
-// Only PDF is understood with native document vision; the text types are extracted as
-// plain text, so layout, charts and formatting are lost.
-var googleSupportedDocumentMimeTypes = map[string]bool{
-	"application/pdf":  true,
+// removeFunctionTool removes the named function tool from the request.
+// The tool choice is cleared once no tools remain.
+func (o *GoogleAI) removeFunctionTool(request *interactions.CreateModelInteraction, toolName string) {
+	request.Tools = slices.DeleteFunc(request.Tools, func(tool interactions.Tool) bool {
+		return tool.Function != nil && tool.Function.Name != nil && *tool.Function.Name == toolName
+	})
+	if len(request.Tools) == 0 {
+		request.Tools = nil
+		if request.GenerationConfig != nil {
+			request.GenerationConfig.ToolChoice = nil
+		}
+	}
+}
+
+// newFunctionResultStep creates a function result step for the given function call.
+// The result object is sent as raw JSON because the SDK's typed result object has no fields.
+func (o *GoogleAI) newFunctionResultStep(functionCall *interactions.FunctionCallStep, response map[string]interface{}, isError bool) (interactions.Step, error) {
+	rawResult, err := json.Marshal(response)
+	if err != nil {
+		return interactions.Step{}, err
+	}
+	resultStep := interactions.FunctionResultStep{
+		CallID: functionCall.ID,
+		Name:   genai.Ptr(functionCall.Name),
+		Result: interactions.NewFunctionResultStepResultUnionUnknown(rawResult),
+	}
+	if isError {
+		resultStep.IsError = genai.Ptr(true)
+	}
+	return interactions.NewStep(resultStep), nil
+}
+
+// googleNativeDocumentMimeTypes lists the document types the Interactions API natively accepts.
+// See: https://ai.google.dev/static/api/interactions-v1.md.txt (DocumentContent.mime_type).
+var googleNativeDocumentMimeTypes = map[string]bool{
+	"application/pdf": true,
+	"text/csv":        true,
+}
+
+// googleBestEffortDocumentMimeTypes lists document types that were accepted by the legacy
+// generateContent API, but are not documented by the Interactions API. They are still sent
+// natively on a best-effort basis. Plain text is sent verbatim as a text content block instead.
+var googleBestEffortDocumentMimeTypes = map[string]bool{
 	"application/json": true,
-	"text/plain":       true,
 	"text/html":        true,
 	"text/css":         true,
 	"text/xml":         true,
-	"text/csv":         true,
 	"text/rtf":         true,
 	"text/javascript":  true,
 }
 
-func (o *GoogleAI) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []*genai.Part, err error) {
+func (o *GoogleAI) createPromptContent(ctx context.Context, logger logging.Logger, promptText string, files []config.TaskFile, defaultImageResolution *interactions.MediaResolution, result *Result) (contents []interactions.Content, err error) {
 	for _, file := range files {
-		parts = append(parts, genai.NewPartFromText(result.recordPrompt(DefaultTaskFileNameInstruction(file))))
+		contents = append(contents, interactions.NewContent(interactions.TextContent{Text: result.recordPrompt(DefaultTaskFileNameInstruction(file))}))
 		if !file.HasAccess(config.FileAccessNative) {
 			continue
 		}
 		fileType, err := file.TypeValue(ctx)
 		if err != nil {
-			return parts, err
+			return contents, err
 		}
-		if !isSupportedImageType(fileType) && !googleSupportedDocumentMimeTypes[config.NormalizeMIMEType(fileType)] {
-			return parts, fmt.Errorf("%w: %s", ErrFileNotSupported, fileType)
+		mimeType := config.NormalizeMIMEType(fileType)
+		isImage := isSupportedImageType(mimeType)
+		isPlainText := isPlainTextType(mimeType)
+		if !isImage && !isPlainText && !googleNativeDocumentMimeTypes[mimeType] && !googleBestEffortDocumentMimeTypes[mimeType] {
+			return contents, fmt.Errorf("%w: %s", ErrFileNotSupported, fileType)
 		}
 		content, err := file.Content(ctx)
 		if err != nil {
-			return parts, err
+			return contents, err
 		}
-		parts = append(parts, genai.NewPartFromBytes(content, config.NormalizeMIMEType(fileType)))
+		if isPlainText {
+			contents = append(contents, interactions.NewContent(interactions.TextContent{Text: string(content)}))
+			continue
+		}
+		data := base64.StdEncoding.EncodeToString(content)
+		if isImage {
+			contents = append(contents, interactions.NewContent(interactions.ImageContent{
+				Data:       &data,
+				MimeType:   genai.Ptr(interactions.ImageContentMimeType(canonicalImageMimeType(mimeType))),
+				Resolution: o.resolveImageResolution(ctx, logger, file.GetResolvedFileOptions().ImageDetail, defaultImageResolution),
+			}))
+			continue
+		}
+		if googleBestEffortDocumentMimeTypes[mimeType] {
+			logger.Message(ctx, logging.LevelWarn, "file %q type %q is not documented as natively supported by the Interactions API; sending it on a best-effort basis", file.Name, mimeType)
+		}
+		contents = append(contents, interactions.NewContent(interactions.DocumentContent{
+			Data:     &data,
+			MimeType: genai.Ptr(interactions.DocumentContentMimeType(mimeType)),
+		}))
 	}
 
-	parts = append(parts, genai.NewPartFromText(result.recordPrompt(promptText))) // append the prompt text after the file data for improved context integrity
+	contents = append(contents, interactions.NewContent(interactions.TextContent{Text: result.recordPrompt(promptText)})) // append the prompt text after the file data for improved context integrity
 
-	return parts, nil
+	return contents, nil
+}
+
+// resolveImageResolution determines the resolution of an input image. An explicit per-file
+// image detail always takes precedence over the run-level default: "auto" leaves the resolution
+// unset so the model decides, while nil or unrecognized values fall back to the default.
+// The generic "original" level maps to "ultra_high".
+func (o *GoogleAI) resolveImageResolution(ctx context.Context, logger logging.Logger, detail *config.ImageDetail, defaultResolution *interactions.MediaResolution) *interactions.MediaResolution {
+	if detail != nil {
+		switch *detail {
+		case config.ImageDetailAuto:
+			return nil
+		case config.ImageDetailLow:
+			return genai.Ptr(interactions.MediaResolutionLow)
+		case config.ImageDetailMedium:
+			return genai.Ptr(interactions.MediaResolutionMedium)
+		case config.ImageDetailHigh:
+			return genai.Ptr(interactions.MediaResolutionHigh)
+		case config.ImageDetailOriginal:
+			return genai.Ptr(interactions.MediaResolutionUltraHigh)
+		default:
+			logger.Message(ctx, logging.LevelWarn, "unsupported image detail level %q, reverting to default behavior", *detail)
+		}
+	}
+	return defaultResolution
 }
 
 func (o *GoogleAI) Close(ctx context.Context) error {

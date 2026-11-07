@@ -25,12 +25,9 @@ import (
 const defaultMaxTokens = 32768
 const submitResponseToolName = "submit_response"
 
-// Non-image MIME types Anthropic accepts as native document blocks.
+// Non-image MIME type Anthropic accepts as a native document block, besides plain text.
 // See: https://docs.claude.com/en/docs/build-with-claude/citations
-const (
-	anthropicPDFDocumentMimeType       = "application/pdf"
-	anthropicPlainTextDocumentMimeType = "text/plain"
-)
+const anthropicPDFDocumentMimeType = "application/pdf"
 
 // NewAnthropic creates a new Anthropic provider instance with the given configuration.
 func NewAnthropic(cfg config.AnthropicClientConfig, availableTools []config.ToolConfig) *Anthropic {
@@ -438,7 +435,7 @@ func (o *Anthropic) createPromptMessageParts(ctx context.Context, promptText str
 			parts = append(parts, anthropic.NewDocumentBlock(anthropic.Base64PDFSourceParam{
 				Data: base64Data,
 			}))
-		case config.NormalizeMIMEType(fileType) == anthropicPlainTextDocumentMimeType:
+		case isPlainTextType(fileType):
 			content, err := file.Content(ctx)
 			if err != nil {
 				return nil, err

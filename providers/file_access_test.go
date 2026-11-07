@@ -17,6 +17,7 @@ import (
 	"github.com/petmal/mindtrial/pkg/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/genai/interactions/models/interactions"
 	"gopkg.in/yaml.v3"
 )
 
@@ -188,7 +189,7 @@ func TestProvider_LocalOnlyBypass(t *testing.T) {
 			run: func(t *testing.T) error {
 				p := &GoogleAI{}
 				task := config.Task{Name: "t", Files: []config.TaskFile{mockTaskFileWithAccess(t, "file.bin", "file://file.bin", "application/octet-stream", []config.FileAccess{config.FileAccessLocal})}}
-				_, err := p.createPromptMessageParts(ctx, "prompt", task.Files, &Result{})
+				_, err := p.createPromptContent(ctx, logger, "prompt", task.Files, nil, &Result{})
 				return err
 			},
 		},
@@ -350,15 +351,19 @@ func TestProvider_NativeDocumentRequestShape(t *testing.T) {
 		result := &Result{}
 		files := []config.TaskFile{mockNativePDF(t, "report.pdf"), mockLocalCSV(t, "data.csv")}
 
-		parts, err := p.createPromptMessageParts(ctx, "the prompt", files, result)
+		parts, err := p.createPromptContent(ctx, testutils.NewTestLogger(t), "the prompt", files, nil, result)
 		require.NoError(t, err)
 		require.Len(t, parts, 4)
-		assert.Equal(t, "[file: report.pdf]", parts[0].Text)
-		require.NotNil(t, parts[1].InlineData, "native PDF must be sent as inline data")
-		assert.Equal(t, "application/pdf", parts[1].InlineData.MIMEType)
-		assert.NotEmpty(t, parts[1].InlineData.Data)
-		assert.Equal(t, "[file: data.csv]", parts[2].Text)
-		assert.Equal(t, "the prompt", parts[3].Text)
+		require.NotNil(t, parts[0].TextContent)
+		assert.Equal(t, "[file: report.pdf]", parts[0].TextContent.Text)
+		require.NotNil(t, parts[1].DocumentContent, "native PDF must be sent as inline data")
+		assert.Equal(t, interactions.DocumentContentMimeTypeApplicationPdf, *parts[1].DocumentContent.MimeType)
+		require.NotNil(t, parts[1].DocumentContent.Data)
+		assert.NotEmpty(t, *parts[1].DocumentContent.Data)
+		require.NotNil(t, parts[2].TextContent)
+		assert.Equal(t, "[file: data.csv]", parts[2].TextContent.Text)
+		require.NotNil(t, parts[3].TextContent)
+		assert.Equal(t, "the prompt", parts[3].TextContent.Text)
 	})
 
 	t.Run("google normalizes inferred mime type", func(t *testing.T) {
@@ -367,11 +372,11 @@ func TestProvider_NativeDocumentRequestShape(t *testing.T) {
 		// No explicit type: TypeValue infers "text/html; charset=utf-8".
 		file := mockTaskFileWithAccess(t, "page.html", path, "", []config.FileAccess{config.FileAccessNative})
 
-		parts, err := p.createPromptMessageParts(ctx, "the prompt", []config.TaskFile{file}, &Result{})
+		parts, err := p.createPromptContent(ctx, testutils.NewTestLogger(t), "the prompt", []config.TaskFile{file}, nil, &Result{})
 		require.NoError(t, err)
 		require.Len(t, parts, 3)
-		require.NotNil(t, parts[1].InlineData)
-		assert.Equal(t, "text/html", parts[1].InlineData.MIMEType, "parameters must be stripped before the API call")
+		require.NotNil(t, parts[1].DocumentContent)
+		assert.Equal(t, interactions.DocumentContentMimeType("text/html"), *parts[1].DocumentContent.MimeType, "parameters must be stripped before the API call")
 	})
 
 	t.Run("openai responses applies image detail to pdf rendering", func(t *testing.T) {
@@ -463,25 +468,31 @@ func TestProvider_NativeDocumentRequestShape(t *testing.T) {
 }
 
 func TestGoogleSupportedDocumentMimeTypes(t *testing.T) {
-	// The full "Supported content types" list from the Gemini file input guide.
-	documented := []string{
-		"application/pdf",
+	// The document types documented by the Interactions API (DocumentContent.mime_type).
+	native := []string{"application/pdf", "text/csv"}
+	for _, mimeType := range native {
+		assert.True(t, googleNativeDocumentMimeTypes[mimeType], "Interactions API documents %s", mimeType)
+	}
+	assert.Len(t, googleNativeDocumentMimeTypes, len(native), "no undocumented type may be added")
+	// Plain text is sent as a text content block rather than a document.
+	assert.False(t, googleNativeDocumentMimeTypes[plainTextMimeType] || googleBestEffortDocumentMimeTypes[plainTextMimeType], "text/plain must not be sent as a document")
+	// Types supported by the legacy API that are still sent natively on a best-effort basis.
+	bestEffort := []string{
 		"application/json",
-		"text/plain",
 		"text/html",
 		"text/css",
 		"text/xml",
-		"text/csv",
 		"text/rtf",
 		"text/javascript",
 	}
-	for _, mimeType := range documented {
-		assert.True(t, googleSupportedDocumentMimeTypes[mimeType], "Gemini documents %s", mimeType)
+	for _, mimeType := range bestEffort {
+		assert.True(t, googleBestEffortDocumentMimeTypes[mimeType], "%s must remain supported on a best-effort basis", mimeType)
+		assert.False(t, googleNativeDocumentMimeTypes[mimeType], "%s is not a documented Interactions API type", mimeType)
 	}
-	assert.Len(t, googleSupportedDocumentMimeTypes, len(documented), "no undocumented type may be added")
+	assert.Len(t, googleBestEffortDocumentMimeTypes, len(bestEffort), "no new best-effort type may be added")
 	// Spellings Gemini does not document, including the one Go infers for ".rtf".
 	for _, undocumented := range []string{"application/rtf", "text/markdown", "text/md", "application/x-javascript", "text/x-python"} {
-		assert.False(t, googleSupportedDocumentMimeTypes[undocumented], "%s is not a documented Gemini type", undocumented)
+		assert.False(t, googleNativeDocumentMimeTypes[undocumented] || googleBestEffortDocumentMimeTypes[undocumented], "%s is not a documented Gemini type", undocumented)
 	}
 }
 

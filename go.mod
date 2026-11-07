@@ -21,7 +21,7 @@ require (
 	github.com/sethvargo/go-retry v0.5.0
 	github.com/stretchr/testify v1.12.1
 	golang.org/x/time v0.16.0
-	google.golang.org/genai v1.72.0
+	google.golang.org/genai v1.77.0
 	gopkg.in/validator.v2 v2.0.1
 	gopkg.in/yaml.v3 v3.0.1
 )

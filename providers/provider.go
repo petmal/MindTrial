@@ -74,6 +74,10 @@ var supportedImageMimeTypes = map[string]bool{
 	"image/webp": true,
 }
 
+// plainTextMimeType is the MIME type of plain text files, which some providers accept
+// verbatim as text input rather than as an encoded document.
+const plainTextMimeType = "text/plain"
+
 // ExecutionEnvironment provides attempt-scoped infrastructure to providers.
 type ExecutionEnvironment = tools.ExecutionEnvironment
 
@@ -580,6 +584,21 @@ func addIfNotNil[D ~int64, S constraints.Signed](dst **D, src *S) {
 
 func isSupportedImageType(mimeType string) bool {
 	return supportedImageMimeTypes[config.NormalizeMIMEType(mimeType)]
+}
+
+// isPlainTextType checks if the provided MIME type denotes plain text, ignoring parameters such as charset.
+func isPlainTextType(mimeType string) bool {
+	return config.NormalizeMIMEType(mimeType) == plainTextMimeType
+}
+
+// canonicalImageMimeType normalizes an image MIME type and maps the non-standard "image/jpg"
+// alias to the registered "image/jpeg" type, for APIs that only accept registered types.
+func canonicalImageMimeType(mimeType string) string {
+	normalized := config.NormalizeMIMEType(mimeType)
+	if normalized == "image/jpg" {
+		return "image/jpeg"
+	}
+	return normalized
 }
 
 // apiFilenameForFile derives a filename suitable for provider-native file APIs.

@@ -994,7 +994,9 @@ func TestLoadConfigFromFile(t *testing.T) {
                     text-response-format: true
                     text-response-format-with-tools: true
                     thinking-level: high
-                    media-resolution: medium
+                    thinking-summaries: auto
+                    media-resolution: ultra_high
+                    max-output-tokens: 8192
                     temperature: 0.7
                     top-p: 0.95
                     top-k: 40
@@ -1317,7 +1319,9 @@ func TestLoadConfigFromFile(t *testing.T) {
 										TextResponseFormat:          true,
 										TextResponseFormatWithTools: true,
 										ThinkingLevel:               testutils.Ptr("high"),
-										MediaResolution:             testutils.Ptr("medium"),
+										ThinkingSummaries:           testutils.Ptr("auto"),
+										MediaResolution:             testutils.Ptr("ultra_high"),
+										MaxOutputTokens:             testutils.Ptr(int32(8192)),
 										Temperature:                 testutils.Ptr(float32(0.7)),
 										TopP:                        testutils.Ptr(float32(0.95)),
 										TopK:                        testutils.Ptr(int32(40)),

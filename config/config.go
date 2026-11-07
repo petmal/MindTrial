@@ -773,39 +773,63 @@ type GoogleAIModelParams struct {
 	// - "high": Maximizes reasoning depth, the model may take longer but output is more carefully reasoned
 	ThinkingLevel *string `yaml:"thinking-level" validate:"omitempty,oneof=minimal low medium high"`
 
-	// MediaResolution controls the maximum number of tokens allocated per input image or video frame.
-	// Valid values: "low", "medium", "high". Higher resolutions improve fine text reading and small detail
-	// identification but increase token usage and latency.
-	// - "low": 280 tokens for images, 70 tokens per video frame
-	// - "medium": 560 tokens for images, 70 tokens per video frame (same as low for video)
-	// - "high": 1120 tokens for images, 280 tokens per video frame
+	// ThinkingSummaries controls whether summaries of the model's internal reasoning are returned.
+	// Valid values: "auto" (include summaries when available), "none" (no summaries).
+	// Available summaries are logged at info level. If unspecified, the model default applies.
+	ThinkingSummaries *string `yaml:"thinking-summaries" validate:"omitempty,oneof=auto none"`
+
+	// MediaResolution controls the maximum number of tokens allocated per input image.
+	// Valid values: "low", "medium", "high", "ultra_high". Higher resolutions improve fine text reading
+	// and small detail identification but increase token usage and latency.
+	// A per-file image-detail setting takes precedence over this value; "auto" lets the model decide.
+	// Documents (e.g. PDF) are not affected.
 	// If unspecified, the model uses optimal defaults based on media type.
-	MediaResolution *string `yaml:"media-resolution" validate:"omitempty,oneof=low medium high"`
+	MediaResolution *string `yaml:"media-resolution" validate:"omitempty,oneof=low medium high ultra_high"`
+
+	// MaxOutputTokens limits the combined number of thinking and output tokens the model can generate
+	// in a response. The response is cut off once the limit is reached, so it must be high enough
+	// not to truncate the answer.
+	MaxOutputTokens *int32 `yaml:"max-output-tokens" validate:"omitempty,min=1"`
 
 	// Temperature controls the randomness or "creativity" of the model's outputs.
 	// Values range from 0.0 to 2.0, with lower values making the output more focused and deterministic.
 	// The default value is typically around 1.0.
+	//
+	// Deprecated: The Interactions API deprecates this parameter and may ignore it.
+	// It is still sent to the API, and a warning is logged.
 	Temperature *float32 `yaml:"temperature" validate:"omitempty,min=0,max=2"`
 
 	// TopP controls diversity via nucleus sampling.
 	// Values range from 0.0 to 1.0, with lower values making the output more focused.
 	// The default value is typically around 1.0.
+	//
+	// Deprecated: The Interactions API deprecates this parameter and may ignore it.
+	// It is still sent to the API, and a warning is logged.
 	TopP *float32 `yaml:"top-p" validate:"omitempty,min=0,max=1"`
 
 	// TopK limits response tokens to top K options for each token position.
 	// Higher values allow more diverse outputs by considering more token options.
+	//
+	// Deprecated: Not supported by the Interactions API; ignored with a warning.
+	// Retained for backward compatibility with existing configurations.
 	TopK *int32 `yaml:"top-k" validate:"omitempty,min=0"`
 
 	// PresencePenalty penalizes new tokens based on whether they appear in the text so far.
 	// Positive values discourage the use of tokens that have already been used in the response,
 	// increasing the vocabulary. Negative values encourage the use of tokens that have already been used.
 	// This penalty is binary on/off and not dependent on the number of times the token is used.
+	//
+	// Deprecated: Not supported by the Interactions API; ignored with a warning.
+	// Retained for backward compatibility with existing configurations.
 	PresencePenalty *float32 `yaml:"presence-penalty" validate:"omitempty"`
 
 	// FrequencyPenalty penalizes new tokens based on their frequency in the text so far.
 	// Positive values discourage the use of tokens that have already been used, proportional to
 	// the number of times the token has been used. Negative values encourage the model to reuse tokens.
 	// This differs from PresencePenalty as it scales with frequency.
+	//
+	// Deprecated: Not supported by the Interactions API; ignored with a warning.
+	// Retained for backward compatibility with existing configurations.
 	FrequencyPenalty *float32 `yaml:"frequency-penalty" validate:"omitempty"`
 
 	// Seed is used for deterministic generation. When set to a specific value, the model
