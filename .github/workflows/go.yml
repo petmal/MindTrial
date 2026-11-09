@@ -37,5 +37,10 @@ jobs:
       - name: Build
         run: go build -v ./...
 
+      - name: Load service shutdown smoke image
+        run: docker pull busybox@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
+
       - name: Test
+        env:
+          MINDTRIAL_TEST_BUSYBOX_IMAGE: busybox@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
         run: go test -tags=test -race -v ./...

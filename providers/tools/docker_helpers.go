@@ -29,6 +29,19 @@ func dockerResourceName(kind string) string {
 	return "mindtrial-" + kind + "-" + strings.ToLower(ulid.Make().String())
 }
 
+// stopDockerService gives an initialized service a bounded grace period, even when
+// the evaluation was cancelled. Close still attempts forced removal on any error.
+func stopDockerService(ctx context.Context, cli *client.Client, id string) error {
+	cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), dockerCleanupTimeout)
+	defer cancel()
+	seconds := 10
+	err := cli.ContainerStop(cleanupCtx, id, container.StopOptions{Timeout: &seconds})
+	if errdefs.IsNotFound(err) {
+		return nil
+	}
+	return err
+}
+
 func removeDockerContainer(ctx context.Context, cli *client.Client, containerID string) error {
 	cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), dockerCleanupTimeout)
 	defer cancel()

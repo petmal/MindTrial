@@ -40,6 +40,7 @@ type dockerAPIMock struct {
 	onPing          func(http.ResponseWriter, *http.Request)
 	onImageInspect  func(http.ResponseWriter, *http.Request)
 	onCreate        func(http.ResponseWriter, *http.Request)
+	onStop          func(http.ResponseWriter, *http.Request)
 	onStart         func(http.ResponseWriter, *http.Request)
 	onWait          func(http.ResponseWriter, *http.Request)
 	onLogs          func(http.ResponseWriter, *http.Request)
@@ -110,6 +111,9 @@ func (m *dockerAPIMock) handle(w http.ResponseWriter, r *http.Request) {
 				m.t.Fatalf("unexpected ContainerStart call without handler: %s", path)
 			}
 			m.onStart(w, r)
+			return
+		case r.Method == http.MethodPost && strings.HasSuffix(trimmed, "/stop") && m.onStop != nil:
+			m.onStop(w, r)
 			return
 		case r.Method == http.MethodPost && strings.HasSuffix(trimmed, "/wait"):
 			if m.onWait == nil {
@@ -196,9 +200,10 @@ type containerCreatePayload struct {
 	} `json:"Healthcheck"`
 	HostConfig struct {
 		Mounts []struct {
-			Type   string `json:"Type"`
-			Source string `json:"Source"`
-			Target string `json:"Target"`
+			Type     string `json:"Type"`
+			Source   string `json:"Source"`
+			Target   string `json:"Target"`
+			ReadOnly bool   `json:"ReadOnly"`
 		} `json:"Mounts"`
 		AutoRemove   bool            `json:"AutoRemove"`
 		NetworkMode  string          `json:"NetworkMode"`

@@ -249,6 +249,9 @@ func TestLoadConfigFromFileServicesAndValidators(t *testing.T) {
           model: gpt-4
   services:
     - name: nexus
+      bind-mounts:
+        - source: ./exports
+          target: /export
       image: nexus:test
       command: [nexus, service]
       endpoint:
@@ -263,6 +266,10 @@ func TestLoadConfigFromFileServicesAndValidators(t *testing.T) {
       description: NEXUS client
       parameters:
         type: object
+      bind-mounts:
+        - source: ./tool-data
+          target: /tool-data
+          writable: true
       dependencies:
         - service: nexus
           env:
@@ -271,6 +278,9 @@ func TestLoadConfigFromFileServicesAndValidators(t *testing.T) {
     - name: nexus
       image: nexus:test
       command: [nexus, mindtrial-validate]
+      bind-mounts:
+        - source: ./validator-data
+          target: /validator-data
       dependencies:
         - service: nexus
           env:
@@ -280,6 +290,7 @@ func TestLoadConfigFromFileServicesAndValidators(t *testing.T) {
 	cfg, err := LoadConfigFromFile(context.Background(), path)
 	require.NoError(t, err)
 	require.Len(t, cfg.Config.Services, 1)
+	require.Len(t, cfg.Config.Tools, 1)
 	require.Len(t, cfg.Config.Validators, 1)
 	require.NotNil(t, cfg.Config.Services[0].Endpoint)
 	assert.Equal(t, 8000, cfg.Config.Services[0].Endpoint.Port)
@@ -288,7 +299,20 @@ func TestLoadConfigFromFileServicesAndValidators(t *testing.T) {
 	assert.Equal(t, 768, *cfg.Config.Services[0].MaxMemoryMB)
 	require.NotNil(t, cfg.Config.Services[0].CpuPercent)
 	assert.Equal(t, 30, *cfg.Config.Services[0].CpuPercent)
+	require.Len(t, cfg.Config.Tools[0].Dependencies, 1)
 	assert.Equal(t, "{{ .Endpoint }}", cfg.Config.Tools[0].Dependencies[0].Env["NEXUS_URL"])
+	require.Len(t, cfg.Config.Services[0].BindMounts, 1)
+	assert.Equal(t, filepath.Join(filepath.Dir(path), "exports"), cfg.Config.Services[0].BindMounts[0].Source)
+	assert.Equal(t, "/export", cfg.Config.Services[0].BindMounts[0].Target)
+	assert.False(t, cfg.Config.Services[0].BindMounts[0].Writable)
+	require.Len(t, cfg.Config.Tools[0].BindMounts, 1)
+	assert.Equal(t, filepath.Join(filepath.Dir(path), "tool-data"), cfg.Config.Tools[0].BindMounts[0].Source)
+	assert.Equal(t, "/tool-data", cfg.Config.Tools[0].BindMounts[0].Target)
+	assert.True(t, cfg.Config.Tools[0].BindMounts[0].Writable)
+	require.Len(t, cfg.Config.Validators[0].BindMounts, 1)
+	assert.Equal(t, filepath.Join(filepath.Dir(path), "validator-data"), cfg.Config.Validators[0].BindMounts[0].Source)
+	assert.Equal(t, "/validator-data", cfg.Config.Validators[0].BindMounts[0].Target)
+	assert.False(t, cfg.Config.Validators[0].BindMounts[0].Writable)
 }
 
 func TestLoadConfigFromFile(t *testing.T) {

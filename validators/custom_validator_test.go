@@ -228,9 +228,16 @@ func TestCustomValidatorTemplateFilesCarryArbitraryCandidates(t *testing.T) {
 	docker := testutils.NewDockerFake(t, testutils.DockerFakeResult{Stdout: validCustomValidatorResponse})
 	candidate := strings.Repeat("x", 256*1024) + "\x00-tail"
 
+	source := t.TempDir()
 	_, err := validateWithCustomValidator(t, config.ValidatorConfig{
-		Name:    "world-state",
-		Image:   "validator:test",
+		Name:  "world-state",
+		Image: "validator:test",
+		BindMounts: []config.BindMountConfig{
+			{
+				Source: source,
+				Target: "/fixtures",
+			},
+		},
 		Command: []string{"validate", "--candidate-file", "/input/candidate", "--task={{ .Task.Name }}"},
 		TemplateFiles: []config.ValidatorTemplateFile{
 			{Path: "/input/candidate", Template: "{{ .Candidate.Response }}"},
@@ -244,6 +251,8 @@ func TestCustomValidatorTemplateFilesCarryArbitraryCandidates(t *testing.T) {
 	assert.Equal(t, []string{"validate", "--candidate-file", "/input/candidate", "--task=world-task"}, containers[0].Cmd)
 	assert.Equal(t, []byte(candidate), containers[0].Mounts["/input/candidate"].Content, "file content must be exact bytes")
 	assert.JSONEq(t, `"`+strings.Repeat("x", 256*1024)+`\u0000-tail"`, string(containers[0].Mounts["/input/candidate.json"].Content))
+	assert.Equal(t, source, containers[0].Mounts["/fixtures"].DirectorySource)
+	assert.True(t, containers[0].Mounts["/fixtures"].ReadOnly)
 }
 
 func TestCustomValidatorTemplateRenderingErrors(t *testing.T) {

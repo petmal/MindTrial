@@ -34,6 +34,7 @@ type serviceDocker struct {
 	mu             sync.Mutex
 	state          serviceDockerState
 	stopped        map[string]bool
+	failStop       bool
 	stopAll        bool
 	healthSequence []string
 	failImage      string
@@ -151,6 +152,20 @@ func newServiceDocker(t *testing.T, apiVersion string) *serviceDocker {
 			return
 		}
 		writeJSON(t, w, http.StatusOK, inspected)
+	}
+	mock.onStop = func(w http.ResponseWriter, r *http.Request) {
+		id := strings.TrimSuffix(strings.TrimPrefix(r.URL.Path, mock.basePath()+"/containers/"), "/stop")
+		assert.Equal(t, "10", r.URL.Query().Get("t"))
+		docker.mu.Lock()
+		assert.NotContains(t, docker.state.removedContainers, id)
+		docker.stopped[id] = true
+		fail := docker.failStop
+		docker.mu.Unlock()
+		if fail {
+			writeJSON(t, w, http.StatusInternalServerError, map[string]string{"message": "stop failed"})
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
 	}
 	mock.onWait = func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(t, w, http.StatusOK, map[string]int{"StatusCode": 0})
@@ -737,19 +752,41 @@ func TestIsTaskRuntimeError(t *testing.T) {
 }
 
 func TestTaskRuntimeServiceInputTemplateErrors(t *testing.T) {
-	newServiceDocker(t, testAPIVersion)
-
-	_, err := NewTaskRuntime(t.Context(), testutils.NewTestLogger(t), TaskRuntimeConfig{
-		Services:         testServices(),
-		RequiredServices: []string{"world"},
-		ServiceInputs: map[string]map[string]interface{}{
-			"world": {"seed": "{{ .Evaluation.Missing }}"},
+	tests := []struct {
+		name     string
+		template string
+	}{
+		{
+			name:     "unknown evaluation field",
+			template: "{{ .Evaluation.Missing }}",
 		},
-		TemplateData: testTemplateData(),
-	})
+		{
+			name:     "unknown service field",
+			template: "{{ .Service.Missing }}",
+		},
+		{
+			name:     "old unscoped instance field",
+			template: "{{ .ServiceInstance }}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			docker := newServiceDocker(t, testAPIVersion)
 
-	require.ErrorIs(t, err, ErrTaskRuntimeConfig)
-	assert.Contains(t, err.Error(), `service "world" input "seed"`)
+			_, err := NewTaskRuntime(t.Context(), testutils.NewTestLogger(t), TaskRuntimeConfig{
+				Services:         testServices(),
+				RequiredServices: []string{"world"},
+				ServiceInputs: map[string]map[string]interface{}{
+					"world": {"seed": tt.template},
+				},
+				TemplateData: testTemplateData(),
+			})
+
+			require.ErrorIs(t, err, ErrTaskRuntimeConfig)
+			assert.Contains(t, err.Error(), `service "world" input "seed"`)
+			assert.Empty(t, docker.snapshot().createdNetworkIDs)
+		})
+	}
 }
 
 func TestNewTaskRuntimeLogsServiceImageIdentity(t *testing.T) {
@@ -904,4 +941,63 @@ func (l *recordingLogger) find(substring string) (recordedLogMessage, bool) {
 		}
 	}
 	return recordedLogMessage{}, false
+}
+
+func TestServiceBindDirectoryIsPrivateAndNewInstancePerRetry(t *testing.T) {
+	docker := newServiceDocker(t, testAPIVersion)
+	source := t.TempDir()
+	services := testServices()
+	services[0].BindMounts = []config.BindMountConfig{
+		{
+			Source:   source,
+			Target:   "/exports",
+			Writable: true,
+		},
+	}
+	cfg := TaskRuntimeConfig{
+		Services:         services,
+		RequiredServices: []string{"world", "shop"},
+		TemplateData:     testTemplateData(),
+		ServiceInputs: map[string]map[string]interface{}{
+			"world": {"seed": "/exports/{{ .Service.InstanceID }}/{{ .Evaluation.Seed }}/{{ .Task.Name }}/{{ .Provider.Name }}/{{ .Run.Name }}"},
+		},
+	}
+	usedNames := map[string]bool{}
+	for range 2 {
+		createdCount := len(docker.snapshot().createdIDs)
+		taskRuntime, err := NewTaskRuntime(t.Context(), testutils.NewTestLogger(t), cfg)
+		require.NoError(t, err)
+		snapshot := docker.snapshot()
+		require.Len(t, snapshot.createdIDs, createdCount+2)
+		containerID := snapshot.createdIDs[createdCount]
+		shopContainerID := snapshot.createdIDs[createdCount+1]
+		assert.Equal(t, "world:latest", snapshot.containers[containerID].Image)
+		assert.Equal(t, "shop:latest", snapshot.containers[shopContainerID].Image)
+		containerName := snapshot.containerNames[containerID]
+		require.NotEmpty(t, containerName)
+		assert.False(t, usedNames[containerName])
+		usedNames[containerName] = true
+		assert.Contains(t, snapshot.containers[containerID].Env, "WORLD_SEED=/exports/"+containerName+"/eval-seed/task-a/provider-a/run-a")
+		mounts := snapshot.containers[containerID].HostConfig.Mounts
+		require.Len(t, mounts, 1)
+		assert.Equal(t, "bind", mounts[0].Type)
+		assert.Equal(t, source, mounts[0].Source)
+		assert.Equal(t, "/exports", mounts[0].Target)
+		assert.False(t, mounts[0].ReadOnly)
+		assert.Empty(t, snapshot.containers[shopContainerID].HostConfig.Mounts)
+		require.NoError(t, taskRuntime.Close(t.Context()))
+		docker.configure(func() { assert.True(t, docker.stopped[containerID]) })
+		assert.DirExists(t, source)
+	}
+}
+
+func TestServiceStopFailureStillRemovesResources(t *testing.T) {
+	docker := newServiceDocker(t, testAPIVersion)
+	taskRuntime := newTestTaskRuntime(t, "shop")
+	docker.configure(func() { docker.failStop = true })
+	err := taskRuntime.Close(t.Context())
+	require.ErrorIs(t, err, ErrTaskRuntimeInternal)
+	state := docker.snapshot()
+	assert.Equal(t, state.createdIDs, state.removedContainers)
+	assert.Equal(t, state.createdNetworkIDs, state.removedNetworks)
 }

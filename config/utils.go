@@ -68,6 +68,10 @@ func LoadConfigFromFile(ctx context.Context, path string) (*Config, error) {
 		return cfg, fmt.Errorf("invalid configuration definition: %w", err)
 	}
 
+	if err := cfg.Config.resolveBindMounts(filepath.Dir(path)); err != nil {
+		return cfg, fmt.Errorf("invalid configuration definition: %w", err)
+	}
+
 	// Validate tool parameters schemas.
 	for _, tool := range cfg.Config.Tools {
 		if err := validateToolParameters(tool.Parameters); err != nil {

@@ -91,7 +91,8 @@ type TaskRuntimeConfig struct {
 	RequiredServices []string
 	// ServiceInputs supplies task inputs keyed by service name and input name.
 	ServiceInputs map[string]map[string]interface{}
-	// TemplateData is exposed to string service-input templates.
+	// TemplateData supplies execution metadata to string service-input templates.
+	// Each template also receives Service.InstanceID, the generated container name.
 	TemplateData ExecutionTemplateData
 }
 
@@ -209,7 +210,12 @@ func (r *TaskRuntime) startService(ctx context.Context, logger logging.Logger, s
 	serviceLogger := logger.WithContext(fmt.Sprintf("service %s: ", service.Name))
 	serviceLogger.Message(ctx, logging.LevelInfo, "starting setup")
 
-	env, err := r.resolveServiceEnv(service)
+	mounts, err := directoryBindMounts(service.BindMounts)
+	if err != nil {
+		return fmt.Errorf("%w: service %q: %w", ErrTaskRuntimeConfig, service.Name, err)
+	}
+	containerName := dockerResourceName("service")
+	env, err := r.resolveServiceEnv(service, containerName)
 	if err != nil {
 		return err
 	}
@@ -255,6 +261,7 @@ func (r *TaskRuntime) startService(ctx context.Context, logger logging.Logger, s
 		}
 	}
 	hostConfig := &container.HostConfig{
+		Mounts:        mounts,
 		NetworkMode:   container.NetworkMode(instance.networkName),
 		RestartPolicy: container.RestartPolicy{Name: container.RestartPolicyDisabled},
 		LogConfig:     container.LogConfig{Type: "json-file"},
@@ -270,7 +277,6 @@ func (r *TaskRuntime) startService(ctx context.Context, logger logging.Logger, s
 		instance.networkName: {Aliases: []string{instance.Host}},
 	}}
 
-	containerName := dockerResourceName("service")
 	created, err := r.client.ContainerCreate(ctx, containerConfig, hostConfig, networkingConfig, nil, containerName)
 	if err != nil {
 		return fmt.Errorf("%w: failed to create service %q container: %w", ErrTaskRuntimeInternal, service.Name, err)
@@ -331,14 +337,20 @@ func ociImageLabels(labels map[string]string) []string {
 	return result
 }
 
-func (r *TaskRuntime) resolveServiceEnv(service config.ServiceConfig) (map[string]string, error) {
+func (r *TaskRuntime) resolveServiceEnv(service config.ServiceConfig, containerName string) (map[string]string, error) {
+	data := serviceInputTemplateData{
+		ExecutionTemplateData: r.templateData,
+		Service: serviceInputTemplateService{
+			InstanceID: containerName,
+		},
+	}
 	env := make(map[string]string, len(service.Env)+len(r.serviceInputs[service.Name]))
 	for name, value := range service.Env {
 		env[name] = value
 	}
 	for inputName, rawValue := range r.serviceInputs[service.Name] {
 		envName := service.InputEnv[inputName]
-		value, err := resolveServiceInput(rawValue, r.templateData)
+		value, err := resolveServiceInput(rawValue, data)
 		if err != nil {
 			return nil, fmt.Errorf("%w: service %q input %q: %w", ErrTaskRuntimeConfig, service.Name, inputName, err)
 		}
@@ -350,7 +362,17 @@ func (r *TaskRuntime) resolveServiceEnv(service config.ServiceConfig) (map[strin
 	return env, nil
 }
 
-func resolveServiceInput(value interface{}, data ExecutionTemplateData) (string, error) {
+// serviceInputTemplateData adds the new service instance to the execution metadata.
+type serviceInputTemplateData struct {
+	ExecutionTemplateData
+	Service serviceInputTemplateService
+}
+
+type serviceInputTemplateService struct {
+	InstanceID string
+}
+
+func resolveServiceInput(value interface{}, data serviceInputTemplateData) (string, error) {
 	raw, ok := value.(string)
 	if !ok {
 		return fmt.Sprint(value), nil
@@ -512,8 +534,14 @@ func (r *TaskRuntime) Close(ctx context.Context) error {
 	var errs []error
 	serviceNames := utils.SortedKeys(r.instances)
 	for _, name := range serviceNames {
-		r.logServiceDiagnostics(ctx, r.logger.WithContext(fmt.Sprintf("service %s: ", name)), logging.LevelTrace, r.instances[name].containerID)
-		if err := removeDockerContainer(ctx, r.client, r.instances[name].containerID); err != nil {
+		id := r.instances[name].containerID
+		// Stop before collecting logs and removing the container: services may flush
+		// their files and report final diagnostics when they receive the stop signal.
+		if err := stopDockerService(ctx, r.client, id); err != nil {
+			errs = append(errs, fmt.Errorf("%w: stop service %q: %w", ErrTaskRuntimeInternal, name, err))
+		}
+		r.logServiceDiagnostics(ctx, r.logger.WithContext(fmt.Sprintf("service %s: ", name)), logging.LevelTrace, id)
+		if err := removeDockerContainer(ctx, r.client, id); err != nil {
 			errs = append(errs, fmt.Errorf("%w: remove service %q container: %w", ErrTaskRuntimeInternal, name, err))
 		}
 	}

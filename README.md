@@ -1294,6 +1294,7 @@ Tools must be defined in `config.yaml` under the `tools` section. Each tool defi
 - **parameter-files**: Mapping of parameter names to container file paths where argument values should be written. Argument values are converted to strings, non-string values are marshaled to JSON. The tool's command should read these files as needed.
 - **auxiliary-dir**: Directory path inside the container where task files with `local` access will be automatically mounted. If specified, files with `local` access attached to the task will be mounted to this directory using each file's unique reference `name` exactly as provided. Files in this directory are reset between tool calls.
 - **shared-dir**: Directory path inside the container that persists across all tool calls within a single task. If specified, files created in this directory will be available for any subsequent tool calls but will be removed when the task completes.
+- **bind-mounts**: [Operator-owned host directories](#persistent-host-directories) attached to this tool only (optional).
 - **command**: Command to run inside the container. The standard output of the command execution is captured and passed back to the LLM as is.
 - **env**: Environment variables to set in the container.
 - **dependencies**: [Task services](#task-services) the tool can access, each with a `service` name and optional `env` [templates](#templates).
@@ -1424,6 +1425,7 @@ Services are defined in `config.yaml` under the `services` section:
 
 - **name**: A unique name for the service, used in `dependencies` and `service-inputs`.
 - **image**: Docker image used to run the service.
+- **bind-mounts**: [Operator-owned host directories](#persistent-host-directories) attached to this service only (optional).
 - **command**: Command overriding the image's default command (optional).
 - **env**: Environment variables set for every instance of the service (optional).
 - **endpoint**: Where tools and validators connect to the service.
@@ -1479,6 +1481,7 @@ Validators are defined in `config.yaml` under the `validators` section:
 
 - **name**: A unique name for the validator, used by `custom-validator` in task validation rules.
 - **image**: Docker image used to run the validator.
+- **bind-mounts**: [Operator-owned host directories](#persistent-host-directories) attached to this validator only (optional).
 - **command**: Command overriding the image's default command (optional). Each argument is a [template](#templates) and is passed directly to Docker, without a shell.
 - **env**: Environment variables set in the validator container (optional). Each value is a [template](#templates).
 - **template-files**: Files created for each validation and mounted read-only into the validator container (optional).
@@ -1551,6 +1554,24 @@ The object must match this schema:
 
 Results checked by a custom validator record `custom` as their validation method. Failed answers are shown exactly as the model returned them, without a comparison against `expected-result`. Validator runs are not counted as model tool calls.
 
+#### Persistent host directories
+
+Set `bind-mounts` on a **service**, **tool**, or **custom validator** in the operator’s `config.yaml`. Use this to collect files after a container is removed, or to give one container read-only access to existing inputs. For scratch space shared by tool calls and deleted at task completion, keep using `shared-dir`.
+
+```yaml
+# In one service, tool, or custom validator definition:
+bind-mounts:
+  - source: ./exports     # Create this directory beside config.yaml before running.
+    target: /exports      # Absolute path in the container.
+    writable: true        # Omit for read-only access.
+```
+
+The source must already be a directory accessible to both MindTrial and the Docker daemon at the resolved path. Relative sources resolve beside `config.yaml`, regardless of where you launch MindTrial. They are literal operator paths, never task or model templates. MindTrial does not create, chmod, relabel, empty, or delete the host directory. The configured image must have the needed filesystem permissions; files keep the writer’s UID and permissions. On SELinux hosts, provide a dedicated directory with an appropriate container-accessible label. Do not expose private exports to a model-controlled tool. Targets must not overlap other configured mounts in the same container.
+
+Every container with the same writable source can see or overwrite the same data, including on retries. For independent service exports, mount a pre-existing **parent** and have the service create one child per instance. For example, declare `input-env: {output: APP_OUTPUT_DIR}` on the service; in `tool-selector.service-inputs` set its `output` to `"/exports/{{ .Service.InstanceID }}"`. The generated service container name is unique across retries and appears in the DEBUG log alongside the task trace. Only explicitly configured containers see the mount; a network dependency does not inherit it.
+
+At normal teardown MindTrial asks a ready service to stop before reading its final logs and removing it. It gives the service up to 10 seconds to flush; a crash or forced stop can still leave partial files.
+
 #### Templates
 
 Service inputs, dependency environment variables, and custom validator settings use Go template syntax. MindTrial checks template syntax before any task runs, and using a field that does not exist is an error.
@@ -1559,12 +1580,13 @@ Each kind of template has its own fields:
 
 | Template | Available fields |
 | --- | --- |
-| `service-inputs` string values | `.Evaluation.Seed`, `.Task.Name`, `.Provider.Name`, `.Run.Name` |
+| `service-inputs` string values | `.Service.InstanceID`, `.Evaluation.Seed`, `.Task.Name`, `.Provider.Name`, `.Run.Name` |
 | `dependencies[].env` values | `.Name`, `.Host`, `.Port`, `.Endpoint` |
 | Validator `command`, `env`, and `template-files` | `.OriginalTask.*`, `.Candidate.Response`, `.Rules.*`, `.Evaluation.Seed`, `.Task.Name`, `.Provider.Name`, `.Run.Name` |
 
 Fields:
 
+- **{{ .Service.InstanceID }}**: Generated service container name, unique to this service instance, including across retries. Available in service-input templates only.
 - **{{ .Evaluation.Seed }}**: Evaluation seed shared by all providers, runs, tasks, and attempts of one evaluation.
 - **{{ .Task.Name }}**, **{{ .Provider.Name }}**, **{{ .Run.Name }}**: Names of the task, the provider, and the run configuration.
 - **{{ .Name }}**: Name of the service.
