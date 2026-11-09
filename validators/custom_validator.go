@@ -139,6 +139,7 @@ func (v *customValidator) IsCorrectWithEnvironment(
 		Image:        v.config.Image,
 		Description:  "MindTrial trusted custom validator.",
 		Parameters:   map[string]interface{}{"type": "object"},
+		BindMounts:   v.config.BindMounts,
 		Command:      command,
 		Env:          env,
 		Dependencies: v.config.Dependencies,

@@ -318,6 +318,8 @@ type ToolConfig struct {
 	// If set, files created in this directory will be available for any subsequent tool calls but
 	// will be removed when the task completes.
 	SharedDir string `yaml:"shared-dir,omitempty"`
+	// BindMounts attaches existing operator-owned directories only to this container.
+	BindMounts []BindMountConfig `yaml:"bind-mounts,omitempty" validate:"omitempty,dive"`
 	// Command specifies the command to execute as a list of its components.
 	Command []string `yaml:"command,omitempty"`
 	// Env specifies additional environment variables to set.
@@ -356,6 +358,8 @@ type ServiceConfig struct {
 	Name string `yaml:"name" validate:"required"`
 	// Image is the Docker image used to run the service.
 	Image string `yaml:"image" validate:"required"`
+	// BindMounts attaches existing operator-owned directories only to this container.
+	BindMounts []BindMountConfig `yaml:"bind-mounts,omitempty" validate:"omitempty,dive"`
 	// Command overrides the image command used to start the service.
 	Command []string `yaml:"command,omitempty"`
 	// Env specifies static environment variables applied to every instance of the service.
@@ -392,6 +396,8 @@ type ValidatorConfig struct {
 	Name string `yaml:"name" validate:"required"`
 	// Image is the Docker image used to run the validator.
 	Image string `yaml:"image" validate:"required"`
+	// BindMounts attaches existing operator-owned directories only to this container.
+	BindMounts []BindMountConfig `yaml:"bind-mounts,omitempty" validate:"omitempty,dive"`
 	// Command overrides the image command used to run validation. Each argument may use
 	// custom-validator template variables and is passed directly to Docker without shell expansion.
 	// Prefer TemplateFiles for values that may be large or contain arbitrary bytes, such as candidate responses.

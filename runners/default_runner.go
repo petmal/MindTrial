@@ -237,6 +237,7 @@ func (r *defaultRunner) assertCanRun(ctx context.Context, tasks []config.Task) e
 				taskErrors = append(taskErrors, fmt.Errorf("task '%s' requires custom validator '%s': %w", task.Name, validatorName, err))
 			} else if validatorConfig, ok := r.customValidatorConfig(validatorName); ok {
 				if !validatedValidators[validatorName] {
+					taskErrors = append(taskErrors, validateBindMountSources(fmt.Sprintf("custom validator '%s'", validatorName), validatorConfig.BindMounts)...)
 					if err := r.toolValidator.ValidateImage(ctx, validatorConfig.Image); err != nil {
 						taskErrors = append(taskErrors, fmt.Errorf("custom validator '%s' cannot be used: %w", validatorName, err))
 					}
@@ -261,6 +262,7 @@ func (r *defaultRunner) assertCanRun(ctx context.Context, tasks []config.Task) e
 			}
 
 			if _, alreadyValidated := validatedTools[toolName]; !alreadyValidated {
+				taskErrors = append(taskErrors, validateBindMountSources(fmt.Sprintf("tool '%s'", toolName), toolCfg.BindMounts)...)
 				if err := r.toolValidator.ValidateTool(ctx, toolCfg); err != nil {
 					taskErrors = append(taskErrors, fmt.Errorf("tool '%s' cannot be used: %w", toolName, err))
 				}
@@ -310,7 +312,7 @@ func (r *defaultRunner) assertCanRun(ctx context.Context, tasks []config.Task) e
 }
 
 // validateServiceDependencies checks that every dependency of consumer names an available service
-// with a usable image and compilable environment templates.
+// with a usable image, existing bind sources, and compilable environment templates.
 func (r *defaultRunner) validateServiceDependencies(ctx context.Context, consumer string, dependencies []config.ServiceDependency, availableServices map[string]config.ServiceConfig, validatedServices map[string]bool) (errs []error) {
 	for _, dependency := range dependencies {
 		serviceCfg, exists := availableServices[dependency.Service]
@@ -319,6 +321,7 @@ func (r *defaultRunner) validateServiceDependencies(ctx context.Context, consume
 			continue
 		}
 		if !validatedServices[dependency.Service] {
+			errs = append(errs, validateBindMountSources(fmt.Sprintf("service '%s'", dependency.Service), serviceCfg.BindMounts)...)
 			if err := r.toolValidator.ValidateImage(ctx, serviceCfg.Image); err != nil {
 				errs = append(errs, fmt.Errorf("service '%s' cannot be used: %w", dependency.Service, err))
 			}
@@ -328,6 +331,15 @@ func (r *defaultRunner) validateServiceDependencies(ctx context.Context, consume
 			if _, err := utils.ParseTemplate("service-dependency-env", dependency.Env[name]); err != nil {
 				errs = append(errs, fmt.Errorf("%w: %s dependency on service '%s' has an invalid environment template for %s: %w", ErrInvalidTaskRuntimeConfig, consumer, dependency.Service, name, err))
 			}
+		}
+	}
+	return errs
+}
+
+func validateBindMountSources(consumer string, mounts []config.BindMountConfig) (errs []error) {
+	for _, mount := range mounts {
+		if err := mount.ValidateSource(); err != nil {
+			errs = append(errs, fmt.Errorf("%s cannot be used: %w", consumer, err))
 		}
 	}
 	return errs

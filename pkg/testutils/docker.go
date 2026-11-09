@@ -43,8 +43,10 @@ type DockerFakeContainer struct {
 	Mounts map[string]DockerFakeMount
 }
 
-// DockerFakeMount is a file bind mounted into a DockerFake container.
+// DockerFakeMount describes a file or directory bound into a DockerFake container.
 type DockerFakeMount struct {
+	// DirectorySource is set only for directory mounts; temporary file sources are not stable.
+	DirectorySource string
 	// Content is the mounted file content at container creation.
 	Content []byte
 	// ReadOnly reports whether the mount is read-only.
@@ -142,12 +144,20 @@ func (f *DockerFake) create(w http.ResponseWriter, r *http.Request) {
 		Mounts:      make(map[string]DockerFakeMount, len(request.HostConfig.Mounts)),
 	}
 	for _, mount := range request.HostConfig.Mounts {
-		content, err := os.ReadFile(mount.Source)
+		info, err := os.Stat(mount.Source)
+		var content []byte
+		if err == nil && !info.IsDir() {
+			content, err = os.ReadFile(mount.Source)
+		}
 		if err != nil {
 			writeDockerJSON(w, http.StatusBadRequest, map[string]string{"message": err.Error()})
 			return
 		}
-		created.Mounts[mount.Target] = DockerFakeMount{Content: content, ReadOnly: mount.ReadOnly}
+		captured := DockerFakeMount{Content: content, ReadOnly: mount.ReadOnly}
+		if info.IsDir() {
+			captured.DirectorySource = mount.Source
+		}
+		created.Mounts[mount.Target] = captured
 	}
 
 	f.mu.Lock()

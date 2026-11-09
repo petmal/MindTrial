@@ -388,8 +388,13 @@ func (d *DockerToolExecutor) executeDockerTool(ctx context.Context, logger loggi
 	defer os.RemoveAll(tempDir) // clean up temp directory after execution
 	logger.Message(ctx, logging.LevelDebug, "created temporary workspace directory: %s", tempDir)
 
-	// Write parameter files and create individual file mounts.
-	var mounts []mount.Mount
+	// Start with operator-owned directories, then add MindTrial-managed files and scratch.
+	mounts, err := directoryBindMounts(tool.bindMounts)
+	if err != nil {
+		wrapErr := fmt.Errorf("%w: %w", ErrToolInternal, err)
+		summary.Status, summary.ErrorMessage = toolCallStatusInfrastructureError, wrapErr.Error()
+		return nil, wrapErr
+	}
 	for argName, containerPath := range tool.parameterFiles {
 		if argValue, exists := argMap[argName]; exists {
 			// Convert argument value to string.
@@ -785,6 +790,7 @@ type DockerTool struct {
 	parameters     map[string]interface{}
 	parameterFiles map[string]string
 	auxiliaryDir   string
+	bindMounts     []config.BindMountConfig
 	sharedDir      string
 	command        []string
 	env            map[string]string
@@ -805,6 +811,7 @@ func NewDockerTool(cfg *config.ToolConfig, maxCalls *int, timeout *time.Duration
 		parameters:     cfg.Parameters,
 		parameterFiles: cfg.ParameterFiles,
 		auxiliaryDir:   cfg.AuxiliaryDir,
+		bindMounts:     cfg.BindMounts,
 		sharedDir:      cfg.SharedDir,
 		command:        cfg.Command,
 		env:            cfg.Env,
