@@ -23,6 +23,7 @@ type Message struct {
 	MessageOneOf2 *MessageOneOf2
 	MessageOneOf3 *MessageOneOf3
 	MessageOneOf4 *MessageOneOf4
+	MessageOneOf5 *MessageOneOf5
 }
 
 // MessageOneOfAsMessage is a convenience function that returns MessageOneOf wrapped in Message
@@ -57,6 +58,13 @@ func MessageOneOf3AsMessage(v *MessageOneOf3) Message {
 func MessageOneOf4AsMessage(v *MessageOneOf4) Message {
 	return Message{
 		MessageOneOf4: v,
+	}
+}
+
+// MessageOneOf5AsMessage is a convenience function that returns MessageOneOf5 wrapped in Message
+func MessageOneOf5AsMessage(v *MessageOneOf5) Message {
+	return Message{
+		MessageOneOf5: v,
 	}
 }
 
@@ -149,6 +157,23 @@ func (dst *Message) UnmarshalJSON(data []byte) error {
 		dst.MessageOneOf4 = nil
 	}
 
+	// try to unmarshal data into MessageOneOf5
+	err = newStrictDecoder(data).Decode(&dst.MessageOneOf5)
+	if err == nil {
+		jsonMessageOneOf5, _ := json.Marshal(dst.MessageOneOf5)
+		if string(jsonMessageOneOf5) == "{}" { // empty struct
+			dst.MessageOneOf5 = nil
+		} else {
+			if err = validator.Validate(dst.MessageOneOf5); err != nil {
+				dst.MessageOneOf5 = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.MessageOneOf5 = nil
+	}
+
 	if match > 1 { // more than 1 match
 		// reset to nil
 		dst.MessageOneOf = nil
@@ -156,6 +181,7 @@ func (dst *Message) UnmarshalJSON(data []byte) error {
 		dst.MessageOneOf2 = nil
 		dst.MessageOneOf3 = nil
 		dst.MessageOneOf4 = nil
+		dst.MessageOneOf5 = nil
 
 		return fmt.Errorf("data matches more than one schema in oneOf(Message)")
 	} else if match == 1 {
@@ -191,6 +217,10 @@ func (src Message) MarshalJSON() ([]byte, error) {
 		return json.Marshal(&src.MessageOneOf4)
 	}
 
+	if src.MessageOneOf5 != nil {
+		return json.Marshal(&src.MessageOneOf5)
+	}
+
 	return nil, nil // no data in oneOf schemas
 }
 
@@ -219,6 +249,10 @@ func (obj *Message) GetActualInstance() interface{} {
 		return obj.MessageOneOf4
 	}
 
+	if obj.MessageOneOf5 != nil {
+		return obj.MessageOneOf5
+	}
+
 	// all schemas are nil
 	return nil
 }
@@ -243,6 +277,10 @@ func (obj Message) GetActualInstanceValue() interface{} {
 
 	if obj.MessageOneOf4 != nil {
 		return *obj.MessageOneOf4
+	}
+
+	if obj.MessageOneOf5 != nil {
+		return *obj.MessageOneOf5
 	}
 
 	// all schemas are nil

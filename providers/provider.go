@@ -61,6 +61,8 @@ var (
 	ErrRetryable = errors.New("retryable error")
 	// ErrStreamResponse is returned when a streaming response cannot be properly assembled.
 	ErrStreamResponse = errors.New("failed to assemble streaming response")
+	// ErrAPIRequest is returned when a provider API rejects or fails a request.
+	ErrAPIRequest = errors.New("provider API request failed")
 	// ErrMaxTurnsExceeded is returned when the conversation loop exceeds the configured
 	// maximum number of turns.
 	ErrMaxTurnsExceeded = fmt.Errorf("%w: maximum conversation turns exceeded", ErrGenerateResponse)

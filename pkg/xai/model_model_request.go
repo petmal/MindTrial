@@ -24,6 +24,8 @@ type ModelRequest struct {
 	Background NullableBool `json:"background,omitempty"`
 	// Optional context-management directives (e.g. compaction). Parsed but not yet executed.
 	ContextManagement []interface{} `json:"context_management,omitempty"`
+	// Per-category instructions for model output. See [`Guideline`]. Omitted requests leave this unset. A request whose guidelines cannot be applied, for example on a multi-agent model or with `stop`, fails with 400.
+	Guidelines []Guideline `json:"guidelines,omitempty"`
 	// What additional output data to include in the response. Supported values include `reasoning.encrypted_content` (encrypted reasoning tokens) and tool-output options. OpenAI's `message.output_text.logprobs` is accepted for compatibility but silently ignored.
 	Include []string `json:"include,omitempty"`
 	// The input passed to the model. Can be text, image or file.
@@ -54,7 +56,7 @@ type ModelRequest struct {
 	ReasoningEffort NullableString `json:"reasoning_effort,omitempty"`
 	// Supplied by the API client to identify the end user behind this request. A stable string that uniquely identifies each of your users; hash your internal user id or username rather than sending an email or name. Stored with the request metadata so a usage-policy violation can be attributed to that user rather than to the API key.
 	SafetyIdentifier NullableString `json:"safety_identifier,omitempty"`
-	// Set the parameters to be used for searched data. Takes precedence over `web_search_preview` tool if specified in the tools.
+	// Deprecated: live search has been removed, and requests that set this field fail with `410 Gone`. Use the `web_search` and `x_search` tools instead: <https://docs.x.ai/developers/tools/overview>.
 	SearchParameters NullableSearchParameters `json:"search_parameters,omitempty"`
 	// Processing tier. `\"fast\"` and `\"priority\"` are interchangeable: on models with a fast deployment both use it and its rates; otherwise both mean higher scheduling priority at a higher price. Valid: `\"auto\"`, `\"priority\"`, `\"fast\"`.
 	ServiceTier NullableServiceTier `json:"service_tier,omitempty"`
@@ -62,19 +64,19 @@ type ModelRequest struct {
 	Store NullableBool `json:"store,omitempty"`
 	// If set, partial message deltas will be sent. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a `data: [DONE]` message.
 	Stream NullableBool `json:"stream,omitempty"`
-	// What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+	// What sampling temperature to use, between 0 and 2. Values above 1 are sampled at 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
 	Temperature NullableFloat32 `json:"temperature,omitempty"`
 	// Settings for customizing a text response from the model.
 	Text NullableModelResponseConfiguration `json:"text,omitempty"`
 	// Controls which (if any) tool is called by the model. `none` means the model will not call any tool and instead generates a message. auto means the model can pick between generating a message or calling one or more tools. required means the model must call one or more tools. Specifying a particular tool via `{\"type\": \"function\", \"function\": {\"name\": \"my_function\"}}` forces the model to call that tool. `none` is the default when no tools are present. `auto` is the default if tools are present.
 	ToolChoice NullableModelToolChoice `json:"tool_choice,omitempty"`
-	// A list of tools the model may call in JSON-schema. Currently, only functions and web search are supported as tools. A max of 350 tools are supported.`web_search_preview` tool, if specified, will be overridden by `search_parameters`.
+	// A list of tools the model may call in JSON-schema. Currently, only functions and web search are supported as tools. A max of 1000 tools are supported.
 	Tools []ModelTool `json:"tools,omitempty"`
 	// Top-k sampling: only the `top_k` most probable tokens are considered at each sampling step. Disabled when unset.
 	TopK NullableInt32 `json:"top_k,omitempty"`
 	// An integer between 0 and 8 specifying the number of most likely tokens to return at each token position, each with an associated log probability. logprobs must be set to true if this parameter is used. Not supported by models `grok-4.20` and newer; the field will be silently ignored if set.
 	TopLogprobs NullableInt32 `json:"top_logprobs,omitempty"`
-	// An alternative to sampling with `temperature`, called nucleus sampling, where the model considers the results of the tokens with `top_p` probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. It is generally recommended to alter this or `temperature` but not both.
+	// An alternative to sampling with `temperature`, called nucleus sampling, where the model considers the results of the tokens with `top_p` probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. It is generally recommended to alter this or `temperature` but not both. Values above the model's default top_p, 0.95 for Grok models, are sampled at that default.
 	TopP NullableFloat32 `json:"top_p,omitempty"`
 	// Not supported. Only maintained for compatibility reasons.
 	Truncation NullableString `json:"truncation,omitempty"`
@@ -104,7 +106,7 @@ func NewModelRequest(input ModelInput) *ModelRequest {
 	this.Stream = *NewNullableBool(&stream)
 	var temperature float32 = 1
 	this.Temperature = *NewNullableFloat32(&temperature)
-	var topP float32 = 1
+	var topP float32 = 0.95
 	this.TopP = *NewNullableFloat32(&topP)
 	return &this
 }
@@ -126,7 +128,7 @@ func NewModelRequestWithDefaults() *ModelRequest {
 	this.Stream = *NewNullableBool(&stream)
 	var temperature float32 = 1
 	this.Temperature = *NewNullableFloat32(&temperature)
-	var topP float32 = 1
+	var topP float32 = 0.95
 	this.TopP = *NewNullableFloat32(&topP)
 	return &this
 }
@@ -205,6 +207,39 @@ func (o *ModelRequest) HasContextManagement() bool {
 // SetContextManagement gets a reference to the given []interface{} and assigns it to the ContextManagement field.
 func (o *ModelRequest) SetContextManagement(v []interface{}) {
 	o.ContextManagement = v
+}
+
+// GetGuidelines returns the Guidelines field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ModelRequest) GetGuidelines() []Guideline {
+	if o == nil {
+		var ret []Guideline
+		return ret
+	}
+	return o.Guidelines
+}
+
+// GetGuidelinesOk returns a tuple with the Guidelines field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ModelRequest) GetGuidelinesOk() ([]Guideline, bool) {
+	if o == nil || IsNil(o.Guidelines) {
+		return nil, false
+	}
+	return o.Guidelines, true
+}
+
+// HasGuidelines returns a boolean if a field has been set.
+func (o *ModelRequest) HasGuidelines() bool {
+	if o != nil && !IsNil(o.Guidelines) {
+		return true
+	}
+
+	return false
+}
+
+// SetGuidelines gets a reference to the given []Guideline and assigns it to the Guidelines field.
+func (o *ModelRequest) SetGuidelines(v []Guideline) {
+	o.Guidelines = v
 }
 
 // GetInclude returns the Include field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -1367,6 +1402,9 @@ func (o ModelRequest) ToMap() (map[string]interface{}, error) {
 	if o.ContextManagement != nil {
 		toSerialize["context_management"] = o.ContextManagement
 	}
+	if o.Guidelines != nil {
+		toSerialize["guidelines"] = o.Guidelines
+	}
 	if o.Include != nil {
 		toSerialize["include"] = o.Include
 	}
@@ -1494,6 +1532,7 @@ func (o *ModelRequest) UnmarshalJSON(data []byte) (err error) {
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
 		delete(additionalProperties, "background")
 		delete(additionalProperties, "context_management")
+		delete(additionalProperties, "guidelines")
 		delete(additionalProperties, "include")
 		delete(additionalProperties, "input")
 		delete(additionalProperties, "instructions")

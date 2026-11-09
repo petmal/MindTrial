@@ -308,6 +308,19 @@ type V1API interface {
 	HandleGetDeferredCompletionRequestExecute(r ApiHandleGetDeferredCompletionRequestRequest) (*ChatResponse, *http.Response, error)
 
 	/*
+		HandleGetDeferredImageRequest `GET /v1/images/{request_id}`: 202 while pending, 200 with `data` when done or with `error` when failed (a failed generation is a body, not an HTTP error, so pollers do not retry-storm).
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param requestId The deferred request id returned by a previous image request.
+		@return ApiHandleGetDeferredImageRequestRequest
+	*/
+	HandleGetDeferredImageRequest(ctx context.Context, requestId string) ApiHandleGetDeferredImageRequestRequest
+
+	// HandleGetDeferredImageRequestExecute executes the request
+	//  @return GetDeferredImageResponse
+	HandleGetDeferredImageRequestExecute(r ApiHandleGetDeferredImageRequestRequest) (*GetDeferredImageResponse, *http.Response, error)
+
+	/*
 		HandleGetDeferredVideoRequest Get the result of a deferred video generation request.
 
 		Returns the current status of a video generation job. When the job completes
@@ -2878,6 +2891,108 @@ func (a *V1APIService) HandleGetDeferredCompletionRequestExecute(r ApiHandleGetD
 	}
 
 	localVarPath := localBasePath + "/v1/chat/deferred-completion/{request_id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"request_id"+"}", url.PathEscape(parameterValueToString(r.requestId, "requestId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHandleGetDeferredImageRequestRequest struct {
+	ctx        context.Context
+	ApiService V1API
+	requestId  string
+}
+
+func (r ApiHandleGetDeferredImageRequestRequest) Execute() (*GetDeferredImageResponse, *http.Response, error) {
+	return r.ApiService.HandleGetDeferredImageRequestExecute(r)
+}
+
+/*
+HandleGetDeferredImageRequest `GET /v1/images/{request_id}`: 202 while pending, 200 with `data` when done or with `error` when failed (a failed generation is a body, not an HTTP error, so pollers do not retry-storm).
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param requestId The deferred request id returned by a previous image request.
+	@return ApiHandleGetDeferredImageRequestRequest
+*/
+func (a *V1APIService) HandleGetDeferredImageRequest(ctx context.Context, requestId string) ApiHandleGetDeferredImageRequestRequest {
+	return ApiHandleGetDeferredImageRequestRequest{
+		ApiService: a,
+		ctx:        ctx,
+		requestId:  requestId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return GetDeferredImageResponse
+func (a *V1APIService) HandleGetDeferredImageRequestExecute(r ApiHandleGetDeferredImageRequestRequest) (*GetDeferredImageResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *GetDeferredImageResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "V1APIService.HandleGetDeferredImageRequest")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/images/{request_id}"
 	localVarPath = strings.Replace(localVarPath, "{"+"request_id"+"}", url.PathEscape(parameterValueToString(r.requestId, "requestId")), -1)
 
 	localVarHeaderParams := make(map[string]string)

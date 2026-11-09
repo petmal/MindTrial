@@ -21,6 +21,7 @@ type IncompleteDetails struct {
 	IncompleteDetailsOneOf  *IncompleteDetailsOneOf
 	IncompleteDetailsOneOf1 *IncompleteDetailsOneOf1
 	IncompleteDetailsOneOf2 *IncompleteDetailsOneOf2
+	IncompleteDetailsOneOf3 *IncompleteDetailsOneOf3
 }
 
 // IncompleteDetailsOneOfAsIncompleteDetails is a convenience function that returns IncompleteDetailsOneOf wrapped in IncompleteDetails
@@ -41,6 +42,13 @@ func IncompleteDetailsOneOf1AsIncompleteDetails(v *IncompleteDetailsOneOf1) Inco
 func IncompleteDetailsOneOf2AsIncompleteDetails(v *IncompleteDetailsOneOf2) IncompleteDetails {
 	return IncompleteDetails{
 		IncompleteDetailsOneOf2: v,
+	}
+}
+
+// IncompleteDetailsOneOf3AsIncompleteDetails is a convenience function that returns IncompleteDetailsOneOf3 wrapped in IncompleteDetails
+func IncompleteDetailsOneOf3AsIncompleteDetails(v *IncompleteDetailsOneOf3) IncompleteDetails {
+	return IncompleteDetails{
+		IncompleteDetailsOneOf3: v,
 	}
 }
 
@@ -99,11 +107,29 @@ func (dst *IncompleteDetails) UnmarshalJSON(data []byte) error {
 		dst.IncompleteDetailsOneOf2 = nil
 	}
 
+	// try to unmarshal data into IncompleteDetailsOneOf3
+	err = newStrictDecoder(data).Decode(&dst.IncompleteDetailsOneOf3)
+	if err == nil {
+		jsonIncompleteDetailsOneOf3, _ := json.Marshal(dst.IncompleteDetailsOneOf3)
+		if string(jsonIncompleteDetailsOneOf3) == "{}" { // empty struct
+			dst.IncompleteDetailsOneOf3 = nil
+		} else {
+			if err = validator.Validate(dst.IncompleteDetailsOneOf3); err != nil {
+				dst.IncompleteDetailsOneOf3 = nil
+			} else {
+				match++
+			}
+		}
+	} else {
+		dst.IncompleteDetailsOneOf3 = nil
+	}
+
 	if match > 1 { // more than 1 match
 		// reset to nil
 		dst.IncompleteDetailsOneOf = nil
 		dst.IncompleteDetailsOneOf1 = nil
 		dst.IncompleteDetailsOneOf2 = nil
+		dst.IncompleteDetailsOneOf3 = nil
 
 		return fmt.Errorf("data matches more than one schema in oneOf(IncompleteDetails)")
 	} else if match == 1 {
@@ -131,6 +157,10 @@ func (src IncompleteDetails) MarshalJSON() ([]byte, error) {
 		return json.Marshal(&src.IncompleteDetailsOneOf2)
 	}
 
+	if src.IncompleteDetailsOneOf3 != nil {
+		return json.Marshal(&src.IncompleteDetailsOneOf3)
+	}
+
 	return nil, nil // no data in oneOf schemas
 }
 
@@ -151,6 +181,10 @@ func (obj *IncompleteDetails) GetActualInstance() interface{} {
 		return obj.IncompleteDetailsOneOf2
 	}
 
+	if obj.IncompleteDetailsOneOf3 != nil {
+		return obj.IncompleteDetailsOneOf3
+	}
+
 	// all schemas are nil
 	return nil
 }
@@ -167,6 +201,10 @@ func (obj IncompleteDetails) GetActualInstanceValue() interface{} {
 
 	if obj.IncompleteDetailsOneOf2 != nil {
 		return *obj.IncompleteDetailsOneOf2
+	}
+
+	if obj.IncompleteDetailsOneOf3 != nil {
+		return *obj.IncompleteDetailsOneOf3
 	}
 
 	// all schemas are nil

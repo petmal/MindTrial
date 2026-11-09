@@ -1028,17 +1028,20 @@ type XAIModelParams struct {
 	// Valid range: 0.0 — 1.0. Default: 1.0.
 	TopP *float32 `yaml:"top-p" validate:"omitempty,min=0,max=1"`
 
-	// MaxCompletionTokens controls the maximum number of tokens to generate in the completion.
+	// MaxCompletionTokens controls the maximum number of visible output tokens to generate
+	// in the response. Tokens used for reasoning or function calls do not count towards the limit.
 	MaxCompletionTokens *int32 `yaml:"max-completion-tokens" validate:"omitempty,min=0"`
 
 	// PresencePenalty penalizes new tokens based on whether they appear in the text so far.
-	// Notes: Positive values encourage the model to introduce new topics.
-	// Valid range: -2.0 — 2.0. Default: 0.0.
+	//
+	// Deprecated: Not supported by the Responses API; ignored with a warning.
+	// Retained for backward compatibility with existing configurations.
 	PresencePenalty *float32 `yaml:"presence-penalty" validate:"omitempty,min=-2,max=2"`
 
 	// FrequencyPenalty penalizes new tokens based on their frequency in the text so far.
-	// Notes: Positive values discourage repetition.
-	// Valid range: -2.0 — 2.0. Default: 0.0.
+	//
+	// Deprecated: Not supported by the Responses API; ignored with a warning.
+	// Retained for backward compatibility with existing configurations.
 	FrequencyPenalty *float32 `yaml:"frequency-penalty" validate:"omitempty,min=-2,max=2"`
 
 	// ReasoningEffort constrains how much "reasoning" budget to spend for reasoning-capable models.
@@ -1048,8 +1051,9 @@ type XAIModelParams struct {
 	ReasoningEffort *string `yaml:"reasoning-effort" validate:"omitempty,oneof=low medium high xhigh"`
 
 	// Seed requests deterministic sampling when possible.
-	// No guaranteed determinism — xAI makes a best-effort to return
-	// repeatable outputs for identical inputs when `seed` and other parameters are the same.
+	//
+	// Deprecated: Not supported by the Responses API; ignored with a warning.
+	// Retained for backward compatibility with existing configurations.
 	Seed *int32 `yaml:"seed" validate:"omitempty"`
 }
 

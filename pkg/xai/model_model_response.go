@@ -66,17 +66,17 @@ type ModelResponse struct {
 	Status string `json:"status"`
 	// Whether to store the input message(s) and model response for later retrieval.
 	Store bool `json:"store"`
-	// What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+	// Sampling temperature echoed from the request, or the model's default when the request omits it. Between 0 and 2. Sampling uses at most 1, so a sent value above 1 is echoed here and sampled as 1.
 	Temperature NullableFloat32 `json:"temperature,omitempty"`
 	// Settings for customizing a text response from the model.
 	Text ModelResponseConfiguration `json:"text"`
 	// Controls which (if any) tool is called by the model. auto means the model can pick between generating a message or calling one or more tools. required means the model must call one or more tools. Specifying a particular tool via `{\"type\": \"function\", \"function\": {\"name\": \"my_function\"}}` forces the model to call that tool. `none` is the default when no tools are present. `auto` is the default if tools are present.
 	ToolChoice ModelToolChoice `json:"tool_choice"`
-	// A list of tools the model may call in JSON-schema. Currently, only functions and web search are supported as tools. A max of 350 tools are supported.
+	// A list of tools the model may call in JSON-schema. Currently, only functions and web search are supported as tools. A max of 1000 tools are supported.
 	Tools []ModelTool `json:"tools"`
 	// An integer between 0 and 8 specifying the number of most likely tokens to return at each token position.
 	TopLogprobs int32 `json:"top_logprobs"`
-	// An alternative to sampling with `temperature`, called nucleus sampling, where the model considers the results of the tokens with `top_p` probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. It is generally recommended to alter this or `temperature` but not both.
+	// Nucleus sampling `top_p` echoed from the request, or the model's default when the request omits it. Sampling uses at most the model's default `top_p`, so a higher sent value is echoed here and sampled as that default.
 	TopP NullableFloat32 `json:"top_p,omitempty"`
 	// The truncation strategy to use for the model response.
 	Truncation string `json:"truncation"`

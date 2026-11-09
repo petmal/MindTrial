@@ -20,7 +20,7 @@ var _ MappedNullable = &VideoOutput{}
 
 // VideoOutput Output destination for generated video.
 type VideoOutput struct {
-	// Signed URL to upload the generated video via HTTP PUT.
+	// Signed URL to upload the generated video via HTTP PUT, e.g. an S3 / GCS presigned URL or an Azure Blob SAS URL. The PUT sends `Content-Type: video/mp4`, plus `x-ms-blob-type: BlockBlob` for Azure Blob Storage hosts.
 	UploadUrl            string `json:"upload_url"`
 	AdditionalProperties map[string]interface{}
 }

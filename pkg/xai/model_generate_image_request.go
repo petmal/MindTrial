@@ -21,10 +21,14 @@ var _ MappedNullable = &GenerateImageRequest{}
 type GenerateImageRequest struct {
 	// Aspect ratio of the generated image. Can be `1:1`, `3:4`, `4:3`, `9:16`, `16:9`, `2:3`, `3:2`, `9:19.5`, `19.5:9`, `9:20`, `20:9`, `1:2`, `2:1`, `21:9`, `5:2`, or `auto`. Defaults to `auto` for automatically selecting the best ratio for the prompt. Only supported by grok-imagine models.
 	AspectRatio NullableImageAspectRatio `json:"aspect_ratio,omitempty"`
+	// If set, the request returns immediately with a `request_id` and the image is generated in the background. Poll `GET /v1/images/{request_id}` for the result. Only `response_format: \"url\"` is supported in this mode.
+	Deferred NullableBool `json:"deferred,omitempty"`
 	// Model to be used.
 	Model NullableString `json:"model,omitempty"`
 	// Number of images to be generated
 	N NullableInt32 `json:"n,omitempty"`
+	// Optional output destination. When present, each generated image is uploaded via HTTP PUT to the matching signed URL instead of xAI-hosted storage and the response `url` is that upload URL. Requires `response_format: \"url\"`; Zero Data Retention teams must set this to use `deferred`.
+	Output NullableImageOutput `json:"output,omitempty"`
 	// Prompt for image generation.
 	Prompt *string `json:"prompt,omitempty"`
 	// Resolution of the generated image. Defaults to `1k`. Only supported by grok-imagine models.
@@ -106,6 +110,49 @@ func (o *GenerateImageRequest) SetAspectRatioNil() {
 // UnsetAspectRatio ensures that no value is present for AspectRatio, not even an explicit nil
 func (o *GenerateImageRequest) UnsetAspectRatio() {
 	o.AspectRatio.Unset()
+}
+
+// GetDeferred returns the Deferred field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *GenerateImageRequest) GetDeferred() bool {
+	if o == nil || IsNil(o.Deferred.Get()) {
+		var ret bool
+		return ret
+	}
+	return *o.Deferred.Get()
+}
+
+// GetDeferredOk returns a tuple with the Deferred field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *GenerateImageRequest) GetDeferredOk() (*bool, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Deferred.Get(), o.Deferred.IsSet()
+}
+
+// HasDeferred returns a boolean if a field has been set.
+func (o *GenerateImageRequest) HasDeferred() bool {
+	if o != nil && o.Deferred.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetDeferred gets a reference to the given NullableBool and assigns it to the Deferred field.
+func (o *GenerateImageRequest) SetDeferred(v bool) {
+	o.Deferred.Set(&v)
+}
+
+// SetDeferredNil sets the value for Deferred to be an explicit nil
+func (o *GenerateImageRequest) SetDeferredNil() {
+	o.Deferred.Set(nil)
+}
+
+// UnsetDeferred ensures that no value is present for Deferred, not even an explicit nil
+func (o *GenerateImageRequest) UnsetDeferred() {
+	o.Deferred.Unset()
 }
 
 // GetModel returns the Model field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -192,6 +239,49 @@ func (o *GenerateImageRequest) SetNNil() {
 // UnsetN ensures that no value is present for N, not even an explicit nil
 func (o *GenerateImageRequest) UnsetN() {
 	o.N.Unset()
+}
+
+// GetOutput returns the Output field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *GenerateImageRequest) GetOutput() ImageOutput {
+	if o == nil || IsNil(o.Output.Get()) {
+		var ret ImageOutput
+		return ret
+	}
+	return *o.Output.Get()
+}
+
+// GetOutputOk returns a tuple with the Output field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *GenerateImageRequest) GetOutputOk() (*ImageOutput, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Output.Get(), o.Output.IsSet()
+}
+
+// HasOutput returns a boolean if a field has been set.
+func (o *GenerateImageRequest) HasOutput() bool {
+	if o != nil && o.Output.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetOutput gets a reference to the given NullableImageOutput and assigns it to the Output field.
+func (o *GenerateImageRequest) SetOutput(v ImageOutput) {
+	o.Output.Set(&v)
+}
+
+// SetOutputNil sets the value for Output to be an explicit nil
+func (o *GenerateImageRequest) SetOutputNil() {
+	o.Output.Set(nil)
+}
+
+// UnsetOutput ensures that no value is present for Output, not even an explicit nil
+func (o *GenerateImageRequest) UnsetOutput() {
+	o.Output.Unset()
 }
 
 // GetPrompt returns the Prompt field value if set, zero value otherwise.
@@ -411,11 +501,17 @@ func (o GenerateImageRequest) ToMap() (map[string]interface{}, error) {
 	if o.AspectRatio.IsSet() {
 		toSerialize["aspect_ratio"] = o.AspectRatio.Get()
 	}
+	if o.Deferred.IsSet() {
+		toSerialize["deferred"] = o.Deferred.Get()
+	}
 	if o.Model.IsSet() {
 		toSerialize["model"] = o.Model.Get()
 	}
 	if o.N.IsSet() {
 		toSerialize["n"] = o.N.Get()
+	}
+	if o.Output.IsSet() {
+		toSerialize["output"] = o.Output.Get()
 	}
 	if !IsNil(o.Prompt) {
 		toSerialize["prompt"] = o.Prompt
@@ -455,8 +551,10 @@ func (o *GenerateImageRequest) UnmarshalJSON(data []byte) (err error) {
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
 		delete(additionalProperties, "aspect_ratio")
+		delete(additionalProperties, "deferred")
 		delete(additionalProperties, "model")
 		delete(additionalProperties, "n")
+		delete(additionalProperties, "output")
 		delete(additionalProperties, "prompt")
 		delete(additionalProperties, "resolution")
 		delete(additionalProperties, "response_format")

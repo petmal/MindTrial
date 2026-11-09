@@ -27,6 +27,8 @@ const (
 	VIDEOASPECTRATIO__3_4  VideoAspectRatio = "3:4"
 	VIDEOASPECTRATIO__3_2  VideoAspectRatio = "3:2"
 	VIDEOASPECTRATIO__2_3  VideoAspectRatio = "2:3"
+	VIDEOASPECTRATIO__21_9 VideoAspectRatio = "21:9"
+	VIDEOASPECTRATIO__5_2  VideoAspectRatio = "5:2"
 )
 
 // All allowed values of VideoAspectRatio enum
@@ -38,6 +40,8 @@ var AllowedVideoAspectRatioEnumValues = []VideoAspectRatio{
 	"3:4",
 	"3:2",
 	"2:3",
+	"21:9",
+	"5:2",
 }
 
 func (v *VideoAspectRatio) UnmarshalJSON(src []byte) error {

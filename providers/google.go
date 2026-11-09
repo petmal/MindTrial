@@ -496,7 +496,7 @@ func (o *GoogleAI) hasPendingFunctionCalls(status interactions.InteractionStatus
 
 // errorDetails describes the errors reported for an interaction.
 func (o *GoogleAI) errorDetails(interaction *interactions.Interaction) string {
-	var details []string
+	details := make([]string, 0, len(interaction.Errors))
 	for _, interactionErr := range interaction.Errors {
 		details = append(details, o.formatErrorDetail(interactionErr.Code, interactionErr.Message))
 	}

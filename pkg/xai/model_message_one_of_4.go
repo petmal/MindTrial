@@ -18,13 +18,13 @@ import (
 // checks if the MessageOneOf4 type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &MessageOneOf4{}
 
-// MessageOneOf4 Function call role message. Deprecated in favor of `{\"role\": \"tool\"}`.
+// MessageOneOf4 Tool call role message, used to return function call result to the model.
 type MessageOneOf4 struct {
 	// Content of the tool call result.
 	Content Content `json:"content"`
-	// A unique identifier representing your end-user, which can help xAI to monitor and detect abuse.
-	Name                 NullableString `json:"name,omitempty"`
-	Role                 string         `json:"role"`
+	Role    string  `json:"role"`
+	// The ID of the tool call received from assistant message response.
+	ToolCallId           NullableString `json:"tool_call_id,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -73,49 +73,6 @@ func (o *MessageOneOf4) SetContent(v Content) {
 	o.Content = v
 }
 
-// GetName returns the Name field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *MessageOneOf4) GetName() string {
-	if o == nil || IsNil(o.Name.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.Name.Get()
-}
-
-// GetNameOk returns a tuple with the Name field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *MessageOneOf4) GetNameOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Name.Get(), o.Name.IsSet()
-}
-
-// HasName returns a boolean if a field has been set.
-func (o *MessageOneOf4) HasName() bool {
-	if o != nil && o.Name.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetName gets a reference to the given NullableString and assigns it to the Name field.
-func (o *MessageOneOf4) SetName(v string) {
-	o.Name.Set(&v)
-}
-
-// SetNameNil sets the value for Name to be an explicit nil
-func (o *MessageOneOf4) SetNameNil() {
-	o.Name.Set(nil)
-}
-
-// UnsetName ensures that no value is present for Name, not even an explicit nil
-func (o *MessageOneOf4) UnsetName() {
-	o.Name.Unset()
-}
-
 // GetRole returns the Role field value
 func (o *MessageOneOf4) GetRole() string {
 	if o == nil {
@@ -140,6 +97,49 @@ func (o *MessageOneOf4) SetRole(v string) {
 	o.Role = v
 }
 
+// GetToolCallId returns the ToolCallId field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *MessageOneOf4) GetToolCallId() string {
+	if o == nil || IsNil(o.ToolCallId.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.ToolCallId.Get()
+}
+
+// GetToolCallIdOk returns a tuple with the ToolCallId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *MessageOneOf4) GetToolCallIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ToolCallId.Get(), o.ToolCallId.IsSet()
+}
+
+// HasToolCallId returns a boolean if a field has been set.
+func (o *MessageOneOf4) HasToolCallId() bool {
+	if o != nil && o.ToolCallId.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetToolCallId gets a reference to the given NullableString and assigns it to the ToolCallId field.
+func (o *MessageOneOf4) SetToolCallId(v string) {
+	o.ToolCallId.Set(&v)
+}
+
+// SetToolCallIdNil sets the value for ToolCallId to be an explicit nil
+func (o *MessageOneOf4) SetToolCallIdNil() {
+	o.ToolCallId.Set(nil)
+}
+
+// UnsetToolCallId ensures that no value is present for ToolCallId, not even an explicit nil
+func (o *MessageOneOf4) UnsetToolCallId() {
+	o.ToolCallId.Unset()
+}
+
 func (o MessageOneOf4) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -151,10 +151,10 @@ func (o MessageOneOf4) MarshalJSON() ([]byte, error) {
 func (o MessageOneOf4) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["content"] = o.Content
-	if o.Name.IsSet() {
-		toSerialize["name"] = o.Name.Get()
-	}
 	toSerialize["role"] = o.Role
+	if o.ToolCallId.IsSet() {
+		toSerialize["tool_call_id"] = o.ToolCallId.Get()
+	}
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -200,8 +200,8 @@ func (o *MessageOneOf4) UnmarshalJSON(data []byte) (err error) {
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
 		delete(additionalProperties, "content")
-		delete(additionalProperties, "name")
 		delete(additionalProperties, "role")
+		delete(additionalProperties, "tool_call_id")
 		o.AdditionalProperties = additionalProperties
 	}
 

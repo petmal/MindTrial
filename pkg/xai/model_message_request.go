@@ -33,15 +33,15 @@ type MessageRequest struct {
 	Stream NullableBool `json:"stream,omitempty"`
 	// System prompt message for the model, defining how the model should behave to user messages.
 	System NullableSystemMessageContent `json:"system,omitempty"`
-	// What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. It may not work well with reasoning models.
+	// What sampling temperature to use, between 0 and 2. Values above 1 are sampled at 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. It may not work well with reasoning models.
 	Temperature NullableFloat32 `json:"temperature,omitempty"`
 	// Controls which (if any) tool is called by the model. `\"none\"` means the model will not call any tool and instead generates a message. `\"auto\"` means the model can pick between generating a message or calling one or more tools. `\"any\"` means the model must call one or more tools. Specifying a particular tool via `{\"type\": \"tool\", \"function\": {\"name\": \"get_weather\"}}` forces the model to call that tool. `\"none\"` is the default when no tools are provided. `\"auto\"` is the default if tools are provided.
 	ToolChoice NullableMessageToolChoice `json:"tool_choice,omitempty"`
-	// A list of tools the model may call in JSON-schema. Currently, only functions are supported as a tool. Use this to provide a list of functions the model may generate JSON inputs for. A max of 350 functions are supported.
+	// A list of tools the model may call in JSON-schema. Currently, only functions are supported as a tool. Use this to provide a list of functions the model may generate JSON inputs for. A max of 1000 functions are supported.
 	Tools []MessageTools `json:"tools,omitempty"`
 	// (Unsupported) When generating next tokens, randomly selecting the next token from the k most likely options.
 	TopK NullableInt32 `json:"top_k,omitempty"`
-	// An alternative to sampling with `temperature`, called nucleus sampling, where the model considers the results of the tokens with `top_p` probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. It is generally recommended to alter this or `temperature` but not both.
+	// An alternative to sampling with `temperature`, called nucleus sampling, where the model considers the results of the tokens with `top_p` probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. It is generally recommended to alter this or `temperature` but not both. Values above the model's default top_p, 0.95 for Grok models, are sampled at that default.
 	TopP                 NullableFloat32 `json:"top_p,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
@@ -56,7 +56,7 @@ func NewMessageRequest() *MessageRequest {
 	this := MessageRequest{}
 	var temperature float32 = 1
 	this.Temperature = *NewNullableFloat32(&temperature)
-	var topP float32 = 1
+	var topP float32 = 0.95
 	this.TopP = *NewNullableFloat32(&topP)
 	return &this
 }
@@ -68,7 +68,7 @@ func NewMessageRequestWithDefaults() *MessageRequest {
 	this := MessageRequest{}
 	var temperature float32 = 1
 	this.Temperature = *NewNullableFloat32(&temperature)
-	var topP float32 = 1
+	var topP float32 = 0.95
 	this.TopP = *NewNullableFloat32(&topP)
 	return &this
 }

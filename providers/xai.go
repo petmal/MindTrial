@@ -7,18 +7,29 @@
 package providers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"slices"
+	"strings"
 
 	"github.com/petmal/mindtrial/config"
 	"github.com/petmal/mindtrial/pkg/logging"
 	xai "github.com/petmal/mindtrial/pkg/xai"
 	"github.com/petmal/mindtrial/providers/tools"
 )
+
+// xaiResponsesPath is the path of the Responses API endpoint relative to the server URL.
+const xaiResponsesPath = "/v1/responses"
+
+// xaiEncryptedReasoningInclude requests encrypted reasoning items in the response so they can be
+// replayed to the model when the conversation history is managed by the client.
+// See: https://docs.x.ai/developers/model-capabilities/text/reasoning
+const xaiEncryptedReasoningInclude = "reasoning.encrypted_content"
 
 // NewXAI creates a new xAI provider instance with the given configuration.
 func NewXAI(cfg config.XAIClientConfig, availableTools []config.ToolConfig) (*XAI, error) {
@@ -33,16 +44,15 @@ func NewXAI(cfg config.XAIClientConfig, availableTools []config.ToolConfig) (*XA
 		},
 	}
 
-	client := xai.NewAPIClient(clientCfg)
 	return &XAI{
-		client:         client,
+		clientCfg:      clientCfg,
 		availableTools: availableTools,
 	}, nil
 }
 
 // XAI implements the Provider interface for xAI.
 type XAI struct {
-	client         *xai.APIClient
+	clientCfg      *xai.Configuration
 	availableTools []config.ToolConfig
 }
 
@@ -51,87 +61,94 @@ func (o XAI) Name() string {
 }
 
 func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConfig, task config.Task, environment ExecutionEnvironment) (result Result, err error) {
-	// Prepare a completion request.
-	req := xai.NewChatRequestWithDefaults()
-	req.SetModel(cfg.Model)
-	req.SetN(1)
+	// Prepare a Responses API request.
+	request := xai.NewModelRequestWithDefaults()
+	// xAI rejects the generated background default, even when it is false.
+	request.UnsetBackground()
+	request.SetModel(cfg.Model)
 
 	// Automatically derive a stable prompt cache key from the run configuration.
 	// This requires no user configuration and improves prompt cache hit-rate
 	// consistency whenever request content happens to be cacheable; it is a
 	// routing hint only and has no effect otherwise.
-	req.SetPromptCacheKey(promptCacheKeyFor(cfg))
-
-	// Clear default penalty parameters to avoid model compatibility issues.
-	// Some xAI models don't support these parameters, which would cause request failures.
-	// These can be explicitly set later via cfg.ModelParams if needed.
-	req.SetPresencePenaltyNil()
-	req.SetFrequencyPenaltyNil()
+	request.SetPromptCacheKey(promptCacheKeyFor(cfg))
 
 	// Configure default response format.
+	responseConfiguration := xai.NewModelResponseConfiguration()
 	if cfg.DisableStructuredOutput {
-		req.SetResponseFormat(xai.ModelResponseFormatOneOfAsResponseFormat(xai.NewModelResponseFormatOneOf("text")))
+		responseConfiguration.SetFormat(xai.ModelResponseFormatOneOfAsModelResponseFormat(xai.NewModelResponseFormatOneOf("text")))
 	} else {
 		responseSchema, err := ResultJSONSchemaRaw(task.ResponseResultFormat)
 		if err != nil {
 			return result, err
 		}
-		schema := map[string]interface{}{
-			"schema": responseSchema,
-		}
-		req.SetResponseFormat(xai.ResponseFormatOneOfAsResponseFormat(xai.NewResponseFormatOneOf(schema, "json_schema")))
+		schemaFormat := xai.NewModelResponseFormatOneOf2(responseSchema, "json_schema")
+		schemaFormat.SetName("response")
+		responseConfiguration.SetFormat(xai.ModelResponseFormatOneOf2AsModelResponseFormat(schemaFormat))
 	}
+	request.SetText(*responseConfiguration)
 
 	// Apply model-specific parameters.
 	if cfg.ModelParams != nil {
 		if modelParams, ok := cfg.ModelParams.(config.XAIModelParams); ok {
 			if modelParams.Temperature != nil {
-				req.SetTemperature(*modelParams.Temperature)
+				request.SetTemperature(*modelParams.Temperature)
 			}
 			if modelParams.TopP != nil {
-				req.SetTopP(*modelParams.TopP)
+				request.SetTopP(*modelParams.TopP)
 			}
 			if modelParams.MaxCompletionTokens != nil {
-				req.SetMaxCompletionTokens(*modelParams.MaxCompletionTokens)
+				request.SetMaxOutputTokens(*modelParams.MaxCompletionTokens)
 			}
 			if modelParams.PresencePenalty != nil {
-				req.SetPresencePenalty(*modelParams.PresencePenalty)
+				logger.Message(ctx, logging.LevelWarn, "presence-penalty parameter is not supported by the Responses API and will be ignored")
 			}
 			if modelParams.FrequencyPenalty != nil {
-				req.SetFrequencyPenalty(*modelParams.FrequencyPenalty)
+				logger.Message(ctx, logging.LevelWarn, "frequency-penalty parameter is not supported by the Responses API and will be ignored")
 			}
 			if modelParams.ReasoningEffort != nil {
-				req.SetReasoningEffort(*modelParams.ReasoningEffort)
+				reasoning := xai.NewReasoningConfiguration()
+				reasoning.SetEffort(*modelParams.ReasoningEffort)
+				request.SetReasoning(*reasoning)
 			}
 			if modelParams.Seed != nil {
-				req.SetSeed(*modelParams.Seed)
+				logger.Message(ctx, logging.LevelWarn, "seed parameter is not supported by the Responses API and will be ignored")
 			}
 		} else {
 			return result, fmt.Errorf("%w: %s", ErrInvalidModelParams, cfg.Name)
 		}
 	}
 
-	// Add system instruction if available.
+	// Add system instructions if available.
+	var input []xai.ModelInputPart
 	if cfg.DisableStructuredOutput {
-		sysContent := xai.StringAsContent(xai.PtrString(result.recordPrompt(DefaultUnstructuredResponseInstruction())))
-		req.Messages = append(req.Messages, xai.MessageOneOfAsMessage(xai.NewMessageOneOf(sysContent, "system")))
+		input = append(input, o.newTextInputMessage("system", result.recordPrompt(DefaultUnstructuredResponseInstruction())))
 	}
 
 	if answerFormatInstruction := DefaultAnswerFormatInstruction(task); answerFormatInstruction != "" {
-		sysContent := xai.StringAsContent(xai.PtrString(result.recordPrompt(answerFormatInstruction)))
-		req.Messages = append(req.Messages, xai.MessageOneOfAsMessage(xai.NewMessageOneOf(sysContent, "system")))
+		input = append(input, o.newTextInputMessage("system", result.recordPrompt(answerFormatInstruction)))
 	}
 
-	// Add structured user messages.
+	// Add structured user message.
 	parts, err := o.createPromptMessageParts(ctx, task.Prompt, task.Files, &result)
 	if errors.Is(err, ErrFeatureNotSupported) {
 		return result, err
 	} else if err != nil {
 		return result, fmt.Errorf("%w: %v", ErrCreatePromptRequest, err)
 	}
+	input = append(input, xai.ModelInputPartOneOfAsModelInputPart(xai.NewModelInputPartOneOf(xai.ArrayOfModelInputContentItemAsModelInputContent(&parts), "user")))
+	request.SetInput(xai.ArrayOfModelInputPartAsModelInput(&input))
 
-	userContent := xai.ArrayOfContentPartAsContent(&parts)
-	req.Messages = append(req.Messages, xai.MessageOneOf1AsMessage(xai.NewMessageOneOf1(userContent, "user")))
+	// Conversation turns are chained server-side via previous_response_id by default.
+	// xAI advises against storing requests that contain images on the server, so the
+	// conversation history is replayed by the client in that case, including the encrypted
+	// reasoning items that preserve the model's reasoning across turns.
+	// See: https://docs.x.ai/developers/model-capabilities/images/understanding
+	manageHistoryLocally := task.RequiresNativeFileInput()
+	request.SetStore(!manageHistoryLocally)
+	if manageHistoryLocally {
+		request.Include = []string{xaiEncryptedReasoningInclude}
+	}
 
 	// Setup tools if any.
 	var executor *tools.DockerToolExecutor
@@ -144,21 +161,20 @@ func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConf
 		}
 		defer executor.Close()
 		for toolName, toolSelection := range enabledTools {
-			// Find the tool config from available tools
+			// Find the tool config from available tools.
 			toolCfg, found := findToolByName(o.availableTools, toolName)
 			if !found {
 				return result, fmt.Errorf("%w: %s", ErrToolNotFound, toolName)
 			}
 			tool := tools.NewDockerTool(toolCfg, toolSelection.MaxCalls, toolSelection.Timeout, toolSelection.MaxMemoryMB, toolSelection.CpuPercent)
 			executor.RegisterTool(tool)
-			funcDef := xai.NewFunctionDefinition(toolCfg.Name, toolCfg.Parameters)
-			funcDef.SetDescription(toolCfg.Description)
-			funcDef.SetStrict(false)
-			toolDef := xai.ToolOneOfAsTool(xai.NewToolOneOf(*funcDef, "function"))
-			req.Tools = append(req.Tools, toolDef)
+			function := xai.NewModelToolOneOf(toolCfg.Name, toolCfg.Parameters, "function")
+			function.SetDescription(toolCfg.Description)
+			function.SetStrict(false)
+			request.Tools = append(request.Tools, xai.ModelToolOneOfAsModelTool(function))
 		}
 		// If user tools are present, allow auto tool choice.
-		req.SetToolChoice(xai.ToolChoiceOneOfAsToolChoice(xai.NewToolChoiceOneOf("auto")))
+		request.SetToolChoice(xai.StringAsModelToolChoice(xai.PtrString("auto")))
 	}
 
 	// Conversation loop to handle tool calls.
@@ -169,16 +185,10 @@ func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConf
 			return result, err
 		}
 
-		resp, err := timed(func() (*xai.ChatResponse, error) {
-			response, httpResp, err := o.client.V1API.HandleGenericCompletionRequest(ctx).ChatRequest(*req).Execute()
-			if err != nil {
-				var apiErr *xai.GenericOpenAPIError
-				switch {
-				case o.isTransientResponse(httpResp):
-					return response, WrapErrRetryable(err)
-				case errors.As(err, &apiErr):
-					return response, NewErrAPIResponse(err, apiErr.Body())
-				}
+		resp, err := timed(func() (*xaiModelResponse, error) {
+			response, httpResponse, err := o.createResponse(ctx, request)
+			if err != nil && o.isTransientResponse(httpResponse) {
+				return response, WrapErrRetryable(err)
 			}
 			return response, err
 		}, &result.duration)
@@ -190,118 +200,356 @@ func (o *XAI) Run(ctx context.Context, logger logging.Logger, cfg config.RunConf
 			return result, nil // return current result state
 		}
 
-		// Parse the completion response.
+		// Parse the model response.
+		o.recordResponseUsage(resp.Usage, &result.usage)
 
-		if resp.Usage.IsSet() {
-			if u := resp.Usage.Get(); u != nil {
-				promptTokens := int64(u.PromptTokens)
-				completionTokens := int64(u.CompletionTokens)
-				reasoningTokens := int64(u.CompletionTokensDetails.ReasoningTokens)
-				cachedTokens := int64(u.PromptTokensDetails.CachedTokens)
-				recordUsage(InputTokenAccountingCacheTokensIncluded, OutputTokenAccountingReasoningTokensSeparate, &promptTokens, &completionTokens, &reasoningTokens, nil, &cachedTokens, &result.usage)
+		stopReason := o.stopReason(resp)
+		isTerminal := !o.hasPendingFunctionCalls(resp)
+		logFinishReason(ctx, logger, stopReason, isTerminal)
+
+		// Handle failures and unfinished responses.
+		if o.hasError(resp) {
+			return result, fmt.Errorf("%w: response failed: %s", ErrGenerateResponse, o.errorDetails(resp))
+		}
+		switch resp.Status {
+		case xaiResponseStatusInProgress:
+			// Synchronous responses should never return unfinished; the task can be retried.
+			return result, WrapErrRetryable(fmt.Errorf("%w: unexpected response status %q", ErrGenerateResponse, resp.Status))
+		case xaiResponseStatusIncomplete:
+			logger.Message(ctx, logging.LevelDebug, "response ended early: %s", o.incompleteReason(resp))
+		}
+
+		if !isTerminal {
+			if resp.ID == "" && !manageHistoryLocally {
+				return result, fmt.Errorf("%w: response ID is missing, cannot continue the conversation", ErrGenerateResponse)
 			}
-		}
-		if len(resp.Choices) == 0 {
-			return result, ErrNoResponseCandidates
-		}
-		for _, candidate := range resp.Choices {
-			finishReason := o.getFinishReason(candidate)
-			isTerminal := o.isTerminalStopReason(finishReason)
-			logFinishReason(ctx, logger, finishReason, isTerminal)
 
-			if !isTerminal {
-				// Append assistant message for every non-terminal turn.
-				msg := o.newAssistantHistoryMessage(candidate.Message)
-				req.Messages = append(req.Messages, xai.MessageOneOf2AsMessage(msg))
+			textContent, _ := o.messageText(resp.Output)
+			logSkippedPreambleText(ctx, logger, stopReason, textContent)
 
-				textContent, _ := o.getMessageText(candidate.Message)
-				logSkippedPreambleText(ctx, logger, finishReason, textContent)
-
-				// Handle tool calls.
-				for _, toolCall := range candidate.Message.ToolCalls {
-					args := json.RawMessage(toolCall.Function.Arguments)
-					data, err := taskFilesToDataMap(ctx, task.Files)
-					if err != nil {
-						return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
-					}
-					toolResult, err := executor.ExecuteTool(ctx, logger, toolCall.Function.Name, args, data, &tools.ToolCallContext{CallID: toolCall.Id, ConversationTurn: turn})
-					if runtimeErr := taskRuntimeToolError(err); runtimeErr != nil {
-						return result, runtimeErr
-					}
-					content := string(toolResult)
-					if err != nil {
-						content = formatToolExecutionError(err)
-					}
-					toolMessage := xai.NewMessageOneOf3(xai.StringAsContent(&content), "tool")
-					toolMessage.SetToolCallId(toolCall.Id)
-					req.Messages = append(req.Messages, xai.MessageOneOf3AsMessage(toolMessage))
+			// Execute function calls and collect their outputs, in order, for the next turn.
+			var functionCallOutputs []xai.ModelInputPart
+			for _, item := range resp.Output {
+				if item.FunctionCall == nil {
+					continue
 				}
+				functionCall := item.FunctionCall
+				data, err := taskFilesToDataMap(ctx, task.Files)
+				if err != nil {
+					return result, fmt.Errorf("%w: %v", ErrToolSetup, err)
+				}
+				toolResult, err := executor.ExecuteTool(ctx, logger, functionCall.Name, json.RawMessage(functionCall.Arguments), data, &tools.ToolCallContext{CallID: functionCall.CallId, ConversationTurn: turn})
+				if runtimeErr := taskRuntimeToolError(err); runtimeErr != nil {
+					return result, runtimeErr
+				}
+				content := string(toolResult)
+				if err != nil {
+					content = formatToolExecutionError(err)
+				}
+				functionCallOutput := xai.NewFunctionToolCallOutput(functionCall.CallId, xai.StringAsModelInputContent(&content), "function_call_output")
+				functionCallOutputs = append(functionCallOutputs, xai.FunctionToolCallOutputAsModelInputPart(functionCallOutput))
+			}
+
+			if manageHistoryLocally {
+				// Replay the model output of this turn, followed by the function call outputs.
+				for _, item := range resp.Output {
+					if inputPart, ok := item.toInputPart(); ok {
+						input = append(input, inputPart)
+					}
+				}
+				input = append(input, functionCallOutputs...)
 			} else {
-				if textContent, ok := o.getMessageText(candidate.Message); ok {
-					if cfg.DisableStructuredOutput {
-						err = UnmarshalUnstructuredResponse(ctx, logger, []byte(textContent), &result)
-					} else {
-						err = json.Unmarshal([]byte(textContent), &result)
-					}
-					if err != nil {
-						return result, NewErrUnmarshalResponse(err, []byte(textContent), []byte(finishReason))
-					}
-					return result, nil
-				}
-
-				return result, NewErrNoActionableContent([]byte(finishReason), nil)
+				// Maintain conversation context for the next turn; managed by the server.
+				// Only the function call outputs are needed as new input.
+				request.SetPreviousResponseId(resp.ID)
+				input = functionCallOutputs
 			}
+			request.SetInput(xai.ArrayOfModelInputPartAsModelInput(&input))
+		} else {
+			textContent, refusal := o.messageText(resp.Output)
+			if textContent != "" {
+				if cfg.DisableStructuredOutput {
+					err = UnmarshalUnstructuredResponse(ctx, logger, []byte(textContent), &result)
+				} else {
+					err = json.Unmarshal([]byte(textContent), &result)
+				}
+				if err != nil {
+					return result, NewErrUnmarshalResponse(err, []byte(textContent), []byte(stopReason))
+				}
+				return result, nil
+			}
+
+			var stopDetails any
+			if refusal != "" {
+				stopDetails = map[string]string{"refusal": refusal}
+			}
+			return result, NewErrNoActionableContent([]byte(stopReason), stopDetails)
 		}
 	} // move to the next conversation turn
 }
 
-func (o *XAI) isTerminalStopReason(stopReason string) bool {
-	return !slices.Contains([]string{"", "tool_calls"}, stopReason)
+// newTextInputMessage creates an input message with the given role and text content.
+func (o *XAI) newTextInputMessage(role string, text string) xai.ModelInputPart {
+	return xai.ModelInputPartOneOfAsModelInputPart(xai.NewModelInputPartOneOf(xai.StringAsModelInputContent(&text), role))
 }
 
-func (o *XAI) getFinishReason(candidate xai.Choice) (finishReason string) {
-	if candidate.FinishReason.IsSet() {
-		if value := candidate.FinishReason.Get(); value != nil {
-			finishReason = *value
+// createResponse sends the request to the Responses API endpoint and decodes the response body.
+// The generated client cannot execute this call: on real API responses, its untagged oneOf
+// unions (output items, tools, text format and incomplete details) match more than one variant
+// and fail to decode, so the body is decoded into the provider's own response view instead.
+func (o *XAI) createResponse(ctx context.Context, request *xai.ModelRequest) (*xaiModelResponse, *http.Response, error) {
+	requestBody, err := json.Marshal(request)
+	if err != nil {
+		return nil, nil, err
+	}
+	serverURL, err := o.clientCfg.ServerURLWithContext(ctx, "V1APIService.HandleGenericModelRequest")
+	if err != nil {
+		return nil, nil, err
+	}
+	httpRequest, err := http.NewRequestWithContext(ctx, http.MethodPost, serverURL+xaiResponsesPath, bytes.NewReader(requestBody))
+	if err != nil {
+		return nil, nil, err
+	}
+	for name, value := range o.clientCfg.DefaultHeader {
+		httpRequest.Header.Set(name, value)
+	}
+	httpRequest.Header.Set("Content-Type", "application/json")
+	httpRequest.Header.Set("Accept", "application/json")
+	httpRequest.Header.Set("User-Agent", o.clientCfg.UserAgent)
+
+	httpClient := o.clientCfg.HTTPClient
+	if httpClient == nil {
+		httpClient = http.DefaultClient
+	}
+	httpResponse, err := httpClient.Do(httpRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer httpResponse.Body.Close()
+
+	responseBody, err := io.ReadAll(httpResponse.Body)
+	if err != nil {
+		return nil, httpResponse, err
+	}
+	if httpResponse.StatusCode >= http.StatusMultipleChoices {
+		return nil, httpResponse, NewErrAPIResponse(fmt.Errorf("%w: %s", ErrAPIRequest, httpResponse.Status), responseBody)
+	}
+
+	var response xaiModelResponse
+	if err := json.Unmarshal(responseBody, &response); err != nil {
+		return nil, httpResponse, NewErrAPIResponse(err, responseBody)
+	}
+	return &response, httpResponse, nil
+}
+
+// xaiModelResponse is the subset of the Responses API response body consumed by the provider.
+// See: https://docs.x.ai/developers/rest-api-reference/inference/responses
+type xaiModelResponse struct {
+	// ID is the unique ID of the response, used to continue the conversation.
+	ID string `json:"id"`
+	// Status is the status of the response: completed, in_progress or incomplete.
+	Status string `json:"status"`
+	// Error is the error object returned when the model fails to generate a response.
+	Error json.RawMessage `json:"error,omitempty"`
+	// IncompleteDetails describes why the response is incomplete, when it is.
+	IncompleteDetails *xaiIncompleteDetails `json:"incomplete_details,omitempty"`
+	// Output contains the items generated by the model.
+	Output []xaiOutputItem `json:"output"`
+	// Usage contains the token usage of the response.
+	Usage *xaiUsage `json:"usage,omitempty"`
+}
+
+// Response statuses of the Responses API.
+const (
+	xaiResponseStatusCompleted  = "completed"
+	xaiResponseStatusInProgress = "in_progress"
+	xaiResponseStatusIncomplete = "incomplete"
+)
+
+// xaiResponseError is the structure of the error object reported for a failed response.
+// The API reference does not document its fields; the OpenAI-compatible code and message
+// pair is decoded on a best-effort basis.
+type xaiResponseError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+// xaiIncompleteDetails describes why a response is incomplete.
+type xaiIncompleteDetails struct {
+	Reason string `json:"reason"`
+}
+
+// xaiUsage is the token usage reported for a response. Reasoning tokens are reported
+// separately from the output tokens, which count the final text output only.
+// See: https://docs.x.ai/developers/tools/tool-usage-details#understanding-token-usage
+type xaiUsage struct {
+	InputTokens        int64 `json:"input_tokens"`
+	InputTokensDetails struct {
+		CachedTokens int64 `json:"cached_tokens"`
+	} `json:"input_tokens_details"`
+	OutputTokens        int64 `json:"output_tokens"`
+	OutputTokensDetails struct {
+		ReasoningTokens int64 `json:"reasoning_tokens"`
+	} `json:"output_tokens_details"`
+}
+
+// Output item types handled by the provider.
+const (
+	xaiOutputItemTypeMessage      = "message"
+	xaiOutputItemTypeFunctionCall = "function_call"
+	xaiOutputItemTypeReasoning    = "reasoning"
+)
+
+// xaiOutputItem is a response output item decoded according to its type. Exactly one of the
+// typed fields is set for the item types handled by the provider; items of any other type
+// (e.g. server-side tool calls) carry only their type.
+type xaiOutputItem struct {
+	Type         string
+	Message      *xai.OutputMessage
+	FunctionCall *xai.FunctionToolCall
+	Reasoning    *xai.Reasoning
+}
+
+func (item *xaiOutputItem) UnmarshalJSON(data []byte) error {
+	var header struct {
+		Type string `json:"type"`
+	}
+	if err := json.Unmarshal(data, &header); err != nil {
+		return err
+	}
+	*item = xaiOutputItem{Type: header.Type}
+	switch header.Type {
+	case xaiOutputItemTypeMessage:
+		item.Message = &xai.OutputMessage{}
+		return json.Unmarshal(data, item.Message)
+	case xaiOutputItemTypeFunctionCall:
+		item.FunctionCall = &xai.FunctionToolCall{}
+		return json.Unmarshal(data, item.FunctionCall)
+	case xaiOutputItemTypeReasoning:
+		item.Reasoning = &xai.Reasoning{}
+		return json.Unmarshal(data, item.Reasoning)
+	default:
+		return nil
+	}
+}
+
+// toInputPart converts the item into an input part that replays it to the model.
+// Items of types not handled by the provider cannot be replayed.
+func (item xaiOutputItem) toInputPart() (xai.ModelInputPart, bool) {
+	output := xai.ModelOutput{
+		OutputMessage:    item.Message,
+		FunctionToolCall: item.FunctionCall,
+		Reasoning:        item.Reasoning,
+	}
+	if output.GetActualInstance() == nil {
+		return xai.ModelInputPart{}, false
+	}
+	return xai.ModelOutputAsModelInputPart(&output), true
+}
+
+// recordResponseUsage adds the token usage of a response to the accumulated usage.
+// Cached input tokens are included in the input tokens, while reasoning tokens are
+// reported separately from the output tokens.
+func (o *XAI) recordResponseUsage(usage *xaiUsage, out *Usage) {
+	if usage == nil {
+		return
+	}
+	recordUsage(InputTokenAccountingCacheTokensIncluded, OutputTokenAccountingReasoningTokensSeparate, &usage.InputTokens, &usage.OutputTokens, &usage.OutputTokensDetails.ReasoningTokens, nil, &usage.InputTokensDetails.CachedTokens, out)
+}
+
+// stopReason describes why the response stopped: its status, followed by the
+// incomplete reason or the error code, if any.
+func (o *XAI) stopReason(resp *xaiModelResponse) string {
+	if resp.Status == xaiResponseStatusIncomplete && resp.IncompleteDetails != nil && resp.IncompleteDetails.Reason != "" {
+		return fmt.Sprintf("%s: %s", resp.Status, resp.IncompleteDetails.Reason)
+	}
+	if responseErr, ok := o.responseError(resp); ok && responseErr.Code != "" {
+		return fmt.Sprintf("%s: %s", resp.Status, responseErr.Code)
+	}
+	return resp.Status
+}
+
+// hasPendingFunctionCalls checks whether the model requested function calls that should be
+// executed before the conversation can continue. Function calls returned with a status other
+// than completed (e.g. incomplete) may be truncated, so they are not executed and end the
+// conversation.
+func (o *XAI) hasPendingFunctionCalls(resp *xaiModelResponse) bool {
+	if resp.Status != xaiResponseStatusCompleted {
+		return false
+	}
+	return slices.ContainsFunc(resp.Output, func(item xaiOutputItem) bool {
+		return item.FunctionCall != nil
+	})
+}
+
+// hasError checks whether the response reports an error object.
+func (o *XAI) hasError(resp *xaiModelResponse) bool {
+	return len(resp.Error) > 0 && string(resp.Error) != "null"
+}
+
+// responseError returns the structured error reported for a failed response, if any.
+func (o *XAI) responseError(resp *xaiModelResponse) (xaiResponseError, bool) {
+	var responseErr xaiResponseError
+	if !o.hasError(resp) {
+		return responseErr, false
+	}
+	if err := json.Unmarshal(resp.Error, &responseErr); err != nil {
+		return responseErr, false
+	}
+	return responseErr, true
+}
+
+// errorDetails describes the error reported for a failed response.
+func (o *XAI) errorDetails(resp *xaiModelResponse) string {
+	if responseErr, ok := o.responseError(resp); ok {
+		var detail strings.Builder
+		detail.WriteString(responseErr.Code)
+		if responseErr.Message != "" {
+			if detail.Len() > 0 {
+				detail.WriteString(": ")
+			}
+			detail.WriteString(responseErr.Message)
+		}
+		if detail.Len() > 0 {
+			return detail.String()
 		}
 	}
-	return
+	if o.hasError(resp) {
+		return string(resp.Error) // unrecognized error structure
+	}
+	return "no error details provided"
 }
 
-func (o *XAI) newAssistantHistoryMessage(message xai.ChoiceMessage) *xai.MessageOneOf2 {
-	msg := xai.NewMessageOneOf2(message.Role)
+// incompleteReason describes why a response is incomplete.
+func (o *XAI) incompleteReason(resp *xaiModelResponse) string {
+	if resp.IncompleteDetails != nil && resp.IncompleteDetails.Reason != "" {
+		return resp.IncompleteDetails.Reason
+	}
+	return "no details provided"
+}
 
-	if contentPtr, hasContent := message.GetContentOk(); hasContent {
-		if contentPtr == nil {
-			msg.SetContentNil()
-		} else {
-			msg.SetContent(xai.StringAsContent(contentPtr))
+// messageText concatenates the text content of all output messages and, separately,
+// any refusal content. Reasoning items are excluded.
+func (o *XAI) messageText(output []xaiOutputItem) (text string, refusal string) {
+	var textBuilder, refusalBuilder strings.Builder
+	for _, item := range output {
+		if item.Message == nil {
+			continue
+		}
+		for _, content := range item.Message.Content {
+			if content.OutputMessageContentOneOf != nil {
+				textBuilder.WriteString(content.OutputMessageContentOneOf.Text)
+			}
+			if content.OutputMessageContentOneOf1 != nil {
+				refusalBuilder.WriteString(content.OutputMessageContentOneOf1.Refusal)
+			}
 		}
 	}
-
-	if reasoningContent, hasReasoningContent := message.GetReasoningContentOk(); hasReasoningContent {
-		if reasoningContent == nil {
-			msg.SetReasoningContentNil()
-		} else {
-			msg.SetReasoningContent(*reasoningContent)
-		}
-	}
-
-	if toolCalls, hasToolCalls := message.GetToolCallsOk(); hasToolCalls {
-		msg.SetToolCalls(toolCalls)
-	}
-
-	return msg
+	return textBuilder.String(), refusalBuilder.String()
 }
 
-func (o *XAI) getMessageText(message xai.ChoiceMessage) (text string, ok bool) {
-	if contentPtr, hasContent := message.GetContentOk(); hasContent && contentPtr != nil {
-		text = *contentPtr
-		ok = text != ""
-	}
-	return
-}
-
+// isTransientResponse checks whether the HTTP response represents a transient condition
+// that the retry policy should attempt again.
 func (o *XAI) isTransientResponse(response *http.Response) bool {
 	return response != nil && slices.Contains([]int{
 		http.StatusTooManyRequests,
@@ -316,11 +564,9 @@ func (o *XAI) Close(ctx context.Context) error {
 	return nil
 }
 
-func (o *XAI) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []xai.ContentPart, err error) {
+func (o *XAI) createPromptMessageParts(ctx context.Context, promptText string, files []config.TaskFile, result *Result) (parts []xai.ModelInputContentItem, err error) {
 	for _, file := range files {
-		cpText := xai.NewContentPart("text")
-		cpText.SetText(result.recordPrompt(DefaultTaskFileNameInstruction(file)))
-		parts = append(parts, *cpText)
+		parts = append(parts, o.newTextContentItem(result.recordPrompt(DefaultTaskFileNameInstruction(file))))
 		if !file.HasAccess(config.FileAccessNative) {
 			continue
 		}
@@ -336,23 +582,22 @@ func (o *XAI) createPromptMessageParts(ctx context.Context, promptText string, f
 		}
 
 		// Add image data part.
-		imgCp := xai.NewContentPart("image_url")
-		imageUrl := xai.NewImageUrl()
-		imageUrl.SetUrl(dataURL)
-		imgCp.SetImageUrl(*imageUrl)
-		parts = append(parts, *imgCp)
+		parts = append(parts, xai.ModelInputContentItemOneOf2AsModelInputContentItem(xai.NewModelInputContentItemOneOf2(dataURL, "input_image")))
 	}
 
 	// Append the prompt text after the file data for improved context integrity.
-	cpFinal := xai.NewContentPart("text")
-	cpFinal.SetText(result.recordPrompt(promptText))
-	parts = append(parts, *cpFinal)
+	parts = append(parts, o.newTextContentItem(result.recordPrompt(promptText)))
 
 	return parts, nil
 }
 
+// newTextContentItem creates a text input content item.
+func (o *XAI) newTextContentItem(text string) xai.ModelInputContentItem {
+	return xai.ModelInputContentItemOneOfAsModelInputContentItem(xai.NewModelInputContentItemOneOf(text, "input_text"))
+}
+
 // isSupportedImageType checks if the provided MIME type is supported by the xAI image understanding API.
-// For more information, see: https://docs.x.ai/docs/guides/image-understanding
+// For more information, see: https://docs.x.ai/developers/model-capabilities/images/understanding
 func (o XAI) isSupportedImageType(mimeType string) bool {
 	return slices.Contains([]string{
 		"image/jpeg",

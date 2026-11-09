@@ -22,11 +22,11 @@ var _ MappedNullable = &ContentPart{}
 type ContentPart struct {
 	// File reference for file attachments (OpenAI-compatible nesting).
 	File NullableFileRef `json:"file,omitempty"`
-	// A public URL of image prompt, only available for vision models.
+	// Image prompt. An object `{url, detail}` on chat completions, or a string URL on Responses `input_image`.
 	ImageUrl NullableImageUrl `json:"image_url,omitempty"`
 	// Text prompt.
 	Text NullableString `json:"text,omitempty"`
-	// The type of the content part. Can be `text`, `image_url`, `text_file` or `file`.
+	// The type of the content part. Can be `text`, `image_url`, `text_file` or `file`. `input_text` and `input_image` are accepted so a tool result can use the same content items as `/v1/responses` `function_call_output`.
 	Type                 string `json:"type"`
 	AdditionalProperties map[string]interface{}
 }

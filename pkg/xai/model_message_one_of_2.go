@@ -18,17 +18,13 @@ import (
 // checks if the MessageOneOf2 type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &MessageOneOf2{}
 
-// MessageOneOf2 Assistant role message, previous chat messages from the model.
+// MessageOneOf2 User message, typically request from user for the model to answer.
 type MessageOneOf2 struct {
-	// Assistant prompt content.
-	Content NullableContent `json:"content,omitempty"`
+	// System prompt content.
+	Content Content `json:"content"`
 	// A unique identifier representing your end-user, which can help xAI to monitor and detect abuse.
-	Name NullableString `json:"name,omitempty"`
-	// Assistant reasoning content.
-	ReasoningContent NullableString `json:"reasoning_content,omitempty"`
-	Role             string         `json:"role"`
-	// An array of tool calls available to the model on your machine.
-	ToolCalls            []ToolCall `json:"tool_calls,omitempty"`
+	Name                 NullableString `json:"name,omitempty"`
+	Role                 string         `json:"role"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -38,8 +34,9 @@ type _MessageOneOf2 MessageOneOf2
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMessageOneOf2(role string) *MessageOneOf2 {
+func NewMessageOneOf2(content Content, role string) *MessageOneOf2 {
 	this := MessageOneOf2{}
+	this.Content = content
 	this.Role = role
 	return &this
 }
@@ -52,47 +49,28 @@ func NewMessageOneOf2WithDefaults() *MessageOneOf2 {
 	return &this
 }
 
-// GetContent returns the Content field value if set, zero value otherwise (both if not set or set to explicit null).
+// GetContent returns the Content field value
 func (o *MessageOneOf2) GetContent() Content {
-	if o == nil || IsNil(o.Content.Get()) {
+	if o == nil {
 		var ret Content
 		return ret
 	}
-	return *o.Content.Get()
+
+	return o.Content
 }
 
-// GetContentOk returns a tuple with the Content field value if set, nil otherwise
+// GetContentOk returns a tuple with the Content field value
 // and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *MessageOneOf2) GetContentOk() (*Content, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return o.Content.Get(), o.Content.IsSet()
+	return &o.Content, true
 }
 
-// HasContent returns a boolean if a field has been set.
-func (o *MessageOneOf2) HasContent() bool {
-	if o != nil && o.Content.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetContent gets a reference to the given NullableContent and assigns it to the Content field.
+// SetContent sets field value
 func (o *MessageOneOf2) SetContent(v Content) {
-	o.Content.Set(&v)
-}
-
-// SetContentNil sets the value for Content to be an explicit nil
-func (o *MessageOneOf2) SetContentNil() {
-	o.Content.Set(nil)
-}
-
-// UnsetContent ensures that no value is present for Content, not even an explicit nil
-func (o *MessageOneOf2) UnsetContent() {
-	o.Content.Unset()
+	o.Content = v
 }
 
 // GetName returns the Name field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -138,49 +116,6 @@ func (o *MessageOneOf2) UnsetName() {
 	o.Name.Unset()
 }
 
-// GetReasoningContent returns the ReasoningContent field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *MessageOneOf2) GetReasoningContent() string {
-	if o == nil || IsNil(o.ReasoningContent.Get()) {
-		var ret string
-		return ret
-	}
-	return *o.ReasoningContent.Get()
-}
-
-// GetReasoningContentOk returns a tuple with the ReasoningContent field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *MessageOneOf2) GetReasoningContentOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.ReasoningContent.Get(), o.ReasoningContent.IsSet()
-}
-
-// HasReasoningContent returns a boolean if a field has been set.
-func (o *MessageOneOf2) HasReasoningContent() bool {
-	if o != nil && o.ReasoningContent.IsSet() {
-		return true
-	}
-
-	return false
-}
-
-// SetReasoningContent gets a reference to the given NullableString and assigns it to the ReasoningContent field.
-func (o *MessageOneOf2) SetReasoningContent(v string) {
-	o.ReasoningContent.Set(&v)
-}
-
-// SetReasoningContentNil sets the value for ReasoningContent to be an explicit nil
-func (o *MessageOneOf2) SetReasoningContentNil() {
-	o.ReasoningContent.Set(nil)
-}
-
-// UnsetReasoningContent ensures that no value is present for ReasoningContent, not even an explicit nil
-func (o *MessageOneOf2) UnsetReasoningContent() {
-	o.ReasoningContent.Unset()
-}
-
 // GetRole returns the Role field value
 func (o *MessageOneOf2) GetRole() string {
 	if o == nil {
@@ -205,39 +140,6 @@ func (o *MessageOneOf2) SetRole(v string) {
 	o.Role = v
 }
 
-// GetToolCalls returns the ToolCalls field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *MessageOneOf2) GetToolCalls() []ToolCall {
-	if o == nil {
-		var ret []ToolCall
-		return ret
-	}
-	return o.ToolCalls
-}
-
-// GetToolCallsOk returns a tuple with the ToolCalls field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-// NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *MessageOneOf2) GetToolCallsOk() ([]ToolCall, bool) {
-	if o == nil || IsNil(o.ToolCalls) {
-		return nil, false
-	}
-	return o.ToolCalls, true
-}
-
-// HasToolCalls returns a boolean if a field has been set.
-func (o *MessageOneOf2) HasToolCalls() bool {
-	if o != nil && !IsNil(o.ToolCalls) {
-		return true
-	}
-
-	return false
-}
-
-// SetToolCalls gets a reference to the given []ToolCall and assigns it to the ToolCalls field.
-func (o *MessageOneOf2) SetToolCalls(v []ToolCall) {
-	o.ToolCalls = v
-}
-
 func (o MessageOneOf2) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -248,19 +150,11 @@ func (o MessageOneOf2) MarshalJSON() ([]byte, error) {
 
 func (o MessageOneOf2) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if o.Content.IsSet() {
-		toSerialize["content"] = o.Content.Get()
-	}
+	toSerialize["content"] = o.Content
 	if o.Name.IsSet() {
 		toSerialize["name"] = o.Name.Get()
 	}
-	if o.ReasoningContent.IsSet() {
-		toSerialize["reasoning_content"] = o.ReasoningContent.Get()
-	}
 	toSerialize["role"] = o.Role
-	if o.ToolCalls != nil {
-		toSerialize["tool_calls"] = o.ToolCalls
-	}
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -274,6 +168,7 @@ func (o *MessageOneOf2) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
+		"content",
 		"role",
 	}
 
@@ -306,9 +201,7 @@ func (o *MessageOneOf2) UnmarshalJSON(data []byte) (err error) {
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
 		delete(additionalProperties, "content")
 		delete(additionalProperties, "name")
-		delete(additionalProperties, "reasoning_content")
 		delete(additionalProperties, "role")
-		delete(additionalProperties, "tool_calls")
 		o.AdditionalProperties = additionalProperties
 	}
 

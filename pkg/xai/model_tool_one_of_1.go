@@ -18,7 +18,7 @@ import (
 // checks if the ToolOneOf1 type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &ToolOneOf1{}
 
-// ToolOneOf1 struct for ToolOneOf1
+// ToolOneOf1 Deprecated: live search has been removed, and requests that include this tool fail. Use the Agent Tools API instead: <https://docs.x.ai/developers/tools/overview>.
 type ToolOneOf1 struct {
 	Sources              []SearchSource `json:"sources"`
 	Type                 string         `json:"type"`

@@ -334,11 +334,11 @@ This file defines the tool's settings and target model configurations evaluated 
 >
 > - **temperature**: Controls randomness/creativity of responses (range: 0.0 to 2.0, default: 1.0). Lower values produce more focused and deterministic outputs.
 > - **top-p**: Controls diversity via nucleus sampling (range: 0.0 to 1.0, default: 1.0). Lower values produce more focused outputs.
-> - **max-completion-tokens**: Controls the maximum number of tokens available to the model for generating a response.
-> - **presence-penalty**: Penalizes new tokens based on their presence in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use new tokens.
-> - **frequency-penalty**: Penalizes new tokens based on their frequency in text so far (range: -2.0 to 2.0, default: 0.0). Positive values encourage model to use less frequent tokens.
+> - **max-completion-tokens**: Controls the maximum number of visible output tokens available to the model for generating a response. Tokens used for reasoning or function calls do not count towards the limit.
 > - **reasoning-effort**: Controls effort on reasoning for supported reasoning-capable models (values: `low`, `medium`, `high`, `xhigh`). Not all xAI reasoning models (i.e. Grok 4) accept this parameter; Grok 4.5 defaults to `high` when unset. The `xhigh` level is supported on Grok 4.6 and later.
-> - **seed**: Integer seed to request deterministic sampling when possible. Determinism is best-effort. xAI makes a best-effort to return repeatable outputs for identical inputs when `seed` and other parameters are the same.
+> - **presence-penalty**: **Deprecated**: not supported by the Responses API; ignored with a warning.
+> - **frequency-penalty**: **Deprecated**: not supported by the Responses API; ignored with a warning.
+> - **seed**: **Deprecated**: not supported by the Responses API; ignored with a warning.
 >
 > Currently supported parameters for **Alibaba** models include:
 >

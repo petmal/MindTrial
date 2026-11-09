@@ -18,9 +18,9 @@ import (
 // checks if the MessageOneOf1 type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &MessageOneOf1{}
 
-// MessageOneOf1 User message, typically request from user for the model to answer.
+// MessageOneOf1 Developer message, instructions from the application developer.
 type MessageOneOf1 struct {
-	// System prompt content.
+	// Developer prompt content.
 	Content Content `json:"content"`
 	// A unique identifier representing your end-user, which can help xAI to monitor and detect abuse.
 	Name                 NullableString `json:"name,omitempty"`
